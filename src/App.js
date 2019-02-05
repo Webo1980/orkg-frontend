@@ -10,6 +10,7 @@ import {NotificationContainer} from 'react-notifications';
 import AddResource from './pages/AddResource';
 import Predicates from './pages/Predicates';
 import SearchForm from './components/SearchForm';
+import Compare from './pages/Compare';
 
 export default class App extends Component {
 
@@ -52,6 +53,9 @@ export default class App extends Component {
                         <NavItem>
                             <NavLink href={`${process.env.PUBLIC_URL}/predicates`}>Predicates</NavLink>
                         </NavItem>
+                        <NavItem>
+                            <NavLink href={`${process.env.PUBLIC_URL}/compare`}>Compare</NavLink>
+                        </NavItem>
                     </Nav>
 
                     <main role="main" className="col-md-9 col-lg-10 pt-3 px-4">
@@ -59,6 +63,7 @@ export default class App extends Component {
                             <Route exact path={`${process.env.PUBLIC_URL}/`} component={Resources} />
                             <Route exact path={`${process.env.PUBLIC_URL}/addResource`} component={AddResource} />
                             <Route exact path={`${process.env.PUBLIC_URL}/predicates`} component={Predicates} />
+                            <Route exact path={`${process.env.PUBLIC_URL}/compare`} component={Compare} />
                             <Route path={`${process.env.PUBLIC_URL}/resource/:resourceId/:sectionName`}
                                 render={({ match }) => {
                                     const id = decodeURIComponent(match.params.resourceId);
