@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import NewStatementsSection from '../components/statements/new/NewStatementsSection';
 import StatementGroupCard from '../components/statements/existing/StatementGroupCard';
-import {resourcesUrl, statementsUrl, submitGetRequest} from '../network';
+import {resourcesUrl, statementsBySubjectUrl, submitGetRequest} from '../network';
 import {groupByObjectWithId} from '../utils';
 import './ResourceDetails.css';
 import EditableHeader from '../components/EditableHeader';
@@ -46,7 +46,7 @@ export default class ResourceDetails extends Component {
 
     findAllStatements = async () => {
         try {
-            const responseJson = await submitGetRequest(statementsUrl);
+            const responseJson = await submitGetRequest(statementsBySubjectUrl + encodeURIComponent(this.props.id));
 
             this.setState({
                 allStatements: responseJson,
@@ -104,8 +104,8 @@ export default class ResourceDetails extends Component {
             const abstractJsx = abstractText && <div>{abstractText.object.id}</div>;
 
             const groupingProperty = "predicate";
-            const statements = this.state.allStatements.filter((statement) => statement.subject.id === id
-                    && statement.predicate.id !== labelId && statement.predicate.id !== abstractId);
+            const statements = this.state.allStatements;/*.filter((statement) => statement.subject.id === id
+                    && statement.predicate.id !== labelId && statement.predicate.id !== abstractId);*/
             const groupedStatements = groupByObjectWithId(statements, groupingProperty);
             const statementGroupJsxs = groupedStatements.map(
                 statementGroup => {

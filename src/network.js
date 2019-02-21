@@ -2,6 +2,7 @@ export const url = process.env.REACT_APP_SERVER_URL;
 export const resourcesUrl = `${url}resources/`;
 export const predicatesUrl = `${url}predicates/`;
 export const statementsUrl = `${url}statements/`;
+export const statementsBySubjectUrl = `${url}statements/subject/`;
 export const literalsUrl = `${url}literals/`;
 export const crossrefUrl = process.env.REACT_APP_CROSSREF_URL;
 
