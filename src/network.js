@@ -104,13 +104,25 @@ export const createLiteral = (label) => {
 };
 
 export const createResourceStatement = (subjectId, predicateId, objectId) => {
-    return submitPostRequest(`${statementsUrl}${subjectId}/${predicateId}/${objectId}/`,
-            {'Content-Type': 'application/json'}, {});
+    return submitPostRequest(`${statementsUrl}`,
+        {'Content-Type': 'application/json'},
+        {'subject_id' : subjectId,
+        'predicate_id' : predicateId,
+        'object': {
+            'id': objectId,
+            "_class" : "resource"
+        }});
 };
 
 export const createLiteralStatement = (subjectId, predicateId, property) => {
-    return submitPostRequest(`${statementsUrl}${subjectId}/${predicateId}/`, {'Content-Type': 'application/json'},
-            {'object': {'id': property}});
+    return submitPostRequest(`${statementsUrl}`,
+        {'Content-Type': 'application/json'},
+        {'subject_id' : subjectId,
+        'predicate_id' : predicateId,
+        'object': {
+            'id': property,
+            "_class" : "literal"
+        }});
 };
 
 export const createPredicate = (label) => {
