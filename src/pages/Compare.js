@@ -28,7 +28,7 @@ const columns = [
         average: 'n log n',
         worst: 'n log n'
         
-    },
+    }/*,
     {
         id: 11,
         sim: 60,
@@ -39,7 +39,7 @@ const columns = [
         best:'n',
         average: 'n2',
         worst: 'n2'
-    },
+    }*/,
     {
         id: 12,
         sim: 75,
@@ -70,7 +70,7 @@ const columns = [
         approach: "leverage web technologies",
         lang: "Python",
         sim: 14,
-    },
+    }/*,
     {
         id: 2,
         title: "Interactive Visualization for large-scale multi-factorial Research Designs",
@@ -78,7 +78,7 @@ const columns = [
         approach: "Factorial expiremental designs",
         lang: "Java",
         sim: 10,
-    },
+    }*/,
     {
         id: 3,
         title: "FedSDM: Semantic Data Manager for Federations of RDF Datasets",
@@ -86,7 +86,7 @@ const columns = [
         approach: "",
         lang: "Python 3.5",
         sim: 22,
-    },
+    }/*,
     {
         id: 4,
         title: "Data Integration for Supporting Biomedical Knowledge Graph Creation at Large-Scale",
@@ -102,7 +102,7 @@ const columns = [
         approach: "SVM",
         lang: "Python",
         sim: 1,
-    }
+    }*/
   ];
 
 export default class Compare extends Component {
