@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Button } from 'reactstrap';
+import { Container, Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPen } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from '../../Utils/Tooltip';
-import { StyledContributionsList, StyledContentEditable } from './styled';
+import { StyledHorizontalContentEditable, StyledHorizontalContributionsList } from './styled';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import {
@@ -143,68 +143,72 @@ class Contributions extends Component {
                 <h2 className="h4 mt-4 mb-5"><Tooltip message={<span>Specify the research contributions that this paper makes. A paper can have multiple contributions and each contribution addresses at least one research problem. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => this.handleLearnMore(1)}>Learn more</span></span>}>Specify research contributions</Tooltip></h2>
 
                 <Container>
-                    <Row noGutters={true}>
-                        <Col xs="3">
-                            <StyledContributionsList id="contributionsList">
-                                {this.props.contributions.allIds.map((contribution, index) => {
-                                    let contributionId = this.props.contributions.byId[contribution]['id'];
-
-                                    return (
-                                        <li className={contributionId === this.props.selectedContribution ? 'activeContribution' : ''} key={contributionId}>
-                                            <span className={'selectContribution'} onClick={() => this.handleSelectContribution(contributionId)}>
-                                                {/* TODO: add the contenteditable into a seperate component */}
-                                                <StyledContentEditable
-                                                    innerRef={(input) => { this.inputRefs[contribution] = input; }}
-                                                    html={this.props.contributions.byId[contribution]['label']}
-                                                    disabled={!this.state.editing[contribution]}
-                                                    onChange={(e) => this.handleChange(contributionId, e)}
-                                                    tagName="span"
-                                                    onPaste={this.pasteAsPlainText}
-                                                    onKeyDown={e => e.keyCode === 13 && e.target.blur()} // Disable multiline Input
-                                                    onBlur={(e) => this.toggleEditLabelContribution(contributionId)}
-                                                    onFocus={(e) => setTimeout(() => { document.execCommand('selectAll', false, null) }, 0)} // Highlights the entire label when edit
-                                                />
-                                                {!this.state.editing[contribution] && (
-                                                    <>
+                    <div>
+                        <StyledHorizontalContributionsList id="contributionsList">
+                            {this.props.contributions.allIds.map((contribution, index) => {
+                                let contributionId = this.props.contributions.byId[contribution]['id'];
+                                return (
+                                    <li
+                                        className={contributionId === this.props.selectedContribution ? 'activeContribution' : ''}
+                                        key={contributionId}
+                                        onClick={() => this.handleSelectContribution(contributionId)}
+                                    >
+                                        <StyledHorizontalContentEditable
+                                            innerRef={(input) => { this.inputRefs[contribution] = input; }}
+                                            html={this.props.contributions.byId[contribution]['label']}
+                                            disabled={!this.state.editing[contribution]}
+                                            onChange={(e) => this.handleChange(contributionId, e)}
+                                            tagName="span"
+                                            onPaste={this.pasteAsPlainText}
+                                            onKeyDown={e => e.keyCode === 13 && e.target.blur()} // Disable multiline Input
+                                            onBlur={(e) => this.toggleEditLabelContribution(contributionId)}
+                                            onFocus={(e) => setTimeout(() => { document.execCommand('selectAll', false, null) }, 0)} // Highlights the entire label when edit
+                                        />
+                                        {!this.state.editing[contribution] && contributionId === this.props.selectedContribution && (
+                                            <>
+                                                <UncontrolledButtonDropdown direction="right">
+                                                    <DropdownToggle color="link">
+                                                        <Icon icon={faCog} />
+                                                    </DropdownToggle>
+                                                    <DropdownMenu>
+                                                        <DropdownItem onClick={(e) => this.toggleEditLabelContribution(contributionId, e)}>
+                                                            <Icon icon={faPen} /> Edit the contribution label
+                                                        </DropdownItem>
                                                         {this.props.contributions.allIds.length !== 1 && (
-                                                            <span className={`deleteContribution float-right mr-1 ${contributionId !== this.props.selectedContribution && 'd-none'}`}>
-                                                                <Tooltip message="Delete contribution" hideDefaultIcon={true}>
-                                                                    <Icon icon={faTrash} onClick={() => this.toggleDeleteContribution(contributionId)} />
-                                                                </Tooltip>
-                                                            </span>
+                                                            <DropdownItem onClick={() => this.toggleDeleteContribution(contributionId)}>
+                                                                <Icon icon={faTrash} /> Delete contribution
+                                                            </DropdownItem>
                                                         )}
-                                                        <span className={`deleteContribution float-right mr-1 ${contributionId !== this.props.selectedContribution && 'd-none'}`}>
-                                                            <Tooltip message="Edit the contribution label" hideDefaultIcon={true}>
-                                                                <Icon icon={faPen} onClick={(e) => this.toggleEditLabelContribution(contributionId, e)} />
-                                                            </Tooltip>
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </span>
-                                        </li>
-                                    )
-                                })}
+                                                    </DropdownMenu>
+                                                </UncontrolledButtonDropdown>
 
-                                <li className={'addContribution text-primary'}>
-                                    <span onClick={this.props.createContribution}>+ Add another contribution</span>
-                                </li>
-                            </StyledContributionsList>
-                        </Col>
+                                            </>
+                                        )}
+                                    </li>
+                                )
+                            })}
+                            <li className={'addContribution text-primary'}>
+                                <span onClick={this.props.createContribution}><Icon icon={faPlus} /></span>
+                            </li>
+                        </StyledHorizontalContributionsList>
 
-                        <CSSTransitionGroup
-                            transitionName="fadeIn"
-                            transitionEnterTimeout={500}
-                            transitionLeave={false}
-                            component="div"
-                            className="col-9"
-                        >
-                            <AnimationContainer
-                                key={selectedResourceId}
+                        <Row>
+                            <CSSTransitionGroup
+                                transitionName="fadeIn"
+                                transitionEnterTimeout={500}
+                                transitionLeave={false}
+                                component="div"
+                                className="col-12"
+                                style={{}}
                             >
-                                <Contribution id={selectedResourceId} />
-                            </AnimationContainer>
-                        </CSSTransitionGroup>
-                    </Row>
+                                <AnimationContainer
+                                    key={selectedResourceId}
+                                >
+                                    <Contribution id={selectedResourceId} />
+                                </AnimationContainer>
+                            </CSSTransitionGroup>
+                        </Row>
+                    </div>
                 </Container>
 
                 <hr className="mt-5 mb-3" />

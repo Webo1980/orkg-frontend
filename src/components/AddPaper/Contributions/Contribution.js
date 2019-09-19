@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Form, FormGroup, Label, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import Tooltip from '../../Utils/Tooltip';
 import ResearchProblemInput from './ResearchProblemInput';
-import { StyledContribution } from './styled';
+import { StyledHorizontalContribution } from './styled';
 import StatementBrowser from '../../StatementBrowser/Statements';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
@@ -66,7 +66,7 @@ class Contribution extends Component {
 
     render() {
         return (
-            <StyledContribution>
+            <StyledHorizontalContribution>
                 <Form>
                     <FormGroup>
                         <Label>
@@ -132,7 +132,7 @@ class Contribution extends Component {
                         <a href="https://labs.tib.eu/orkg/paper/R1020" target="_blank" rel="noopener noreferrer">View paper that has been used in this example <Icon size="sm" icon={faExternalLinkAlt} /></a>
                     </ModalBody>
                 </Modal>
-            </StyledContribution>
+            </StyledHorizontalContribution>
         );
     }
 }

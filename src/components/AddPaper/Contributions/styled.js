@@ -11,6 +11,16 @@ export const StyledContribution = styled.div`
     padding: 15px 30px;
 `;
 
+/*contribution*/
+export const StyledHorizontalContribution = styled.div`
+    border-radius: ${props => props.theme.borderRadius};
+    border-width: ${props => props.theme.borderWidth};
+    border-color: ${props => props.theme.orkgPrimaryColor};
+    border-style: solid;
+    border-top-left-radius: 0;
+    padding: 15px 30px;
+`;
+
 /*contributionsList*/
 export const StyledContributionsList = styled.ul`
     list-style: none;
@@ -52,6 +62,65 @@ export const StyledContributionsList = styled.ul`
     }
 `;
 
+export const StyledHorizontalContributionsList = styled.ul`
+    list-style: none;
+    padding: 0;
+    margin:0;
+
+    > li {
+        display: inline-block;
+        padding: 9px 15px 9px 15px;
+        transition: 0.3s background;
+        border-top-left-radius: ${props => props.theme.borderRadius};
+        border-top-right-radius: ${props => props.theme.borderRadius};
+        border: 2px solid ${props => props.theme.orkgPrimaryColor};
+        border-bottom:0;
+        position:relative;
+
+        .btn{
+            border:0;
+            padding: 0;
+            color:${props => props.theme.darkblue};
+        }
+
+        .btn-group{
+            position:absolute;
+            top:-10px;
+            right:-3px;
+            color:${props => props.theme.darkblue};
+        }
+
+        > span {
+            cursor: pointer;
+        }
+        &.activeContribution {
+            background: ${props => props.theme.orkgPrimaryColor};
+            color: #fff;
+            cursor: initial !important;
+        }
+        &.activeContribution a{
+            color: #fff;
+        }
+        .dropdown-item {
+            cursor: pointer;
+            color: ${props => props.theme.darkblue};
+        }
+        .dropdown-item:active  {
+            color: #fff;
+        }
+        .selectContribution {
+            cursor:pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+        &.addContribution span:hover {
+            text-decoration: underline;
+        }
+    }
+`;
+
 /*contributionsList*/
 export const StyledContentEditable = styled(ContentEditable)`
     &:focus {
@@ -62,6 +131,17 @@ export const StyledContentEditable = styled(ContentEditable)`
     padding: 0 4px;
     display: block;
   }
+`;
+
+export const StyledHorizontalContentEditable = styled(ContentEditable)`
+    box-sizing: border-box;
+    &:focus {
+        background: #fff;
+        color: ${props => props.theme.orkgPrimaryColor};
+        border: dotted 2px ${props => props.theme.listGroupBorderColor};
+        outline: 0;
+        padding:0 2px;
+    }
 `;
 
 /*researchFieldsInput*/
