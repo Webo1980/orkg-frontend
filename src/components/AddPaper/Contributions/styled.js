@@ -21,6 +21,65 @@ export const StyledHorizontalContribution = styled.div`
     padding: 15px 30px;
 `;
 
+/*related*/
+export const StyledRelated = styled.div`
+    border-radius: ${props => props.theme.borderRadius};
+    border-width: ${props => props.theme.borderWidth};
+    border-color: ${props => props.theme.orkgPrimaryColor};
+    border-style: dotted;
+    border-top-left-radius: 0;
+    padding: 15px 30px;
+`;
+
+export const StyledRelatedList = styled.ul`
+    list-style: none;
+    padding: 0;
+    margin:0;
+
+    > li {
+        display: inline-block;
+        padding: 9px 15px 9px 15px;
+        transition: 0.3s background;
+        border-top-left-radius: ${props => props.theme.borderRadius};
+        border-top-right-radius: ${props => props.theme.borderRadius};
+        border: 2px solid ${props => props.theme.orkgPrimaryColor};
+        border-bottom:0;
+        position:relative;
+        cursor: pointer;
+
+        &.activeRelated {
+            background: ${props => props.theme.orkgPrimaryColor};
+            color: #fff;
+        }
+        &.activeRelated a{
+            color: #fff;
+        }
+    }
+`;
+
+/*relatedData*/
+export const StyledRelatedData = styled.ul`
+    border-radius: ${props => props.theme.borderRadius};
+    border-width: ${props => props.theme.borderWidth};
+    border-color: ${props => props.theme.orkgPrimaryColor};
+    border-style: dashed;
+    border-top-left-radius: 0;
+    list-style: none;
+    padding:0;
+    height:300px;
+    overflow: scroll;
+    overflow-x: hidden;
+
+    > li {
+        padding: 9px 9px 9px 15px;
+        margin-bottom: 5px;
+        transition: 0.3s background;
+        border-bottom: dotted 1px;
+        cursor: move;
+        font-size:small;
+    }
+`;
+
 /*contributionsList*/
 export const StyledContributionsList = styled.ul`
     list-style: none;

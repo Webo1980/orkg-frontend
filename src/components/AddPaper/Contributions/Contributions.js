@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from '../../Utils/Tooltip';
-import { StyledHorizontalContentEditable, StyledHorizontalContributionsList } from './styled';
+import { StyledHorizontalContentEditable, StyledHorizontalContributionsList, StyledRelatedData, StyledRelatedList } from './styled';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import {
@@ -38,7 +38,8 @@ class Contributions extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            editing: {}
+            editing: {},
+            activeTab: '1'
         };
         this.inputRefs = {}
     }
@@ -50,6 +51,14 @@ class Contributions extends Component {
                 selectAfterCreation: true,
                 prefillStatements: true,
                 researchField: this.props.selectedResearchField,
+            });
+        }
+    }
+
+    toggle = (tab) => {
+        if (this.state.activeTab !== tab) {
+            this.setState({
+                activeTab: tab
             });
         }
     }
@@ -142,8 +151,8 @@ class Contributions extends Component {
             <div>
                 <h2 className="h4 mt-4 mb-5"><Tooltip message={<span>Specify the research contributions that this paper makes. A paper can have multiple contributions and each contribution addresses at least one research problem. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => this.handleLearnMore(1)}>Learn more</span></span>}>Specify research contributions</Tooltip></h2>
 
-                <Container>
-                    <div>
+                <Row>
+                    <div className="col-8">
                         <StyledHorizontalContributionsList id="contributionsList">
                             {this.props.contributions.allIds.map((contribution, index) => {
                                 let contributionId = this.props.contributions.byId[contribution]['id'];
@@ -173,11 +182,11 @@ class Contributions extends Component {
                                                     <DropdownMenu>
                                                         <DropdownItem onClick={(e) => this.toggleEditLabelContribution(contributionId, e)}>
                                                             <Icon icon={faPen} /> Edit the contribution label
-                                                        </DropdownItem>
+                                                            </DropdownItem>
                                                         {this.props.contributions.allIds.length !== 1 && (
                                                             <DropdownItem onClick={() => this.toggleDeleteContribution(contributionId)}>
                                                                 <Icon icon={faTrash} /> Delete contribution
-                                                            </DropdownItem>
+                                                                </DropdownItem>
                                                         )}
                                                     </DropdownMenu>
                                                 </UncontrolledButtonDropdown>
@@ -191,25 +200,73 @@ class Contributions extends Component {
                                 <span onClick={this.props.createContribution}><Icon icon={faPlus} /></span>
                             </li>
                         </StyledHorizontalContributionsList>
-
-                        <Row>
-                            <CSSTransitionGroup
-                                transitionName="fadeIn"
-                                transitionEnterTimeout={500}
-                                transitionLeave={false}
-                                component="div"
-                                className="col-12"
-                                style={{}}
+                        <CSSTransitionGroup
+                            transitionName="fadeIn"
+                            transitionEnterTimeout={500}
+                            transitionLeave={false}
+                            component="div"
+                            style={{}}
+                        >
+                            <AnimationContainer
+                                key={selectedResourceId}
                             >
-                                <AnimationContainer
-                                    key={selectedResourceId}
-                                >
-                                    <Contribution id={selectedResourceId} />
-                                </AnimationContainer>
-                            </CSSTransitionGroup>
-                        </Row>
+                                <Contribution id={selectedResourceId} />
+                            </AnimationContainer>
+                        </CSSTransitionGroup>
                     </div>
-                </Container>
+                    <Col xs="4">
+                        <StyledRelatedList id="contributionsList">
+                            <li
+                                onClick={() => { this.toggle('1'); }}
+                                className={this.state.activeTab === '1' ? 'activeRelated' : ''}
+                            >
+                                <span>Properties</span>
+                            </li>
+                            <li
+                                onClick={() => { this.toggle('2'); }}
+                                className={this.state.activeTab === '2' ? 'activeRelated' : ''}
+                            >
+                                <span>Values</span>
+                            </li>
+                        </StyledRelatedList>
+                        <CSSTransitionGroup
+                            transitionName="fadeIn"
+                            transitionEnterTimeout={500}
+                            transitionLeave={false}
+                            component="div"
+                        >
+                            {this.state.activeTab === '1' && (
+                                <AnimationContainer
+                                    key={1}
+                                >
+                                    <StyledRelatedData>
+                                        <li>Property 1</li>
+                                        <li>Property 2</li>
+                                        <li>Property 3</li>
+                                        <li>Property 4</li>
+                                        <li>Property 5</li>
+                                        <li>Property 6</li>
+                                        <li>Property 7</li>
+                                    </StyledRelatedData>
+                                </AnimationContainer>)}
+
+                            {this.state.activeTab === '2' && (
+                                <AnimationContainer
+                                    key={2}
+                                >
+                                    <StyledRelatedData>
+                                        <li>Value 1</li>
+                                        <li>Value 2</li>
+                                        <li>Value 3</li>
+                                        <li>Value 4</li>
+                                        <li>Value 5</li>
+                                        <li>Value 6</li>
+                                        <li>Value 7</li>
+                                    </StyledRelatedData>
+                                </AnimationContainer>)}
+                        </CSSTransitionGroup>
+                    </Col>
+                </Row>
 
                 <hr className="mt-5 mb-3" />
                 <Button color="primary" className="float-right mb-4" onClick={this.handleNextClick}>Finish</Button>
