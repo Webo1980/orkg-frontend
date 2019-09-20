@@ -201,6 +201,7 @@ export const StyledContentEditable = styled(ContentEditable)`
 export const StyledHorizontalContentEditable = styled(ContentEditable)`
     box-sizing: border-box;
     &:focus {
+        font-weight: normal;
         background: #fff;
         color: ${props => props.theme.orkgPrimaryColor};
         border: dotted 2px ${props => props.theme.listGroupBorderColor};
