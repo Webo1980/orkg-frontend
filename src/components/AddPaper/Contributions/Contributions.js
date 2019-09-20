@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from '../../Utils/Tooltip';
@@ -17,6 +17,8 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import styled, { withTheme } from 'styled-components';
 import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
+import RelatedProperty from './RelatedProperty';
+import RelatedValue from './RelatedValue';
 
 
 
@@ -147,10 +149,27 @@ class Contributions extends Component {
     render() {
         let selectedResourceId = this.props.selectedContribution;
 
+        let sugProperties = [
+            { id: 1, label: 'Property 1' },
+            { id: 2, label: 'Property 2' },
+            { id: 3, label: 'Property 3' },
+            { id: 4, label: 'Property 4' },
+            { id: 5, label: 'Property 5' },
+            { id: 6, label: 'Property 6' }
+        ];
+
+        let sugValues = [
+            { id: 1, label: 'Value 1' },
+            { id: 2, label: 'Value 2' },
+            { id: 3, label: 'Value 3' },
+            { id: 4, label: 'Value 4' },
+            { id: 5, label: 'Value 5' },
+            { id: 6, label: 'Value 6' }
+        ];
+
         return (
             <div>
                 <h2 className="h4 mt-4 mb-5"><Tooltip message={<span>Specify the research contributions that this paper makes. A paper can have multiple contributions and each contribution addresses at least one research problem. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => this.handleLearnMore(1)}>Learn more</span></span>}>Specify research contributions</Tooltip></h2>
-
                 <Row>
                     <div className="col-8">
                         <StyledHorizontalContributionsList id="contributionsList">
@@ -182,11 +201,11 @@ class Contributions extends Component {
                                                     <DropdownMenu>
                                                         <DropdownItem onClick={(e) => this.toggleEditLabelContribution(contributionId, e)}>
                                                             <Icon icon={faPen} /> Edit the contribution label
-                                                            </DropdownItem>
+                                                        </DropdownItem>
                                                         {this.props.contributions.allIds.length !== 1 && (
                                                             <DropdownItem onClick={() => this.toggleDeleteContribution(contributionId)}>
                                                                 <Icon icon={faTrash} /> Delete contribution
-                                                                </DropdownItem>
+                                                            </DropdownItem>
                                                         )}
                                                     </DropdownMenu>
                                                 </UncontrolledButtonDropdown>
@@ -240,13 +259,7 @@ class Contributions extends Component {
                                     key={1}
                                 >
                                     <StyledRelatedData>
-                                        <li>Property 1</li>
-                                        <li>Property 2</li>
-                                        <li>Property 3</li>
-                                        <li>Property 4</li>
-                                        <li>Property 5</li>
-                                        <li>Property 6</li>
-                                        <li>Property 7</li>
+                                        {sugProperties.map((p) => <RelatedProperty key={`s${p.id}`} id={p.id} label={p.label} />)}
                                     </StyledRelatedData>
                                 </AnimationContainer>)}
 
@@ -255,19 +268,12 @@ class Contributions extends Component {
                                     key={2}
                                 >
                                     <StyledRelatedData>
-                                        <li>Value 1</li>
-                                        <li>Value 2</li>
-                                        <li>Value 3</li>
-                                        <li>Value 4</li>
-                                        <li>Value 5</li>
-                                        <li>Value 6</li>
-                                        <li>Value 7</li>
+                                        {sugValues.map((v) => <RelatedValue key={`s${v.id}`} id={v.id} label={v.label} />)}
                                     </StyledRelatedData>
                                 </AnimationContainer>)}
                         </CSSTransitionGroup>
                     </Col>
                 </Row>
-
                 <hr className="mt-5 mb-3" />
                 <Button color="primary" className="float-right mb-4" onClick={this.handleNextClick}>Finish</Button>
                 <Button color="light" className="float-right mb-4 mr-2" onClick={this.props.previousStep}>Previous step</Button>

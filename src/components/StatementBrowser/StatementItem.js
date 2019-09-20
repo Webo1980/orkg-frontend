@@ -2,15 +2,71 @@ import React, { Component } from 'react';
 import { ListGroup, Collapse } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/free-solid-svg-icons';
-import { StyledStatementItem, StyledListGroupOpen } from '../AddPaper/Contributions/styled';
+import { StyledStatementItem, StyledListGroupOpen, StyledValueItem } from '../AddPaper/Contributions/styled';
 import { getResource } from '../../network';
 import classNames from 'classnames';
 import ValueItem from './Value/ValueItem';
 import AddValue from './Value/AddValue';
 import DeleteStatement from './DeleteStatement';
 import { connect } from 'react-redux';
-import { togglePropertyCollapse } from '../../actions/statementBrowser';
+import { togglePropertyCollapse, createValue } from '../../actions/statementBrowser';
 import PropTypes from 'prop-types';
+import { DropTarget } from 'react-dnd';
+import DndTypes from './../../constants/DndTypes';
+import { compose } from 'redux';
+
+/**
+ * Specifies the drop target contract.
+ * All methods are optional.
+ */
+const propertyValuesTarget = {
+    canDrop(props, monitor) {
+        // You can disallow drop based on props or item
+        //const item = monitor.getItem()
+        return true;
+    },
+
+    drop(props, monitor, component) {
+        if (monitor.didDrop()) {
+            // If you want, you can check whether some nested
+            // target already handled drop
+            return
+        }
+
+        // Obtain the dragged item
+        const item = monitor.getItem()
+
+        // You can do something with it
+        //ChessActions.movePiece(item.fromPosition, props.position)
+
+        props.createValue({
+            label: item.label,
+            type: 'object',
+            propertyId: props.selectedProperty,
+        });
+
+        // You can also do nothing and return a drop result,
+        // which will be available as monitor.getDropResult()
+        // in the drag source's endDrag() method
+        return { moved: true }
+    },
+}
+
+/**
+ * Specifies which props to inject into your component.
+ */
+function collect(connect, monitor) {
+    return {
+        // Call this function inside render()
+        // to let React DnD handle the drag events:
+        connectDropTarget: connect.dropTarget(),
+        // You can ask the monitor about the current drag state:
+        isOver: monitor.isOver(),
+        isOverCurrent: monitor.isOver({ shallow: true }),
+        canDrop: monitor.canDrop(),
+        itemToDrop: monitor.getItem(),
+    }
+}
 
 class StatementItem extends Component {
     constructor(props) {
@@ -76,6 +132,8 @@ class StatementItem extends Component {
 
         let valueIds = Object.keys(this.props.properties.byId).length !== 0 ? this.props.properties.byId[this.props.id].valueIds : [];
 
+        const { itemToDrop, isOver, connectDropTarget } = this.props
+
         return (
             <>
                 <StyledStatementItem active={isCollapsed} onClick={() => this.props.togglePropertyCollapse(this.props.id)} className={listGroupClass}>
@@ -107,7 +165,7 @@ class StatementItem extends Component {
                 </StyledStatementItem>
 
                 <Collapse isOpen={isCollapsed}>
-                    <StyledListGroupOpen className={openBoxClass}>
+                    <StyledListGroupOpen ref={instance => connectDropTarget(instance)} className={openBoxClass} >
                         <ListGroup flush>
                             {valueIds.map((valueId, index) => {
                                 let value = this.props.values.byId[valueId];
@@ -126,7 +184,12 @@ class StatementItem extends Component {
                                     />
                                 );
                             })}
-
+                            {isOver &&
+                                <StyledValueItem
+                                    style={{ background: '#e9ebf2', opacity: 0.5 }}
+                                >{itemToDrop.label}
+                                </StyledValueItem>
+                            }
                             {this.props.enableEdit ? <AddValue /> : ''}
                         </ListGroup>
                     </StyledListGroupOpen>
@@ -148,6 +211,10 @@ StatementItem.propTypes = {
     properties: PropTypes.object.isRequired,
     values: PropTypes.object.isRequired,
     openExistingResourcesInDialog: PropTypes.bool,
+    createValue: PropTypes.func.isRequired,
+    itemToDrop: PropTypes.object,
+    isOver: PropTypes.bool.isRequired,
+    connectDropTarget: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => {
@@ -160,9 +227,13 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
     togglePropertyCollapse: (id) => dispatch(togglePropertyCollapse(id)),
+    createValue: (data) => dispatch(createValue(data)),
 });
 
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps,
+export default compose(
+    connect(
+        mapStateToProps,
+        mapDispatchToProps
+    ),
+    DropTarget(DndTypes.VALUE, propertyValuesTarget, collect)
 )(StatementItem);
