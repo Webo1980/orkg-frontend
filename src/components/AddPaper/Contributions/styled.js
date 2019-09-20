@@ -35,6 +35,8 @@ export const StyledRelatedList = styled.ul`
     list-style: none;
     padding: 0;
     margin:0;
+    margin-bottom: -2px; 
+    margin-bottom: -2px; 
 
     > li {
         display: inline-block;
@@ -42,14 +44,17 @@ export const StyledRelatedList = styled.ul`
         transition: 0.3s background;
         border-top-left-radius: ${props => props.theme.borderRadius};
         border-top-right-radius: ${props => props.theme.borderRadius};
-        border: 2px solid ${props => props.theme.orkgPrimaryColor};
+        border: 2px dashed ${props => props.theme.orkgPrimaryColor};
         border-bottom:0;
         position:relative;
         cursor: pointer;
-
+        color: ${props => props.theme.bodyColor};
+ 
+        
         &.activeRelated {
-            background: ${props => props.theme.orkgPrimaryColor};
-            color: #fff;
+            background: #fff;
+            color: ${props => props.theme.bodyColor};
+            border-bottom: 2px solid  #fff;
         }
         &.activeRelated a{
             color: #fff;
@@ -155,6 +160,7 @@ export const StyledHorizontalContributionsList = styled.ul`
         &.activeContribution {
             background: ${props => props.theme.orkgPrimaryColor};
             color: #fff;
+            font-weight: bold;
             cursor: initial !important;
         }
         &.activeContribution a{

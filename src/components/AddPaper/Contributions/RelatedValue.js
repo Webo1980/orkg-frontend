@@ -27,7 +27,7 @@ const cardSource = {
         }
 
         // When dropped on a compatible target, do something
-        //console.log('DROPPED!');
+        props.dropped(monitor.getItem().id)
     },
 }
 

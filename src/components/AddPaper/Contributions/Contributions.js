@@ -19,7 +19,7 @@ import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
 import RelatedProperty from './RelatedProperty';
 import RelatedValue from './RelatedValue';
-
+import { getStatementsByPredicate, getStatementsBySubject } from './../../../network';
 
 
 const AnimationContainer = styled.div`
@@ -41,7 +41,39 @@ class Contributions extends Component {
         super(props);
         this.state = {
             editing: {},
-            activeTab: '1'
+            activeTab: '1',
+            relatedProperties: [
+                {
+                    label: 'Has evaluation',
+                    id: 'HAS_EVALUATION'
+                },
+                {
+                    label: 'Has approach',
+                    id: 'HAS_APPROACH'
+                },
+                {
+                    label: 'Has method',
+                    id: 'HAS_METHOD'
+                },
+                {
+                    label: 'Has implementation',
+                    id: 'HAS_IMPLEMENTATION'
+                },
+                {
+                    label: 'Has result',
+                    id: 'HAS_RESULTS'
+                },
+                {
+                    label: 'Has value',
+                    id: 'HAS_VALUE'
+                }
+                ,
+                {
+                    label: 'Has metric',
+                    id: 'HAS_METRIC'
+                }
+            ],
+            relatedValues: []
         };
         this.inputRefs = {}
     }
@@ -54,6 +86,18 @@ class Contributions extends Component {
                 prefillStatements: true,
                 researchField: this.props.selectedResearchField,
             });
+
+        }
+    }
+
+    componentDidUpdate = (prevProps) => {
+        // Get new related properties
+        if (this.props.selectedResource !== prevProps.selectedResource) {
+            this.getRelatedProperties();
+        }
+        // Get new related values
+        if (this.props.selectedProperty !== prevProps.selectedProperty) {
+            this.getRelatedValues();
         }
     }
 
@@ -62,6 +106,56 @@ class Contributions extends Component {
             this.setState({
                 activeTab: tab
             });
+        }
+    }
+
+    getRelatedProperties = () => {
+        if (
+            this.props.selectedResource
+            && this.props.resources.byId[this.props.selectedResource]
+            && this.props.resources.byId[this.props.selectedResource].existingResourceId
+        ) {
+            getStatementsBySubject(this.props.resources.byId[this.props.selectedResource].existingResourceId).then((result) => {
+                // Get the related properties without duplicates
+                var relatedProperties = result.map((statement) => {
+                    return statement.predicate
+                }).filter((relatedProperty, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.id === relatedProperty.id && t.label === relatedProperty.label
+                    ))
+                )
+                // Set them to the list of related properties
+                this.setState({
+                    relatedProperties: relatedProperties,
+                    loading: false,
+                    activeTab: '1'
+                })
+            })
+        }
+    }
+
+    getRelatedValues = () => {
+        if (
+            this.props.selectedProperty
+            && this.props.properties.byId[this.props.selectedProperty]
+            && this.props.properties.byId[this.props.selectedProperty].existingPredicateId
+        ) {
+            getStatementsByPredicate(this.props.properties.byId[this.props.selectedProperty].existingPredicateId).then((result) => {
+                // Get the related values without duplicates
+                var relatedValues = result.map((statement) => {
+                    return statement.object
+                }).filter((relatedValue, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.id === relatedValue.id && t.label === relatedValue.label
+                    ))
+                )
+                // Set them to the list of related values
+                this.setState({
+                    relatedValues: relatedValues,
+                    loading: false,
+                    activeTab: '2'
+                })
+            })
         }
     }
 
@@ -146,26 +240,20 @@ class Contributions extends Component {
         this.props.openTour(step);
     }
 
+    droppedProperty = (id) => {
+        this.setState({
+            relatedProperties: this.state.relatedProperties.filter(obj => obj.id !== id)
+        })
+    }
+
+    droppedValue = (id) => {
+        this.setState({
+            relatedValues: this.state.relatedValues.filter(obj => obj.id !== id)
+        })
+    }
+
     render() {
         let selectedResourceId = this.props.selectedContribution;
-
-        let sugProperties = [
-            { id: 1, label: 'Property 1' },
-            { id: 2, label: 'Property 2' },
-            { id: 3, label: 'Property 3' },
-            { id: 4, label: 'Property 4' },
-            { id: 5, label: 'Property 5' },
-            { id: 6, label: 'Property 6' }
-        ];
-
-        let sugValues = [
-            { id: 1, label: 'Value 1' },
-            { id: 2, label: 'Value 2' },
-            { id: 3, label: 'Value 3' },
-            { id: 4, label: 'Value 4' },
-            { id: 5, label: 'Value 5' },
-            { id: 6, label: 'Value 6' }
-        ];
 
         return (
             <div>
@@ -235,49 +323,38 @@ class Contributions extends Component {
                     </div>
                     <Col xs="4">
                         <StyledRelatedList id="contributionsList">
-                            <li
+                            <li key={1}
                                 onClick={() => { this.toggle('1'); }}
                                 className={this.state.activeTab === '1' ? 'activeRelated' : ''}
                             >
                                 <span>Properties</span>
                             </li>
                             <li
+                                key={2}
                                 onClick={() => { this.toggle('2'); }}
                                 className={this.state.activeTab === '2' ? 'activeRelated' : ''}
                             >
                                 <span>Values</span>
                             </li>
                         </StyledRelatedList>
-                        <CSSTransitionGroup
-                            transitionName="fadeIn"
-                            transitionEnterTimeout={500}
-                            transitionLeave={false}
-                            component="div"
-                        >
-                            {this.state.activeTab === '1' && (
-                                <AnimationContainer
-                                    key={1}
-                                >
-                                    <StyledRelatedData>
-                                        {sugProperties.map((p) => <RelatedProperty key={`s${p.id}`} id={p.id} label={p.label} />)}
-                                    </StyledRelatedData>
-                                </AnimationContainer>)}
 
-                            {this.state.activeTab === '2' && (
-                                <AnimationContainer
-                                    key={2}
-                                >
-                                    <StyledRelatedData>
-                                        {sugValues.map((v) => <RelatedValue key={`s${v.id}`} id={v.id} label={v.label} />)}
-                                    </StyledRelatedData>
-                                </AnimationContainer>)}
-                        </CSSTransitionGroup>
+                        {this.state.activeTab === '1' && (
+                            <StyledRelatedData>
+                                {this.state.relatedProperties.map((p) => <RelatedProperty dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.label} />)}
+                            </StyledRelatedData>
+                        )}
+
+                        {this.state.activeTab === '2' && (
+                            <StyledRelatedData>
+                                {this.state.relatedValues.map((v) => <RelatedValue dropped={this.droppedValue} ey={`s${v.id}`} id={v.id} label={v.label} />)}
+                            </StyledRelatedData>
+                        )}
                     </Col>
                 </Row>
                 <hr className="mt-5 mb-3" />
                 <Button color="primary" className="float-right mb-4" onClick={this.handleNextClick}>Finish</Button>
                 <Button color="light" className="float-right mb-4 mr-2" onClick={this.props.previousStep}>Previous step</Button>
-            </div>
+            </div >
         );
     }
 }
@@ -310,6 +387,8 @@ Contributions.propTypes = {
     theme: PropTypes.object.isRequired,
     openTour: PropTypes.func.isRequired,
     updateTourCurrentStep: PropTypes.func.isRequired,
+    selectedProperty: PropTypes.string.isRequired,
+    selectedResource: PropTypes.string.isRequired,
 };
 
 const mapStateToProps = state => {
@@ -325,6 +404,8 @@ const mapStateToProps = state => {
         resources: state.statementBrowser.resources,
         properties: state.statementBrowser.properties,
         values: state.statementBrowser.values,
+        selectedProperty: state.statementBrowser.selectedProperty,
+        selectedResource: state.statementBrowser.selectedResource,
     }
 };
 

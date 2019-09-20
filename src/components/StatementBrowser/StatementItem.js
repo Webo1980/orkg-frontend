@@ -43,6 +43,7 @@ const propertyValuesTarget = {
             label: item.label,
             type: 'object',
             propertyId: props.selectedProperty,
+            existingResourceId: item.id,
         });
 
         // You can also do nothing and return a drop result,

@@ -39,6 +39,7 @@ const chessSquareTarget = {
 
         props.createProperty({
             resourceId: props.selectedResource,
+            existingPredicateId: item.id,
             label: item.label,
         });
 
