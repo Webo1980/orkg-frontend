@@ -19,7 +19,8 @@ import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
 import RelatedProperty from './RelatedProperty';
 import RelatedValue from './RelatedValue';
-import { getStatementsByPredicate, getStatementsBySubject } from './../../../network';
+import RelatedContribution from './RelatedContribution';
+import { getStatementsByPredicate, getStatementsBySubject, getStatementsByObject } from './../../../network';
 
 
 const AnimationContainer = styled.div`
@@ -73,7 +74,8 @@ class Contributions extends Component {
                     id: 'HAS_METRIC'
                 }
             ],
-            relatedValues: []
+            relatedValues: [],
+            relatedContributions: []
         };
         this.inputRefs = {}
     }
@@ -86,7 +88,7 @@ class Contributions extends Component {
                 prefillStatements: true,
                 researchField: this.props.selectedResearchField,
             });
-
+            this.getRelatedContributions();
         }
     }
 
@@ -109,6 +111,99 @@ class Contributions extends Component {
         }
     }
 
+    getRelatedContributions = () => {
+        if (
+            this.props.selectedResearchField
+        ) {
+            // Get the statements that contains the research field as an object
+            getStatementsByObject({
+                id: this.props.selectedResearchField,
+                limit: 4,
+                order: 'desc',
+            }).then((result) => {
+                // Papers
+                // Fetch the data of each paper
+                let papers = result.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD)
+                    .map((paper) => {
+                        return getStatementsBySubject(paper.subject.id).then((paperStatements) => {
+                            // publication year
+                            let publicationYear = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR);
+                            if (publicationYear.length > 0) {
+                                publicationYear = publicationYear[0].object.label
+                            } else {
+                                publicationYear = ''
+                            }
+                            // publication month
+                            let publicationMonth = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_MONTH);
+                            if (publicationMonth.length > 0) {
+                                publicationMonth = publicationMonth[0].object.label
+                            } else {
+                                publicationMonth = ''
+                            }
+                            // authors
+                            let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
+                            let authorNamesArray = [];
+                            if (authors.length > 0) {
+                                for (let author of authors) {
+                                    let authorName = author.object.label;
+                                    authorNamesArray.push(authorName);
+                                }
+                            }
+                            // contributions
+                            let contributions = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_CONTRIBUTION);
+
+                            let contributionArray = [];
+
+                            if (contributions.length > 0) {
+                                for (let contribution of contributions) {
+                                    let statements = getStatementsBySubject(contribution.object.id);
+                                    Promise.all([statements]).then(cs => {
+                                        let st = { properties: [], values: [] };
+                                        let createdProperties = {};
+                                        if (cs[0].length > 0) {
+                                            cs[0].map(s => {
+                                                if (!createdProperties[s.predicate.id]) {
+                                                    createdProperties[s.predicate.id] = s.predicate.id;
+                                                    st['properties'].push({
+                                                        propertyId: s.predicate.id,
+                                                        existingPredicateId: s.predicate.id,
+                                                        label: s.predicate.label,
+                                                    });
+                                                }
+                                                st['values'].push({
+                                                    label: s.object.label,
+                                                    type: 'object',
+                                                    propertyId: s.predicate.id,
+                                                    existingResourceId: s.object.id,
+                                                });
+                                            });
+                                            contributionArray.push({
+                                                ...contribution.object,
+                                                statements: st
+                                            });
+                                        }
+                                    })
+                                }
+                            }
+                            paper.data = {
+                                publicationYear,
+                                publicationMonth,
+                                authorNames: authorNamesArray.reverse(),
+                                contributions: contributionArray.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
+                            }
+                            return paper;
+                        })
+                    });
+                return Promise.all(papers).then((papers) => {
+                    this.setState({
+                        relatedContributions: papers.map(p => { return { title: p.subject.label, id: p.subject.id, ...p.data } })
+                    })
+                })
+            });
+        }
+    }
+
+
     getRelatedProperties = () => {
         if (
             this.props.selectedResource
@@ -128,7 +223,7 @@ class Contributions extends Component {
                 this.setState({
                     relatedProperties: relatedProperties,
                     loading: false,
-                    activeTab: '1'
+                    activeTab: '2'
                 })
             })
         }
@@ -153,7 +248,7 @@ class Contributions extends Component {
                 this.setState({
                     relatedValues: relatedValues,
                     loading: false,
-                    activeTab: '2'
+                    activeTab: '3'
                 })
             })
         }
@@ -327,12 +422,18 @@ class Contributions extends Component {
                                 onClick={() => { this.toggle('1'); }}
                                 className={this.state.activeTab === '1' ? 'activeRelated' : ''}
                             >
+                                <span>Similair</span>
+                            </li>
+                            <li key={2}
+                                onClick={() => { this.toggle('2'); }}
+                                className={this.state.activeTab === '2' ? 'activeRelated' : ''}
+                            >
                                 <span>Properties</span>
                             </li>
                             <li
-                                key={2}
-                                onClick={() => { this.toggle('2'); }}
-                                className={this.state.activeTab === '2' ? 'activeRelated' : ''}
+                                key={3}
+                                onClick={() => { this.toggle('3'); }}
+                                className={this.state.activeTab === '3' ? 'activeRelated' : ''}
                             >
                                 <span>Values</span>
                             </li>
@@ -340,11 +441,17 @@ class Contributions extends Component {
 
                         {this.state.activeTab === '1' && (
                             <StyledRelatedData>
-                                {this.state.relatedProperties.map((p) => <RelatedProperty dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.label} />)}
+                                {this.state.relatedContributions.map((p) => <RelatedContribution dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.title} contributions={p.contributions} />)}
                             </StyledRelatedData>
                         )}
 
                         {this.state.activeTab === '2' && (
+                            <StyledRelatedData>
+                                {this.state.relatedProperties.map((p) => <RelatedProperty dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.label} />)}
+                            </StyledRelatedData>
+                        )}
+
+                        {this.state.activeTab === '3' && (
                             <StyledRelatedData>
                                 {this.state.relatedValues.map((v) => <RelatedValue dropped={this.droppedValue} ey={`s${v.id}`} id={v.id} label={v.label} />)}
                             </StyledRelatedData>

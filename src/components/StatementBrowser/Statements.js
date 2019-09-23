@@ -8,7 +8,8 @@ import Breadcrumbs from './Breadcrumbs';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
-import { initializeWithoutContribution, createProperty } from '../../actions/statementBrowser';
+import { initializeWithoutContribution, createProperty, createValue } from '../../actions/statementBrowser';
+import { prefillStatements } from '../../actions/addPaper';
 import { DropTarget } from 'react-dnd';
 import DndTypes from './../../constants/DndTypes';
 import { compose } from 'redux';
@@ -37,11 +38,42 @@ const chessSquareTarget = {
         // You can do something with it
         //ChessActions.movePiece(item.fromPosition, props.position)
 
-        props.createProperty({
-            resourceId: props.selectedResource,
-            existingPredicateId: item.id,
-            label: item.label,
-        });
+        if (monitor.getItemType() === DndTypes.CONTRIBUTION) {
+            // copy template
+            if (item.contributions.length > 0) {
+                props.prefillStatements({
+                    statements: item.contributions[0].statements,
+                    resourceId: props.selectedResource,
+                });
+            }
+            /*
+            item.contributions.map(c => {
+                return getStatementsBySubject(c.id).then(statements => {
+                    statements.map(s => {
+                        props.createProperty({
+                            propertyId: s.predicate.id,
+                            resourceId: props.selectedResource,
+                            existingPredicateId: s.predicate.id,
+                            label: s.predicate.label,
+                        });
+                        props.createValue({
+                            label: s.object.label,
+                            type: 'object',
+                            propertyId: s.predicate.id,
+                            existingResourceId: s.object.id,
+                        });
+                    })
+                });
+            });
+            */
+        }
+        if (monitor.getItemType() === DndTypes.PROPERTY) {
+            props.createProperty({
+                resourceId: props.selectedResource,
+                existingPredicateId: item.id,
+                label: item.label,
+            });
+        }
 
         // You can also do nothing and return a drop result,
         // which will be available as monitor.getDropResult()
@@ -174,6 +206,8 @@ Statements.propTypes = {
     initialResourceLabel: PropTypes.string,
     openExistingResourcesInDialog: PropTypes.bool,
     createProperty: PropTypes.func.isRequired,
+    createValue: PropTypes.func.isRequired,
+    prefillStatements: PropTypes.func.isRequired,
     itemToDrop: PropTypes.object,
     isOver: PropTypes.bool.isRequired,
     connectDropTarget: PropTypes.func.isRequired,
@@ -198,6 +232,8 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
     initializeWithoutContribution: (data) => dispatch(initializeWithoutContribution(data)),
     createProperty: (data) => dispatch(createProperty(data)),
+    createValue: (data) => dispatch(createValue(data)),
+    prefillStatements: (data) => dispatch(prefillStatements(data)),
 });
 
 export default compose(
@@ -205,5 +241,5 @@ export default compose(
         mapStateToProps,
         mapDispatchToProps
     ),
-    DropTarget(DndTypes.PROPERTY, chessSquareTarget, collect)
+    DropTarget([DndTypes.PROPERTY, DndTypes.CONTRIBUTION], chessSquareTarget, collect)
 )(Statements);
