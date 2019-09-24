@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ListGroup } from 'reactstrap';
-import { StyledLevelBox, StyledStatementItem } from '../AddPaper/Contributions/styled';
+import { StyledLevelBox, StyledStatementItem, StyledStatementItemDropZoneHelper } from '../AddPaper/Contributions/styled';
 import StatementItem from './StatementItem';
 import AddStatement from './AddStatement';
 import { connect } from 'react-redux';
@@ -126,7 +126,6 @@ class Statements extends Component {
             <div>
                 <ListGroup
                     className={'listGroupEnlarge'}
-
                 >
                     {!this.props.isFetchingStatements ? (
                         ((propertyIds.length > 0) || isOver) ? (
@@ -155,7 +154,13 @@ class Statements extends Component {
                                 }
                             </>
                         )
-                            : <StyledStatementItem>No values</StyledStatementItem>
+                            : (this.props.enableEdit) ? (
+                                <StyledStatementItemDropZoneHelper>
+                                    No data yet!<br /><small>Start by creating properties or dropping similar contribution data from the right side.</small><br /><small>The data is entered in a <b>property</b> and <b>value</b> structure.</small><br /><br />
+
+                                    <img src={require('../../assets/img/dataStructure.png')} alt="" className="img-responsive" /><br />
+                                </StyledStatementItemDropZoneHelper>
+                            ) : (<StyledStatementItem>No values</StyledStatementItem>)
                     ) : (
                             <StyledStatementItem>
                                 <Icon icon={faSpinner} spin /> Loading

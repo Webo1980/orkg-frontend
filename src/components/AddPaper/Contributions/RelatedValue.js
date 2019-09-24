@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { DragSource } from 'react-dnd';
 import DndTypes from '../../../constants/DndTypes';
 import styled from 'styled-components';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 
 const StyledRelatedValue = styled.li`
@@ -49,6 +51,7 @@ class RelatedValue extends Component {
         const { label, isDragging, connectDragSource } = this.props
         return (
             <StyledRelatedValue className={isDragging ? 'dragging' : ''} ref={instance => connectDragSource(instance)}>
+                <Icon icon={faEllipsisV} className={'mr-2'} />
                 {label}
             </StyledRelatedValue>
         )

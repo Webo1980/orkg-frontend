@@ -44,7 +44,7 @@ export const StyledRelatedList = styled.ul`
         transition: 0.3s background;
         border-top-left-radius: ${props => props.theme.borderRadius};
         border-top-right-radius: ${props => props.theme.borderRadius};
-        border: 2px dashed ${props => props.theme.orkgPrimaryColor};
+        border: 2px solid ${props => props.theme.orkgPrimaryColor};
         border-bottom:0;
         position:relative;
         cursor: pointer;
@@ -67,7 +67,7 @@ export const StyledRelatedData = styled.ul`
     border-radius: ${props => props.theme.borderRadius};
     border-width: ${props => props.theme.borderWidth};
     border-color: ${props => props.theme.orkgPrimaryColor};
-    border-style: dashed;
+    border-style: solid;
     border-top-left-radius: 0;
     list-style: none;
     padding:0;
@@ -234,6 +234,23 @@ export const StyledResearchFieldBrowser = styled.div`
     height: auto !important;
     cursor: text;
 `;
+
+
+/*DropZoneHelperStatementItem*/
+export const StyledStatementItemDropZoneHelper = styled(ListGroupItem)`
+    padding: 1rem 0.75rem !important;
+    cursor: default;
+    text-align: center;
+    background-color: ${props => props.theme.ultraLightBlue} !important; 
+    border: 4px dashed ${props => props.theme.ultraLightBlueDarker} !important;
+    border-bottom: 0 !important;
+    border-color: ${props => props.theme.ultraLightBlueDarker} !important; 
+    /*border: 2px dashed ${props => props.theme.orkgPrimaryColor};*/
+
+    &:hover, &:focus {
+        z-index:initial !important; 
+    }
+`
 
 /*statementItem*/
 export const StyledStatementItem = styled(ListGroupItem)`

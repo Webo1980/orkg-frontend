@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { DragSource } from 'react-dnd';
 import DndTypes from '../../../constants/DndTypes';
 import styled from 'styled-components';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faEllipsisV, faEye } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 
 const StyledRelatedContribution = styled.li`
@@ -49,7 +51,9 @@ class RelatedContribution extends Component {
         const { label, contributions, isDragging, connectDragSource } = this.props
         return (
             <StyledRelatedContribution className={isDragging ? 'dragging' : ''} ref={instance => connectDragSource(instance)}>
+                <Icon icon={faEllipsisV} className={'mr-2'} />
                 {label} {contributions.length > 0 && `${contributions[0].statements.properties.length}P / ${contributions[0].statements.values.length}V`}
+                {/*<Icon icon={faEye} size="xs" stlye={{ cursor: 'default', float: 'right' }} />*/}
             </StyledRelatedContribution>
         )
     }

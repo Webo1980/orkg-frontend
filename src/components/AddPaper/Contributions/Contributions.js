@@ -422,7 +422,7 @@ class Contributions extends Component {
                                 onClick={() => { this.toggle('1'); }}
                                 className={this.state.activeTab === '1' ? 'activeRelated' : ''}
                             >
-                                <span>Similair</span>
+                                <span>Similar</span>
                             </li>
                             <li key={2}
                                 onClick={() => { this.toggle('2'); }}

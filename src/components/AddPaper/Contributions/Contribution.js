@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Form, FormGroup, Label, Modal, ModalHeader, ModalBody } from 'reactstrap';
+import { Form, FormGroup, Label, Modal, ModalHeader, ModalBody, Button } from 'reactstrap';
 import Tooltip from '../../Utils/Tooltip';
 import ResearchProblemInput from './ResearchProblemInput';
 import { StyledHorizontalContribution } from './styled';
@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
 import Tour from 'reactour';
 import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { faExternalLinkAlt, faProjectDiagram, faEye } from '@fortawesome/free-solid-svg-icons';
 
 class Contribution extends Component {
 
@@ -76,9 +76,9 @@ class Contribution extends Component {
                     </FormGroup>
                     <FormGroup>
                         <Label>
-                            <Tooltip message={<span>Provide details about this contribution by making statements. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => this.handleLearnMore(2)}>Learn more</span></span>}>Contribution data</Tooltip>
+                            Contribution data
                         </Label>
-
+                        <div className="clearfix" />
                         <StatementBrowser
                             enableEdit={true}
                             openExistingResourcesInDialog={true}
