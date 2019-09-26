@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExternalLinkAlt, faTable } from '@fortawesome/free-solid-svg-icons';
+import { Input } from 'reactstrap';
 import Tooltip from '../../Utils/Tooltip';
 import { StyledValueItem } from '../../AddPaper/Contributions/styled';
 import classNames from 'classnames';
@@ -126,8 +127,17 @@ class ValueItem extends Component {
             <>
                 {!this.props.inline ? (
                     <StyledValueItem>
-                        <span className={labelClass} onClick={onClick}>
-                            <ValuePlugins>{this.props.label}</ValuePlugins>
+                        <span className={labelClass} onClick={!this.props.enableSelection ? onClick : undefined}>
+                            {this.props.enableSelection && (
+                                <input
+                                    type="checkbox"
+                                    className={'mr-2'}
+                                    checked={(this.props.selectedProperties[this.props.propertyId] && this.props.selectedProperties[this.props.propertyId].valueIds.length > 0 && this.props.selectedProperties[this.props.propertyId].valueIds.includes(this.props.id)) ? true : false}
+                                    onChange={() => this.props.handleSelectionChange('Value', { id: this.props.id, label: this.props.label, propertyId: this.props.propertyId, ressourceId: this.props.resourceId, type: this.props.type })}
+                                />)}
+                            <span onClick={this.props.enableSelection ? onClick : undefined}>
+                                <ValuePlugins>{this.props.label}</ValuePlugins>
+                            </span>
                             {existingResourceId && this.props.openExistingResourcesInDialog ? (
                                 <span>
                                     {' '}
@@ -194,6 +204,10 @@ ValueItem.propTypes = {
     resourceId: PropTypes.string,
     inline: PropTypes.bool,
     openExistingResourcesInDialog: PropTypes.bool,
+    enableSelection: PropTypes.bool,
+    handleSelectionChange: PropTypes.func,
+    selectedValues: PropTypes.object,
+    selectedProperties: PropTypes.object,
 };
 
 ValueItem.defaultProps = {

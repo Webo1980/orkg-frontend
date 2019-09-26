@@ -20,6 +20,8 @@ class StatementBrowserDialog extends Component {
                     <Provider store={this.store}>
                         <Statements
                             enableEdit={false}
+                            enableSelection={this.props.enableSelection}
+                            selectedAction={this.props.selectedAction}
                             initialResourceId={this.props.resourceId}
                             initialResourceLabel={this.props.resourceLabel}
                         />
@@ -35,11 +37,13 @@ StatementBrowserDialog.propTypes = {
     resourceId: PropTypes.string.isRequired,
     show: PropTypes.bool.isRequired,
     toggleModal: PropTypes.func.isRequired,
+    enableSelection: PropTypes.bool,
+    selectedAction: PropTypes.func,
 }
 
 const mapStateToProps = state => {
     return {
-        
+
     }
 };
 

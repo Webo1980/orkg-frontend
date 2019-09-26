@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ListGroup } from 'reactstrap';
+import { ListGroup, Button } from 'reactstrap';
 import { StyledLevelBox, StyledStatementItem, StyledStatementItemDropZoneHelper } from '../AddPaper/Contributions/styled';
 import StatementItem from './StatementItem';
 import AddStatement from './AddStatement';
@@ -109,6 +109,11 @@ class Statements extends Component {
                 label: this.props.initialResourceLabel,
             })
         }
+
+        this.state = {
+            selectedProperties: {},
+            selectedValues: {},
+        };
     }
 
     handleInputChange = (e) => {
@@ -117,8 +122,66 @@ class Statements extends Component {
         });
     }
 
+    handleSelectionChange = (itemType, item) => {
+        if (itemType === 'Property') {
+            let values = this.state.selectedValues;
+            if (!this.state.selectedProperties[item.id]) {
+                // add values
+                for (var id of item.valueIds) {
+                    let v = this.props.values.byId[id];
+                    values[id] = { label: v.label, propertyId: item.propertyId, type: v.type };
+                }
+            } else {
+                // removes values
+                for (var value of item.valueIds) {
+                    delete values[value];
+                }
+            }
+            this.setState({
+                selectedProperties: {
+                    ...this.state.selectedProperties,
+                    [item.id]: this.state.selectedProperties[item.id]
+                        ? undefined
+                        : { label: item.label, existingPredicateId: item.id, propertyId: item.propertyId, valueIds: Object.keys(values) }
+                },
+                selectedValues: values
+            })
+        }
+        if (itemType === 'Value') {
+            let vl = this.state.selectedValues;
+            let pr = this.state.selectedProperties;
+            if (pr[item.propertyId] && pr[item.propertyId].valueIds.includes(item.id)) {
+                let newValueIds = pr[item.propertyId].valueIds.filter(i => i !== item.id);
+                let newPropertyObject = { ...pr[item.propertyId], valueIds: newValueIds }
+                pr = { ...pr, [item.propertyId]: newPropertyObject }
+                //remove value
+                delete vl[item.id];
+                this.setState({
+                    selectedProperties: pr,
+                    selectedValues: vl
+                })
+            } else {
+                if (!pr[item.propertyId]) {
+                    let cpr = this.props.properties.byId[item.propertyId]; //copy
+                    pr[item.propertyId] = { label: cpr.label, existingPredicateId: cpr.id, propertyId: item.propertyId, valueIds: [] };
+                }
+                pr[item.propertyId].valueIds.push(item.id)
+                let newPropertyObject = { ...pr[item.propertyId], valueIds: pr[item.propertyId].valueIds }
+                pr = { ...pr, [item.propertyId]: newPropertyObject };
+                //add value
+                vl[item.id] = { label: item.label, propertyId: item.propertyId, type: item.type };
+                this.setState({
+                    selectedProperties: pr,
+                    selectedValues: vl
+                })
+            }
+        }
+    }
+
     statements = () => {
-        const { itemToDrop, isOver, connectDropTarget } = this.props
+        const { itemToDrop, isOver, canDrop, connectDropTarget } = this.props
+
+        const isActive = canDrop && isOver
 
         let propertyIds = Object.keys(this.props.resources.byId).length !== 0 && this.props.selectedResource ? this.props.resources.byId[this.props.selectedResource].propertyIds : [];
 
@@ -141,6 +204,10 @@ class Statements extends Component {
                                             index={index}
                                             isExistingProperty={property.isExistingProperty ? true : false}
                                             enableEdit={this.props.enableEdit}
+                                            enableSelection={this.props.enableSelection}
+                                            selectedProperties={this.state.selectedProperties}
+                                            selectedValues={this.state.selectedValues}
+                                            handleSelectionChange={this.handleSelectionChange}
                                             isLastItem={propertyIds.length === index + 1}
                                             openExistingResourcesInDialog={this.props.openExistingResourcesInDialog}
                                         />
@@ -156,9 +223,18 @@ class Statements extends Component {
                         )
                             : (this.props.enableEdit) ? (
                                 <StyledStatementItemDropZoneHelper>
-                                    No data yet!<br /><small>Start by creating properties or dropping similar contribution data from the right side.</small><br /><small>The data is entered in a <b>property</b> and <b>value</b> structure.</small><br /><br />
-
-                                    <img src={require('../../assets/img/dataStructure.png')} alt="" className="img-responsive" /><br />
+                                    {canDrop && (
+                                        <>
+                                            Drop elements here
+                                        </>)
+                                    }
+                                    {!canDrop && (
+                                        <>
+                                            No data yet!<br /><small>Start by creating properties or dropping similar contribution data from the right side.</small><br />
+                                            <small>The data is entered in a <b>property</b> and <b>value</b> structure.</small><br /><br />
+                                            <img src={require('../../assets/img/dataStructure.png')} alt="" className="img-responsive" /><br />
+                                        </>)
+                                    }
                                 </StyledStatementItemDropZoneHelper>
                             ) : (<StyledStatementItem>No values</StyledStatementItem>)
                     ) : (
@@ -194,6 +270,8 @@ class Statements extends Component {
                 ) : ''}
 
                 {elements}
+
+                {this.props.enableSelection && <div className={'mt-4 text-center'}><Button onClick={() => this.props.selectedAction({ properties: this.state.selectedProperties, values: this.state.selectedValues })}>Add to contribution data</Button></div>}
             </>
         );
     }
@@ -203,6 +281,7 @@ Statements.propTypes = {
     level: PropTypes.number.isRequired,
     resources: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,
+    values: PropTypes.object.isRequired,
     isFetchingStatements: PropTypes.bool.isRequired,
     selectedResource: PropTypes.string.isRequired,
     enableEdit: PropTypes.bool.isRequired,
@@ -215,7 +294,10 @@ Statements.propTypes = {
     prefillStatements: PropTypes.func.isRequired,
     itemToDrop: PropTypes.object,
     isOver: PropTypes.bool.isRequired,
+    canDrop: PropTypes.bool.isRequired,
     connectDropTarget: PropTypes.func.isRequired,
+    enableSelection: PropTypes.bool,
+    selectedAction: PropTypes.func,
 };
 
 Statements.defaultProps = {
@@ -229,6 +311,7 @@ const mapStateToProps = state => {
         level: state.statementBrowser.level,
         resources: state.statementBrowser.resources,
         properties: state.statementBrowser.properties,
+        values: state.statementBrowser.values,
         isFetchingStatements: state.statementBrowser.isFetchingStatements,
         selectedResource: state.statementBrowser.selectedResource,
     }

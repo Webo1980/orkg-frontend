@@ -64,24 +64,36 @@ export const StyledRelatedList = styled.ul`
 
 /*relatedData*/
 export const StyledRelatedData = styled.ul`
-    border-radius: ${props => props.theme.borderRadius};
-    border-width: ${props => props.theme.borderWidth};
-    border-color: ${props => props.theme.orkgPrimaryColor};
-    border-style: solid;
-    border-top-left-radius: 0;
     list-style: none;
-    padding:0;
-    height:300px;
+    padding-left:4px;
+    padding-right:0;
+    max-height:400px;
     overflow: scroll;
     overflow-x: hidden;
 
+    &.scrollbox {
+        overflow: auto;
+        background: /* Shadow covers */
+        linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */
+        radial-gradient(50% 0, farthest-side, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)), radial-gradient(50% 100%, farthest-side, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)) 0 100%;
+        background: /* Shadow covers */
+        linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%, /* Shadows */
+        radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)) 0 100%;
+        background-repeat: no-repeat;
+        background-color: white;
+        background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+        /* Opera doesn't support this in the shorthand */
+        background-attachment: local, local, scroll, scroll;
+    }
+
+
     > li {
-        padding: 9px 9px 9px 15px;
         margin-bottom: 5px;
+        margin-top: 5px;
         transition: 0.3s background;
-        border-bottom: dotted 1px;
-        cursor: move;
-        font-size:small;
+        border: dotted 1px;
+        border-radius: ${props => props.theme.borderRadius};
+        box-shadow: -2px 0px 2px 0px rgba(0, 0, 0, 0.1);
     }
 `;
 

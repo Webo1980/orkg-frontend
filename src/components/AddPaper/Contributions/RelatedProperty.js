@@ -7,6 +7,10 @@ import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 
 const StyledRelatedProperty = styled.li`
+    position: relative; 
+    cursor: move;
+    padding: 9px 9px 9px 15px;
+
     &.dragging{
         opacity: 0.5;
     }

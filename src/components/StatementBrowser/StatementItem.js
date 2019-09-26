@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ListGroup, Collapse } from 'reactstrap';
+import { ListGroup, Collapse, Input, CustomInput } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/free-solid-svg-icons';
 import { StyledStatementItem, StyledListGroupOpen, StyledValueItem } from '../AddPaper/Contributions/styled';
@@ -137,12 +137,21 @@ class StatementItem extends Component {
 
         return (
             <>
-                <StyledStatementItem active={isCollapsed} onClick={() => this.props.togglePropertyCollapse(this.props.id)} className={listGroupClass}>
-                    {this.state.predicateLabel}
+                <StyledStatementItem active={isCollapsed} onClick={() => (!this.props.enableSelection) ? this.props.togglePropertyCollapse(this.props.id) : undefined} className={listGroupClass}>
+                    {this.props.enableSelection && (
+                        <input
+                            type="checkbox"
+                            className={'mr-2'}
+                            checked={this.props.selectedProperties[this.props.id] ? this.props.selectedProperties[this.props.id] : false}
+                            onChange={() => this.props.handleSelectionChange('Property', { id: this.props.id, propertyId: this.props.id, label: this.props.predicateLabel, valueIds: valueIds, existingPredicateId: this.props.id })}
+                        />)}
+                    <span onClick={() => (this.props.enableSelection) ? this.props.togglePropertyCollapse(this.props.id) : undefined}>
+                        {this.state.predicateLabel}
+                    </span>
                     {valueIds.length === 1 && !isCollapsed ? (
                         <>
                             :{' '}
-                            <em className="text-muted">
+                            <em className="text-muted" onClick={() => (this.props.enableSelection) ? this.props.togglePropertyCollapse(this.props.id) : undefined}>
                                 <ValueItem
                                     label={this.props.values.byId[valueIds[0]].label}
                                     id={valueIds[0]}
@@ -157,12 +166,12 @@ class StatementItem extends Component {
                         </>
                     ) : valueIds.length > 1 && !isCollapsed ? (
                         <>
-                            : <em className="text-muted">{valueIds.length} values</em>
+                            : <em className="text-muted" onClick={() => (this.props.enableSelection) ? this.props.togglePropertyCollapse(this.props.id) : undefined}>{valueIds.length} values</em>
                         </>
                     ) : (
                                 ''
                             )}
-                    <Icon icon={isCollapsed ? faChevronCircleUp : faChevronCircleDown} className={chevronClass} /> {!this.props.isExistingProperty ? <DeleteStatement id={this.props.id} /> : ''}
+                    <Icon onClick={() => (this.props.enableSelection) ? this.props.togglePropertyCollapse(this.props.id) : undefined} icon={isCollapsed ? faChevronCircleUp : faChevronCircleDown} className={chevronClass} /> {!this.props.isExistingProperty ? <DeleteStatement id={this.props.id} /> : ''}
                 </StyledStatementItem>
 
                 <Collapse isOpen={isCollapsed}>
@@ -170,7 +179,6 @@ class StatementItem extends Component {
                         <ListGroup flush>
                             {valueIds.map((valueId, index) => {
                                 let value = this.props.values.byId[valueId];
-
                                 return (
                                     <ValueItem
                                         key={index}
@@ -182,6 +190,10 @@ class StatementItem extends Component {
                                         propertyId={this.props.id}
                                         existingStatement={value.existingStatement}
                                         openExistingResourcesInDialog={this.props.openExistingResourcesInDialog}
+                                        enableSelection={this.props.enableSelection}
+                                        handleSelectionChange={this.props.handleSelectionChange}
+                                        selectedProperties={this.props.selectedProperties}
+                                        selectedValues={this.props.selectedValues}
                                     />
                                 );
                             })}
@@ -206,6 +218,10 @@ StatementItem.propTypes = {
     index: PropTypes.number.isRequired,
     isExistingProperty: PropTypes.bool.isRequired,
     enableEdit: PropTypes.bool.isRequired,
+    enableSelection: PropTypes.bool,
+    handleSelectionChange: PropTypes.func,
+    selectedValues: PropTypes.object,
+    selectedProperties: PropTypes.object,
     isLastItem: PropTypes.bool.isRequired,
     togglePropertyCollapse: PropTypes.func.isRequired,
     selectedProperty: PropTypes.string.isRequired,

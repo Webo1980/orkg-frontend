@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
-import { Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import {
+    Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Nav, NavItem,
+    NavLink, TabContent, TabPane, Input
+} from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faPlus, faCog, faSearch } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from '../../Utils/Tooltip';
 import { StyledHorizontalContentEditable, StyledHorizontalContributionsList, StyledRelatedData, StyledRelatedList } from './styled';
 import { connect } from 'react-redux';
@@ -9,7 +12,7 @@ import { compose } from 'redux';
 import {
     nextStep, previousStep, createContribution, deleteContribution,
     selectContribution, updateContributionLabel, saveAddPaper, openTour,
-    updateTourCurrentStep
+    updateTourCurrentStep, prefillStatements
 } from '../../../actions/addPaper';
 import Confirm from 'reactstrap-confirm';
 import Contribution from './Contribution';
@@ -20,6 +23,8 @@ import PropTypes from 'prop-types';
 import RelatedProperty from './RelatedProperty';
 import RelatedValue from './RelatedValue';
 import RelatedContribution from './RelatedContribution';
+import classnames from 'classnames';
+import StatementBrowserDialog from './../../StatementBrowser/StatementBrowserDialog';
 import { getStatementsByPredicate, getStatementsBySubject, getStatementsByObject } from './../../../network';
 
 
@@ -43,6 +48,10 @@ class Contributions extends Component {
         this.state = {
             editing: {},
             activeTab: '1',
+            searchRelated: '',
+            modal: false,
+            dialogResourceId: null,
+            dialogResourceLabel: null,
             relatedProperties: [
                 {
                     label: 'Has evaluation',
@@ -110,6 +119,20 @@ class Contributions extends Component {
             });
         }
     }
+
+    toggleModal = () => {
+        this.setState((prevState) => ({
+            modal: !prevState.modal,
+        }));
+    };
+
+    handleViewRelatedContributionClick = (ressourceID, ressourceLabel) => {
+        this.setState({
+            modal: true,
+            dialogResourceId: ressourceID,
+            dialogResourceLabel: ressourceLabel,
+        });
+    };
 
     getRelatedContributions = () => {
         if (
@@ -324,6 +347,20 @@ class Contributions extends Component {
         });
     }
 
+    addToContributionData = (statements) => {
+        this.props.prefillStatements({
+            statements: { properties: Object.values(statements.properties), values: Object.values(statements.values) },
+            resourceId: this.props.selectedResource,
+        });
+        this.toggleModal();
+    };
+
+    handleChangeSearchRelated = (e) => {
+        this.setState({
+            searchRelated: e.target.value,
+        })
+    };
+
     handleChange = (contributionId, e) => {
         this.props.updateContributionLabel({
             label: e.target.value,
@@ -417,44 +454,100 @@ class Contributions extends Component {
                         </CSSTransitionGroup>
                     </div>
                     <Col xs="4">
-                        <StyledRelatedList id="contributionsList">
-                            <li key={1}
-                                onClick={() => { this.toggle('1'); }}
-                                className={this.state.activeTab === '1' ? 'activeRelated' : ''}
-                            >
-                                <span>Similar</span>
-                            </li>
-                            <li key={2}
-                                onClick={() => { this.toggle('2'); }}
-                                className={this.state.activeTab === '2' ? 'activeRelated' : ''}
-                            >
-                                <span>Properties</span>
-                            </li>
-                            <li
-                                key={3}
-                                onClick={() => { this.toggle('3'); }}
-                                className={this.state.activeTab === '3' ? 'activeRelated' : ''}
-                            >
-                                <span>Values</span>
-                            </li>
-                        </StyledRelatedList>
+                        <Nav tabs>
+                            <NavItem style={{ cursor: 'pointer' }}>
+                                <NavLink
+                                    className={classnames({ active: this.state.activeTab === '1' })}
+                                    onClick={() => { this.toggle('1'); }}
+                                >
+                                    Similar
+                                </NavLink>
+                            </NavItem>
+                            <NavItem style={{ cursor: 'pointer' }}>
+                                <NavLink
+                                    className={classnames({ active: this.state.activeTab === '2' })}
+                                    onClick={() => { this.toggle('2'); }}
+                                >
+                                    Properties
+                                </NavLink>
+                            </NavItem>
+                            <NavItem style={{ cursor: 'pointer' }}>
+                                <NavLink
+                                    className={classnames({ active: this.state.activeTab === '3' })}
+                                    onClick={() => { this.toggle('3'); }}
+                                >
+                                    Values
+                                </NavLink>
+                            </NavItem>
+                        </Nav>
 
-                        {this.state.activeTab === '1' && (
-                            <StyledRelatedData>
-                                {this.state.relatedContributions.map((p) => <RelatedContribution dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.title} contributions={p.contributions} />)}
-                            </StyledRelatedData>
-                        )}
+                        <TabContent activeTab={this.state.activeTab}>
+                            <TabPane tabId="1">
+                                <Row>
+                                    <Col sm="12">
+                                        <form className="mr-2 mt-2 mb-2">
+                                            <div className="input-group">
+                                                <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
+                                                    onChange={this.handleChangeSearchRelated} />
 
-                        {this.state.activeTab === '2' && (
-                            <StyledRelatedData>
-                                {this.state.relatedProperties.map((p) => <RelatedProperty dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.label} />)}
-                            </StyledRelatedData>
-                        )}
+                                                <div className="input-group-append">
+                                                    <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
+                                                        <Icon icon={faSearch} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <StyledRelatedData className={'scrollbox'}>
+                                            {this.state.relatedContributions.map((p) => <RelatedContribution openDialog={this.handleViewRelatedContributionClick} dropped={this.droppedProperty} key={`s${p.id}`} authors={p.authorNames} id={p.id} label={p.title} contributions={p.contributions} />)}
+                                        </StyledRelatedData>
+                                    </Col>
+                                </Row>
+                            </TabPane>
+                            <TabPane tabId="2">
+                                <Row>
+                                    <Col sm="12">
+                                        <form className="mr-2 mt-2 mb-2">
+                                            <div className="input-group">
+                                                <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
+                                                    onChange={this.handleChangeSearchRelated} />
 
-                        {this.state.activeTab === '3' && (
-                            <StyledRelatedData>
-                                {this.state.relatedValues.map((v) => <RelatedValue dropped={this.droppedValue} ey={`s${v.id}`} id={v.id} label={v.label} />)}
-                            </StyledRelatedData>
+                                                <div className="input-group-append">
+                                                    <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
+                                                        <Icon icon={faSearch} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <StyledRelatedData className={'scrollbox'}>
+                                            {this.state.relatedProperties.map((p) => <RelatedProperty dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.label} />)}
+                                        </StyledRelatedData>
+                                    </Col>
+                                </Row>
+                            </TabPane>
+                            <TabPane tabId="3">
+                                <Row>
+                                    <Col sm="12">
+                                        <form className="mr-2 mt-2 mb-2">
+                                            <div className="input-group">
+                                                <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
+                                                    onChange={this.handleChangeSearchRelated} />
+
+                                                <div className="input-group-append">
+                                                    <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
+                                                        <Icon icon={faSearch} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <StyledRelatedData className={'scrollbox'}>
+                                            {this.state.relatedValues.map((v) => <RelatedValue dropped={this.droppedValue} ey={`s${v.id}`} id={v.id} label={v.label} />)}
+                                        </StyledRelatedData>
+                                    </Col>
+                                </Row>
+                            </TabPane>
+                        </TabContent>
+                        {this.state.modal && (
+                            <StatementBrowserDialog enableSelection={true} selectedAction={this.addToContributionData} show={this.state.modal} toggleModal={this.toggleModal} resourceId={this.state.dialogResourceId} resourceLabel={this.state.dialogResourceLabel} />
                         )}
                     </Col>
                 </Row>
@@ -496,6 +589,7 @@ Contributions.propTypes = {
     updateTourCurrentStep: PropTypes.func.isRequired,
     selectedProperty: PropTypes.string.isRequired,
     selectedResource: PropTypes.string.isRequired,
+    prefillStatements: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => {
@@ -526,6 +620,7 @@ const mapDispatchToProps = dispatch => ({
     saveAddPaper: (data) => dispatch(saveAddPaper(data)),
     openTour: (data) => dispatch(openTour(data)),
     updateTourCurrentStep: (data) => dispatch(updateTourCurrentStep(data)),
+    prefillStatements: (data) => dispatch(prefillStatements(data)),
 });
 
 export default compose(
