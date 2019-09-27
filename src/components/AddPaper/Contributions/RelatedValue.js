@@ -3,13 +3,25 @@ import { DragSource } from 'react-dnd';
 import DndTypes from '../../../constants/DndTypes';
 import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faGripVertical } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
 
 const StyledRelatedValue = styled.li`
     position: relative; 
     cursor: move;
+    margin-bottom: 8px ; 
+    transition: 0.3s background;
+    border: dotted 1px;
+    border-radius: ${props => props.theme.borderRadius};
+    box-shadow: -2px 0px 2px 0px rgba(0, 0, 0, 0.1);
     padding: 9px 9px 9px 15px;
+
+    font-size: small;
+
+    &.selected{
+        background: #c2dbff;
+    }
 
     &.dragging{
         opacity: 0.5;
@@ -52,10 +64,14 @@ function collect(connect, monitor) {
 
 class RelatedValue extends Component {
     render() {
-        const { label, isDragging, connectDragSource } = this.props
+        const { id, label, isDragging, connectDragSource } = this.props
         return (
-            <StyledRelatedValue className={isDragging ? 'dragging' : ''} ref={instance => connectDragSource(instance)}>
-                <Icon icon={faEllipsisV} className={'mr-2'} />
+            <StyledRelatedValue
+                onClick={() => this.props.toggleSelect({ id, label })}
+                className={classnames({ dragging: isDragging, selected: this.props.selected })}
+                ref={instance => connectDragSource(instance)}
+            >
+                <Icon icon={faGripVertical} color={'#cbcece'} className={'mr-2'} />
                 {label}
             </StyledRelatedValue>
         )
@@ -63,9 +79,12 @@ class RelatedValue extends Component {
 }
 
 RelatedValue.propTypes = {
+    id: PropTypes.string.isRequired,
     isDragging: PropTypes.bool.isRequired,
     label: PropTypes.string.isRequired,
-    connectDragSource: PropTypes.func.isRequired
+    selected: PropTypes.bool.isRequired,
+    connectDragSource: PropTypes.func.isRequired,
+    toggleSelect: PropTypes.func
 };
 
 export default DragSource(DndTypes.VALUE, cardSource, collect)(RelatedValue)

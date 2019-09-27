@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
 import {
-    Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Nav, NavItem,
-    NavLink, TabContent, TabPane, Input
+    Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem,
 } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPen, faPlus, faCog, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from '../../Utils/Tooltip';
-import { StyledHorizontalContentEditable, StyledHorizontalContributionsList, StyledRelatedData, StyledRelatedList } from './styled';
+import SimilarContributionData from './SimilarContributionData'
+import { StyledHorizontalContentEditable, StyledHorizontalContributionsList } from './styled';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import {
     nextStep, previousStep, createContribution, deleteContribution,
     selectContribution, updateContributionLabel, saveAddPaper, openTour,
-    updateTourCurrentStep, prefillStatements
+    updateTourCurrentStep
 } from '../../../actions/addPaper';
 import Confirm from 'reactstrap-confirm';
 import Contribution from './Contribution';
@@ -20,12 +20,6 @@ import { CSSTransitionGroup } from 'react-transition-group'
 import styled, { withTheme } from 'styled-components';
 import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
-import RelatedProperty from './RelatedProperty';
-import RelatedValue from './RelatedValue';
-import RelatedContribution from './RelatedContribution';
-import classnames from 'classnames';
-import StatementBrowserDialog from './../../StatementBrowser/StatementBrowserDialog';
-import { getStatementsByPredicate, getStatementsBySubject, getStatementsByObject } from './../../../network';
 
 
 const AnimationContainer = styled.div`
@@ -47,44 +41,6 @@ class Contributions extends Component {
         super(props);
         this.state = {
             editing: {},
-            activeTab: '1',
-            searchRelated: '',
-            modal: false,
-            dialogResourceId: null,
-            dialogResourceLabel: null,
-            relatedProperties: [
-                {
-                    label: 'Has evaluation',
-                    id: 'HAS_EVALUATION'
-                },
-                {
-                    label: 'Has approach',
-                    id: 'HAS_APPROACH'
-                },
-                {
-                    label: 'Has method',
-                    id: 'HAS_METHOD'
-                },
-                {
-                    label: 'Has implementation',
-                    id: 'HAS_IMPLEMENTATION'
-                },
-                {
-                    label: 'Has result',
-                    id: 'HAS_RESULTS'
-                },
-                {
-                    label: 'Has value',
-                    id: 'HAS_VALUE'
-                }
-                ,
-                {
-                    label: 'Has metric',
-                    id: 'HAS_METRIC'
-                }
-            ],
-            relatedValues: [],
-            relatedContributions: []
         };
         this.inputRefs = {}
     }
@@ -97,183 +53,6 @@ class Contributions extends Component {
                 prefillStatements: true,
                 researchField: this.props.selectedResearchField,
             });
-            this.getRelatedContributions();
-        }
-    }
-
-    componentDidUpdate = (prevProps) => {
-        // Get new related properties
-        if (this.props.selectedResource !== prevProps.selectedResource) {
-            this.getRelatedProperties();
-        }
-        // Get new related values
-        if (this.props.selectedProperty !== prevProps.selectedProperty) {
-            this.getRelatedValues();
-        }
-    }
-
-    toggle = (tab) => {
-        if (this.state.activeTab !== tab) {
-            this.setState({
-                activeTab: tab
-            });
-        }
-    }
-
-    toggleModal = () => {
-        this.setState((prevState) => ({
-            modal: !prevState.modal,
-        }));
-    };
-
-    handleViewRelatedContributionClick = (ressourceID, ressourceLabel) => {
-        this.setState({
-            modal: true,
-            dialogResourceId: ressourceID,
-            dialogResourceLabel: ressourceLabel,
-        });
-    };
-
-    getRelatedContributions = () => {
-        if (
-            this.props.selectedResearchField
-        ) {
-            // Get the statements that contains the research field as an object
-            getStatementsByObject({
-                id: this.props.selectedResearchField,
-                limit: 4,
-                order: 'desc',
-            }).then((result) => {
-                // Papers
-                // Fetch the data of each paper
-                let papers = result.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD)
-                    .map((paper) => {
-                        return getStatementsBySubject(paper.subject.id).then((paperStatements) => {
-                            // publication year
-                            let publicationYear = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR);
-                            if (publicationYear.length > 0) {
-                                publicationYear = publicationYear[0].object.label
-                            } else {
-                                publicationYear = ''
-                            }
-                            // publication month
-                            let publicationMonth = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_MONTH);
-                            if (publicationMonth.length > 0) {
-                                publicationMonth = publicationMonth[0].object.label
-                            } else {
-                                publicationMonth = ''
-                            }
-                            // authors
-                            let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
-                            let authorNamesArray = [];
-                            if (authors.length > 0) {
-                                for (let author of authors) {
-                                    let authorName = author.object.label;
-                                    authorNamesArray.push(authorName);
-                                }
-                            }
-                            // contributions
-                            let contributions = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_CONTRIBUTION);
-
-                            let contributionArray = [];
-
-                            if (contributions.length > 0) {
-                                for (let contribution of contributions) {
-                                    let statements = getStatementsBySubject(contribution.object.id);
-                                    Promise.all([statements]).then(cs => {
-                                        let st = { properties: [], values: [] };
-                                        let createdProperties = {};
-                                        if (cs[0].length > 0) {
-                                            cs[0].map(s => {
-                                                if (!createdProperties[s.predicate.id]) {
-                                                    createdProperties[s.predicate.id] = s.predicate.id;
-                                                    st['properties'].push({
-                                                        propertyId: s.predicate.id,
-                                                        existingPredicateId: s.predicate.id,
-                                                        label: s.predicate.label,
-                                                    });
-                                                }
-                                                st['values'].push({
-                                                    label: s.object.label,
-                                                    type: 'object',
-                                                    propertyId: s.predicate.id,
-                                                    existingResourceId: s.object.id,
-                                                });
-                                            });
-                                            contributionArray.push({
-                                                ...contribution.object,
-                                                statements: st
-                                            });
-                                        }
-                                    })
-                                }
-                            }
-                            paper.data = {
-                                publicationYear,
-                                publicationMonth,
-                                authorNames: authorNamesArray.reverse(),
-                                contributions: contributionArray.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
-                            }
-                            return paper;
-                        })
-                    });
-                return Promise.all(papers).then((papers) => {
-                    this.setState({
-                        relatedContributions: papers.map(p => { return { title: p.subject.label, id: p.subject.id, ...p.data } })
-                    })
-                })
-            });
-        }
-    }
-
-
-    getRelatedProperties = () => {
-        if (
-            this.props.selectedResource
-            && this.props.resources.byId[this.props.selectedResource]
-            && this.props.resources.byId[this.props.selectedResource].existingResourceId
-        ) {
-            getStatementsBySubject(this.props.resources.byId[this.props.selectedResource].existingResourceId).then((result) => {
-                // Get the related properties without duplicates
-                var relatedProperties = result.map((statement) => {
-                    return statement.predicate
-                }).filter((relatedProperty, index, self) =>
-                    index === self.findIndex((t) => (
-                        t.id === relatedProperty.id && t.label === relatedProperty.label
-                    ))
-                )
-                // Set them to the list of related properties
-                this.setState({
-                    relatedProperties: relatedProperties,
-                    loading: false,
-                    activeTab: '2'
-                })
-            })
-        }
-    }
-
-    getRelatedValues = () => {
-        if (
-            this.props.selectedProperty
-            && this.props.properties.byId[this.props.selectedProperty]
-            && this.props.properties.byId[this.props.selectedProperty].existingPredicateId
-        ) {
-            getStatementsByPredicate(this.props.properties.byId[this.props.selectedProperty].existingPredicateId).then((result) => {
-                // Get the related values without duplicates
-                var relatedValues = result.map((statement) => {
-                    return statement.object
-                }).filter((relatedValue, index, self) =>
-                    index === self.findIndex((t) => (
-                        t.id === relatedValue.id && t.label === relatedValue.label
-                    ))
-                )
-                // Set them to the list of related values
-                this.setState({
-                    relatedValues: relatedValues,
-                    loading: false,
-                    activeTab: '3'
-                })
-            })
         }
     }
 
@@ -347,20 +126,6 @@ class Contributions extends Component {
         });
     }
 
-    addToContributionData = (statements) => {
-        this.props.prefillStatements({
-            statements: { properties: Object.values(statements.properties), values: Object.values(statements.values) },
-            resourceId: this.props.selectedResource,
-        });
-        this.toggleModal();
-    };
-
-    handleChangeSearchRelated = (e) => {
-        this.setState({
-            searchRelated: e.target.value,
-        })
-    };
-
     handleChange = (contributionId, e) => {
         this.props.updateContributionLabel({
             label: e.target.value,
@@ -370,18 +135,6 @@ class Contributions extends Component {
 
     handleLearnMore = (step) => {
         this.props.openTour(step);
-    }
-
-    droppedProperty = (id) => {
-        this.setState({
-            relatedProperties: this.state.relatedProperties.filter(obj => obj.id !== id)
-        })
-    }
-
-    droppedValue = (id) => {
-        this.setState({
-            relatedValues: this.state.relatedValues.filter(obj => obj.id !== id)
-        })
     }
 
     render() {
@@ -414,9 +167,9 @@ class Contributions extends Component {
                                         />
                                         {!this.state.editing[contribution] && contributionId === this.props.selectedContribution && (
                                             <>
-                                                <UncontrolledButtonDropdown direction="right">
-                                                    <DropdownToggle color="link">
-                                                        <Icon icon={faCog} />
+                                                <UncontrolledButtonDropdown direction="down">
+                                                    <DropdownToggle className={'dropdownToggle'} color="link" size="sm" >
+                                                        <Icon icon={faCog} color={'#fff'} />
                                                     </DropdownToggle>
                                                     <DropdownMenu>
                                                         <DropdownItem onClick={(e) => this.toggleEditLabelContribution(contributionId, e)}>
@@ -429,7 +182,6 @@ class Contributions extends Component {
                                                         )}
                                                     </DropdownMenu>
                                                 </UncontrolledButtonDropdown>
-
                                             </>
                                         )}
                                     </li>
@@ -454,101 +206,7 @@ class Contributions extends Component {
                         </CSSTransitionGroup>
                     </div>
                     <Col xs="4">
-                        <Nav tabs>
-                            <NavItem style={{ cursor: 'pointer' }}>
-                                <NavLink
-                                    className={classnames({ active: this.state.activeTab === '1' })}
-                                    onClick={() => { this.toggle('1'); }}
-                                >
-                                    Similar
-                                </NavLink>
-                            </NavItem>
-                            <NavItem style={{ cursor: 'pointer' }}>
-                                <NavLink
-                                    className={classnames({ active: this.state.activeTab === '2' })}
-                                    onClick={() => { this.toggle('2'); }}
-                                >
-                                    Properties
-                                </NavLink>
-                            </NavItem>
-                            <NavItem style={{ cursor: 'pointer' }}>
-                                <NavLink
-                                    className={classnames({ active: this.state.activeTab === '3' })}
-                                    onClick={() => { this.toggle('3'); }}
-                                >
-                                    Values
-                                </NavLink>
-                            </NavItem>
-                        </Nav>
-
-                        <TabContent activeTab={this.state.activeTab}>
-                            <TabPane tabId="1">
-                                <Row>
-                                    <Col sm="12">
-                                        <form className="mr-2 mt-2 mb-2">
-                                            <div className="input-group">
-                                                <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
-                                                    onChange={this.handleChangeSearchRelated} />
-
-                                                <div className="input-group-append">
-                                                    <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
-                                                        <Icon icon={faSearch} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                        <StyledRelatedData className={'scrollbox'}>
-                                            {this.state.relatedContributions.map((p) => <RelatedContribution openDialog={this.handleViewRelatedContributionClick} dropped={this.droppedProperty} key={`s${p.id}`} authors={p.authorNames} id={p.id} label={p.title} contributions={p.contributions} />)}
-                                        </StyledRelatedData>
-                                    </Col>
-                                </Row>
-                            </TabPane>
-                            <TabPane tabId="2">
-                                <Row>
-                                    <Col sm="12">
-                                        <form className="mr-2 mt-2 mb-2">
-                                            <div className="input-group">
-                                                <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
-                                                    onChange={this.handleChangeSearchRelated} />
-
-                                                <div className="input-group-append">
-                                                    <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
-                                                        <Icon icon={faSearch} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                        <StyledRelatedData className={'scrollbox'}>
-                                            {this.state.relatedProperties.map((p) => <RelatedProperty dropped={this.droppedProperty} key={`s${p.id}`} id={p.id} label={p.label} />)}
-                                        </StyledRelatedData>
-                                    </Col>
-                                </Row>
-                            </TabPane>
-                            <TabPane tabId="3">
-                                <Row>
-                                    <Col sm="12">
-                                        <form className="mr-2 mt-2 mb-2">
-                                            <div className="input-group">
-                                                <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
-                                                    onChange={this.handleChangeSearchRelated} />
-
-                                                <div className="input-group-append">
-                                                    <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
-                                                        <Icon icon={faSearch} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                        <StyledRelatedData className={'scrollbox'}>
-                                            {this.state.relatedValues.map((v) => <RelatedValue dropped={this.droppedValue} ey={`s${v.id}`} id={v.id} label={v.label} />)}
-                                        </StyledRelatedData>
-                                    </Col>
-                                </Row>
-                            </TabPane>
-                        </TabContent>
-                        {this.state.modal && (
-                            <StatementBrowserDialog enableSelection={true} selectedAction={this.addToContributionData} show={this.state.modal} toggleModal={this.toggleModal} resourceId={this.state.dialogResourceId} resourceLabel={this.state.dialogResourceLabel} />
-                        )}
+                        <SimilarContributionData />
                     </Col>
                 </Row>
                 <hr className="mt-5 mb-3" />
@@ -587,9 +245,6 @@ Contributions.propTypes = {
     theme: PropTypes.object.isRequired,
     openTour: PropTypes.func.isRequired,
     updateTourCurrentStep: PropTypes.func.isRequired,
-    selectedProperty: PropTypes.string.isRequired,
-    selectedResource: PropTypes.string.isRequired,
-    prefillStatements: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => {
@@ -604,9 +259,7 @@ const mapStateToProps = state => {
         selectedContribution: state.addPaper.selectedContribution,
         resources: state.statementBrowser.resources,
         properties: state.statementBrowser.properties,
-        values: state.statementBrowser.values,
-        selectedProperty: state.statementBrowser.selectedProperty,
-        selectedResource: state.statementBrowser.selectedResource,
+        values: state.statementBrowser.values
     }
 };
 
@@ -619,8 +272,7 @@ const mapDispatchToProps = dispatch => ({
     updateContributionLabel: (data) => dispatch(updateContributionLabel(data)),
     saveAddPaper: (data) => dispatch(saveAddPaper(data)),
     openTour: (data) => dispatch(openTour(data)),
-    updateTourCurrentStep: (data) => dispatch(updateTourCurrentStep(data)),
-    prefillStatements: (data) => dispatch(prefillStatements(data)),
+    updateTourCurrentStep: (data) => dispatch(updateTourCurrentStep(data))
 });
 
 export default compose(

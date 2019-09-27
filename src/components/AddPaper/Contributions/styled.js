@@ -85,16 +85,6 @@ export const StyledRelatedData = styled.ul`
         /* Opera doesn't support this in the shorthand */
         background-attachment: local, local, scroll, scroll;
     }
-
-
-    > li {
-        margin-bottom: 5px;
-        margin-top: 5px;
-        transition: 0.3s background;
-        border: dotted 1px;
-        border-radius: ${props => props.theme.borderRadius};
-        box-shadow: -2px 0px 2px 0px rgba(0, 0, 0, 0.1);
-    }
 `;
 
 /*contributionsList*/
@@ -159,11 +149,11 @@ export const StyledHorizontalContributionsList = styled.ul`
             color:${props => props.theme.darkblue};
         }
 
-        .btn-group{
-            position:absolute;
-            top:-10px;
-            right:-3px;
-            color:${props => props.theme.darkblue};
+        .dropdownToggle{
+            color:#fff;
+            margin-left: 3px !important;
+            padding-bottom: 2px;
+            margin-top: -2px;
         }
 
         > span {
@@ -273,6 +263,11 @@ export const StyledStatementItem = styled(ListGroupItem)`
 
     &.selectable {
         cursor: pointer;
+    }
+
+    &.dropView {
+        background: '#e9ebf2';
+        opacity: 0.5;
     }
 
     & > .statementItemIcon {

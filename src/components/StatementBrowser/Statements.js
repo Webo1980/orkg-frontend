@@ -12,6 +12,7 @@ import { initializeWithoutContribution, createProperty, createValue } from '../.
 import { prefillStatements } from '../../actions/addPaper';
 import { DropTarget } from 'react-dnd';
 import DndTypes from './../../constants/DndTypes';
+import capitalize from 'capitalize';
 import { compose } from 'redux';
 
 /**
@@ -96,6 +97,7 @@ function collect(connect, monitor) {
         isOverCurrent: monitor.isOver({ shallow: true }),
         canDrop: monitor.canDrop(),
         itemToDrop: monitor.getItem(),
+        itemToDropType: monitor.getItemType(),
     }
 }
 
@@ -179,7 +181,7 @@ class Statements extends Component {
     }
 
     statements = () => {
-        const { itemToDrop, isOver, canDrop, connectDropTarget } = this.props
+        const { itemToDrop, itemToDropType, isOver, canDrop, connectDropTarget } = this.props
 
         const isActive = canDrop && isOver
 
@@ -213,20 +215,37 @@ class Statements extends Component {
                                         />
                                     )
                                 })}
-                                {isOver &&
-                                    <StyledStatementItem
-                                        style={{ background: '#e9ebf2', opacity: 0.5 }}
-                                    >{itemToDrop.label}
-                                    </StyledStatementItem>
-                                }
+                                {isOver && (
+                                    <>
+                                        {itemToDropType === DndTypes.PROPERTY && (
+                                            <StyledStatementItem
+                                                className={'dropView'}
+                                            >
+                                                {itemToDrop.label}
+                                            </StyledStatementItem>)}
+                                        {itemToDropType === DndTypes.CONTRIBUTION && itemToDrop.contributions.length > 0 && (
+                                            <>
+                                                {itemToDrop.contributions[0].statements.properties.map(p => {
+                                                    return (
+                                                        <StyledStatementItem
+                                                            className={'dropView'}
+                                                        >
+                                                            {capitalize(p.label)}
+                                                        </StyledStatementItem>
+                                                    )
+                                                })}
+                                            </>
+                                        )}
+                                    </>
+                                )}
                             </>
                         )
                             : (this.props.enableEdit) ? (
                                 <StyledStatementItemDropZoneHelper>
                                     {canDrop && (
-                                        <>
-                                            Drop elements here
-                                        </>)
+                                        <div className={'pt-3 pb-3'}>
+                                            Drop here to insert data
+                                        </div>)
                                     }
                                     {!canDrop && (
                                         <>
@@ -245,7 +264,7 @@ class Statements extends Component {
 
                     {this.props.enableEdit ? <AddStatement /> : ''}
                 </ListGroup>
-            </div>
+            </div >
         );
     }
 
@@ -293,6 +312,7 @@ Statements.propTypes = {
     createValue: PropTypes.func.isRequired,
     prefillStatements: PropTypes.func.isRequired,
     itemToDrop: PropTypes.object,
+    itemToDropType: PropTypes.string,
     isOver: PropTypes.bool.isRequired,
     canDrop: PropTypes.bool.isRequired,
     connectDropTarget: PropTypes.func.isRequired,

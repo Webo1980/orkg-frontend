@@ -3,32 +3,68 @@ import { DragSource } from 'react-dnd';
 import DndTypes from '../../../constants/DndTypes';
 import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faGripVertical, faTasks } from '@fortawesome/free-solid-svg-icons';
+import classnames from 'classnames';
 import PropTypes from 'prop-types';
 
 const StyledRelatedContribution = styled.li`
     position: relative;
     padding-bottom: 20px;
+    margin-bottom: 8px ; 
+    transition: 0.3s background;
+    border: dotted 1px;
+    border-radius: ${props => props.theme.borderRadius};
+    box-shadow: -2px 0px 2px 0px rgba(0, 0, 0, 0.1);
+
+    vertical-align: middle;
+    -webkit-transform: perspective(1px) translateZ(0);
+    transform: perspective(1px) translateZ(0);
+    overflow: hidden;
+    -webkit-transition-duration: 0.3s;
+    transition-duration: 0.3s;
+    -webkit-transition-property: color, background-color;
+    transition-property: color, background-color;
 
     &.dragging{
         opacity: 0.5;
+        background-color: #c2dbffe0;
     }
+
+    &:hover .cardBody .icon{
+        visibility:visible;
+    }
+
     .cardBody{
+        font-size: small;
         cursor: move;
-        padding: 9px 9px 9px 15px;
+        padding: 9px 9px 9px 9px;
+
+        .icon{
+            visibility:hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     }
+
+    &:active{
+        background-color: #c2dbffe0;
+    }
+
+    &:hover .cardFooter .previewButton{
+        display:block;
+    }
+
     .cardFooter{
-        padding: 2px 10px;
+        padding: 2px 10px 2px 20px;
         font-size:small;
         position:absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        border-top: 1px solid ${props => props.theme.bodyBg};
-        border-bottom-left-radius: ${props => props.theme.borderRadius};
-        border-bottom-right-radius: ${props => props.theme.borderRadius};
 
         .previewButton{
+            display:none;
             float:right;
             cursor:pointer;
         }
@@ -40,7 +76,7 @@ const StyledRelatedContribution = styled.li`
  * Only `beginDrag` function is required.
  */
 const cardSource = {
-    beginDrag(props) {
+    beginDrag(props, monitor, component) {
         // Return the data describing the dragged item
         const item = { id: props.id, label: props.label, contributions: props.contributions }
         return item
@@ -71,18 +107,25 @@ function collect(connect, monitor) {
 }
 
 class RelatedContribution extends Component {
+
     render() {
         const { id, label, authors, contributions, isDragging, connectDragSource, connectDragPreview } = this.props
         return (
-            <StyledRelatedContribution className={isDragging ? 'dragging' : ''} ref={instance => connectDragPreview(instance)}>
-                <div className={'cardBody'} ref={instance => connectDragSource(instance)} >
-                    <Icon icon={faEllipsisV} className={'mr-2'} />
-                    {label}
+            <StyledRelatedContribution
+                className={classnames({ dragging: isDragging })}
+                ref={instance => connectDragPreview(instance)}
+            >
+                <div className={'cardBody d-flex'} ref={instance => connectDragSource(instance)} >
+                    <div className={'icon mr-2'}>
+                        <Icon icon={faGripVertical} color={'#cbcece'} />
+                    </div>
+                    <div>{label} <br /> <i>{authors[0]}</i></div>
                 </div>
                 {/*<Icon icon={faEye} size="xs" stlye={{ cursor: 'default', float: 'right' }} />*/}
                 <div className={'cardFooter'}>
-                    {authors[0]}
-                    <div onClick={() => this.props.openDialog(contributions[0].id, label)} className={'previewButton'}><Icon icon={faEye} size="xs" /> Details </div>
+                    <div onClick={() => this.props.openDialog(contributions[0].id, label)} className={'previewButton'}>
+                        <Icon icon={faTasks} /> Select data
+                    </div>
                 </div>
             </StyledRelatedContribution>
         )
@@ -95,9 +138,10 @@ RelatedContribution.propTypes = {
     label: PropTypes.string.isRequired,
     contributions: PropTypes.array.isRequired,
     authors: PropTypes.array.isRequired,
+    selected: PropTypes.bool.isRequired,
     connectDragSource: PropTypes.func.isRequired,
     connectDragPreview: PropTypes.func.isRequired,
-    openDialog: PropTypes.func.isRequired
+    openDialog: PropTypes.func.isRequired,
 };
 
 export default DragSource(DndTypes.CONTRIBUTION, cardSource, collect)(RelatedContribution)
