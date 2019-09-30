@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExternalLinkAlt, faTable } from '@fortawesome/free-solid-svg-icons';
-import { Input } from 'reactstrap';
 import Tooltip from '../../Utils/Tooltip';
 import { StyledValueItem } from '../../AddPaper/Contributions/styled';
 import classNames from 'classnames';

@@ -193,8 +193,6 @@ class Statements extends Component {
     statements = () => {
         const { itemToDrop, itemToDropType, isOver, canDrop, connectDropTarget } = this.props
 
-        const isActive = canDrop && isOver
-
         let propertyIds = Object.keys(this.props.resources.byId).length !== 0 && this.props.selectedResource ? this.props.resources.byId[this.props.selectedResource].propertyIds : [];
 
         return connectDropTarget(

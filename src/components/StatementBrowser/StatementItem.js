@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ListGroup, Collapse, Input, CustomInput } from 'reactstrap';
+import { ListGroup, Collapse } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/free-solid-svg-icons';
 import { StyledStatementItem, StyledListGroupOpen, StyledValueItem } from '../AddPaper/Contributions/styled';

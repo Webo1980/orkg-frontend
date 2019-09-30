@@ -19,7 +19,9 @@ class SimilarContributionData extends Component {
         super(props);
         this.state = {
             activeTab: '1',
-            searchRelated: '',
+            searchSimilarContribution: '',
+            searchSimilarValue: '',
+            searchSimilarProperty: '',
             modal: false,
             dialogResourceId: null,
             dialogResourceLabel: null,
@@ -60,10 +62,8 @@ class SimilarContributionData extends Component {
     }
 
     componentDidMount() {
-        // if there is no contribution yet, create the first one
-        if (this.props.contributions.allIds.length === 0) {
-            this.getRelatedContributions();
-        }
+        // Get similar contributions
+        this.getRelatedContributions();
     }
 
     componentDidUpdate = (prevProps) => {
@@ -100,9 +100,7 @@ class SimilarContributionData extends Component {
     };
 
     getRelatedContributions = () => {
-        if (
-            this.props.selectedResearchField
-        ) {
+        if (this.props.selectedResearchField) {
             // Get the statements that contains the research field as an object
             getStatementsByObject({
                 id: this.props.selectedResearchField,
@@ -144,6 +142,7 @@ class SimilarContributionData extends Component {
 
                             if (contributions.length > 0) {
                                 for (let contribution of contributions) {
+                                    // Fetch contribution data
                                     let statements = getStatementsBySubject(contribution.object.id);
                                     Promise.all([statements]).then(cs => {
                                         let st = { properties: [], values: [] };
@@ -255,9 +254,7 @@ class SimilarContributionData extends Component {
     };
 
     handleChangeSearchRelated = (e) => {
-        this.setState({
-            searchRelated: e.target.value,
-        })
+        this.setState({ [e.target.name]: e.target.value });
     };
 
     droppedProperty = (id) => {
@@ -308,8 +305,15 @@ class SimilarContributionData extends Component {
                             <Col sm="12">
                                 <div className="d-flex mr-2 mt-2 mb-2">
                                     <div className="input-group">
-                                        <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
-                                            onChange={this.handleChangeSearchRelated} />
+                                        <Input
+                                            bsSize="sm"
+                                            type="text"
+                                            placeholder="Paper title..."
+                                            className="form-control"
+                                            value={this.state.searchSimilarContribution}
+                                            onChange={this.handleChangeSearchRelated}
+                                            name="searchSimilarContribution"
+                                        />
 
                                         <div className="input-group-append">
                                             <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
@@ -354,8 +358,15 @@ class SimilarContributionData extends Component {
                                         </Button>
                                     )}
                                     <div className="input-group">
-                                        <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
-                                            onChange={this.handleChangeSearchRelated} />
+                                        <Input
+                                            bsSize="sm"
+                                            type="text"
+                                            placeholder="Property label..."
+                                            className="form-control"
+                                            value={this.state.searchSimilarProperty}
+                                            onChange={this.handleChangeSearchRelated}
+                                            name="searchSimilarProperty"
+                                        />
 
                                         <div className="input-group-append">
                                             <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
@@ -396,8 +407,15 @@ class SimilarContributionData extends Component {
                                         </Button>
                                     )}
                                     <div className="input-group">
-                                        <Input bsSize="sm" type="text" className="form-control" value={this.state.searchRelated}
-                                            onChange={this.handleChangeSearchRelated} />
+                                        <Input
+                                            bsSize="sm"
+                                            type="text"
+                                            placeholder="Resource label..."
+                                            className="form-control"
+                                            value={this.state.searchSimilarValue}
+                                            onChange={this.handleChangeSearchRelated}
+                                            name="searchSimilarValue"
+                                        />
 
                                         <div className="input-group-append">
                                             <Button size="sm" className="btn pl-2 pr-2" type="submit">

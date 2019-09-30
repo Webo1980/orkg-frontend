@@ -100,7 +100,7 @@ function collect(connect, monitor) {
 class RelatedContribution extends Component {
 
     render() {
-        const { id, label, authors, contributions, isDragging, connectDragSource, connectDragPreview } = this.props
+        const { label, authors, contributions, isDragging, connectDragSource, connectDragPreview } = this.props
         return (
             <StyledRelatedContribution
                 className={classnames({ dragging: isDragging })}
@@ -130,7 +130,6 @@ RelatedContribution.propTypes = {
     label: PropTypes.string.isRequired,
     contributions: PropTypes.array.isRequired,
     authors: PropTypes.array.isRequired,
-    selected: PropTypes.bool.isRequired,
     connectDragSource: PropTypes.func.isRequired,
     connectDragPreview: PropTypes.func.isRequired,
     openDialog: PropTypes.func.isRequired,

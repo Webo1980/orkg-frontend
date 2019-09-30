@@ -5,7 +5,7 @@ import { Cookies } from 'react-cookie';
 
 const initialState = {
     isTourOpen: false,
-    currentStep: 4,
+    currentStep: 1,
     shouldBlockNavigation: false,
     tourCurrentStep: 1,
     tourStartAt: 0,
@@ -18,7 +18,7 @@ const initialState = {
     showLookupTable: false,
     doi: '',
     researchFields: [],
-    selectedResearchField: 'R133',
+    selectedResearchField: '',
     selectedContribution: '',
     paperNewResourceId: null,
     ranges: {},

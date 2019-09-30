@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Form, FormGroup, Label, Modal, ModalHeader, ModalBody, Button } from 'reactstrap';
+import { Form, FormGroup, Label, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import Tooltip from '../../Utils/Tooltip';
 import ResearchProblemInput from './ResearchProblemInput';
 import { StyledHorizontalContribution } from './styled';
@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
 import Tour from 'reactour';
 import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt, faProjectDiagram, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 
 class Contribution extends Component {
 
