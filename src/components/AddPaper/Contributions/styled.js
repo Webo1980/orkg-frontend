@@ -65,8 +65,8 @@ export const StyledRelatedList = styled.ul`
 /*relatedData*/
 export const StyledRelatedData = styled.ul`
     list-style: none;
-    padding-left:4px;
-    padding-right:0;
+    padding-left:2px;
+    padding-right:2px;
     max-height:400px;
     overflow: scroll;
     overflow-x: hidden;

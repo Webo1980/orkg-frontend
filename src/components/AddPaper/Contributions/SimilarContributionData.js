@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSearch, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { StyledRelatedData } from './styled';
-import { prefillStatements } from '../../../actions/addPaper';
+import { prefillStatements, resetSelectedDndProperties, resetSelectedDndValues } from '../../../actions/addPaper';
 import { getStatementsByPredicate, getStatementsBySubject, getStatementsByObject } from './../../../network';
 import PropTypes from 'prop-types';
 
@@ -55,9 +55,7 @@ class SimilarContributionData extends Component {
                 }
             ],
             relatedValues: [],
-            relatedContributions: [],
-            selectedProperties: [],
-            selectedValues: [],
+            relatedContributions: []
         };
     }
 
@@ -91,38 +89,6 @@ class SimilarContributionData extends Component {
         this.setState((prevState) => ({
             modal: !prevState.modal,
         }));
-    };
-
-    toggleSelectedProperties = (property) => {
-        if (this.state.selectedProperties.some(c => c.id === property.id)) {
-            // unselect
-            const filteredItems = this.state.selectedProperties.filter(item => {
-                return item.id !== property.id
-            })
-            this.setState({
-                selectedProperties: filteredItems,
-            })
-        } else {
-            this.setState({
-                selectedProperties: [...this.state.selectedProperties, property],
-            })
-        }
-    };
-
-    toggleSelectedValues = (value) => {
-        if (this.state.selectedValues.some(c => c.id === value.id)) {
-            // unselect
-            const filteredItems = this.state.selectedValues.filter(item => {
-                return item.id !== value.id
-            })
-            this.setState({
-                selectedValues: filteredItems,
-            })
-        } else {
-            this.setState({
-                selectedValues: [...this.state.selectedValues, value],
-            })
-        }
     };
 
     handleViewRelatedContributionClick = (ressourceID, ressourceLabel) => {
@@ -241,6 +207,8 @@ class SimilarContributionData extends Component {
                         t.id === relatedProperty.id && t.label === relatedProperty.label
                     ))
                 )
+                // reset selected properties
+                this.props.resetSelectedDndProperties();
                 // Set them to the list of related properties
                 this.setState({
                     relatedProperties: relatedProperties,
@@ -266,6 +234,8 @@ class SimilarContributionData extends Component {
                         t.id === relatedValue.id && t.label === relatedValue.label
                     ))
                 )
+                // reset selected properties
+                this.props.resetSelectedDndValues();
                 // Set them to the list of related values
                 this.setState({
                     relatedValues: relatedValues,
@@ -343,7 +313,7 @@ class SimilarContributionData extends Component {
 
                                         <div className="input-group-append">
                                             <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
-                                                <Icon icon={faSearch} />
+                                                <Icon icon={faSearch} color={'#fff'} />
                                             </Button>
                                         </div>
                                     </div>
@@ -366,8 +336,20 @@ class SimilarContributionData extends Component {
                         <Row>
                             <Col sm="12">
                                 <div className="d-flex mr-2 mt-2 mb-2">
-                                    {this.state.selectedProperties.length > 0 && (
-                                        <Button onClick={null} size="sm" color="primary" className="mr-2 pl-2 pr-2">
+                                    {this.props.dndSelectedProperties.length > 0 && (
+                                        <Button onClick={() => {
+                                            this.props.prefillStatements({
+                                                statements: {
+                                                    properties: this.props.dndSelectedProperties.map(p => { return { propertyId: p.id, existingPredicateId: p.id, label: p.label } }),
+                                                    values: []
+                                                },
+                                                resourceId: this.props.selectedResource
+                                            });
+                                            this.props.resetSelectedDndProperties();
+                                        }
+                                        }
+                                            size="sm" color="primary" className="mr-2 pl-2 pr-2"
+                                        >
                                             <Icon icon={faPlus} />
                                         </Button>
                                     )}
@@ -377,7 +359,7 @@ class SimilarContributionData extends Component {
 
                                         <div className="input-group-append">
                                             <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
-                                                <Icon icon={faSearch} />
+                                                <Icon icon={faSearch} color={'#fff'} />
                                             </Button>
                                         </div>
                                     </div>
@@ -385,8 +367,6 @@ class SimilarContributionData extends Component {
                                 <StyledRelatedData className={'scrollbox'}>
                                     {this.state.relatedProperties.map((p) => (
                                         <RelatedProperty
-                                            selected={this.state.selectedProperties.some(c => c.id === p.id)}
-                                            toggleSelect={this.toggleSelectedProperties}
                                             dropped={this.droppedProperty}
                                             key={`s${p.id}`}
                                             id={p.id}
@@ -400,8 +380,18 @@ class SimilarContributionData extends Component {
                         <Row>
                             <Col sm="12">
                                 <div className="d-flex mr-2 mt-2 mb-2">
-                                    {this.state.selectedValues.length > 0 && (
-                                        <Button onClick={null} size="sm" color="primary" className="mr-2 pl-2 pr-2">
+                                    {this.props.dndSelectedValues.length > 0 && this.props.selectedResource && (
+                                        <Button onClick={() => {
+                                            this.props.prefillStatements({
+                                                statements: {
+                                                    properties: [],
+                                                    values: this.props.dndSelectedValues.map(v => { return { existingResourceId: v.id, label: v.label, propertyId: this.props.selectedProperty } }),
+                                                },
+                                                resourceId: this.props.selectedResource
+                                            });
+                                            this.props.resetSelectedDndValues();
+                                        }} size="sm" color="primary" className="mr-2 pl-2 pr-2"
+                                        >
                                             <Icon icon={faPlus} />
                                         </Button>
                                     )}
@@ -410,7 +400,7 @@ class SimilarContributionData extends Component {
                                             onChange={this.handleChangeSearchRelated} />
 
                                         <div className="input-group-append">
-                                            <Button size="sm" className="btn btn-outline-secondary pl-2 pr-2 search-icon" type="submit">
+                                            <Button size="sm" className="btn pl-2 pr-2" type="submit">
                                                 <Icon icon={faSearch} />
                                             </Button>
                                         </div>
@@ -419,8 +409,6 @@ class SimilarContributionData extends Component {
                                 <StyledRelatedData className={'scrollbox'}>
                                     {this.state.relatedValues.map((v) => (
                                         <RelatedValue
-                                            selected={this.state.selectedValues.some(c => c.id === v.id)}
-                                            toggleSelect={this.toggleSelectedValues}
                                             dropped={this.droppedValue}
                                             key={`s${v.id}`}
                                             id={v.id}
@@ -431,10 +419,12 @@ class SimilarContributionData extends Component {
                         </Row>
                     </TabPane>
                 </TabContent>
-                {this.state.modal && (
-                    <StatementBrowserDialog enableSelection={true} selectedAction={this.addToContributionData} show={this.state.modal} toggleModal={this.toggleModal} resourceId={this.state.dialogResourceId} resourceLabel={this.state.dialogResourceLabel} />
-                )}
-            </div>
+                {
+                    this.state.modal && (
+                        <StatementBrowserDialog enableSelection={true} selectedAction={this.addToContributionData} show={this.state.modal} toggleModal={this.toggleModal} resourceId={this.state.dialogResourceId} resourceLabel={this.state.dialogResourceLabel} />
+                    )
+                }
+            </div >
         )
     }
 }
@@ -450,6 +440,10 @@ SimilarContributionData.propTypes = {
     selectedProperty: PropTypes.string.isRequired,
     selectedResource: PropTypes.string.isRequired,
     prefillStatements: PropTypes.func.isRequired,
+    dndSelectedProperties: PropTypes.array.isRequired,
+    dndSelectedValues: PropTypes.array.isRequired,
+    resetSelectedDndProperties: PropTypes.func.isRequired,
+    resetSelectedDndValues: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => {
@@ -462,11 +456,15 @@ const mapStateToProps = state => {
         values: state.statementBrowser.values,
         selectedProperty: state.statementBrowser.selectedProperty,
         selectedResource: state.statementBrowser.selectedResource,
+        dndSelectedProperties: state.addPaper.dndSelectedProperties,
+        dndSelectedValues: state.addPaper.dndSelectedValues,
     }
 };
 
 const mapDispatchToProps = dispatch => ({
     prefillStatements: (data) => dispatch(prefillStatements(data)),
+    resetSelectedDndProperties: () => dispatch(resetSelectedDndProperties()),
+    resetSelectedDndValues: () => dispatch(resetSelectedDndValues()),
 });
 
 export default connect(

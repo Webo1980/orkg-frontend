@@ -5,7 +5,7 @@ import { Cookies } from 'react-cookie';
 
 const initialState = {
     isTourOpen: false,
-    currentStep: 1,
+    currentStep: 4,
     shouldBlockNavigation: false,
     tourCurrentStep: 1,
     tourStartAt: 0,
@@ -18,7 +18,7 @@ const initialState = {
     showLookupTable: false,
     doi: '',
     researchFields: [],
-    selectedResearchField: '',
+    selectedResearchField: 'R133',
     selectedContribution: '',
     paperNewResourceId: null,
     ranges: {},
@@ -26,6 +26,8 @@ const initialState = {
         byId: {},
         allIds: [],
     },
+    dndSelectedProperties: [],
+    dndSelectedValues: [],
 };
 
 export default (state = initialState, action) => {
@@ -104,6 +106,63 @@ export default (state = initialState, action) => {
                 ...state,
                 isTourOpen: true,
                 tourStartAt: payload.step ? payload.step : 0,
+            };
+        }
+
+
+        case type.TOGGLE_SELECTED_DND_PROPERTIES: {
+            let { payload } = action;
+
+            if (state.dndSelectedProperties.some(c => c.id === payload.id)) {
+                // unselect
+                const filteredItems = state.dndSelectedProperties.filter(item => {
+                    return item.id !== payload.id
+                })
+                return {
+                    ...state,
+                    dndSelectedProperties: filteredItems
+                };
+            } else {
+                return {
+                    ...state,
+                    dndSelectedProperties: [...state.dndSelectedProperties, payload],
+                };
+            }
+        }
+
+
+        case type.TOGGLE_SELECTED_DND_VALUES: {
+            let { payload } = action;
+
+            if (state.dndSelectedValues.some(c => c.id === payload.id)) {
+                // unselect
+                const filteredItems = state.dndSelectedValues.filter(item => {
+                    return item.id !== payload.id
+                })
+                return {
+                    ...state,
+                    dndSelectedValues: filteredItems
+                };
+            } else {
+                return {
+                    ...state,
+                    dndSelectedValues: [...state.dndSelectedValues, payload],
+                };
+            }
+        }
+
+
+        case type.RESET_SELECTED_DND_PROPERTIES: {
+            return {
+                ...state,
+                dndSelectedProperties: [],
+            };
+        }
+
+        case type.RESET_SELECTED_DND_VALUES: {
+            return {
+                ...state,
+                dndSelectedValues: [],
             };
         }
 

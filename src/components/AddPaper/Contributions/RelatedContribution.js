@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 
 const StyledRelatedContribution = styled.li`
     position: relative;
-    padding-bottom: 20px;
     margin-bottom: 8px ; 
     transition: 0.3s background;
     border: dotted 1px;
@@ -30,7 +29,7 @@ const StyledRelatedContribution = styled.li`
         background-color: #c2dbffe0;
     }
 
-    &:hover .cardBody .icon{
+    &:hover .cardBody .dragIcon{
         visibility:visible;
     }
 
@@ -39,7 +38,7 @@ const StyledRelatedContribution = styled.li`
         cursor: move;
         padding: 9px 9px 9px 9px;
 
-        .icon{
+        & .dragIcon{
             visibility:hidden;
             display: flex;
             justify-content: center;
@@ -51,23 +50,15 @@ const StyledRelatedContribution = styled.li`
         background-color: #c2dbffe0;
     }
 
-    &:hover .cardFooter .previewButton{
-        display:block;
+    & .previewButton{
+        display:none;
+        float:right;
+        cursor:pointer;
     }
 
-    .cardFooter{
-        padding: 2px 10px 2px 20px;
-        font-size:small;
-        position:absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-
-        .previewButton{
-            display:none;
-            float:right;
-            cursor:pointer;
-        }
+    &:hover .previewButton{
+        float:right;
+        display:block;
     }
 `;
 
@@ -116,17 +107,18 @@ class RelatedContribution extends Component {
                 ref={instance => connectDragPreview(instance)}
             >
                 <div className={'cardBody d-flex'} ref={instance => connectDragSource(instance)} >
-                    <div className={'icon mr-2'}>
+                    <div className={'dragIcon mr-2'}>
                         <Icon icon={faGripVertical} color={'#cbcece'} />
                     </div>
-                    <div>{label} <br /> <i>{authors[0]}</i></div>
-                </div>
-                {/*<Icon icon={faEye} size="xs" stlye={{ cursor: 'default', float: 'right' }} />*/}
-                <div className={'cardFooter'}>
-                    <div onClick={() => this.props.openDialog(contributions[0].id, label)} className={'previewButton'}>
-                        <Icon icon={faTasks} /> Select data
+                    <div>
+                        {label} <br /><br />
+                        <i>{authors[0]}</i>
+                        <div onClick={() => this.props.openDialog(contributions[0].id, label)} className={'previewButton'}>
+                            <Icon icon={faTasks} /> Select data
+                        </div>
                     </div>
                 </div>
+                {/*<Icon icon={faEye} size="xs" stlye={{ cursor: 'default', float: 'right' }} />*/}
             </StyledRelatedContribution>
         )
     }

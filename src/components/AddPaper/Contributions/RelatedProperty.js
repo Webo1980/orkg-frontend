@@ -5,6 +5,10 @@ import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faGripVertical } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { toggleSelectedDndProperties } from '../../../actions/addPaper';
+import { createDragPreview } from 'react-dnd-text-dragpreview'
+import { compose } from 'redux';
 import classnames from 'classnames';
 
 const StyledRelatedProperty = styled.li`
@@ -57,18 +61,49 @@ function collect(connect, monitor) {
         // Call this function inside render()
         // to let React DnD handle the drag events:
         connectDragSource: connect.dragSource(),
+        connectDragPreview: connect.dragPreview(),
         // You can ask the monitor about the current drag state:
         isDragging: monitor.isDragging(),
     }
 }
 
+// overrides dragPreview style
+var dragPreviewStyle = {
+    backgroundColor: '#6c7289',
+    borderColor: '#E86161',
+    color: '#fff',
+    fontSize: 15,
+    paddingTop: 7,
+    paddingRight: 7,
+    paddingBottom: 7,
+    paddingLeft: 7
+}
+
+
 class RelatedProperty extends Component {
+
+    componentDidMount() {
+        // handles first time dragPreview setup
+        this.dragPreview = createDragPreview(this.formatDragMessage(this.props.selected.length), dragPreviewStyle)
+        this.props.connectDragPreview(this.dragPreview)
+    }
+    componentDidUpdate() {
+        // handles updates to the dragPreview image as the dynamic numRows value changes
+        this.dragPreview = createDragPreview(this.formatDragMessage(this.props.selected.length), dragPreviewStyle, this.dragPreview)
+    }
+
+    // provides custom message for dragPreview
+    formatDragMessage = (numRows) => {
+        const noun = numRows === 1 ? 'property' : 'properties'
+        return `Moving ${numRows} ${noun}`
+    }
+
     render() {
         const { id, label, isDragging, connectDragSource } = this.props
         return (
             <StyledRelatedProperty
                 onClick={() => this.props.toggleSelect({ id, label })}
-                className={classnames({ dragging: isDragging, selected: this.props.selected })}
+                className={classnames({ dragging: isDragging, selected: this.props.selected.some(c => c.id === id) })}
                 ref={instance => connectDragSource(instance)}
             >
                 <Icon icon={faGripVertical} color={'#cbcece'} className={'mr-2'} />
@@ -82,9 +117,26 @@ RelatedProperty.propTypes = {
     id: PropTypes.string.isRequired,
     isDragging: PropTypes.bool.isRequired,
     label: PropTypes.string.isRequired,
-    selected: PropTypes.bool.isRequired,
+    selected: PropTypes.array.isRequired,
     connectDragSource: PropTypes.func.isRequired,
+    connectDragPreview: PropTypes.func.isRequired,
     toggleSelect: PropTypes.func
 };
 
-export default DragSource(DndTypes.PROPERTY, cardSource, collect)(RelatedProperty)
+const mapStateToProps = state => {
+    return {
+        selected: state.addPaper.dndSelectedProperties,
+    }
+};
+
+const mapDispatchToProps = dispatch => ({
+    toggleSelect: (data) => dispatch(toggleSelectedDndProperties(data)),
+});
+
+export default compose(
+    connect(
+        mapStateToProps,
+        mapDispatchToProps,
+    ),
+    DragSource(DndTypes.PROPERTY, cardSource, collect),
+)(RelatedProperty);

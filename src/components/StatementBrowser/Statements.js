@@ -9,7 +9,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import { initializeWithoutContribution, createProperty, createValue } from '../../actions/statementBrowser';
-import { prefillStatements } from '../../actions/addPaper';
+import { prefillStatements, toggleSelectedDndProperties, resetSelectedDndProperties } from '../../actions/addPaper';
 import { DropTarget } from 'react-dnd';
 import DndTypes from './../../constants/DndTypes';
 import capitalize from 'capitalize';
@@ -69,11 +69,21 @@ const chessSquareTarget = {
             */
         }
         if (monitor.getItemType() === DndTypes.PROPERTY) {
+            props.dndSelectedProperties.map(p => {
+                props.createProperty({
+                    resourceId: props.selectedResource,
+                    existingPredicateId: p.id,
+                    label: p.label,
+                });
+                props.toggleSelectedDndProperties({ id: p.id, label: p.label });
+            })
             props.createProperty({
                 resourceId: props.selectedResource,
                 existingPredicateId: item.id,
                 label: item.label,
             });
+
+            props.resetSelectedDndProperties();
         }
 
         // You can also do nothing and return a drop result,
@@ -218,11 +228,18 @@ class Statements extends Component {
                                 {isOver && (
                                     <>
                                         {itemToDropType === DndTypes.PROPERTY && (
-                                            <StyledStatementItem
-                                                className={'dropView'}
-                                            >
-                                                {itemToDrop.label}
-                                            </StyledStatementItem>)}
+                                            <>
+                                                {this.props.dndSelectedProperties.map(p => {
+                                                    return (
+                                                        <StyledStatementItem
+                                                            className={'dropView'}
+                                                        >
+                                                            {capitalize(p.label)}
+                                                        </StyledStatementItem>
+                                                    )
+                                                })}
+                                            </>
+                                        )}
                                         {itemToDropType === DndTypes.CONTRIBUTION && itemToDrop.contributions.length > 0 && (
                                             <>
                                                 {itemToDrop.contributions[0].statements.properties.map(p => {
@@ -290,7 +307,16 @@ class Statements extends Component {
 
                 {elements}
 
-                {this.props.enableSelection && <div className={'mt-4 text-center'}><Button onClick={() => this.props.selectedAction({ properties: this.state.selectedProperties, values: this.state.selectedValues })}>Add to contribution data</Button></div>}
+                {this.props.enableSelection && (
+                    <div className={'mt-4 text-center'}>
+                        <Button
+                            disabled={Object.keys(this.state.selectedProperties).length === 0}
+                            onClick={() => this.props.selectedAction({ properties: this.state.selectedProperties, values: this.state.selectedValues })}
+                        >
+                            Add to contribution data
+                        </Button>
+                    </div>
+                )}
             </>
         );
     }
@@ -318,6 +344,9 @@ Statements.propTypes = {
     connectDropTarget: PropTypes.func.isRequired,
     enableSelection: PropTypes.bool,
     selectedAction: PropTypes.func,
+    dndSelectedProperties: PropTypes.array.isRequired,
+    dndSelectedValues: PropTypes.array.isRequired,
+    toggleSelectedDndProperties: PropTypes.func.isRequired
 };
 
 Statements.defaultProps = {
@@ -334,6 +363,8 @@ const mapStateToProps = state => {
         values: state.statementBrowser.values,
         isFetchingStatements: state.statementBrowser.isFetchingStatements,
         selectedResource: state.statementBrowser.selectedResource,
+        dndSelectedProperties: state.addPaper.dndSelectedProperties,
+        dndSelectedValues: state.addPaper.dndSelectedValues,
     }
 };
 
@@ -342,6 +373,8 @@ const mapDispatchToProps = dispatch => ({
     createProperty: (data) => dispatch(createProperty(data)),
     createValue: (data) => dispatch(createValue(data)),
     prefillStatements: (data) => dispatch(prefillStatements(data)),
+    toggleSelectedDndProperties: (data) => dispatch(toggleSelectedDndProperties(data)),
+    resetSelectedDndProperties: () => dispatch(resetSelectedDndProperties()),
 });
 
 export default compose(

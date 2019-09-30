@@ -28,6 +28,32 @@ export const blockNavigation = () => (dispatch) => {
   });
 };
 
+export const toggleSelectedDndProperties = (data) => (dispatch) => {
+  dispatch({
+    type: type.TOGGLE_SELECTED_DND_PROPERTIES,
+    payload: data,
+  });
+};
+
+export const toggleSelectedDndValues = (data) => (dispatch) => {
+  dispatch({
+    type: type.TOGGLE_SELECTED_DND_VALUES,
+    payload: data,
+  });
+};
+
+export const resetSelectedDndProperties = () => (dispatch) => {
+  dispatch({
+    type: type.RESET_SELECTED_DND_PROPERTIES
+  });
+};
+
+export const resetSelectedDndValues = () => (dispatch) => {
+  dispatch({
+    type: type.RESET_SELECTED_DND_VALUES
+  });
+};
+
 export const updateResearchField = (data) => (dispatch) => {
   dispatch({
     type: type.UPDATE_RESEARCH_FIELD,

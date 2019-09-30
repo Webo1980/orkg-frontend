@@ -15,7 +15,10 @@ class StatementBrowserDialog extends Component {
     render() {
         return (
             <Modal isOpen={this.props.show} toggle={this.props.toggleModal} size="lg">
-                <ModalHeader toggle={this.props.toggleModal}>View existing resource: {this.props.resourceLabel}</ModalHeader>
+                <ModalHeader toggle={this.props.toggleModal}>
+                    {!this.props.enableSelection && `View existing resource: ${this.props.resourceLabel}`}
+                    {this.props.enableSelection && `Select data from: ${this.props.resourceLabel}`}
+                </ModalHeader>
                 <ModalBody>
                     <Provider store={this.store}>
                         <Statements

@@ -37,6 +37,7 @@
         "react-csv": "^1.1.1",
         "react-dnd": "^9.3.4",
         "react-dnd-html5-backend": "^9.3.4",
+        "react-dnd-text-dragpreview": "^0.2.3",
         "react-dom": "^16.6.0",
         "react-graph-vis": "github:crubier/react-graph-vis#pull/74/head",
         "react-hot-loader": "^4.12.12",
