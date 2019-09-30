@@ -7,7 +7,7 @@ import classnames from 'classnames';
 import StatementBrowserDialog from './../../StatementBrowser/StatementBrowserDialog';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faSearch, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { StyledRelatedData } from './styled';
 import { prefillStatements, resetSelectedDndProperties, resetSelectedDndValues } from '../../../actions/addPaper';
 import { getStatementsByPredicate, getStatementsBySubject, getStatementsByObject } from './../../../network';
@@ -22,6 +22,9 @@ class SimilarContributionData extends Component {
             searchSimilarContribution: '',
             searchSimilarValue: '',
             searchSimilarProperty: '',
+            loadingSimilarContribution: false,
+            loadingSimilarValue: false,
+            loadingSimilarProperty: false,
             modal: false,
             dialogResourceId: null,
             dialogResourceLabel: null,
@@ -75,6 +78,10 @@ class SimilarContributionData extends Component {
         if (this.props.selectedProperty !== prevProps.selectedProperty) {
             this.getRelatedValues();
         }
+        // Get new similar contribution
+        if (this.props.researchProblems !== prevProps.researchProblems) {
+            this.getRelatedContributions();
+        }
     }
 
     toggle = (tab) => {
@@ -99,8 +106,128 @@ class SimilarContributionData extends Component {
         });
     };
 
-    getRelatedContributions = () => {
-        if (this.props.selectedResearchField) {
+    getRelatedContributions = (searchQuery) => {
+        this.setState({ loadingSimilarContribution: true })
+
+        if (searchQuery && searchQuery !== '') {
+            console.log(searchQuery);
+            getStatementsByObject({
+                id: process.env.REACT_APP_RESOURCE_TYPES_PAPER,
+                order: 'desc',
+            }).then((papers) => {
+                // Fetch the data of each paper
+                var papers_data = papers.map((paper) => {
+                    return getStatementsBySubject(paper.subject.id).then((paperStatements) => {
+                        // authors
+                        let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
+                        let authorNamesArray = [];
+                        if (authors.length > 0) {
+                            for (let author of authors) {
+                                let authorName = author.object.label;
+                                authorNamesArray.push(authorName);
+                            }
+                        }
+                        // contributions
+                        let contributions = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_CONTRIBUTION);
+
+                        let contributionArray = [];
+
+                        if (contributions.length > 0) {
+                            for (let contribution of contributions) {
+                                // Fetch contribution data
+                                let statements = getStatementsBySubject(contribution.object.id);
+                                Promise.all([statements]).then(cs => {
+                                    let st = { properties: [], values: [] };
+                                    let createdProperties = {};
+                                    if (cs[0].length > 0) {
+                                        cs[0].map(s => {
+                                            if (!createdProperties[s.predicate.id]) {
+                                                createdProperties[s.predicate.id] = s.predicate.id;
+                                                st['properties'].push({
+                                                    propertyId: s.predicate.id,
+                                                    existingPredicateId: s.predicate.id,
+                                                    label: s.predicate.label,
+                                                });
+                                            }
+                                            st['values'].push({
+                                                label: s.object.label,
+                                                type: 'object',
+                                                propertyId: s.predicate.id,
+                                                existingResourceId: s.object.id,
+                                            });
+                                            return true;
+                                        });
+                                        contributionArray.push({
+                                            ...contribution.object,
+                                            statements: st
+                                        });
+                                    }
+                                })
+                            }
+                        }
+
+                        paper.data = {
+                            authorNames: authorNamesArray.reverse(),
+                            contributions: contributionArray.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
+                        }
+                        return paper;
+                    })
+                });
+                return Promise.all(papers_data).then((papers) => {
+                    this.setState({
+                        loadingSimilarContribution: false,
+                        relatedContributions: papers.filter(i => i.subject.label.toLowerCase().includes(searchQuery.toLowerCase())).map(p => { return { title: p.subject.label, id: p.subject.id, ...p.data } })
+                    })
+                })
+            });
+        } else if (this.props.researchProblems.length > 0) {
+            console.log(this.props.researchProblems);
+            /*
+                // Get the contributions that are on the research problem
+                getStatementsByObject({
+                    id: this.props.researchProblems[0],
+                    order: 'desc',
+                }).then((result) => {
+                    // Get the papers of each contribution
+                    var papers = result.map((contribution) => {
+                        return getStatementsByObject({ id: contribution.subject.id, order: 'desc' }).then((papers) => {
+                            // Fetch the data of each paper
+                            var papers_data = papers.map((paper) => {
+                                return getStatementsBySubject(paper.subject.id).then((paperStatements) => {
+                                    // authors
+                                    let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
+                                    let authorNamesArray = [];
+                                    if (authors.length > 0) {
+                                        for (let author of authors) {
+                                            let authorName = author.object.label;
+                                            authorNamesArray.push(authorName);
+                                        }
+                                    }
+                                    paper.data = {
+                                        authorNames: authorNamesArray.reverse(),
+                                    }
+                                    return paper;
+                                })
+                            });
+                            return Promise.all(papers_data).then((results) => {
+                                contribution.papers = results;
+                                return contribution.papers.length > 0 ? contribution : null
+                            })
+                        });
+                    })
+    
+                    Promise.all(papers).then((results) => {
+    
+                        console.log(results);
+    
+                        this.setState({
+                            contributions: results,
+                            loading: false
+                        })
+                    })
+                })
+            */
+        } else if (this.props.selectedResearchField) {
             // Get the statements that contains the research field as an object
             getStatementsByObject({
                 id: this.props.selectedResearchField,
@@ -109,23 +236,9 @@ class SimilarContributionData extends Component {
             }).then((result) => {
                 // Papers
                 // Fetch the data of each paper
-                let papers = result.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD)
-                    .map((paper) => {
-                        return getStatementsBySubject(paper.subject.id).then((paperStatements) => {
-                            // publication year
-                            let publicationYear = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR);
-                            if (publicationYear.length > 0) {
-                                publicationYear = publicationYear[0].object.label
-                            } else {
-                                publicationYear = ''
-                            }
-                            // publication month
-                            let publicationMonth = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_MONTH);
-                            if (publicationMonth.length > 0) {
-                                publicationMonth = publicationMonth[0].object.label
-                            } else {
-                                publicationMonth = ''
-                            }
+                return result.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD)
+                    .map(async (paper) => {
+                        return await getStatementsBySubject(paper.subject.id).then((paperStatements) => {
                             // authors
                             let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
                             let authorNamesArray = [];
@@ -163,6 +276,7 @@ class SimilarContributionData extends Component {
                                                     propertyId: s.predicate.id,
                                                     existingResourceId: s.object.id,
                                                 });
+                                                return true;
                                             });
                                             contributionArray.push({
                                                 ...contribution.object,
@@ -172,17 +286,19 @@ class SimilarContributionData extends Component {
                                     })
                                 }
                             }
+
                             paper.data = {
-                                publicationYear,
-                                publicationMonth,
                                 authorNames: authorNamesArray.reverse(),
                                 contributions: contributionArray.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
                             }
                             return paper;
+
                         })
                     });
+            }).then((papers) => {
                 return Promise.all(papers).then((papers) => {
                     this.setState({
+                        loadingSimilarContribution: false,
                         relatedContributions: papers.map(p => { return { title: p.subject.label, id: p.subject.id, ...p.data } })
                     })
                 })
@@ -254,6 +370,9 @@ class SimilarContributionData extends Component {
     };
 
     handleChangeSearchRelated = (e) => {
+        if (e.target.name === 'searchSimilarContribution') {
+            this.getRelatedContributions(e.target.value);
+        }
         this.setState({ [e.target.name]: e.target.value });
     };
 
@@ -322,17 +441,35 @@ class SimilarContributionData extends Component {
                                         </div>
                                     </div>
                                 </div>
-                                <StyledRelatedData className={'scrollbox'}>
-                                    {this.state.relatedContributions.map((p) => (
-                                        <RelatedContribution
-                                            openDialog={this.handleViewRelatedContributionClick}
-                                            dropped={this.droppedProperty}
-                                            key={`s${p.id}`}
-                                            authors={p.authorNames} id={p.id}
-                                            label={p.title}
-                                            contributions={p.contributions}
-                                        />))}
-                                </StyledRelatedData>
+                                {!this.state.loadingSimilarContribution && this.state.relatedContributions.length > 0 && (
+                                    <StyledRelatedData className={'scrollbox'}>
+                                        {this.state.relatedContributions.map((p) => (
+                                            <RelatedContribution
+                                                openDialog={this.handleViewRelatedContributionClick}
+                                                dropped={this.droppedProperty}
+                                                key={`s${p.id}`}
+                                                authors={p.authorNames} id={p.id}
+                                                label={p.title}
+                                                contributions={p.contributions}
+                                            />))}
+                                    </StyledRelatedData>
+                                )}
+                                {!this.state.loadingSimilarContribution && this.state.relatedContributions.length === 0 && (
+                                    <div className="text-center mt-4 mb-4">
+                                        No similar contribution found.<br />
+                                        Please use the search field.
+                                    </div>
+                                )}
+                                {this.state.loadingSimilarContribution && (
+                                    <div className="text-center mt-4 mb-4">
+                                        <span style={{ fontSize: 50 }}>
+                                            <Icon icon={faSpinner} spin />
+                                        </span>
+                                        <br />
+                                        Loading...
+                                    </div>
+                                )}
+
                             </Col>
                         </Row>
                     </TabPane>
@@ -449,8 +586,10 @@ class SimilarContributionData extends Component {
 
 
 SimilarContributionData.propTypes = {
+    id: PropTypes.string.isRequired,
     selectedResearchField: PropTypes.string.isRequired,
     contributions: PropTypes.object.isRequired,
+    researchProblems: PropTypes.array.isRequired,
     resources: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,
     values: PropTypes.object.isRequired,
@@ -464,9 +603,10 @@ SimilarContributionData.propTypes = {
     resetSelectedDndValues: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = state => {
+const mapStateToProps = (state, ownProps) => {
     return {
         selectedResearchField: state.addPaper.selectedResearchField,
+        researchProblems: state.addPaper.contributions.byId[ownProps.id] ? state.addPaper.contributions.byId[ownProps.id].researchProblems : [],
         contributions: state.addPaper.contributions,
         selectedContribution: state.addPaper.selectedContribution,
         resources: state.statementBrowser.resources,

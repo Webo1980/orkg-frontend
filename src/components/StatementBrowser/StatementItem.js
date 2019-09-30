@@ -10,6 +10,8 @@ import AddValue from './Value/AddValue';
 import DeleteStatement from './DeleteStatement';
 import { connect } from 'react-redux';
 import { togglePropertyCollapse, createValue } from '../../actions/statementBrowser';
+import { toggleSelectedDndValues, resetSelectedDndValues } from '../../actions/addPaper';
+import capitalize from 'capitalize';
 import PropTypes from 'prop-types';
 import { DropTarget } from 'react-dnd';
 import DndTypes from './../../constants/DndTypes';
@@ -38,7 +40,17 @@ const propertyValuesTarget = {
 
         // You can do something with it
         //ChessActions.movePiece(item.fromPosition, props.position)
+        props.dndSelectedValues.map(p => {
+            props.createValue({
+                label: p.label,
+                type: 'object',
+                propertyId: props.selectedProperty,
+                existingResourceId: p.id,
+            });
 
+            props.toggleSelectedDndValues({ id: p.id, label: p.label });
+            return true;
+        })
         props.createValue({
             label: item.label,
             type: 'object',
@@ -197,12 +209,20 @@ class StatementItem extends Component {
                                     />
                                 );
                             })}
-                            {isOver &&
-                                <StyledValueItem
-                                    style={{ background: '#e9ebf2', opacity: 0.5 }}
-                                >{itemToDrop.label}
-                                </StyledValueItem>
-                            }
+
+                            {isOver && (
+                                <>
+                                    {this.props.dndSelectedValues.map(p => {
+                                        return (
+                                            <StyledStatementItem
+                                                className={'dropView'}
+                                            >
+                                                {capitalize(p.label)}
+                                            </StyledStatementItem>
+                                        )
+                                    })}
+                                </>
+                            )}
                             {this.props.enableEdit ? <AddValue /> : ''}
                         </ListGroup>
                     </StyledListGroupOpen>
@@ -232,6 +252,9 @@ StatementItem.propTypes = {
     itemToDrop: PropTypes.object,
     isOver: PropTypes.bool.isRequired,
     connectDropTarget: PropTypes.func.isRequired,
+    dndSelectedProperties: PropTypes.array.isRequired,
+    dndSelectedValues: PropTypes.array.isRequired,
+    toggleSelectedDndValues: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state) => {
@@ -239,12 +262,16 @@ const mapStateToProps = (state) => {
         selectedProperty: state.statementBrowser.selectedProperty,
         properties: state.statementBrowser.properties,
         values: state.statementBrowser.values,
+        dndSelectedProperties: state.addPaper.dndSelectedProperties,
+        dndSelectedValues: state.addPaper.dndSelectedValues,
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
     togglePropertyCollapse: (id) => dispatch(togglePropertyCollapse(id)),
     createValue: (data) => dispatch(createValue(data)),
+    toggleSelectedDndValues: (data) => dispatch(toggleSelectedDndValues(data)),
+    resetSelectedDndValues: () => dispatch(resetSelectedDndValues()),
 });
 
 export default compose(

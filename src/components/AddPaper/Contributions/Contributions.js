@@ -204,7 +204,7 @@ class Contributions extends Component {
                         </TransitionGroup>
                     </div>
                     <Col xs="4">
-                        <SimilarContributionData />
+                        <SimilarContributionData id={selectedResourceId} />
                     </Col>
                 </Row>
                 <hr className="mt-5 mb-3" />

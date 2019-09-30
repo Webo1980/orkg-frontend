@@ -76,6 +76,7 @@ const chessSquareTarget = {
                     label: p.label,
                 });
                 props.toggleSelectedDndProperties({ id: p.id, label: p.label });
+                return true;
             })
             props.createProperty({
                 resourceId: props.selectedResource,
@@ -344,7 +345,8 @@ Statements.propTypes = {
     selectedAction: PropTypes.func,
     dndSelectedProperties: PropTypes.array.isRequired,
     dndSelectedValues: PropTypes.array.isRequired,
-    toggleSelectedDndProperties: PropTypes.func.isRequired
+    toggleSelectedDndProperties: PropTypes.func.isRequired,
+    resetSelectedDndProperties: PropTypes.func.isRequired,
 };
 
 Statements.defaultProps = {

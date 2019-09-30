@@ -383,6 +383,12 @@ export const StyledValueItem = styled(ListGroupItem)`
         font-size: 95%;
         border-color: ${props => props.theme.listGroupBorderColor};
     }
+
+    &.dropView {
+        background: '#e9ebf2';
+        opacity: 0.5;
+    }
+
 `;
 
 /*dropdownItem*/

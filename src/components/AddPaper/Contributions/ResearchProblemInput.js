@@ -156,6 +156,7 @@ class ResearchProblemInput extends Component {
                         openMenuOnClick={false}
                         onInputChange={this.onInputChange}
                         inputValue={this.state.inputValue}
+                        noOptionsMessage={() => 'Enter both the first and last name.'}
                     />
                 </StyledResearchFieldsInputFormControl>
                 {
