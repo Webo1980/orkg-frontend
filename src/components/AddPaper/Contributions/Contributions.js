@@ -16,13 +16,13 @@ import {
 } from '../../../actions/addPaper';
 import Confirm from 'reactstrap-confirm';
 import Contribution from './Contribution';
-import { CSSTransitionGroup } from 'react-transition-group'
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import styled, { withTheme } from 'styled-components';
 import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
 
 
-const AnimationContainer = styled.div`
+const AnimationContainer = styled(CSSTransition)`
     transition: 0.3s background-color,  0.3s border-color;
 
     &.fadeIn-enter {
@@ -98,7 +98,9 @@ class Contributions extends Component {
         });
 
         if (result) {
-            this.props.deleteContribution(id);
+            // delete the contribution and select the first one in the remaining list 
+            let selectedId = this.props.contributions.allIds.filter(i => i !== id)[0];
+            this.props.deleteContribution({ id, selectAfterDeletion: this.props.contributions.byId[selectedId] });
         }
     }
 
@@ -191,19 +193,15 @@ class Contributions extends Component {
                                 <span onClick={this.props.createContribution}><Icon icon={faPlus} /></span>
                             </li>
                         </StyledHorizontalContributionsList>
-                        <CSSTransitionGroup
-                            transitionName="fadeIn"
-                            transitionEnterTimeout={500}
-                            transitionLeave={false}
-                            component="div"
-                            style={{}}
-                        >
+                        <TransitionGroup exit={false}>
                             <AnimationContainer
+                                classNames="fadeIn"
+                                timeout={{ enter: 500, exit: 0 }}
                                 key={selectedResourceId}
                             >
                                 <Contribution id={selectedResourceId} />
                             </AnimationContainer>
-                        </CSSTransitionGroup>
+                        </TransitionGroup>
                     </div>
                     <Col xs="4">
                         <SimilarContributionData />
@@ -267,7 +265,7 @@ const mapDispatchToProps = dispatch => ({
     nextStep: () => dispatch(nextStep()),
     previousStep: () => dispatch(previousStep()),
     createContribution: (data) => dispatch(createContribution(data)),
-    deleteContribution: (id) => dispatch(deleteContribution(id)),
+    deleteContribution: (data) => dispatch(deleteContribution(data)),
     selectContribution: (id) => dispatch(selectContribution(id)),
     updateContributionLabel: (data) => dispatch(updateContributionLabel(data)),
     saveAddPaper: (data) => dispatch(saveAddPaper(data)),
