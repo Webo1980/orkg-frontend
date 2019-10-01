@@ -11,7 +11,10 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSearch, faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { StyledRelatedData } from './styled';
 import { prefillStatements, resetSelectedDndProperties, resetSelectedDndValues } from '../../../actions/addPaper';
-import { getStatementsByPredicate, getStatementsBySubject, getStatementsByObject } from './../../../network';
+import {
+    getStatementsByPredicate, getStatementsBySubject, getStatementsByObject,
+    submitGetRequest, predicatesUrl, resourcesUrl
+} from './../../../network';
 import PropTypes from 'prop-types';
 
 class SimilarContributionData extends Component {
@@ -73,15 +76,15 @@ class SimilarContributionData extends Component {
     componentDidUpdate = (prevProps) => {
         // Get new related properties
         if (this.props.selectedResource !== prevProps.selectedResource) {
-            this.getRelatedProperties();
+            this.getRelatedProperties(this.state.searchSimilarProperty);
         }
         // Get new related values
         if (this.props.selectedProperty !== prevProps.selectedProperty) {
-            this.getRelatedValues();
+            this.getRelatedValues(this.state.searchSimilarValue);
         }
         // Get new similar contribution
         if (this.props.researchProblems !== prevProps.researchProblems) {
-            this.getRelatedContributions();
+            this.getRelatedContributions(this.state.searchSimilarContribution);
         }
     }
 
@@ -271,11 +274,20 @@ class SimilarContributionData extends Component {
                 })
             });
         }
+        this.setState({ loadingSimilarContribution: false })
     }
 
 
-    getRelatedProperties = () => {
-        if (
+    getRelatedProperties = (searchQuery) => {
+        this.setState({ loadingSimilarProperty: true })
+        if (searchQuery && searchQuery !== '') {
+            submitGetRequest(predicatesUrl + '?q=' + encodeURIComponent(searchQuery)).then((relatedProperties) => {
+                this.setState({
+                    loadingSimilarProperty: false,
+                    relatedProperties: relatedProperties
+                })
+            })
+        } else if (
             this.props.selectedResource
             && this.props.resources.byId[this.props.selectedResource]
             && this.props.resources.byId[this.props.selectedResource].existingResourceId
@@ -293,16 +305,26 @@ class SimilarContributionData extends Component {
                 this.props.resetSelectedDndProperties();
                 // Set them to the list of related properties
                 this.setState({
+                    loadingSimilarProperty: false,
                     relatedProperties: relatedProperties,
                     loading: false,
                     activeTab: '2'
                 })
             })
         }
+        this.setState({ loadingSimilarProperty: false })
     }
 
-    getRelatedValues = () => {
-        if (
+    getRelatedValues = (searchQuery) => {
+        this.setState({ loadingSimilarValue: true })
+        if (searchQuery && searchQuery !== '') {
+            submitGetRequest(resourcesUrl + '?q=' + encodeURIComponent(searchQuery)).then((relatedValues) => {
+                this.setState({
+                    loadingSimilarValue: false,
+                    relatedValues: relatedValues.slice(0, 12)
+                })
+            })
+        } else if (
             this.props.selectedProperty
             && this.props.properties.byId[this.props.selectedProperty]
             && this.props.properties.byId[this.props.selectedProperty].existingPredicateId
@@ -320,12 +342,14 @@ class SimilarContributionData extends Component {
                 this.props.resetSelectedDndValues();
                 // Set them to the list of related values
                 this.setState({
+                    loadingSimilarValue: false,
                     relatedValues: relatedValues,
                     loading: false,
                     activeTab: '3'
                 })
             })
         }
+        this.setState({ loadingSimilarValue: false })
     }
 
     addToContributionData = (statements) => {
@@ -339,6 +363,12 @@ class SimilarContributionData extends Component {
     handleChangeSearchRelated = (e) => {
         if (e.target.name === 'searchSimilarContribution') {
             this.getRelatedContributions(e.target.value);
+        }
+        if (e.target.name === 'searchSimilarProperty') {
+            this.getRelatedProperties(e.target.value);
+        }
+        if (e.target.name === 'searchSimilarValue') {
+            this.getRelatedValues(e.target.value);
         }
         this.setState({ [e.target.name]: e.target.value });
     };
@@ -453,7 +483,6 @@ class SimilarContributionData extends Component {
                                         Loading...
                                     </div>
                                 )}
-
                             </Col>
                         </Row>
                     </TabPane>
@@ -496,15 +525,32 @@ class SimilarContributionData extends Component {
                                         </div>
                                     </div>
                                 </div>
-                                <StyledRelatedData className={'scrollbox'}>
-                                    {this.state.relatedProperties.map((p) => (
-                                        <RelatedProperty
-                                            dropped={this.droppedProperty}
-                                            key={`s${p.id}`}
-                                            id={p.id}
-                                            label={p.label}
-                                        />))}
-                                </StyledRelatedData>
+                                {!this.state.loadingSimilarProperty && this.state.relatedProperties.length > 0 && (
+                                    <StyledRelatedData className={'scrollbox'}>
+                                        {this.state.relatedProperties.map((p) => (
+                                            <RelatedProperty
+                                                dropped={this.droppedProperty}
+                                                key={`s${p.id}`}
+                                                id={p.id}
+                                                label={p.label}
+                                            />))}
+                                    </StyledRelatedData>
+                                )}
+                                {!this.state.loadingSimilarProperty && this.state.relatedProperties.length === 0 && (
+                                    <div className="text-center mt-4 mb-4">
+                                        No related properties found.<br />
+                                        Please use the search field.
+                                    </div>
+                                )}
+                                {this.state.loadingSimilarProperty && (
+                                    <div className="text-center mt-4 mb-4">
+                                        <span style={{ fontSize: 50 }}>
+                                            <Icon icon={faSpinner} spin />
+                                        </span>
+                                        <br />
+                                        Loading...
+                                    </div>
+                                )}
                             </Col>
                         </Row>
                     </TabPane>
@@ -545,15 +591,32 @@ class SimilarContributionData extends Component {
                                         </div>
                                     </div>
                                 </div>
-                                <StyledRelatedData className={'scrollbox'}>
-                                    {this.state.relatedValues.map((v) => (
-                                        <RelatedValue
-                                            dropped={this.droppedValue}
-                                            key={`s${v.id}`}
-                                            id={v.id}
-                                            label={v.label}
-                                        />))}
-                                </StyledRelatedData>
+                                {!this.state.loadingSimilarValue && this.state.relatedValues.length > 0 && (
+                                    <StyledRelatedData className={'scrollbox'}>
+                                        {this.state.relatedValues.map((v) => (
+                                            <RelatedValue
+                                                dropped={this.droppedValue}
+                                                key={`s${v.id}`}
+                                                id={v.id}
+                                                label={v.label}
+                                            />))}
+                                    </StyledRelatedData>
+                                )}
+                                {!this.state.loadingSimilarValue && this.state.relatedValues.length === 0 && (
+                                    <div className="text-center mt-4 mb-4">
+                                        No related values found.<br />
+                                        Please select a property first.
+                                    </div>
+                                )}
+                                {this.state.loadingSimilarValue && (
+                                    <div className="text-center mt-4 mb-4">
+                                        <span style={{ fontSize: 50 }}>
+                                            <Icon icon={faSpinner} spin />
+                                        </span>
+                                        <br />
+                                        Loading...
+                                    </div>
+                                )}
                             </Col>
                         </Row>
                     </TabPane>
