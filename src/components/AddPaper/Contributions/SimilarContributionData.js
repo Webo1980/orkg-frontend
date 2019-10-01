@@ -110,10 +110,12 @@ class SimilarContributionData extends Component {
     getContributionData = (contributionID) => {
         // Fetch contribution data
         return getStatementsBySubject(contributionID).then((contributionStatements) => {
+            // remove research problem statement
+            let filtredContributionStatements = contributionStatements.filter((statement) => statement.predicate.id !== process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM)
             let st = { properties: [], values: [] };
             let createdProperties = {};
-            if (contributionStatements.length > 0) {
-                contributionStatements.map(s => {
+            if (filtredContributionStatements.length > 0) {
+                filtredContributionStatements.map(s => {
                     if (!createdProperties[s.predicate.id]) {
                         createdProperties[s.predicate.id] = s.predicate.id;
                         st['properties'].push({
@@ -132,9 +134,11 @@ class SimilarContributionData extends Component {
                 });
 
                 return {
-                    ...contributionStatements[0].subject,
+                    ...filtredContributionStatements[0].subject,
                     statements: st
                 }
+            } else {
+                return null;
             }
         })
     }
@@ -159,15 +163,18 @@ class SimilarContributionData extends Component {
                 contributionArray = contributions.map((c) => {
                     return this.getContributionData(c.object.id)
                 })
+            } else {
+                return null;
             }
 
             return Promise.all(contributionArray).then((contributionsData) => {
-                if (contributionsData.length > 0) {
+                let filteredContributionData = contributionsData.filter(function (el) { return el != null });
+                if (filteredContributionData.length > 0) {
                     let paper = {
                         id: paperID,
                         label: paperStatements[0].subject.label,
                         authorNames: authorNamesArray.reverse(),
-                        contributions: contributionsData.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
+                        contributions: filteredContributionData.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
                     }
                     return paper;
                 } else {
@@ -191,7 +198,7 @@ class SimilarContributionData extends Component {
                 return Promise.all(papers_data).then((papers) => {
                     this.setState({
                         loadingSimilarContribution: false,
-                        relatedContributions: papers.filter(function (el) { return el != null; }).filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map(p => { return { title: p.label, ...p } })
+                        relatedContributions: papers.filter(function (el) { return el != null && el.contributions != null && el.contributions.length > 0; }).filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map(p => { return { title: p.label, ...p } })
                     })
                 })
             });
@@ -256,10 +263,10 @@ class SimilarContributionData extends Component {
                         return await this.getPaperData(paper.subject.id);
                     });
             }).then((papers) => {
-                return Promise.all(papers).then((papers) => {
+                return Promise.all(papers).then((papersData) => {
                     this.setState({
                         loadingSimilarContribution: false,
-                        relatedContributions: papers.filter(function (el) { return el != null; }).map(p => { return { title: p.label, ...p } })
+                        relatedContributions: papersData.filter(function (el) { return el != null && el.contributions != null && el.contributions.length > 0; }).map(p => { return { title: p.label, ...p } })
                     })
                 })
             });
