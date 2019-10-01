@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ListGroup, Collapse } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/free-solid-svg-icons';
-import { StyledStatementItem, StyledListGroupOpen, StyledValueItem } from '../AddPaper/Contributions/styled';
+import { StyledStatementItem, StyledListGroupOpen } from '../AddPaper/Contributions/styled';
 import { getResource } from '../../network';
 import classNames from 'classnames';
 import ValueItem from './Value/ValueItem';
@@ -145,7 +145,7 @@ class StatementItem extends Component {
 
         let valueIds = Object.keys(this.props.properties.byId).length !== 0 ? this.props.properties.byId[this.props.id].valueIds : [];
 
-        const { itemToDrop, isOver, connectDropTarget } = this.props
+        const { isOver, connectDropTarget } = this.props
 
         return (
             <>

@@ -3,6 +3,7 @@ import { Row, Col, Button, Nav, NavItem, NavLink, TabContent, TabPane, Input } f
 import RelatedProperty from './RelatedProperty';
 import RelatedValue from './RelatedValue';
 import RelatedContribution from './RelatedContribution';
+import RelatedContributionCarousel from './RelatedContributionCarousel'
 import classnames from 'classnames';
 import StatementBrowserDialog from './../../StatementBrowser/StatementBrowserDialog';
 import { connect } from 'react-redux';
@@ -161,22 +162,24 @@ class SimilarContributionData extends Component {
             }
 
             return Promise.all(contributionArray).then((contributionsData) => {
-                let paper = {
-                    id: paperID,
-                    label: paperStatements[0].subject.label,
-                    authorNames: authorNamesArray.reverse(),
-                    contributions: contributionsData.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
+                if (contributionsData.length > 0) {
+                    let paper = {
+                        id: paperID,
+                        label: paperStatements[0].subject.label,
+                        authorNames: authorNamesArray.reverse(),
+                        contributions: contributionsData.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
+                    }
+                    return paper;
+                } else {
+                    return null
                 }
-                return paper;
             })
         })
     }
 
     getRelatedContributions = (searchQuery) => {
         this.setState({ loadingSimilarContribution: true })
-
         if (searchQuery && searchQuery !== '') {
-            console.log(searchQuery);
             getStatementsByObject({
                 id: process.env.REACT_APP_RESOURCE_TYPES_PAPER,
                 order: 'desc',
@@ -188,7 +191,7 @@ class SimilarContributionData extends Component {
                 return Promise.all(papers_data).then((papers) => {
                     this.setState({
                         loadingSimilarContribution: false,
-                        relatedContributions: papers.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map(p => { return { title: p.label, ...p } })
+                        relatedContributions: papers.filter(function (el) { return el != null; }).filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map(p => { return { title: p.label, ...p } })
                     })
                 })
             });
@@ -256,7 +259,7 @@ class SimilarContributionData extends Component {
                 return Promise.all(papers).then((papers) => {
                     this.setState({
                         loadingSimilarContribution: false,
-                        relatedContributions: papers.map(p => { return { title: p.label, ...p } })
+                        relatedContributions: papers.filter(function (el) { return el != null; }).map(p => { return { title: p.label, ...p } })
                     })
                 })
             });
@@ -400,15 +403,32 @@ class SimilarContributionData extends Component {
                                 </div>
                                 {!this.state.loadingSimilarContribution && this.state.relatedContributions.length > 0 && (
                                     <StyledRelatedData className={'scrollbox'}>
-                                        {this.state.relatedContributions.map((p) => (
-                                            <RelatedContribution
-                                                openDialog={this.handleViewRelatedContributionClick}
-                                                dropped={this.droppedProperty}
-                                                key={`s${p.id}`}
-                                                authors={p.authorNames} id={p.id}
-                                                label={p.title}
-                                                contributions={p.contributions}
-                                            />))}
+                                        {this.state.relatedContributions.map((p) => {
+                                            if (p.contributions.length > 1) {
+                                                return (
+                                                    <RelatedContributionCarousel
+                                                        contributions={p.contributions}
+                                                        openDialog={this.handleViewRelatedContributionClick}
+                                                        dropped={this.droppedProperty}
+                                                        key={`s${p.id}`}
+                                                        authors={p.authorNames}
+                                                        id={p.id}
+                                                        label={p.title}
+                                                    />)
+                                            } else {
+                                                return (
+                                                    <RelatedContribution
+                                                        openDialog={this.handleViewRelatedContributionClick}
+                                                        dropped={this.droppedProperty}
+                                                        key={`s${p.id}`}
+                                                        authors={p.authorNames}
+                                                        id={p.id}
+                                                        label={p.title}
+                                                        contribution={p.contributions[0]}
+                                                    />)
+                                            }
+                                        })
+                                        }
                                     </StyledRelatedData>
                                 )}
                                 {!this.state.loadingSimilarContribution && this.state.relatedContributions.length === 0 && (

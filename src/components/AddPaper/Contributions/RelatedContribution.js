@@ -69,7 +69,7 @@ const StyledRelatedContribution = styled.li`
 const cardSource = {
     beginDrag(props, monitor, component) {
         // Return the data describing the dragged item
-        const item = { id: props.id, label: props.label, contributions: props.contributions }
+        const item = { id: props.id, label: props.label, contribution: props.contribution }
         return item
     },
 
@@ -100,7 +100,7 @@ function collect(connect, monitor) {
 class RelatedContribution extends Component {
 
     render() {
-        const { label, authors, contributions, isDragging, connectDragSource, connectDragPreview } = this.props
+        const { label, authors, contribution, isDragging, connectDragSource, connectDragPreview } = this.props
         return (
             <StyledRelatedContribution
                 className={classnames({ dragging: isDragging })}
@@ -111,9 +111,11 @@ class RelatedContribution extends Component {
                         <Icon icon={faGripVertical} color={'#cbcece'} />
                     </div>
                     <div>
-                        {label} <br /><br />
+                        {label} <br />
+                        {this.props.showContributionLabel && contribution.label}
+                        <br />
                         <i>{authors[0]}</i>
-                        <div onClick={() => this.props.openDialog(contributions[0].id, label)} className={'previewButton'}>
+                        <div onClick={() => this.props.openDialog(contribution.id, label)} className={'previewButton'}>
                             <Icon icon={faTasks} /> Select data
                         </div>
                     </div>
@@ -128,11 +130,12 @@ RelatedContribution.propTypes = {
     isDragging: PropTypes.bool.isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    contributions: PropTypes.array.isRequired,
+    contribution: PropTypes.object.isRequired,
     authors: PropTypes.array.isRequired,
     connectDragSource: PropTypes.func.isRequired,
     connectDragPreview: PropTypes.func.isRequired,
     openDialog: PropTypes.func.isRequired,
+    showContributionLabel: PropTypes.bool
 };
 
 export default DragSource(DndTypes.CONTRIBUTION, cardSource, collect)(RelatedContribution)

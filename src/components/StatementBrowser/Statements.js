@@ -41,9 +41,9 @@ const chessSquareTarget = {
 
         if (monitor.getItemType() === DndTypes.CONTRIBUTION) {
             // copy template
-            if (item.contributions.length > 0) {
+            if (item.contribution) {
                 props.prefillStatements({
-                    statements: item.contributions[0].statements,
+                    statements: item.contribution.statements,
                     resourceId: props.selectedResource,
                 });
             }
@@ -231,6 +231,7 @@ class Statements extends Component {
                                                 {this.props.dndSelectedProperties.map(p => {
                                                     return (
                                                         <StyledStatementItem
+                                                            key={p.id}
                                                             className={'dropView'}
                                                         >
                                                             {capitalize(p.label)}
@@ -239,11 +240,12 @@ class Statements extends Component {
                                                 })}
                                             </>
                                         )}
-                                        {itemToDropType === DndTypes.CONTRIBUTION && itemToDrop.contributions.length > 0 && (
+                                        {itemToDropType === DndTypes.CONTRIBUTION && itemToDrop.contribution && (
                                             <>
-                                                {itemToDrop.contributions[0].statements.properties.map(p => {
+                                                {itemToDrop.contribution.statements.properties.map(p => {
                                                     return (
                                                         <StyledStatementItem
+                                                            key={p.id}
                                                             className={'dropView'}
                                                         >
                                                             {capitalize(p.label)}
