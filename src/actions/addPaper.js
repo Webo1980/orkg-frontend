@@ -35,9 +35,23 @@ export const toggleSelectedDndProperties = (data) => (dispatch) => {
   });
 };
 
+export const pushToSelectedDndProperties = (data) => (dispatch) => {
+  dispatch({
+    type: type.PUSH_TO_SELECTED_DND_PROPERTIES,
+    payload: data,
+  });
+};
+
 export const toggleSelectedDndValues = (data) => (dispatch) => {
   dispatch({
     type: type.TOGGLE_SELECTED_DND_VALUES,
+    payload: data,
+  });
+};
+
+export const pushToSelectedDndValues = (data) => (dispatch) => {
+  dispatch({
+    type: type.PUSH_TO_SELECTED_DND_VALUES,
     payload: data,
   });
 };

@@ -6,7 +6,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faGripVertical } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toggleSelectedDndValues } from '../../../actions/addPaper';
+import { toggleSelectedDndValues, pushToSelectedDndValues } from '../../../actions/addPaper';
 import { createDragPreview } from 'react-dnd-text-dragpreview'
 import { compose } from 'redux';
 import classnames from 'classnames';
@@ -30,6 +30,14 @@ const StyledRelatedValue = styled.li`
     &.dragging{
         opacity: 0.5;
     }
+
+    & .dragIcon{
+        visibility:hidden;
+    }
+
+    &:hover .dragIcon{
+        visibility:visible;
+    }
 `;
 
 /**
@@ -40,6 +48,7 @@ const cardSource = {
     beginDrag(props) {
         // Return the data describing the dragged item
         const item = { id: props.id, label: props.label }
+        props.pushToSelected(item)
         return item
     },
 
@@ -94,8 +103,13 @@ class RelatedValue extends Component {
 
     // provides custom message for dragPreview
     formatDragMessage = (numRows) => {
-        const noun = numRows === 1 ? 'value' : 'Values'
-        return `Moving ${numRows} ${noun}`
+        if (this.props.selected.some(c => c.id === this.props.id)) {
+            const noun = numRows === 1 ? 'value' : 'values'
+            return `Moving ${numRows} ${noun}`
+        } else {
+            const noun = (numRows + 1) === 1 ? 'value' : 'values'
+            return `Moving ${numRows + 1} ${noun}`
+        }
     }
 
     render() {
@@ -106,7 +120,7 @@ class RelatedValue extends Component {
                 className={classnames({ dragging: isDragging, selected: this.props.selected.some(c => c.id === id) })}
                 ref={instance => connectDragSource(instance)}
             >
-                <Icon icon={faGripVertical} color={'#cbcece'} className={'mr-2'} />
+                <Icon icon={faGripVertical} color={'#cbcece'} className={'dragIcon mr-2'} />
                 {label}
             </StyledRelatedValue>
         )
@@ -120,7 +134,8 @@ RelatedValue.propTypes = {
     selected: PropTypes.array.isRequired,
     connectDragSource: PropTypes.func.isRequired,
     connectDragPreview: PropTypes.func.isRequired,
-    toggleSelect: PropTypes.func
+    toggleSelect: PropTypes.func.isRequired,
+    pushToSelected: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => {
@@ -131,6 +146,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
     toggleSelect: (data) => dispatch(toggleSelectedDndValues(data)),
+    pushToSelected: (data) => dispatch(pushToSelectedDndValues(data)),
 });
 
 export default compose(

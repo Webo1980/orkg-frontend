@@ -558,7 +558,7 @@ class SimilarContributionData extends Component {
                         <Row>
                             <Col sm="12">
                                 <div className="d-flex mr-2 mt-2 mb-2">
-                                    {this.props.dndSelectedValues.length > 0 && this.props.selectedResource && (
+                                    {this.props.dndSelectedValues.length > 0 && this.props.selectedProperty && (
                                         <Button onClick={() => {
                                             this.props.prefillStatements({
                                                 statements: {

@@ -35,9 +35,6 @@ const propertyValuesTarget = {
             return
         }
 
-        // Obtain the dragged item
-        const item = monitor.getItem()
-
         // You can do something with it
         //ChessActions.movePiece(item.fromPosition, props.position)
         props.dndSelectedValues.map(p => {
@@ -51,12 +48,6 @@ const propertyValuesTarget = {
             props.toggleSelectedDndValues({ id: p.id, label: p.label });
             return true;
         })
-        props.createValue({
-            label: item.label,
-            type: 'object',
-            propertyId: props.selectedProperty,
-            existingResourceId: item.id,
-        });
 
         // You can also do nothing and return a drop result,
         // which will be available as monitor.getDropResult()

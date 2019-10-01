@@ -109,6 +109,16 @@ export default (state = initialState, action) => {
             };
         }
 
+        case type.PUSH_TO_SELECTED_DND_PROPERTIES: {
+            let { payload } = action;
+            if (!state.dndSelectedProperties.some(c => c.id === payload.id)) {
+                return {
+                    ...state,
+                    dndSelectedProperties: [...state.dndSelectedProperties, payload],
+                };
+            }
+            return state;
+        }
 
         case type.TOGGLE_SELECTED_DND_PROPERTIES: {
             let { payload } = action;
@@ -130,6 +140,16 @@ export default (state = initialState, action) => {
             }
         }
 
+        case type.PUSH_TO_SELECTED_DND_VALUES: {
+            let { payload } = action;
+            if (!state.dndSelectedValues.some(c => c.id === payload.id)) {
+                return {
+                    ...state,
+                    dndSelectedValues: [...state.dndSelectedValues, payload],
+                };
+            }
+            return state;
+        }
 
         case type.TOGGLE_SELECTED_DND_VALUES: {
             let { payload } = action;

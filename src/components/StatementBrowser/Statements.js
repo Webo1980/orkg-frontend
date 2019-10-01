@@ -78,12 +78,6 @@ const chessSquareTarget = {
                 props.toggleSelectedDndProperties({ id: p.id, label: p.label });
                 return true;
             })
-            props.createProperty({
-                resourceId: props.selectedResource,
-                existingPredicateId: item.id,
-                label: item.label,
-            });
-
             props.resetSelectedDndProperties();
         }
 
