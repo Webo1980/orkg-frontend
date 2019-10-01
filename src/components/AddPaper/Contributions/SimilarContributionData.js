@@ -106,8 +106,40 @@ class SimilarContributionData extends Component {
         });
     };
 
+    getContributionData = (contributionID) => {
+        // Fetch contribution data
+        return getStatementsBySubject(contributionID).then((contributionStatements) => {
+            let st = { properties: [], values: [] };
+            let createdProperties = {};
+            if (contributionStatements.length > 0) {
+                contributionStatements.map(s => {
+                    if (!createdProperties[s.predicate.id]) {
+                        createdProperties[s.predicate.id] = s.predicate.id;
+                        st['properties'].push({
+                            propertyId: s.predicate.id,
+                            existingPredicateId: s.predicate.id,
+                            label: s.predicate.label,
+                        });
+                    }
+                    st['values'].push({
+                        label: s.object.label,
+                        type: 'object',
+                        propertyId: s.predicate.id,
+                        existingResourceId: s.object.id,
+                    });
+                    return true;
+                });
+
+                return {
+                    ...contributionStatements[0].subject,
+                    statements: st
+                }
+            }
+        })
+    }
+
     getPaperData = (paperID) => {
-        return getStatementsBySubject(paperID).then((paperStatements) => {
+        return getStatementsBySubject(paperID).then(async (paperStatements) => {
             // authors
             let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
             let authorNamesArray = [];
@@ -123,46 +155,20 @@ class SimilarContributionData extends Component {
             let contributionArray = [];
 
             if (contributions.length > 0) {
-                for (let contribution of contributions) {
-                    // Fetch contribution data
-                    let statements = getStatementsBySubject(contribution.object.id);
-                    Promise.all([statements]).then(cs => {
-                        let st = { properties: [], values: [] };
-                        let createdProperties = {};
-                        if (cs[0].length > 0) {
-                            cs[0].map(s => {
-                                if (!createdProperties[s.predicate.id]) {
-                                    createdProperties[s.predicate.id] = s.predicate.id;
-                                    st['properties'].push({
-                                        propertyId: s.predicate.id,
-                                        existingPredicateId: s.predicate.id,
-                                        label: s.predicate.label,
-                                    });
-                                }
-                                st['values'].push({
-                                    label: s.object.label,
-                                    type: 'object',
-                                    propertyId: s.predicate.id,
-                                    existingResourceId: s.object.id,
-                                });
-                                return true;
-                            });
-                            contributionArray.push({
-                                ...contribution.object,
-                                statements: st
-                            });
-                        }
-                    })
-                }
+                contributionArray = contributions.map((c) => {
+                    return this.getContributionData(c.object.id)
+                })
             }
 
-            let paper = {
-                id: paperID,
-                label: paperStatements[0].subject.label,
-                authorNames: authorNamesArray.reverse(),
-                contributions: contributionArray.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
-            }
-            return paper;
+            return Promise.all(contributionArray).then((contributionsData) => {
+                let paper = {
+                    id: paperID,
+                    label: paperStatements[0].subject.label,
+                    authorNames: authorNamesArray.reverse(),
+                    contributions: contributionsData.sort((a, b) => a.label.localeCompare(b.label)), // sort contributions ascending, so contribution 1, is actually the first one
+                }
+                return paper;
+            })
         })
     }
 
@@ -221,11 +227,11 @@ class SimilarContributionData extends Component {
                             })
                         });
                     })
-    
+     
                     Promise.all(papers).then((results) => {
-    
+     
                         console.log(results);
-    
+     
                         this.setState({
                             contributions: results,
                             loading: false
