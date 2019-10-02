@@ -129,7 +129,7 @@ class Statements extends Component {
                     ...this.state.selectedProperties,
                     [item.id]: this.state.selectedProperties[item.id]
                         ? undefined
-                        : { label: item.label, existingPredicateId: item.id, propertyId: item.propertyId, valueIds: Object.keys(values) }
+                        : { label: item.label, existingPredicateId: item.existingPredicateId, propertyId: item.propertyId, valueIds: Object.keys(values) }
                 },
                 selectedValues: values
             })
@@ -150,7 +150,7 @@ class Statements extends Component {
             } else {
                 if (!pr[item.propertyId]) {
                     let cpr = this.props.properties.byId[item.propertyId]; //copy
-                    pr[item.propertyId] = { label: cpr.label, existingPredicateId: cpr.id, propertyId: item.propertyId, valueIds: [] };
+                    pr[item.propertyId] = { label: cpr.label, existingPredicateId: cpr.existingPredicateId, propertyId: item.propertyId, valueIds: [] };
                 }
                 pr[item.propertyId].valueIds.push(item.id)
                 let newPropertyObject = { ...pr[item.propertyId], valueIds: pr[item.propertyId].valueIds }

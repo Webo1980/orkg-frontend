@@ -146,7 +146,9 @@ class StatementItem extends Component {
                             type="checkbox"
                             className={'mr-2'}
                             checked={this.props.selectedProperties[this.props.id] ? this.props.selectedProperties[this.props.id] : false}
-                            onChange={() => this.props.handleSelectionChange('Property', { id: this.props.id, propertyId: this.props.id, label: this.props.predicateLabel, valueIds: valueIds, existingPredicateId: this.props.id })}
+                            onChange={() => {
+                                this.props.handleSelectionChange('Property', { id: this.props.id, propertyId: this.props.id, label: this.props.predicateLabel, valueIds: valueIds, existingPredicateId: this.props.properties.byId[this.props.id].existingPredicateId })
+                            }}
                         />)}
                     <span onClick={() => (this.props.enableSelection) ? this.props.togglePropertyCollapse(this.props.id) : undefined}>
                         {this.state.predicateLabel}
