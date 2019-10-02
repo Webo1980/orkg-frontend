@@ -253,6 +253,20 @@ export const StyledStatementItemDropZoneHelper = styled(ListGroupItem)`
         z-index:initial !important; 
     }
 `
+/*StyledStatementItemValueDropZoneHelper*/
+export const StyledStatementItemValueDropZoneHelper = styled(ListGroupItem)`
+    padding: 1rem 0.75rem !important;
+    cursor: default;
+    text-align: center;
+    background-color: ${props => props.theme.ultraLightBlue} !important; 
+    border: 4px dashed ${props => props.theme.ultraLightBlueDarker} !important;
+    border-color: ${props => props.theme.ultraLightBlueDarker} !important; 
+    /*border: 2px dashed ${props => props.theme.orkgPrimaryColor};*/
+
+    &:hover, &:focus {
+        z-index:initial !important; 
+    }
+`
 
 /*statementItem*/
 export const StyledStatementItem = styled(ListGroupItem)`

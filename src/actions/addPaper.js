@@ -206,6 +206,7 @@ export const prefillStatements = ({ statements, resourceId }) => (dispatch) => {
       createValue({
         label: value.label,
         type: 'object',
+        existingResourceId: value.id ? value.id : null,
         propertyId: value.propertyId,
       }),
     );

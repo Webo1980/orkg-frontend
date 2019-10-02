@@ -15,6 +15,7 @@ import {
     getStatementsByPredicate, getStatementsBySubject, getStatementsByObject,
     submitGetRequest, predicatesUrl, resourcesUrl
 } from './../../../network';
+import { guid } from '../../../utils';
 import PropTypes from 'prop-types';
 
 class SimilarContributionData extends Component {
@@ -120,9 +121,9 @@ class SimilarContributionData extends Component {
             if (filtredContributionStatements.length > 0) {
                 filtredContributionStatements.map(s => {
                     if (!createdProperties[s.predicate.id]) {
-                        createdProperties[s.predicate.id] = s.predicate.id;
+                        createdProperties[s.predicate.id] = guid();
                         st['properties'].push({
-                            propertyId: s.predicate.id,
+                            propertyId: createdProperties[s.predicate.id],
                             existingPredicateId: s.predicate.id,
                             label: s.predicate.label,
                         });
@@ -130,8 +131,8 @@ class SimilarContributionData extends Component {
                     st['values'].push({
                         label: s.object.label,
                         type: 'object',
-                        propertyId: s.predicate.id,
-                        existingResourceId: s.object.id,
+                        propertyId: createdProperties[s.predicate.id],
+                        id: s.object.id,
                     });
                     return true;
                 });
@@ -281,6 +282,8 @@ class SimilarContributionData extends Component {
     getRelatedProperties = (searchQuery) => {
         this.setState({ loadingSimilarProperty: true })
         if (searchQuery && searchQuery !== '') {
+            // reset selected properties
+            this.props.resetSelectedDndProperties();
             submitGetRequest(predicatesUrl + '?q=' + encodeURIComponent(searchQuery)).then((relatedProperties) => {
                 this.setState({
                     loadingSimilarProperty: false,
@@ -318,6 +321,8 @@ class SimilarContributionData extends Component {
     getRelatedValues = (searchQuery) => {
         this.setState({ loadingSimilarValue: true })
         if (searchQuery && searchQuery !== '') {
+            // reset selected values
+            this.props.resetSelectedDndValues();
             submitGetRequest(resourcesUrl + '?q=' + encodeURIComponent(searchQuery)).then((relatedValues) => {
                 this.setState({
                     loadingSimilarValue: false,
@@ -338,7 +343,7 @@ class SimilarContributionData extends Component {
                         t.id === relatedValue.id && t.label === relatedValue.label
                     ))
                 )
-                // reset selected properties
+                // reset selected values
                 this.props.resetSelectedDndValues();
                 // Set them to the list of related values
                 this.setState({
@@ -372,6 +377,12 @@ class SimilarContributionData extends Component {
         }
         this.setState({ [e.target.name]: e.target.value });
     };
+
+    droppedContribution = (id) => {
+        this.setState({
+            relatedContributions: this.state.relatedContributions.filter(obj => obj.id !== id)
+        })
+    }
 
     droppedProperty = (id) => {
         this.setState({
@@ -446,7 +457,7 @@ class SimilarContributionData extends Component {
                                                     <RelatedContributionCarousel
                                                         contributions={p.contributions}
                                                         openDialog={this.handleViewRelatedContributionClick}
-                                                        dropped={this.droppedProperty}
+                                                        dropped={this.droppedContribution}
                                                         key={`s${p.id}`}
                                                         authors={p.authorNames}
                                                         id={p.id}
@@ -456,7 +467,7 @@ class SimilarContributionData extends Component {
                                                 return (
                                                     <RelatedContribution
                                                         openDialog={this.handleViewRelatedContributionClick}
-                                                        dropped={this.droppedProperty}
+                                                        dropped={this.droppedContribution}
                                                         key={`s${p.id}`}
                                                         authors={p.authorNames}
                                                         id={p.id}
@@ -494,7 +505,7 @@ class SimilarContributionData extends Component {
                                         <Button onClick={() => {
                                             this.props.prefillStatements({
                                                 statements: {
-                                                    properties: this.props.dndSelectedProperties.map(p => { return { propertyId: p.id, existingPredicateId: p.id, label: p.label } }),
+                                                    properties: this.props.dndSelectedProperties.map(p => { return { existingPredicateId: p.id, label: p.label } }),
                                                     values: []
                                                 },
                                                 resourceId: this.props.selectedResource
@@ -591,7 +602,7 @@ class SimilarContributionData extends Component {
                                         </div>
                                     </div>
                                 </div>
-                                {!this.state.loadingSimilarValue && this.state.relatedValues.length > 0 && (
+                                {!this.state.loadingSimilarValue && this.state.relatedValues.length > 0 && this.props.selectedProperty && (
                                     <StyledRelatedData className={'scrollbox'}>
                                         {this.state.relatedValues.map((v) => (
                                             <RelatedValue
@@ -602,7 +613,7 @@ class SimilarContributionData extends Component {
                                             />))}
                                     </StyledRelatedData>
                                 )}
-                                {!this.state.loadingSimilarValue && this.state.relatedValues.length === 0 && (
+                                {!this.state.loadingSimilarValue && (this.state.relatedValues.length === 0 || !this.props.selectedProperty) && (
                                     <div className="text-center mt-4 mb-4">
                                         No related values found.<br />
                                         Please select a property first.

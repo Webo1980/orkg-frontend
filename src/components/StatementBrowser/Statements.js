@@ -47,26 +47,6 @@ const chessSquareTarget = {
                     resourceId: props.selectedResource,
                 });
             }
-            /*
-            item.contributions.map(c => {
-                return getStatementsBySubject(c.id).then(statements => {
-                    statements.map(s => {
-                        props.createProperty({
-                            propertyId: s.predicate.id,
-                            resourceId: props.selectedResource,
-                            existingPredicateId: s.predicate.id,
-                            label: s.predicate.label,
-                        });
-                        props.createValue({
-                            label: s.object.label,
-                            type: 'object',
-                            propertyId: s.predicate.id,
-                            existingResourceId: s.object.id,
-                        });
-                    })
-                });
-            });
-            */
         }
         if (monitor.getItemType() === DndTypes.PROPERTY) {
             props.dndSelectedProperties.map(p => {
@@ -136,7 +116,7 @@ class Statements extends Component {
                 // add values
                 for (var id of item.valueIds) {
                     let v = this.props.values.byId[id];
-                    values[id] = { label: v.label, propertyId: item.propertyId, type: v.type };
+                    values[id] = { id: v.resourceId, label: v.label, propertyId: item.propertyId, type: v.type };
                 }
             } else {
                 // removes values
@@ -176,13 +156,22 @@ class Statements extends Component {
                 let newPropertyObject = { ...pr[item.propertyId], valueIds: pr[item.propertyId].valueIds }
                 pr = { ...pr, [item.propertyId]: newPropertyObject };
                 //add value
-                vl[item.id] = { label: item.label, propertyId: item.propertyId, type: item.type };
+                vl[item.id] = { id: item.resourceId, label: item.label, propertyId: item.propertyId, type: item.type };
                 this.setState({
                     selectedProperties: pr,
                     selectedValues: vl
                 })
             }
         }
+    }
+
+    disableAddToContributionButton = () => {
+        for (var key in this.state.selectedProperties) {
+            if (this.state.selectedProperties[key] !== null && this.state.selectedProperties[key] !== '' && this.state.selectedProperties[key] !== undefined) {
+                return false;
+            }
+        }
+        return true;
     }
 
     statements = () => {
@@ -218,6 +207,13 @@ class Statements extends Component {
                                         />
                                     )
                                 })}
+                                {((propertyIds.length > 0) && canDrop && !isOver) && (
+                                    <StyledStatementItemDropZoneHelper>
+                                        <div className={'pt-3 pb-3'}>
+                                            Drop here to insert data
+                                        </div>
+                                    </StyledStatementItemDropZoneHelper>)
+                                }
                                 {isOver && (
                                     <>
                                         {itemToDropType === DndTypes.PROPERTY && (
@@ -305,7 +301,7 @@ class Statements extends Component {
                 {this.props.enableSelection && (
                     <div className={'mt-4 text-center'}>
                         <Button
-                            disabled={Object.keys(this.state.selectedProperties).length === 0}
+                            disabled={this.disableAddToContributionButton()}
                             onClick={() => this.props.selectedAction({ properties: this.state.selectedProperties, values: this.state.selectedValues })}
                         >
                             Add to contribution data

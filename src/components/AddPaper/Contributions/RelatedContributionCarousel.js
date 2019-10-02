@@ -61,7 +61,7 @@ class RelatedContributionCarousel extends Component {
                         openDialog={this.props.openDialog}
                         dropped={this.props.dropped}
                         key={`s${this.props.id}${contribution.id}`}
-                        id={contribution.id}
+                        id={this.props.id}
                         authors={this.props.authors}
                         label={this.props.label}
                         contribution={contribution}

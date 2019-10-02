@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ListGroup, Collapse } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/free-solid-svg-icons';
-import { StyledStatementItem, StyledListGroupOpen } from '../AddPaper/Contributions/styled';
+import { StyledStatementItem, StyledListGroupOpen, StyledStatementItemValueDropZoneHelper } from '../AddPaper/Contributions/styled';
 import { getResource } from '../../network';
 import classNames from 'classnames';
 import ValueItem from './Value/ValueItem';
@@ -136,7 +136,7 @@ class StatementItem extends Component {
 
         let valueIds = Object.keys(this.props.properties.byId).length !== 0 ? this.props.properties.byId[this.props.id].valueIds : [];
 
-        const { isOver, connectDropTarget } = this.props
+        const { canDrop, isOver, connectDropTarget } = this.props
 
         return (
             <>
@@ -200,7 +200,13 @@ class StatementItem extends Component {
                                     />
                                 );
                             })}
-
+                            {(canDrop && !isOver) && (
+                                <StyledStatementItemValueDropZoneHelper>
+                                    <div className={'pt-2 pb-2'}>
+                                        Drop here to insert data
+                                    </div>
+                                </StyledStatementItemValueDropZoneHelper>)
+                            }
                             {isOver && (
                                 <>
                                     {this.props.dndSelectedValues.map(p => {
@@ -245,7 +251,8 @@ StatementItem.propTypes = {
     connectDropTarget: PropTypes.func.isRequired,
     dndSelectedProperties: PropTypes.array.isRequired,
     dndSelectedValues: PropTypes.array.isRequired,
-    toggleSelectedDndValues: PropTypes.func.isRequired
+    toggleSelectedDndValues: PropTypes.func.isRequired,
+    canDrop: PropTypes.bool.isRequired,
 };
 
 const mapStateToProps = (state) => {
