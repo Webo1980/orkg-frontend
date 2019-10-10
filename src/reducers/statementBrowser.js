@@ -3,7 +3,6 @@ import dotProp from 'dot-prop-immutable';
 
 const initialState = {
     selectedResource: '',
-    selectedProperty: '',
     level: 0,
     isFetchingStatements: false,
     resources: {
@@ -41,13 +40,6 @@ export default (state = initialState, action) => {
             newState = dotProp.set(newState, 'resources.allIds', ids => [...ids, payload.resourceId]);
 
             return newState;
-        }
-
-        case type.TOGGLE_PROPERTY_COLLAPSE: {
-            return {
-                ...state,
-                selectedProperty: action.id !== state.selectedProperty ? action.id : ''
-            };
         }
 
         case type.CREATE_PROPERTY: {
@@ -198,13 +190,6 @@ export default (state = initialState, action) => {
                     byId: {},
                     allIds: [],
                 }
-            };
-        }
-
-        case type.CLEAR_SELECTED_PROPERTY: {
-            return {
-                ...state,
-                selectedProperty: '',
             };
         }
 

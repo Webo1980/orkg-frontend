@@ -20,6 +20,15 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import styled, { withTheme } from 'styled-components';
 import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
+import { StickyContainer, Sticky } from 'react-sticky';
+
+
+const StyledStickyContainer = styled.div`
+
+    &.isSticky{
+        margin-top:100px;
+    }
+`;
 
 
 const AnimationContainer = styled(CSSTransition)`
@@ -203,9 +212,20 @@ class Contributions extends Component {
                             </AnimationContainer>
                         </TransitionGroup>
                     </div>
-                    <Col xs="4">
-                        <SimilarContributionData id={selectedResourceId} />
-                    </Col>
+
+                    <StickyContainer className="col-4">
+                        <Sticky topOffset={-100}>
+                            {({
+                                style,
+                                isSticky,
+                            }) => (
+                                    <StyledStickyContainer className={isSticky ? 'isSticky' : ''} style={style}>
+                                        <SimilarContributionData id={selectedResourceId} />
+                                    </StyledStickyContainer>
+                                )}
+                        </Sticky>
+
+                    </StickyContainer>
                 </Row>
                 <hr className="mt-5 mb-3" />
                 <Button color="primary" className="float-right mb-4" onClick={this.handleNextClick}>Finish</Button>

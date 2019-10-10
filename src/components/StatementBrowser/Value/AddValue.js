@@ -163,7 +163,6 @@ AddValue.propTypes = {
 
 const mapStateToProps = state => {
     return {
-        selectedProperty: state.statementBrowser.selectedProperty,
         newResources: state.statementBrowser.resources.byId
     }
 };

@@ -12,7 +12,7 @@ import { faSearch, faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { StyledRelatedData } from './styled';
 import { prefillStatements, resetSelectedDndProperties, resetSelectedDndValues } from '../../../actions/addPaper';
 import {
-    getStatementsByPredicate, getStatementsBySubject, getStatementsByObject,
+    getStatementsBySubject, getStatementsByObject,
     submitGetRequest, predicatesUrl, resourcesUrl
 } from './../../../network';
 import { guid } from '../../../utils';
@@ -78,10 +78,6 @@ class SimilarContributionData extends Component {
         // Get new related properties
         if (this.props.selectedResource !== prevProps.selectedResource) {
             this.getRelatedProperties(this.state.searchSimilarProperty);
-        }
-        // Get new related values
-        if (this.props.selectedProperty !== prevProps.selectedProperty) {
-            this.getRelatedValues(this.state.searchSimilarValue);
         }
         // Get new similar contribution
         if (this.props.researchProblems !== prevProps.researchProblems) {
@@ -329,12 +325,14 @@ class SimilarContributionData extends Component {
                     relatedValues: relatedValues.slice(0, 12)
                 })
             })
-        } else if (
+        }
+        /*
+        else if (
             this.props.selectedProperty
             && this.props.properties.byId[this.props.selectedProperty]
             && this.props.properties.byId[this.props.selectedProperty].existingPredicateId
         ) {
-            getStatementsByPredicate(this.props.properties.byId[this.props.selectedProperty].existingPredicateId).then((result) => {
+            getStatementsByPredicate(this.props.properties.byId[selectedProperty].existingPredicateId).then((result) => {
                 // Get the related values without duplicates
                 var relatedValues = result.map((statement) => {
                     return statement.object
@@ -354,6 +352,7 @@ class SimilarContributionData extends Component {
                 })
             })
         }
+        */
         this.setState({ loadingSimilarValue: false })
     }
 
@@ -398,7 +397,7 @@ class SimilarContributionData extends Component {
 
     render() {
         return (
-            <div>
+            <div style={this.props.style}>
                 <Nav tabs>
                     <NavItem style={{ cursor: 'pointer' }}>
                         <NavLink
@@ -569,7 +568,8 @@ class SimilarContributionData extends Component {
                         <Row>
                             <Col sm="12">
                                 <div className="d-flex mr-2 mt-2 mb-2">
-                                    {this.props.dndSelectedValues.length > 0 && this.props.selectedProperty && (
+                                    {/*
+                                    {this.props.dndSelectedValues.length > 0 && (
                                         <Button onClick={() => {
                                             this.props.prefillStatements({
                                                 statements: {
@@ -584,6 +584,7 @@ class SimilarContributionData extends Component {
                                             <Icon icon={faPlus} />
                                         </Button>
                                     )}
+                                    */}
                                     <div className="input-group">
                                         <Input
                                             bsSize="sm"
@@ -602,7 +603,7 @@ class SimilarContributionData extends Component {
                                         </div>
                                     </div>
                                 </div>
-                                {!this.state.loadingSimilarValue && this.state.relatedValues.length > 0 && this.props.selectedProperty && (
+                                {!this.state.loadingSimilarValue && this.state.relatedValues.length > 0 && this.props.properties.allIds.length > 0 && (
                                     <StyledRelatedData className={'scrollbox'}>
                                         {this.state.relatedValues.map((v) => (
                                             <RelatedValue
@@ -613,10 +614,10 @@ class SimilarContributionData extends Component {
                                             />))}
                                     </StyledRelatedData>
                                 )}
-                                {!this.state.loadingSimilarValue && (this.state.relatedValues.length === 0 || !this.props.selectedProperty) && (
+                                {!this.state.loadingSimilarValue && (this.state.relatedValues.length === 0) && this.props.properties.allIds.length === 0 && (
                                     <div className="text-center mt-4 mb-4">
                                         No related values found.<br />
-                                        Please select a property first.
+                                        Please add a property first.
                                     </div>
                                 )}
                                 {this.state.loadingSimilarValue && (
@@ -650,9 +651,9 @@ SimilarContributionData.propTypes = {
     researchProblems: PropTypes.array.isRequired,
     resources: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,
+    style: PropTypes.object.isRequired,
     values: PropTypes.object.isRequired,
     selectedContribution: PropTypes.string.isRequired,
-    selectedProperty: PropTypes.string.isRequired,
     selectedResource: PropTypes.string.isRequired,
     prefillStatements: PropTypes.func.isRequired,
     dndSelectedProperties: PropTypes.array.isRequired,
@@ -670,7 +671,6 @@ const mapStateToProps = (state, ownProps) => {
         resources: state.statementBrowser.resources,
         properties: state.statementBrowser.properties,
         values: state.statementBrowser.values,
-        selectedProperty: state.statementBrowser.selectedProperty,
         selectedResource: state.statementBrowser.selectedResource,
         dndSelectedProperties: state.addPaper.dndSelectedProperties,
         dndSelectedValues: state.addPaper.dndSelectedValues,
