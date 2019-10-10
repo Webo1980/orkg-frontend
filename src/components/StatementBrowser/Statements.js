@@ -116,7 +116,7 @@ class Statements extends Component {
                 // add values
                 for (var id of item.valueIds) {
                     let v = this.props.values.byId[id];
-                    values[id] = { id: v.resourceId, label: v.label, propertyId: item.propertyId, type: v.type };
+                    values[id] = { id: v.resourceId, label: v.label, propertyId: item.propertyId, type: v.type, isExistingValue: true };
                 }
             } else {
                 // removes values
@@ -156,7 +156,7 @@ class Statements extends Component {
                 let newPropertyObject = { ...pr[item.propertyId], valueIds: pr[item.propertyId].valueIds }
                 pr = { ...pr, [item.propertyId]: newPropertyObject };
                 //add value
-                vl[item.id] = { id: item.resourceId, label: item.label, propertyId: item.propertyId, type: item.type };
+                vl[item.id] = { id: item.resourceId, label: item.label, propertyId: item.propertyId, type: item.type, isExistingValue: true };
                 this.setState({
                     selectedProperties: pr,
                     selectedValues: vl

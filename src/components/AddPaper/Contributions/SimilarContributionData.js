@@ -574,7 +574,7 @@ class SimilarContributionData extends Component {
                                             this.props.prefillStatements({
                                                 statements: {
                                                     properties: [],
-                                                    values: this.props.dndSelectedValues.map(v => { return { existingResourceId: v.id, label: v.label, propertyId: this.props.selectedProperty } }),
+                                                    values: this.props.dndSelectedValues.map(v => { return { id: v.id, label: v.label, propertyId: this.props.selectedProperty, isExistingValue: true, type: 'object' } }),
                                                 },
                                                 resourceId: this.props.selectedResource
                                             });

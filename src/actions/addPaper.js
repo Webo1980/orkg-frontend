@@ -208,6 +208,7 @@ export const prefillStatements = ({ statements, resourceId }) => (dispatch) => {
         type: 'object',
         existingResourceId: value.id ? value.id : null,
         propertyId: value.propertyId,
+        isExistingValue: value.isExistingValue,
       }),
     );
   }
