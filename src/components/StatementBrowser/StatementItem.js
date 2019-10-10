@@ -41,6 +41,7 @@ const propertyValuesTarget = {
                 type: 'object',
                 propertyId: props.id,
                 existingResourceId: p.id,
+                isExistingValue: true
             });
 
             props.toggleSelectedDndValues({ id: p.id, label: p.label });
