@@ -192,7 +192,7 @@ export const prefillStatements = ({ statements, resourceId }) => (dispatch) => {
   for (let property of statements.properties) {
     dispatch(
       createProperty({
-        propertyId: property.propertyId,
+        propertyId: property.propertyId ? property.propertyId : guid(),
         existingPredicateId: property.existingPredicateId,
         resourceId: resourceId,
         label: property.label,

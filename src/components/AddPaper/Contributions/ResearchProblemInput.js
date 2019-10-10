@@ -4,6 +4,58 @@ import PropTypes from 'prop-types';
 import CreatableSelect from 'react-select/creatable';
 import { components } from 'react-select';
 import { getStatementsByPredicate } from '../../../network';
+import { updateResearchProblems, resetSelectedDndValues } from '../../../actions/addPaper';
+import { connect } from 'react-redux';
+import { compose } from 'redux';
+import { DropTarget } from 'react-dnd';
+import DndTypes from './../../../constants/DndTypes';
+
+
+/**
+ * Specifies the drop target contract.
+ * All methods are optional.
+ */
+const propertyValuesTarget = {
+    canDrop(props, monitor) {
+        // You can disallow drop based on props or item
+        //const item = monitor.getItem()
+        return true;
+    },
+
+    drop(props, monitor, component) {
+        if (monitor.didDrop()) {
+            // If you want, you can check whether some nested
+            // target already handled drop
+            return
+        }
+
+        props.updateResearchProblems({
+            problemsArray: [...props.value, ...props.dndSelectedValues.map(v => ({ id: v.id, label: v.label, '_class': 'resource' }))],
+            contributionId: props.contributionId,
+        })
+        props.resetSelectedDndValues();
+        // You can also do nothing and return a drop result,
+        // which will be available as monitor.getDropResult()
+        // in the drag source's endDrag() method
+        return { moved: true }
+    },
+}
+
+/**
+ * Specifies which props to inject into your component.
+ */
+function collect(connect, monitor) {
+    return {
+        // Call this function inside render()
+        // to let React DnD handle the drag events:
+        connectDropTarget: connect.dropTarget(),
+        // You can ask the monitor about the current drag state:
+        isOver: monitor.isOver(),
+        isOverCurrent: monitor.isOver({ shallow: true }),
+        canDrop: monitor.canDrop(),
+        itemToDrop: monitor.getItem(),
+    }
+}
 
 
 class ResearchProblemInput extends Component {
@@ -135,12 +187,14 @@ class ResearchProblemInput extends Component {
             );
         };
 
+        const { canDrop, isOver, connectDropTarget } = this.props
+
         return (
             <>
-                <StyledResearchFieldsInputFormControl id="researchProblemFormControl" className="form-control">
+                <StyledResearchFieldsInputFormControl ref={instance => connectDropTarget(instance)} id="researchProblemFormControl" className="form-control">
                     <CreatableSelect
                         //value={this.state.researchProblems.filter(({ id }) => this.props.value.includes(id))}
-                        value={this.props.value}
+                        value={isOver ? [...this.props.value, ...this.props.dndSelectedValues] : this.props.value}
                         getOptionLabel={({ label }) => label}
                         getOptionValue={({ id }) => id}
                         key={({ id }) => id}
@@ -148,7 +202,7 @@ class ResearchProblemInput extends Component {
                         isMulti
                         onChange={this.props.handler}
                         onCreateOption={this.handleCreate}
-                        placeholder="Select or type something..."
+                        placeholder={canDrop ? 'Drop here to insert as a research problem' : 'Select or type something...'}
                         styles={customStyles}
                         components={{ Menu, MultiValueLabel }}
                         options={this.state.researchProblems}
@@ -156,7 +210,6 @@ class ResearchProblemInput extends Component {
                         openMenuOnClick={false}
                         onInputChange={this.onInputChange}
                         inputValue={this.state.inputValue}
-                        noOptionsMessage={() => 'Enter both the first and last name.'}
                     />
                 </StyledResearchFieldsInputFormControl>
                 {
@@ -176,6 +229,29 @@ class ResearchProblemInput extends Component {
 ResearchProblemInput.propTypes = {
     handler: PropTypes.func.isRequired,
     value: PropTypes.array.isRequired,
+    contributionId: PropTypes.string.isRequired,
+    updateResearchProblems: PropTypes.func.isRequired,
+    canDrop: PropTypes.bool.isRequired,
+    isOver: PropTypes.bool.isRequired,
+    connectDropTarget: PropTypes.func.isRequired,
+    dndSelectedValues: PropTypes.array.isRequired,
 }
 
-export default ResearchProblemInput;
+const mapStateToProps = (state) => {
+    return {
+        dndSelectedValues: state.addPaper.dndSelectedValues,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    updateResearchProblems: (data) => dispatch(updateResearchProblems(data)),
+    resetSelectedDndValues: () => dispatch(resetSelectedDndValues()),
+});
+
+export default compose(
+    connect(
+        mapStateToProps,
+        mapDispatchToProps
+    ),
+    DropTarget(DndTypes.VALUE, propertyValuesTarget, collect)
+)(ResearchProblemInput);

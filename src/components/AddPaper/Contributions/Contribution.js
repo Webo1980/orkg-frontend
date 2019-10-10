@@ -72,7 +72,7 @@ class Contribution extends Component {
                         <Label>
                             <Tooltip message={<span>Specify the research problems that this contribution addresses. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => this.handleLearnMore(0)}>Learn more</span></span>}>Research problems</Tooltip>
                         </Label>
-                        <ResearchProblemInput handler={this.handleResearchProblemsChange} value={this.props.researchProblems} />
+                        <ResearchProblemInput contributionId={this.props.id} handler={this.handleResearchProblemsChange} value={this.props.researchProblems} />
                     </FormGroup>
                     <FormGroup>
                         <Label>
