@@ -222,6 +222,10 @@ export const getAnnotations = (abstract) => {
   );
 };
 
+export const getPaperSummary = (data) => {
+  return submitPostRequest(`${annotationServiceUrl}summarizer/`, { 'Content-Type': 'application/json' }, data);
+};
+
 export const indexContribution = (contribution_id) => {
   return fetch(`${similaireServiceUrl}internal/index/${encodeURIComponent(contribution_id)}/`, {
     method: 'GET',

@@ -6,6 +6,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from '../../Utils/Tooltip';
 import SimilarContributionData from './SimilarContributionData'
+import PaperSummary from './PaperSummary'
 import { StyledHorizontalContentEditable, StyledHorizontalContributionsList } from './styled';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
@@ -145,6 +146,8 @@ class Contributions extends Component {
         return (
             <div>
                 <h2 className="h4 mt-4 mb-5"><Tooltip message={<span>Specify the research contributions that this paper makes. A paper can have multiple contributions and each contribution addresses at least one research problem. <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => this.handleLearnMore(1)}>Learn more</span></span>}>Specify research contributions</Tooltip></h2>
+                <PaperSummary />
+                <br />
                 <Row>
                     <div className="col-8">
                         <StyledHorizontalContributionsList id="contributionsList">
