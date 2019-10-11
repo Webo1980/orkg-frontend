@@ -29,7 +29,6 @@ const Card = styled.div`
 const CardTitle = styled.h5`
     color: #fff;
     font-size: 16px;
-    padding:0 5px;
 `;
 
 const BreadcrumbLink = styled.span`
@@ -47,6 +46,7 @@ class ResearchFieldCards extends Component {
         breadcrumb: [],
         papers: null,
         error: '',
+        isFieldsLoading: false
     }
 
     componentDidMount() {
@@ -54,25 +54,42 @@ class ResearchFieldCards extends Component {
     }
 
     async getFields(fieldId, label, addBreadcrumb = true) {
+        this.setState({ isFieldsLoading: true })
         try {
             await getStatementsBySubject(fieldId).then(async (res) => {
-                let researchFields = [];
-                res.forEach((elm) => {
-                    researchFields.push({
-                        'label': elm.object.label,
-                        'id': elm.object.id,
+                Promise.all(res.map((elm) => {
+                    return getStatementsBySubject(elm.object.id).then(subResearchFields => {
+                        if (subResearchFields.length === 0) {
+                            return getStatementsByObject({
+                                id: elm.object.id,
+                                order: 'desc',
+                            }).then(papers =>
+                                ({
+                                    'label': elm.object.label,
+                                    'id': elm.object.id,
+                                    'papers': papers.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD).length,
+                                    'subfields': 0
+                                }));
+                        } else {
+                            return {
+                                'label': elm.object.label,
+                                'id': elm.object.id,
+                                'papers': 0,
+                                'subfields': subResearchFields.length,
+                            };
+                        }
+                    })
+                })).then(researchFields => {
+                    // sort research fields alphabetically
+                    researchFields = researchFields.sort((a, b) => {
+                        return a.label.localeCompare(b.label);
                     });
-                });
-
-                // sort research fields alphabetically
-                researchFields = researchFields.sort((a, b) => {
-                    return a.label.localeCompare(b.label);
-                });
-
-                this.setState({
-                    researchFields,
-                    error: '',
-                });
+                    this.setState({
+                        researchFields: researchFields,
+                        error: '',
+                        isFieldsLoading: false
+                    });
+                })
 
                 if (addBreadcrumb) {
                     let breadcrumb = this.state.breadcrumb;
@@ -87,7 +104,7 @@ class ResearchFieldCards extends Component {
                     });
                 }
 
-                if (researchFields.length === 0) {
+                if (fieldId !== process.env.REACT_APP_RESEARCH_FIELD_MAIN) {
                     this.setState({
                         papers: null, // to show loading indicator
                     });
@@ -106,11 +123,13 @@ class ResearchFieldCards extends Component {
             }).catch((e) => {
                 this.setState({
                     error: e.message,
+                    isFieldsLoading: false
                 });
             });
         } catch (e) {
             this.setState({
                 error: e.message,
+                isFieldsLoading: false
             });
         }
     }
@@ -148,37 +167,50 @@ class ResearchFieldCards extends Component {
                 ))}
 
                 <hr className="mt-3 mb-5" />
-                <div id="research-field-cards" className="mt-2 justify-content-center d-flex flex-wrap">
-                    {this.state.researchFields.map((field) => (
-                        <Card className="card card-body p-0 justify-content-center" role="button" key={field.id} onClick={() => this.getFields(field.id, field.label)}>
-                            <CardTitle className="card-title m-0 text-center">{field.label}</CardTitle>
-                        </Card>
-                    ))}
-                </div>
-                {showPapers && (
-                    <div>
-                        <h2 className="h5">{this.state.breadcrumb[this.state.breadcrumb.length - 1].label} papers</h2>
-
-                        {!this.state.papers && <div className="mt-5 text-center"><Icon icon={faSpinner} spin /> Loading</div>}
-
-                        {this.state.papers && this.state.papers.length === 0 ? <div className="mt-5 text-center">No papers found</div> : null}
-
-                        {this.state.papers && (
-                            <ul className="mt-3">
-                                {this.state.papers.map((paper, index) => {
-                                    return (
-                                        <li key={index}>
-                                            <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: paper.subject.id })}>
-                                                {paper.subject.label}
-                                            </Link>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                        )}
+                {!this.state.isFieldsLoading ? (
+                    <div id="research-field-cards" className="mt-2 justify-content-center d-flex flex-wrap">
+                        {this.state.researchFields.map((field) => (
+                            <Card className="card card-body justify-content-center p-3" role="button" key={field.id} onClick={() => this.getFields(field.id, field.label)}>
+                                <CardTitle className="card-title m-0">{field.label}</CardTitle>
+                                <div style={{ color: '#e9ebf2', fontSize: 'small' }}>
+                                    {field.subfields !== 0 ? `${field.subfields} ${field.subfields === 1 ? 'subfield' : 'subfields'}` : ''}
+                                    {field.subfields === 0 && (field.papers > 0 ? `${field.papers} ${field.papers === 1 ? 'paper' : 'papers'}` : '')}
+                                </div>
+                            </Card>
+                        ))}
                     </div>
-                )}
-            </div>
+                ) : (
+                        <div className="text-center">
+                            <Icon icon={faSpinner} spin /> Loading
+                        </div>
+                    )
+                }
+                {
+                    showPapers && (
+                        <div className="mt-2">
+                            <h2 className="h5">{this.state.breadcrumb[this.state.breadcrumb.length - 1].label} papers</h2>
+
+                            {!this.state.papers && <div className="mt-5 text-center"><Icon icon={faSpinner} spin /> Loading</div>}
+
+                            {this.state.papers && this.state.papers.length === 0 ? <div className="mt-5 text-center">No papers found</div> : null}
+
+                            {this.state.papers && (
+                                <ul className="mt-3">
+                                    {this.state.papers.map((paper, index) => {
+                                        return (
+                                            <li key={index}>
+                                                <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: paper.subject.id })}>
+                                                    {paper.subject.label ? paper.subject.label : <em>No title</em>}
+                                                </Link>
+                                            </li>
+                                        )
+                                    })}
+                                </ul>
+                            )}
+                        </div>
+                    )
+                }
+            </div >
         );
     }
 }
