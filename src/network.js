@@ -222,6 +222,12 @@ export const getAnnotations = (abstract) => {
   );
 };
 
+export const getTopicClassification = ({title = '', abstract = '', keywords = ''}) => {
+  return submitGetRequest(
+    `${annotationServiceUrl}topicClassifier/?title=${encodeURIComponent(title)}&abstract=${encodeURIComponent(abstract)}&keywords=${encodeURIComponent(keywords)}`,
+  );
+};
+
 export const indexContribution = (contribution_id) => {
   return fetch(`${similaireServiceUrl}internal/index/${encodeURIComponent(contribution_id)}/`, {
     method: 'GET',

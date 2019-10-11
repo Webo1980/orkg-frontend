@@ -9,7 +9,7 @@ import { compose } from 'redux';
 import {
     nextStep, previousStep, createContribution, deleteContribution,
     selectContribution, updateContributionLabel, saveAddPaper, openTour,
-    updateTourCurrentStep
+    updateTourCurrentStep, updateResearchProblems
 } from '../../../actions/addPaper';
 import Confirm from 'reactstrap-confirm';
 import Contribution from './Contribution';
@@ -17,8 +17,7 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import styled, { withTheme } from 'styled-components';
 import { withCookies } from 'react-cookie';
 import PropTypes from 'prop-types';
-
-
+import { getTopicClassification } from '../../../network';
 
 const AnimationContainer = styled(CSSTransition)`
     transition: 0.3s background-color,  0.3s border-color;
@@ -52,7 +51,29 @@ class Contributions extends Component {
                 researchField: this.props.selectedResearchField,
             });
         }
+
+        this.getTopics();
     }
+
+
+    getTopics = () => {
+
+        getTopicClassification({
+            title: this.props.title,
+            abstract: this.props.abstract,
+        })
+            .then((data) => {
+                const topics = data.union.map((topic) => {return {id: topic, label: topic}});
+
+                this.props.updateResearchProblems({
+                    problemsArray: topics,
+                    contributionId: this.props.contributions.allIds[0],
+                });
+            })
+            .catch((e) => {
+                return null;
+            });
+    };
 
     handleNextClick = async () => {
         let result = await Confirm({
@@ -246,6 +267,7 @@ Contributions.propTypes = {
 const mapStateToProps = state => {
     return {
         title: state.addPaper.title,
+        abstract: state.addPaper.abstract,
         authors: state.addPaper.authors,
         publicationMonth: state.addPaper.publicationMonth,
         publicationYear: state.addPaper.publicationYear,
@@ -269,6 +291,7 @@ const mapDispatchToProps = dispatch => ({
     saveAddPaper: (data) => dispatch(saveAddPaper(data)),
     openTour: (data) => dispatch(openTour(data)),
     updateTourCurrentStep: (data) => dispatch(updateTourCurrentStep(data)),
+    updateResearchProblems: (data) => dispatch(updateResearchProblems(data)),
 });
 
 export default compose(
