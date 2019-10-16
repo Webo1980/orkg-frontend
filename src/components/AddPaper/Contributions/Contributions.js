@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-    Row, Col, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem,
+    Row, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem,
 } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPen, faPlus, faCog } from '@fortawesome/free-solid-svg-icons';

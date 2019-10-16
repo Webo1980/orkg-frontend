@@ -170,27 +170,28 @@ class StatementItem extends Component {
                                     />
                                 );
                             })}
-                            {(canDrop && !isOver) && (
-                                <StyledStatementItemValueDropZoneHelper>
-                                    <div className={'pt-2 pb-2'}>
-                                        Drop here to insert data
-                                    </div>
-                                </StyledStatementItemValueDropZoneHelper>)
-                            }
-                            {isOver && (
-                                <>
-                                    {this.props.dndSelectedValues.map(p => {
-                                        return (
-                                            <StyledStatementItem
-                                                className={'dropView'}
-                                            >
-                                                {capitalize(p.label)}
-                                            </StyledStatementItem>
+                            {this.props.enableEdit ?
+                                (
+                                    canDrop ? (isOver ? (
+                                        <>
+                                            {this.props.dndSelectedValues.map(p => {
+                                                return (
+                                                    <StyledStatementItem
+                                                        className={'dropView'}
+                                                    >
+                                                        {capitalize(p.label)}
+                                                    </StyledStatementItem>
+                                                )
+                                            })}
+                                        </>) :
+                                        (
+                                            <StyledStatementItemValueDropZoneHelper>
+                                                <span className="btn btn-link p-0" >Drop here to insert data</span>
+                                            </StyledStatementItemValueDropZoneHelper>
                                         )
-                                    })}
-                                </>
-                            )}
-                            {this.props.enableEdit ? <AddValue selectedProperty={this.props.id} /> : ''}
+                                    ) : (<AddValue selectedProperty={this.props.id} />)
+                                ) : ''
+                            }
                         </ListGroup>
                     </StyledListGroupOpen>
                 </Collapse>
