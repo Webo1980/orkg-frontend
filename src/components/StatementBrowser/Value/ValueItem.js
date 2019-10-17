@@ -132,7 +132,7 @@ class ValueItem extends Component {
                                     type="checkbox"
                                     className={'mr-2'}
                                     checked={(this.props.selectedProperties[this.props.propertyId] && this.props.selectedProperties[this.props.propertyId].valueIds.length > 0 && this.props.selectedProperties[this.props.propertyId].valueIds.includes(this.props.id)) ? true : false}
-                                    onChange={() => this.props.handleSelectionChange('Value', { id: this.props.id, label: this.props.label, propertyId: this.props.propertyId, ressourceId: this.props.resourceId, type: this.props.type })}
+                                    onChange={() => this.props.handleSelectionChange('Value', { id: this.props.id, label: this.props.label, propertyId: this.props.propertyId, resourceId: this.props.resourceId, type: this.props.type })}
                                 />)}
                             <span onClick={this.props.enableSelection ? onClick : undefined}>
                                 <ValuePlugins>{this.props.label}</ValuePlugins>
