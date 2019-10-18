@@ -56,7 +56,7 @@ class ResearchFieldCards extends Component {
     async getFields(fieldId, label, addBreadcrumb = true) {
         this.setState({ isFieldsLoading: true })
         try {
-            await getStatementsBySubject(fieldId).then(async (res) => {
+            await getStatementsBySubject({ id: fieldId }).then(async (res) => {
                 Promise.all(res.map((elm) => {
                     return getStatementsBySubject(elm.object.id).then(subResearchFields => {
                         if (subResearchFields.length === 0) {
@@ -111,7 +111,10 @@ class ResearchFieldCards extends Component {
 
                     let papers = await getStatementsByObject({
                         id: fieldId,
-                        order: 'desc',
+                        page: 1,
+                        items: 24,
+                        sortBy: 'id',
+                        desc: true
                     });
 
                     papers = papers.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD);
