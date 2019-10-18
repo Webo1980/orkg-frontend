@@ -58,11 +58,14 @@ class ResearchFieldCards extends Component {
         try {
             await getStatementsBySubject({ id: fieldId }).then(async (res) => {
                 Promise.all(res.map((elm) => {
-                    return getStatementsBySubject(elm.object.id).then(subResearchFields => {
+                    return getStatementsBySubject({ id: elm.object.id }).then(subResearchFields => {
                         if (subResearchFields.length === 0) {
                             return getStatementsByObject({
                                 id: elm.object.id,
-                                order: 'desc',
+                                page: 1,
+                                items: 999,
+                                sortBy: 'id',
+                                desc: true
                             }).then(papers =>
                                 ({
                                     'label': elm.object.label,
@@ -155,7 +158,7 @@ class ResearchFieldCards extends Component {
             );
         }
 
-        let showPapers = this.state.researchFields.length === 0 && this.state.breadcrumb.length !== 0;
+        let showPapers = !this.state.isFieldsLoading && this.state.researchFields.length === 0 && this.state.breadcrumb.length !== 0;
 
         return (
             <div className="mt-5">
