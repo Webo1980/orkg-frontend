@@ -135,7 +135,7 @@ class ValueItem extends Component {
                                     onChange={() => this.props.handleSelectionChange('Value', { id: this.props.id, label: this.props.label, propertyId: this.props.propertyId, resourceId: this.props.resourceId, type: this.props.type })}
                                 />)}
                             <span onClick={this.props.enableSelection ? onClick : undefined}>
-                                <ValuePlugins>{this.props.label}</ValuePlugins>
+                                <ValuePlugins type={this.props.type}>{this.props.label}</ValuePlugins>
                             </span>
                             {existingResourceId && this.props.openExistingResourcesInDialog ? (
                                 <span>
