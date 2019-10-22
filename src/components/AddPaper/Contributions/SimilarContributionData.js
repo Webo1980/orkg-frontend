@@ -113,7 +113,7 @@ class SimilarContributionData extends Component {
 
     getContributionData = (contributionID) => {
         // Fetch contribution data
-        return getStatementsBySubject(contributionID).then((contributionStatements) => {
+        return getStatementsBySubject({ id: contributionID }).then((contributionStatements) => {
             // remove research problem statement
             let filtredContributionStatements = contributionStatements.filter((statement) => statement.predicate.id !== process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM)
             let st = { properties: [], values: [] };
@@ -148,7 +148,7 @@ class SimilarContributionData extends Component {
     }
 
     getPaperData = (paperID) => {
-        return getStatementsBySubject(paperID).then(async (paperStatements) => {
+        return getStatementsBySubject({ id: paperID }).then(async (paperStatements) => {
             // authors
             let authors = paperStatements.filter((statement) => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
             let authorNamesArray = [];
