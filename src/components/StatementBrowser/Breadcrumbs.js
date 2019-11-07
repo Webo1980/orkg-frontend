@@ -2,64 +2,110 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { goToResourceHistory } from '../../actions/statementBrowser';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faFile } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components/macro';
 import PropTypes from 'prop-types';
 
 const BreadcrumbList = styled.ul`
-    list-style: none;
+    list-style: none; 
+    overflow: hidden; 
     padding:0;
-    margin:0 0 10px;
+    margin:10px 0 0;
     display:flex;
     width:80%;
-    float:left;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
 
-    /*&:hover li:last-of-type:not(:hover) {
-        max-width:100px;
-        text-overflow: ellipsis;
-    }*/
-`;
+    li { 
+        float: left; 
+        font-size:87%;
 
-const BreadcrumbItem = styled.li`
-    border-radius:11px;
-    background: #F7F7F7;
-    padding:4px 10px;
-    float:left;
-    border:2px solid #E86161;
-    font-size:87%;
-    white-space:nowrap;
-    overflow:hidden;
-    max-width:55px;
-    cursor:pointer;
-    transition: max-width 0.5s;
+        b{
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow: ellipsis;
+            max-width:48px;
+            cursor:pointer;
 
-    &:hover {
-        max-width: 100%;
-        
-        color:#000;
+
+            font-weight: normal;
+            float: left;
+        }
+
+        span {
+            padding: 8px 0 8px 15px;
+            background: rgb(219,221,229);
+            position: relative; 
+            display: block;
+            float: left;
+
+
+            &::after { 
+                content: " "; 
+                display: block; 
+                width: 0; 
+                height: 0;
+                border-top: 20px solid transparent;
+                border-bottom: 20px solid transparent;
+                border-left: 10px solid rgb(219,221,229);
+                position: absolute;
+                top: 50%;
+                margin-top: -20px; 
+                left: 100%;
+                z-index: 2; 
+            }
+
+            &::before { 
+                content: " "; 
+                display: block; 
+                width: 0; 
+                height: 0;
+                border-top: 20px solid transparent;       
+                border-bottom: 20px solid transparent;
+                border-left: 10px solid white;
+                position: absolute;
+                top: 50%;
+                margin-top: -20px; 
+                margin-left: 1px;
+                left: 100%;
+                z-index: 1; 
+            }
+        }
+
+        &:first-child span {
+            padding-left: 14px;
+            padding-right: 6px;
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        &:last-child span {
+            background:#E86161;
+            color:#fff;
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+
+            b{
+                max-width:100%;
+                padding-right:8px;
+                cursor:default;
+            }
+
+            &:hover b{
+                color:inherit;
+            }
+            
+        }
+
+        &:hover b{
+            max-width: 100%;
+            color:#000;
+        }
     }
 
-    &:hover:not(:last-of-type) {
-        padding-right:15px;
+    li:last-child span::after { 
+        border: 0; 
     }
-
-    :last-of-type  {
-        background:#E86161;
-        color:#fff;
-        max-width:100%;
-    }
-
-    &:not(:first-child) {
-        margin-left:-15px;
-    }
-`;
-
-const BackButton = styled.div`
-    width: 10%;
-    float: left;
-    padding: 4px 0 0 0!important;
-    font-size:95%!important;
-    text-align:left!important;
 `;
 
 const Container = styled.div`
@@ -88,16 +134,21 @@ class Breadcrumbs extends Component {
     render() {
         return (
             <Container>
-                <BackButton className="btn btn-link border-0 align-baseline" onClick={this.handleBackClick}>
-                    <Icon icon={faArrowLeft} /> Back
-                </BackButton>
                 <BreadcrumbList>
                     {this.props.resourceHistory.allIds.map((history, index) => {
                         let item = this.props.resourceHistory.byId[history];
 
-                        return <BreadcrumbItem key={index} onClick={() => this.handleOnClick(item.id, index)}>{item.label}</BreadcrumbItem>;
+                        return (
+                            <li key={index} onClick={() => this.handleOnClick(item.id, index)}>
+                                <span>
+                                    <b>
+                                        {item.label === 'Main' ? <Icon icon={faFile} /> : item.label}
+                                    </b>
+                                </span>
+                            </li>
+                        );
                     })}
-                    <div className="clearfix" />
+
                 </BreadcrumbList>
                 <div className="clearfix" />
             </Container>
@@ -107,7 +158,7 @@ class Breadcrumbs extends Component {
 
 Breadcrumbs.propTypes = {
     resourceHistory: PropTypes.object.isRequired,
-    goToResourceHistory:  PropTypes.func.isRequired,
+    goToResourceHistory: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => {
