@@ -183,7 +183,7 @@ class Search extends Component {
                             </div>
                         </Col>
                         <Col className="col-sm-8 px-0">
-                            <div className="box p-4 h-100">
+                            <div className="box p-4 h-100" data-testid="searchResults">
                                 <Results 
                                     loading={this.state.loading}
                                     countResources={this.countResources}

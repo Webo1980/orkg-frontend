@@ -359,6 +359,7 @@ class GeneralData extends Component {
                                                             type="text"
                                                             name="entry"
                                                             id="paperDoi"
+                                                            data-testid="paperDoi"
                                                             value={this.state.entry}
                                                             onChange={this.handleInputChange}
                                                             invalid={this.state.validation.entry.isInvalid}
@@ -377,6 +378,7 @@ class GeneralData extends Component {
                                                                 onClick={this.handleLookupClick}
                                                                 disabled={this.state.isFetching}
                                                                 data-test="lookupDoi"
+                                                                data-testid="handleLookup"
                                                             >
                                                                 {!this.state.isFetching ? (
                                                                     'Lookup'
@@ -396,7 +398,7 @@ class GeneralData extends Component {
                                                         classNames="slideDown"
                                                         timeout={{ enter: 500, exit: 300 }}
                                                     >
-                                                        <div className="mt-5">
+                                                        <div className="mt-5" data-testid="lookupResult">
                                                             <h3 className="h4 mb-3">
                                                                 Lookup result
                                                             <Button
@@ -553,6 +555,7 @@ class GeneralData extends Component {
                     className="float-right mb-4"
                     onClick={this.handleNextClick}
                     data-test="nextStep"
+                    data-testid="nextStep"
                 >
                     Next step
                 </Button>

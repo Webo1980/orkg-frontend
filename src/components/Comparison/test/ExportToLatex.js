@@ -68,7 +68,7 @@ it('generate Latex without crashing', async () => {
 it('generate Bibtex without crashing', async () => {
   const wrapper = mount(<ExportToLatex {...props} />);
   expect(wrapper).toHaveLength(1);
-  let bibtex = '@misc{R50010,	title = {Paper 1},}@misc{R50011,	title = {Paper 2},}@article{Auer2018Towards,	journal = {Zenodo},	doi = {10.5281/zenodo.1157185},	language = {en},	publisher = {Zenodo},	title = {Towards An Open Research Knowledge Graph},	url = {https://zenodo.org/record/1157185},	author = {Auer, Sören},	date = {2018-01-22},	year = {2018},	month = {1},	day = {22},}'
+  let bibtex = '@misc{R50010,	title = {Paper 1},}@misc{R50011,	title = {Paper 2},}@article{Auer2018Towards,	journal = {Zenodo},	doi = {10.5281/ZENODO.1157185},	language = {en},	publisher = {Zenodo},	title = {Towards An Open Research Knowledge Graph},	url = {https://zenodo.org/record/1157185},	author = {Auer, Sören},	date = {2018-01-22},	year = {2018},	month = {1},	day = {22},}'
   // manually call function
   wrapper.setState({ selectedTab: 'references' });
   await wrapper.instance().generateBibTex();

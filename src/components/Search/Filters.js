@@ -26,6 +26,7 @@ const Filters = (props) => {
                     aria-label="Search ORKG"
                     id="searchQuery"
                     name="value"
+                    data-testid="searchQuery"
                 />
 
                 <InputGroupAddon addonType="append">
@@ -44,6 +45,7 @@ const Filters = (props) => {
                     label={<span>{filter.label} <Badge color="light" className="pl-2 pr-2">{!props.loading ? props.countFilteredResources(filter.class) : '-'}</Badge></span>}
                     onChange={() => props.toggleFilter(key)}
                     checked={props.selectedFilters.includes(key)}
+                    data-testid="searchFilters"
                 />
             )
             )}
