@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { getResourcesByClass } from '../../network';
 import { reverse } from 'named-urls';
 import ROUTES from '../../constants/routes.js';
@@ -10,8 +12,7 @@ import sortBy from 'lodash/sortBy';
 class ResearchFieldsCloud extends Component {
     state = {
         researchFields: [],
-        breadcrumb: [],
-        papers: null,
+        loadingResearchFields: false,
         selectedResearchField: null,
         error: ''
     };
@@ -21,7 +22,7 @@ class ResearchFieldsCloud extends Component {
     }
 
     loadResearchFields = () => {
-        this.setState({ loadingPapers: true });
+        this.setState({ loadingResearchFields: true });
         getResourcesByClass({
             id: process.env.REACT_APP_CLASSES_RESEARCH_FIELD,
             page: 1,
@@ -43,7 +44,7 @@ class ResearchFieldsCloud extends Component {
             ]);
             this.setState({
                 researchFields: filtredResearchFields.slice(0, 20),
-                loadingPapers: false
+                loadingResearchFields: false
             });
         });
     };
@@ -77,7 +78,13 @@ class ResearchFieldsCloud extends Component {
         }
         return (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ReactWordcloud options={this.options} callbacks={this.callbacks} words={this.state.researchFields} />
+                {!this.state.loadingResearchFields ? (
+                    <ReactWordcloud options={this.options} callbacks={this.callbacks} words={this.state.researchFields} />
+                ) : (
+                    <div className="mt-5 text-center">
+                        <Icon icon={faSpinner} spin /> Loading
+                    </div>
+                )}
             </div>
         );
     }
