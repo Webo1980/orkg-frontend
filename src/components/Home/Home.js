@@ -3,6 +3,7 @@ import { Container, Row, Col } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faStar, faPlus } from '@fortawesome/free-solid-svg-icons';
 import ResearchFieldCards from './ResearchFieldCards';
+import ResearchFieldsCloud from './ResearchFieldsCloud';
 import RecentlyAddedPapers from './RecentlyAddedPapers';
 import HomeBannerBg from 'assets/img/home_banner_bg.jpg';
 import styled from 'styled-components';
@@ -69,9 +70,9 @@ class Home extends Component {
                         <Col className="col-sm-7 px-0">
                             <div className="box mr-4 p-4 h-100">
                                 <h2 className="h5">
-                                    <Icon icon={faStar} className="text-primary" /> Browse by research field
+                                    <Icon icon={faStar} className="text-primary" /> Top research field cloud
                                 </h2>
-                                <ResearchFieldCards />
+                                <ResearchFieldsCloud />
                             </div>
                         </Col>
                         <Col className="col-sm-5 px-0">
