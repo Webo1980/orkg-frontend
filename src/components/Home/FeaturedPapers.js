@@ -39,7 +39,7 @@ export default class FeaturedPapers extends Component {
     loadfeaturedPapers = async () => {
         this.setState({ loadingPapers: true });
         getResourcesByClass({
-            id: process.env.REACT_APP_CLASSES_PAPER,
+            id: process.env.REACT_APP_CLASSES_FEATURED_PAPER,
             page: 1,
             items: 5,
             desc: true
@@ -65,9 +65,9 @@ export default class FeaturedPapers extends Component {
                         paperItem.publicationYear = statements[i].object.label;
                     }
                 }
-                for (var i = 0; i < statements.length; i++) {
-                    if (statements[i].predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR) {
-                        paperItem.firstAuthor = statements[i].object.label;
+                for (var j = 0; j < statements.length; j++) {
+                    if (statements[j].predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR) {
+                        paperItem.firstAuthor = statements[j].object.label;
                         break; // only the first author needed
                     }
                 }
