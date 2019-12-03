@@ -4,9 +4,8 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { getResourcesByClass } from '../../network';
 import { reverse } from 'named-urls';
 import ROUTES from '../../constants/routes.js';
-import ReactWordcloud from 'react-wordcloud';
+import { TagCloud } from 'react-tagcloud';
 import { Redirect } from 'react-router-dom';
-import 'd3-transition';
 import sortBy from 'lodash/sortBy';
 
 class ResearchFieldsCloud extends Component {
@@ -31,15 +30,18 @@ class ResearchFieldsCloud extends Component {
         }).then(researchFields => {
             let filtredResearchFields = [];
             researchFields.forEach(elm => {
-                filtredResearchFields.push({
-                    text: elm.label,
-                    id: elm.id,
-                    value: elm.shared
-                });
+                if (elm.shared > 1) {
+                    filtredResearchFields.push({
+                        value: elm.label,
+                        id: elm.id,
+                        count: elm.shared,
+                        key: `tag-${elm.id}`
+                    });
+                }
             });
             filtredResearchFields = sortBy(filtredResearchFields, [
                 function(o) {
-                    return o.value;
+                    return o.count;
                 }
             ]);
             this.setState({
@@ -79,7 +81,12 @@ class ResearchFieldsCloud extends Component {
         return (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {!this.state.loadingResearchFields ? (
-                    <ReactWordcloud options={this.options} callbacks={this.callbacks} words={this.state.researchFields} />
+                    <TagCloud
+                        minSize={12}
+                        maxSize={35}
+                        tags={this.state.researchFields}
+                        onClick={tag => this.setState({ selectedResearchField: tag.id })}
+                    />
                 ) : (
                     <div className="mt-5 text-center">
                         <Icon icon={faSpinner} spin /> Loading
