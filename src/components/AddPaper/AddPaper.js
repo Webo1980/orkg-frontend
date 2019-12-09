@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import { resetStatementBrowser } from '../../actions/statementBrowser';
 import { openTour, closeTour, blockNavigation } from '../../actions/addPaper';
 import GraphViewModal from '../ViewPaper/GraphViewModal';
+import PaperObjectOptions from './PaperObjectOptions';
 import { Prompt } from 'react-router';
 
 const Help = styled.div`
@@ -104,7 +105,8 @@ class AddPaper extends Component {
 
         this.state = {
             showGraphModal: false,
-            dropdownOpen: false
+            dropdownOpen: false,
+            showPaperObjectDialog: false
         };
     }
 
@@ -221,12 +223,13 @@ class AddPaper extends Component {
 
                     <div className="clearfix" />
                 </Container>
-                <Container className="box pt-4 pb-4 pl-5 pr-5 clearfix ">
+                <Container className="box pt-4 pb-4 pl-5 pr-5 clearfix" style={{ position: 'relative' }}>
                     <ProgressBar currentStep={currentStep} />
 
                     <hr />
 
                     <TransitionGroup exit={false}>{currentStepDetails}</TransitionGroup>
+                    <PaperObjectOptions showDialog={this.state.showPaperObjectDialog} toggle={() => this.toggle('showPaperObjectDialog')} />
                 </Container>
 
                 <GraphViewModal
