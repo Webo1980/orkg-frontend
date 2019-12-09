@@ -128,12 +128,20 @@ export default class FeaturedPapers extends Component {
 
     render() {
         return (
-            <div>
-                <h2 className="h5">
+            <div className="mr-4 box" style={{ overflow: 'hidden', borderTopLeftRadius: '8px', borderTopRightRadius: '8px' }}>
+                <h2
+                    className="h6"
+                    style={{
+                        marginBottom: 0,
+                        color: '#FFF',
+                        padding: '15px',
+                        background: '#80869b'
+                    }}
+                >
                     Featured papers
-                    <span style={{ color: '#646464', fontSize: '13px' }}> See how research papers look like as structred data</span>
+                    <span style={{ color: '#fff', fontSize: '11px' }}> See how research papers look like as structred data</span>
                 </h2>
-                <CarouselContainer className="mr-4 box">
+                <CarouselContainer>
                     {!this.state.loadingPapers ? (
                         <Carousel activeIndex={this.state.activeIndex} next={this.next} previous={this.previous}>
                             {this.slides()}

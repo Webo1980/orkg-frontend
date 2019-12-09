@@ -26,26 +26,19 @@ class Home extends Component {
     render = () => {
         return (
             <div>
-                <Container className="mt-4">
-                    <Row>
-                        <Col className="col-sm-7 px-0">
+                <Container className="mt-4 clearfix">
+                    <Row style={{ display: 'flex', flexWrap: 'wrap' }}>
+                        <Col className="col-sm-7 px-0" style={{ display: 'flex', flexDirection: 'column' }}>
                             <FeaturedPapers />
-                        </Col>
-                    </Row>
-                </Container>
-
-                <Container className="mt-4">
-                    <Row>
-                        <Col className="col-sm-7 px-0">
-                            <div className="box mr-4 p-4 h-100">
+                            <div className="box mt-4 mr-4 p-4" style={{ flexDirection: 'column', display: 'flex', flexGrow: '1' }}>
                                 <h2 className="h5">
                                     <Icon icon={faStar} className="text-primary" /> Browse by research field
                                 </h2>
                                 <ResearchFieldCards />
                             </div>
                         </Col>
-                        <Col className="col-sm-5 px-0">
-                            <div className="box p-4 h-100">
+                        <Col className="col-sm-5 px-0" style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div className="box p-4" style={{ flexGrow: '1' }}>
                                 <h2 className="h5">
                                     <Icon icon={faPlus} className="text-primary" /> Recently added papers
                                 </h2>

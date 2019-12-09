@@ -17,7 +17,7 @@ class RecentlyAddedPapers extends Component {
         let paperStatements = await getResourcesByClass({
             id: process.env.REACT_APP_CLASSES_PAPER,
             page: 1,
-            items: 4,
+            items: 6,
             sortBy: 'created_at',
             desc: true
         });
