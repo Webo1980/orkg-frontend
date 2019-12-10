@@ -3,7 +3,7 @@ import { Container, Button, Alert, UncontrolledAlert, ButtonGroup } from 'reacts
 import { getStatementsBySubject, getResource, updateResource, createResource, createResourceStatement, deleteStatementById } from '../../network';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faUser, faCalendar, faBars, faProjectDiagram, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faCalendar, faBars, faProjectDiagram, faPen, faCheck, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import NotFound from '../StaticPages/NotFound';
 import ContentLoader from 'react-content-loader';
 import Contributions from './Contributions';
@@ -149,6 +149,10 @@ class ViewPaper extends Component {
                             }
                         }
 
+                        // imported from
+                        let importedFromStmt = paperStatements.filter(statement => statement.predicate.label === 'imported from');
+                        let importedFrom = importedFromStmt.length > 0 ? importedFromStmt[0].object.label : null;
+                        console.log(importedFrom);
                         // Set document title
                         document.title = `${paperResource.label} - ORKG`;
 
@@ -162,7 +166,8 @@ class ViewPaper extends Component {
                             publicationYearResourceId,
                             doi,
                             doiResourceId,
-                            researchField
+                            researchField,
+                            importedFrom
                         });
 
                         this.setState({
@@ -363,6 +368,13 @@ class ViewPaper extends Component {
                                             </span>
                                         </Link>
                                     )}
+
+                                    {this.props.viewPaper.importedFrom && (
+                                        <span className="badge badge-lightblue mr-2">
+                                            <Icon icon={faArrowDown} className="text-primary" /> Imported from {this.props.viewPaper.importedFrom}
+                                        </span>
+                                    )}
+
                                     {this.props.viewPaper.authors.map((author, index) =>
                                         false ? (
                                             <Link key={index} to={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.resourceId })}>

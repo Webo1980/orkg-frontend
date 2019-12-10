@@ -18,7 +18,8 @@ const initialState = {
     publicationYearResourceId: 0,
     doi: '',
     doiResourceId: 0,
-    researchField: ''
+    researchField: '',
+    importedFrom: null
 };
 const cookies = new Cookies();
 
@@ -40,7 +41,8 @@ export default (state = initialState, action) => {
                     typeof payload.publicationYearResourceId !== 'undefined' ? payload.publicationYearResourceId : state.publicationYearResourceId,
                 doi: typeof payload.doi !== 'undefined' ? payload.doi : state.doi,
                 doiResourceId: typeof payload.doiResourceId !== 'undefined' ? payload.doiResourceId : state.doiResourceId,
-                researchField: typeof payload.researchField !== 'undefined' ? payload.researchField : state.researchField
+                researchField: typeof payload.researchField !== 'undefined' ? payload.researchField : state.researchField,
+                importedFrom: typeof payload.importedFrom !== 'undefined' ? payload.importedFrom : state.importedFrom
             };
         }
 
