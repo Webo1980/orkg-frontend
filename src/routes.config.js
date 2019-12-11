@@ -22,12 +22,18 @@ import ViewPaper from './components/ViewPaper/ViewPaper';
 import Stats from './components/Stats/Stats';
 import UserSettings from './components/UserSettings/UserSettings';
 import UserProfile from './components/UserProfile/UserProfile';
+import Features from './components/Features/Features';
 
 const routes = [
     {
         path: ROUTES.HOME,
         exact: true,
         component: Home
+    },
+    {
+        path: ROUTES.FEATURES,
+        exact: true,
+        component: Features
     },
     {
         path: ROUTES.RESOURCES,

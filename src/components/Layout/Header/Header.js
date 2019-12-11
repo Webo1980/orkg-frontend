@@ -157,8 +157,14 @@ class Header extends Component {
                     <Collapse isOpen={this.state.isOpen} navbar>
                         <Nav className="mr-auto" navbar>
                             <NavItem>
+                                <NavLink tag={RouterNavLink} exact to={ROUTES.FEATURES}>
+                                    Why ORKG?
+                                </NavLink>
+                            </NavItem>
+
+                            <NavItem>
                                 <NavLink tag={RouterNavLink} exact to={ROUTES.PAPERS}>
-                                    View all papers
+                                    All papers
                                     {/* TODO: add taxonomy "Browse by research field" <FontAwesomeIcon icon={faSortDown} pull="right" /> */}
                                 </NavLink>
                             </NavItem>

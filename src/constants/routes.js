@@ -5,6 +5,7 @@ export default {
     SIGNOUT: '/signout',
     USER_SETTINGS: '/settings',
     USER_PROFILE: '/u/:userId',
+    FEATURES: '/features',
     RESOURCES: '/resources',
     ADD_RESOURCE: '/addResource',
     PREDICATES: '/predicates',
