@@ -111,8 +111,8 @@ export const clearAnnotations = () => dispatch => {
 };
 
 export const createContribution = ({ selectAfterCreation = false, prefillStatements: performPrefill = false, statements = null }) => dispatch => {
-    let newResourceId = guid();
-    let newContributionId = guid();
+    const newResourceId = guid();
+    const newContributionId = guid();
 
     dispatch({
         type: type.CREATE_CONTRIBUTION,
@@ -158,7 +158,7 @@ export const createContribution = ({ selectAfterCreation = false, prefillStateme
 
 export const prefillStatements = ({ statements, resourceId }) => dispatch => {
     // properties
-    for (let property of statements.properties) {
+    for (const property of statements.properties) {
         dispatch(
             createProperty({
                 propertyId: property.propertyId,
@@ -170,7 +170,7 @@ export const prefillStatements = ({ statements, resourceId }) => dispatch => {
     }
 
     // values
-    for (let value of statements.values) {
+    for (const value of statements.values) {
         dispatch(
             createValue({
                 label: value.label,
@@ -273,24 +273,24 @@ function customizer(objValue, srcValue) {
 
 export const getResourceObject = (data, resourceId) => {
     // Make a list of new resources ids
-    let newResources = data.values.allIds
+    const newResources = data.values.allIds
         .filter(valueId => !data.values.byId[valueId].isExistingValue)
         .map(valueId => data.values.byId[valueId].resourceId);
     return mergeWith(
         {},
         ...data.resources.byId[resourceId].propertyIds.map(propertyId => {
-            let property = data.properties.byId[propertyId];
+            const property = data.properties.byId[propertyId];
             return {
                 // Map properties of resource
                 [property.existingPredicateId ? property.existingPredicateId : `_${propertyId}`]: property.valueIds.map(valueId => {
-                    let value = data.values.byId[valueId];
+                    const value = data.values.byId[valueId];
                     if (value.type === 'literal' && !value.isExistingValue) {
                         return {
                             text: value.label
                         };
                     } else {
                         if (!value.isExistingValue) {
-                            let newResources = {};
+                            const newResources = {};
                             newResources[value.resourceId] = value.resourceId;
                             return {
                                 '@temp': `_${value.resourceId}`,
@@ -315,12 +315,12 @@ export const saveAddPaper = data => {
     return async dispatch => {
         const researchProblemPredicate = process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM;
 
-        let paperObj = {
+        const paperObj = {
             // Set new predicates label and temp ID
             predicates: data.properties.allIds
                 .filter(propertyId => !data.properties.byId[propertyId].existingPredicateId)
                 .map(propertyId => {
-                    let property = data.properties.byId[propertyId];
+                    const property = data.properties.byId[propertyId];
                     return {
                         [property.label]: `_${propertyId}`
                     };
@@ -335,8 +335,8 @@ export const saveAddPaper = data => {
                 researchField: data.selectedResearchField,
                 // Set the contributions data
                 contributions: data.contributions.allIds.map(c => {
-                    let contribution = data.contributions.byId[c];
-                    let researhProblem = {
+                    const contribution = data.contributions.byId[c];
+                    const researhProblem = {
                         [researchProblemPredicate]: contribution.researchProblems.map(rp => {
                             if (rp.hasOwnProperty('_class') && rp._class === 'resource') {
                                 return { '@id': rp.id };
@@ -354,7 +354,7 @@ export const saveAddPaper = data => {
         };
 
         try {
-            let paper = await network.saveFullPaper(paperObj);
+            const paper = await network.saveFullPaper(paperObj);
             dispatch({
                 type: type.SAVE_ADD_PAPER,
                 id: paper.id

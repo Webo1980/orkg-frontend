@@ -9,8 +9,9 @@ import AnnotationTootip from './AnnotationTootip';
 import { createAnnotation, updateAnnotationClass, removeAnnotation, validateAnnotation } from '../../../actions/addPaper';
 
 function getAllIndexes(arr, val) {
-    var indexes = [],
-        i = -1;
+    const indexes = [];
+    let i = -1;
+
     while ((i = arr.indexOf(val, i + 1)) !== -1) {
         indexes.push(i);
     }
@@ -86,7 +87,7 @@ class AbstractAnnotator extends Component {
                 responseJson = responseJson.slice(0, this.maxResults);
             }
 
-            let options = [];
+            const options = [];
 
             responseJson.map(item =>
                 options.push({
@@ -171,7 +172,7 @@ class AbstractAnnotator extends Component {
     };
 
     handleMouseUp = () => {
-        var sel = rangy.getSelection(this.annotatorRef.current);
+        const sel = rangy.getSelection(this.annotatorRef.current);
         if (sel.isCollapsed) {
             return null;
         }
@@ -180,7 +181,7 @@ class AbstractAnnotator extends Component {
         // Get position of the node at which the user stopped selecting
         let end = parseInt(sel.focusNode.parentNode.dataset.position);
         // Get the text within the selection
-        let text = sel.toString();
+        const text = sel.toString();
         if (!text.length) {
             return null;
         }
@@ -189,19 +190,19 @@ class AbstractAnnotator extends Component {
             [start, end] = [end, start];
         }
         // Find index of all occurrences of selected text in the abstract
-        var pos = getAllIndexes(this.props.abstract, text);
+        const pos = getAllIndexes(this.props.abstract, text);
         // Get the closest number out of occurrences positions
         if (pos === undefined || pos.length === 0) {
             return null;
         }
-        var closest = pos.reduce(function(prev, curr) {
+        const closest = pos.reduce(function(prev, curr) {
             return Math.abs(curr - start) < Math.abs(prev - start) ? curr : prev;
         }, 0);
         // Update position of selection
         start = closest;
         end = start + text.length - 1;
         // Save range in state
-        let range = {
+        const range = {
             start: start,
             end: end,
             text: text,

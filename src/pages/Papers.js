@@ -40,7 +40,7 @@ export default class Papers extends Component {
                 // Fetch the data of each paper
                 getStatementsBySubjects({ ids: papers.map(p => p.id) })
                     .then(papersStatements => {
-                        let statements = papersStatements.map(paperStatements => {
+                        const statements = papersStatements.map(paperStatements => {
                             return get_paper_data(paperStatements.statements);
                         });
                         this.setState({

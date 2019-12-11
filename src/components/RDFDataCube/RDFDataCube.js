@@ -51,7 +51,7 @@ class RDFDataCube extends Component {
             // Convert to an object { class_label: class_ID }
             classes = Object.assign({}, ...classes.map(item => ({ [item.label]: item.id })));
             // Get Data Structure Definition (DSD)
-            let dsd = await getStatementsBySubject({ id: this.props.resourceId }).then(
+            const dsd = await getStatementsBySubject({ id: this.props.resourceId }).then(
                 s_dataset => s_dataset.find(s => s.object.classes.includes(classes['qb:DataStructureDefinition'])).object
             );
             // Get Component Specification
@@ -86,7 +86,7 @@ class RDFDataCube extends Component {
                 })
                 .then(({ sMeasures, sDimensions, sAttributes }) => {
                     // Observations (fetch statements of the dataset ressource by object)
-                    let allDim = Object.assign({}, sDimensions, sMeasures, sAttributes);
+                    const allDim = Object.assign({}, sDimensions, sMeasures, sAttributes);
                     getStatementsByObject({
                         id: this.props.resourceId,
                         items: 9999,
@@ -94,20 +94,20 @@ class RDFDataCube extends Component {
                         desc: true
                     }).then(statements => {
                         // Filter observations
-                        let observations = statements.filter(
+                        const observations = statements.filter(
                             statement =>
                                 statement.predicate.label.toLowerCase() === 'dataset' && statement.subject.classes.includes(classes['qb:Observation'])
                         );
                         // Fetch the data of each observation
-                        var observations_data = observations.map(observation => {
+                        const observations_data = observations.map(observation => {
                             return getStatementsBySubject({ id: observation.subject.id }).then(observationStatements => {
                                 // Measure
-                                let os_m = observationStatements.filter(statement => statement.predicate.label in sMeasures);
+                                const os_m = observationStatements.filter(statement => statement.predicate.label in sMeasures);
                                 // Dimensions
-                                let os_d = observationStatements.filter(statement => statement.predicate.label in sDimensions);
+                                const os_d = observationStatements.filter(statement => statement.predicate.label in sDimensions);
                                 // Attributes
-                                let os_a = observationStatements.filter(statement => statement.predicate.label in sAttributes);
-                                let ob = {
+                                const os_a = observationStatements.filter(statement => statement.predicate.label in sAttributes);
+                                const ob = {
                                     // OLAP table data is in the format data[pointIndex][fieldIndex], sort by order or predicate label is to keep same order in Table fields
                                     data: [
                                         ...os_m
@@ -223,7 +223,7 @@ class RDFDataCube extends Component {
                                     return String(row[filter.id].label).startsWith(filter.value);
                                 }}
                                 data={this.state.datacube.rows.map(r => {
-                                    let a = Object.assign(
+                                    const a = Object.assign(
                                         {},
                                         ...this.state.datacube.header.map((n, index) => ({ [n]: this.label2Resource(r[index]) }))
                                     );
@@ -242,8 +242,8 @@ class RDFDataCube extends Component {
                                             a = a === null || a === undefined ? -Infinity : a;
                                             b = b === null || b === undefined ? -Infinity : b;
                                             // check if a and b are numbers (contains only digits)
-                                            var aisnum = /^\d+$/.test(a);
-                                            var bisnum = /^\d+$/.test(b);
+                                            const aisnum = /^\d+$/.test(a);
+                                            const bisnum = /^\d+$/.test(b);
                                             if (aisnum && bisnum) {
                                                 a = parseInt(a);
                                                 b = parseInt(b);

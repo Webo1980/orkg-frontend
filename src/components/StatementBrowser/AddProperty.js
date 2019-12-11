@@ -65,7 +65,7 @@ class AddProperty extends Component {
         this.toggleConfirmNewProperty(); // hide dialog
 
         if (this.props.syncBackend) {
-            let newPredicate = await createPredicate(this.state.newPropertyLabel);
+            const newPredicate = await createPredicate(this.state.newPropertyLabel);
             this.props.createProperty({
                 resourceId: this.props.selectedResource,
                 existingPredicateId: newPredicate.id,
@@ -80,10 +80,10 @@ class AddProperty extends Component {
     };
 
     getNewProperties = () => {
-        let propertyList = [];
+        const propertyList = [];
 
-        for (let key in this.props.newProperties) {
-            let property = this.props.newProperties[key];
+        for (const key in this.props.newProperties) {
+            const property = this.props.newProperties[key];
 
             if (!property.existingPredicateId) {
                 propertyList.push({

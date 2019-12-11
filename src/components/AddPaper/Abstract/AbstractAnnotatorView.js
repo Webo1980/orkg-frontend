@@ -44,7 +44,7 @@ class AbstractAnnotatorView extends Component {
 
     loadClassOptions = () => {
         // Fetch the predicates used in the NLP model
-        let nLPPredicates = this.automaticAnnotationConcepts.map(classOption => {
+        const nLPPredicates = this.automaticAnnotationConcepts.map(classOption => {
             return submitGetRequest(predicatesUrl + '?q=' + classOption.label + '&exact=true').then(predicates => {
                 if (predicates.length > 0) {
                     return predicates[0]; // Use the first predicate that match the label
@@ -53,7 +53,7 @@ class AbstractAnnotatorView extends Component {
                 }
             });
         });
-        let options = [];
+        const options = [];
         Promise.all(nLPPredicates).then(results => {
             results.map(item =>
                 options.push({
@@ -66,8 +66,8 @@ class AbstractAnnotatorView extends Component {
     };
 
     render() {
-        let rangeArray = toArray(this.props.ranges).filter(r => r.certainty >= this.props.certaintyThreshold);
-        let rangesClasses = [...new Set(rangeArray.map(r => r.class.label))];
+        const rangeArray = toArray(this.props.ranges).filter(r => r.certainty >= this.props.certaintyThreshold);
+        const rangesClasses = [...new Set(rangeArray.map(r => r.class.label))];
         return (
             <div className="pl-2 pr-2">
                 {this.props.abstract && !this.props.isAnnotationLoading && !this.props.isAnnotationFailedLoading && (
@@ -101,7 +101,7 @@ class AbstractAnnotatorView extends Component {
                             <span className={'mr-1 ml-1'} />
                             {rangesClasses.length > 0 &&
                                 rangesClasses.map(c => {
-                                    let aconcept = c
+                                    const aconcept = c
                                         ? this.automaticAnnotationConcepts.filter(function(e) {
                                               return e.label.toLowerCase() === c.toLowerCase();
                                           })

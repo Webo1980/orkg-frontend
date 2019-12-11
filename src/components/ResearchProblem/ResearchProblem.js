@@ -69,14 +69,14 @@ class ResearchProblem extends Component {
             // Papers
             if (result.length > 0) {
                 // Get the papers of each contribution
-                var papers = result.map(contribution => {
+                const papers = result.map(contribution => {
                     return getStatementsByObject({
                         id: contribution.subject.id,
                         order: 'desc'
                     }).then(papers => {
                         // TODO : use get_paper_data(paperStatements) utils function and getStatementsBySubjects network function
                         // Fetch the data of each paper
-                        var papers_data = papers.map(paper => {
+                        const papers_data = papers.map(paper => {
                             return getStatementsBySubject({ id: paper.subject.id }).then(paperStatements => {
                                 // publication year
                                 let publicationYear = paperStatements.filter(
@@ -97,12 +97,12 @@ class ResearchProblem extends Component {
                                     publicationMonth = '';
                                 }
                                 // authors
-                                let authors = paperStatements.filter(
+                                const authors = paperStatements.filter(
                                     statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR
                                 );
-                                let authorNamesArray = [];
+                                const authorNamesArray = [];
                                 if (authors.length > 0) {
-                                    for (let author of authors) {
+                                    for (const author of authors) {
                                         authorNamesArray.push({
                                             id: author.object.id,
                                             statementId: author.id,

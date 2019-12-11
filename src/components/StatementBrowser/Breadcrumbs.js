@@ -76,8 +76,8 @@ class Breadcrumbs extends Component {
     };
 
     handleBackClick = () => {
-        let historyIndex = this.props.resourceHistory.allIds.length - 2;
-        let id = this.props.resourceHistory.allIds[historyIndex];
+        const historyIndex = this.props.resourceHistory.allIds.length - 2;
+        const id = this.props.resourceHistory.allIds[historyIndex];
 
         this.props.goToResourceHistory({
             id,
@@ -93,7 +93,7 @@ class Breadcrumbs extends Component {
                 </BackButton>
                 <BreadcrumbList>
                     {this.props.resourceHistory.allIds.map((history, index) => {
-                        let item = this.props.resourceHistory.byId[history];
+                        const item = this.props.resourceHistory.byId[history];
 
                         return (
                             <BreadcrumbItem key={index} onClick={() => this.handleOnClick(item.id, index)}>

@@ -113,7 +113,7 @@ class AbstractRangesList extends Component {
                 responseJson = responseJson.slice(0, this.maxResults);
             }
 
-            let options = [];
+            const options = [];
 
             responseJson.map(item =>
                 options.push({
@@ -131,7 +131,7 @@ class AbstractRangesList extends Component {
     };
 
     render() {
-        let rangeArray = toArray(this.props.ranges).filter(r => r.certainty >= this.props.certaintyThreshold);
+        const rangeArray = toArray(this.props.ranges).filter(r => r.certainty >= this.props.certaintyThreshold);
         return (
             <div>
                 <ListGroup>

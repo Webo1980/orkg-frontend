@@ -101,7 +101,7 @@ class Header extends Component {
 
     getUserInformation = async () => {
         const cookies = new Cookies();
-        let token = cookies.get('token') ? cookies.get('token') : null;
+        const token = cookies.get('token') ? cookies.get('token') : null;
         if (token && !this.props.user) {
             const userData = await getUserInformation();
             this.props.updateAuth({ user: { displayName: userData.display_name, id: 1, token: token, email: userData.email } });

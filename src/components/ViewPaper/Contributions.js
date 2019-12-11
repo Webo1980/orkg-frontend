@@ -73,14 +73,14 @@ class Contributions extends Component {
 
     handleSelectContribution = contributionId => {
         this.setState({ loading: true, isSimilaireContributionsLoading: true });
-        let contributionIsLoaded = this.props.resources.byId[contributionId] ? true : false;
+        const contributionIsLoaded = this.props.resources.byId[contributionId] ? true : false;
         this.props.selectContribution({
             contributionId,
             contributionIsLoaded
         });
         getSimilaireContribution(this.state.selectedContribution)
             .then(similaireContributions => {
-                var similaireContributionsData = similaireContributions.map(paper => {
+                const similaireContributionsData = similaireContributions.map(paper => {
                     // Fetch the data of each paper
                     return getResource(paper.paperId).then(paperResource => {
                         paper.title = paperResource.label;
@@ -100,7 +100,7 @@ class Contributions extends Component {
     handleResearchProblemsChange = async (problemsArray, a) => {
         problemsArray = problemsArray ? problemsArray : [];
         if (a.action === 'select-option') {
-            let statement = await createResourceStatement(
+            const statement = await createResourceStatement(
                 this.state.selectedContribution,
                 process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM,
                 a.option.id
@@ -113,8 +113,8 @@ class Contributions extends Component {
             problemsArray = [...problemsArray.slice(0, objIndex), updatedObj, ...problemsArray.slice(objIndex + 1)];
             toast.success('Research problem added successfully');
         } else if (a.action === 'create-option') {
-            let newResource = await createResource(a.createdOptionLabel);
-            let statement = await createResourceStatement(
+            const newResource = await createResource(a.createdOptionLabel);
+            const statement = await createResourceStatement(
                 this.state.selectedContribution,
                 process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM,
                 newResource.id
@@ -137,7 +137,7 @@ class Contributions extends Component {
     };
 
     render() {
-        let selectedContributionId = this.state.selectedContribution;
+        const selectedContributionId = this.state.selectedContribution;
 
         return (
             <div>
