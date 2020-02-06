@@ -214,7 +214,7 @@ class AddProperty extends Component {
                     ) : (
                         <>
                             {!this.state.showAddProperty && (
-                                <span className="btn btn-link p-0 border-0 align-baseline" onClick={this.handleShowAddTable}>
+                                <span className="btn btn-link ml-2 p-0 border-0 align-baseline" onClick={this.handleShowAddTable}>
                                     + Add table
                                 </span>
                             )}

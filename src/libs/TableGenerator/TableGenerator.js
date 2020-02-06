@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
 import TableView from './TableView';
-import { predicatesUrl, createPredicate } from '../../network';
-import { createProperty } from '../../actions/statementBrowser';
-import { resourcesUrl, createResourceStatement, createResource, createLiteral, createLiteralStatement } from '../../network';
-import { createValue } from '../../actions/statementBrowser';
+import { guid } from 'utils';
+import { connect } from 'react-redux';
+import {
+    predicatesUrl,
+    createPredicate,
+    resourcesUrl,
+    createResourceStatement,
+    createResource,
+    createLiteral,
+    createLiteralStatement
+} from '../../network';
+import { createValue, createProperty } from '../../actions/statementBrowser';
 import PropTypes from 'prop-types';
 class TableGenerator extends Component {
     constructor(props) {
@@ -35,7 +43,7 @@ class TableGenerator extends Component {
         // console.log(this.state.width+ ' '+ this.state.width);
     }
 
-    insertTableIntoGraph(rootNode) {
+    async insertTableIntoGraph(rootNode) {
         console.log('I have a root node');
         console.log(rootNode);
         console.log(this.props.parentResource);
@@ -43,27 +51,61 @@ class TableGenerator extends Component {
         // create execution plan
         const executionPlan = {};
         executionPlan.rootResource = { resourceId: this.props.parentResource, hasTabularData: rootNode };
+        let resource = this.props.resources.byId[this.props.parentResource.resourceId];
 
+        console.log('Create the property in the statement Browser');
+        const pID = guid();
+
+        this.props.createProperty({
+            propertyId: pID,
+            existingPredicateId: 'HAS_RESULTS',
+            resourceId: this.props.parentResource.resourceId,
+            label: 'Has results'
+        });
+
+        console.log('Create the resource ID');
+        if (!resource.existingResourceId) {
+            resource = await createResource('Result');
+            resource = resource.id;
+        } else {
+            resource = resource.existingResourceId;
+        }
+        console.log(resource);
         console.log('p1=createNewProperty(hasTabularData)');
+        const pHasTabularData = await createPredicate('hasTabularData'); // fixed ID
         console.log('r1=createResourceObject(TabularData)');
+        const r1 = await createResource('TabularData');
         console.log('Link It >> ' + this.props.parentResource.resourceId + '-> p1-> r1');
+        const statement = await createResourceStatement(resource, pHasTabularData.id, r1.id);
 
         // r1 plan ;
         console.log('\tr1 Plan (for number of row nodes)');
 
+        const pHasRowData = await createPredicate('hasRowData'); // fixed ID
+
         let it = 2;
         let numRows = 0;
+        const rowResources = [];
         for (const name in rootNode) {
             console.log('\tp' + it + '= createNewProperty(hasRowData)');
             console.log('\tr' + it + '= createResourceObject(' + name + ')');
+            const rowResource = await createResource(name);
+            const rowStatement = await createResourceStatement(r1.id, pHasRowData.id, rowResource.id);
+            rowResources.push(rowResource.id);
             it++;
             numRows++;
         }
+        /*
         it = 2;
         for (const name in rootNode) {
             console.log('\tLink It >> r1 -> p' + it + ' -> r' + it);
             it++;
         }
+        */
+
+        const pMethod = await createPredicate('Method'); // fixed ID
+
+        const pHasCellNode = await createPredicate('hasCellNode'); // fixed ID
 
         // plannig for the rowNodes;
         let currentResourceCounter = numRows + 2;
@@ -73,26 +115,50 @@ class TableGenerator extends Component {
             const nodeItem = rootNode[selector];
             console.log('\t\tpX = createNewProperty(method)');
             console.log('\t\tr' + currentResourceCounter++ + ' = createLiteralObject(' + nodeItem.method + ')');
+            const nodeMethodLiteral = await createLiteral(nodeItem.method);
             console.log('\t\tLink It >> r' + (rI + 2) + ' -> pY -> r' + (currentResourceCounter - 1));
+            await createLiteralStatement(rowResources[rI], pMethod.id, nodeMethodLiteral.id);
 
             for (let cI = 0; cI < nodeItem.cellNodes.length; cI++) {
                 console.log('\t\tpY = createNewProperty(hasCellNode)');
                 console.log('\t\tr' + currentResourceCounter++ + ' = createResourceObject(CellNode_' + cI + ')');
+                const cellNodeResource = await createResource(`CellNode${cI}`);
+
                 console.log('\t\tLink It >> r' + (rI + 2) + ' -> pY -> r' + (currentResourceCounter - 1));
+                await createResourceStatement(rowResources[rI], pHasCellNode.id, cellNodeResource.id);
+
                 console.log('\t\t\tPlan cellNode' + cI + ' (r' + (currentResourceCounter - 1) + ')');
                 let propCounter = 0;
+                const propIDS = [];
                 let valueCounter = 0;
+                const valueIDS = [];
                 for (const name in nodeItem.cellNodes[cI]) {
                     console.log('\t\t\tpC' + propCounter + ' = createNewProperty(' + name + ')');
+                    const predicate = await createPredicate(name); // fixed ID
+                    propIDS.push(predicate.id);
                     console.log('\t\t\trV' + valueCounter + ' = createLiteralObject(' + nodeItem.cellNodes[cI][name] + ')');
+                    const value = await createLiteral(nodeItem.cellNodes[cI][name]);
+                    valueIDS.push(value.id);
                     propCounter++;
                     valueCounter++;
+                    await createLiteralStatement(cellNodeResource.id, predicate.id, value.id);
                 }
                 for (let q = 0; q < propCounter; q++) {
                     console.log('\t\t\tLink It >> r' + (currentResourceCounter - 1) + ' -> pC' + q + ' -> rV' + q);
                 }
             }
         }
+
+        this.props.createValue({
+            label: 'Result',
+            type: 'object',
+            propertyId: pID,
+            existingResourceId: resource,
+            isExistingValue: true,
+            statementId: statement.id,
+            shared: 0
+        });
+        this.killTheTable();
     }
 
     /** Component Rendering Function **/
@@ -120,9 +186,27 @@ class TableGenerator extends Component {
         );
     }
 }
+
 TableGenerator.propTypes = {
     killTheTable: PropTypes.func.isRequired,
-    parentResource: PropTypes.any.isRequired
+    parentResource: PropTypes.any.isRequired,
+    resources: PropTypes.object.isRequired,
+    createValue: PropTypes.func.isRequired,
+    createProperty: PropTypes.func.isRequired
 };
 
-export default TableGenerator;
+const mapStateToProps = state => {
+    return {
+        resources: state.statementBrowser.resources
+    };
+};
+
+const mapDispatchToProps = dispatch => ({
+    createValue: data => dispatch(createValue(data)),
+    createProperty: data => dispatch(createProperty(data))
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(TableGenerator);

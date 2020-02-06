@@ -48,41 +48,43 @@ class TableView extends Component {
         // we work using row selection ;
 
         const rootNode = {};
-        for (let i = 0; i < this.tableData.valueArray[0].length; i++) {
-            rootNode['rowNode' + i] = { method: 'notSetYet', cellNodes: [] };
-        }
+        if (this.tableData.valueArray) {
+            for (let i = 0; i < this.tableData.valueArray[0].length; i++) {
+                rootNode['rowNode' + i] = { method: 'notSetYet', cellNodes: [] };
+            }
 
-        for (let i = 0; i < this.tableData.valueArray.length; i++) {
-            // apply the methods;
-            //' pseudore mapping to method'
-            if (this.tableData.metricArray[i] !== 'Metric') {
-                // then this is a method;
-                for (let j = 0; j < this.tableData.valueArray[i].length; j++) {
-                    const selector = 'rowNode' + j;
-                    rootNode[selector].method = this.tableData.valueArray[i][j];
+            for (let i = 0; i < this.tableData.valueArray.length; i++) {
+                // apply the methods;
+                //' pseudore mapping to method'
+                if (this.tableData.metricArray[i] !== 'Metric') {
+                    // then this is a method;
+                    for (let j = 0; j < this.tableData.valueArray[i].length; j++) {
+                        const selector = 'rowNode' + j;
+                        rootNode[selector].method = this.tableData.valueArray[i][j];
+                    }
                 }
             }
-        }
-        // create the cell nodes
-        for (let i = 0; i < this.tableData.valueArray.length; i++) {
-            // apply the methods;
-            //' pseudore mapping to method'
-            if (this.tableData.metricArray[i] === 'Metric') {
-                // then this is a method;
-                for (let j = 0; j < this.tableData.valueArray[i].length; j++) {
-                    const selector = 'rowNode' + j;
-                    const cellObject = {};
-                    cellObject.hasMetric = this.tableData.headerArray[i];
-                    cellObject.hasUnit = this.tableData.unitArray[i];
-                    cellObject.hasValue = this.tableData.valueArray[i][j];
-                    rootNode[selector].cellNodes.push(cellObject);
+            // create the cell nodes
+            for (let i = 0; i < this.tableData.valueArray.length; i++) {
+                // apply the methods;
+                //' pseudore mapping to method'
+                if (this.tableData.metricArray[i] === 'Metric') {
+                    // then this is a method;
+                    for (let j = 0; j < this.tableData.valueArray[i].length; j++) {
+                        const selector = 'rowNode' + j;
+                        const cellObject = {};
+                        cellObject.hasMetric = this.tableData.headerArray[i];
+                        cellObject.hasUnit = this.tableData.unitArray[i];
+                        cellObject.hasValue = this.tableData.valueArray[i][j];
+                        rootNode[selector].cellNodes.push(cellObject);
+                    }
                 }
             }
+
+            console.log(rootNode);
+
+            this.insertTableIntoGraph(rootNode);
         }
-
-        console.log(rootNode);
-
-        this.insertTableIntoGraph(rootNode);
     };
 
     /** Component Rendering Function **/
