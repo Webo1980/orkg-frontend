@@ -298,9 +298,8 @@ export default class Navigation {
     /** Helper functions **/
     getWorldPosFromScreen(x, y, translate, scale) {
         // have to check if scale is array or value >> temp variable
-        let temp = scale[0],
-            xn,
-            yn;
+        const temp = scale[0];
+        let xn, yn;
         if (temp) {
             xn = (x - translate[0]) / temp;
             yn = (y - translate[1]) / temp;

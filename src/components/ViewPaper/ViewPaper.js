@@ -49,6 +49,7 @@ class ViewPaper extends Component {
 
     componentDidMount() {
         this.loadPaperData();
+        window.addEventListener('keydown', this.handleKeyPress);
     }
 
     componentDidUpdate = prevProps => {
@@ -56,6 +57,17 @@ class ViewPaper extends Component {
             this.loadPaperData();
         } else if (this.props.match.params.contributionId !== prevProps.match.params.contributionId) {
             this.setState({ selectedContribution: this.props.match.params.contributionId });
+        }
+    };
+
+    componentWillUnmount = () => {
+        // remove keyEvents
+        window.removeEventListener('keypress', this.handleKeyPress);
+    };
+
+    handleKeyPress = event => {
+        if (event.ctrlKey === true && event.keyCode === 49) {
+            this.setState({ editMode: !this.state.editMode });
         }
     };
 

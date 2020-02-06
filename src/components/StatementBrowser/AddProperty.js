@@ -7,22 +7,41 @@ import { connect } from 'react-redux';
 import { createProperty } from '../../actions/statementBrowser';
 import uniqBy from 'lodash/uniqBy';
 import PropTypes from 'prop-types';
-
+import TableGenerator from '../../libs/TableGenerator/TableGenerator';
 class AddProperty extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             showAddProperty: false,
+            showAddTable: false,
             newPredicateValue: '',
             confirmNewPropertyModal: false,
             newPropertyLabel: ''
         };
+
+        // this.handleHideAddTable = this.handleHideAddTable.bind(this);
     }
 
+    insertTableIntoGraph = someJSON => {
+        console.log('Yeah lets Populate the graph data ');
+        console.log(someJSON);
+    };
+
+    handleHideAddTable = () => {
+        this.setState({
+            showAddTable: false
+        });
+    };
     handleShowAddProperty = () => {
         this.setState({
             showAddProperty: true
+        });
+    };
+
+    handleShowAddTable = () => {
+        this.setState({
+            showAddTable: true
         });
     };
 
@@ -159,9 +178,47 @@ class AddProperty extends Component {
                             </InputGroupAddon>
                         </StyledAddProperty>
                     ) : (
-                        <span className="btn btn-link p-0 border-0 align-baseline" onClick={this.handleShowAddProperty}>
-                            + Add property
-                        </span>
+                        <>
+                            {!this.state.showAddTable && (
+                                <span className="btn btn-link p-0 border-0 align-baseline" onClick={this.handleShowAddProperty}>
+                                    + Add property
+                                </span>
+                            )}
+                        </>
+                    )}
+
+                    {this.state.showAddTable && !this.state.showAddProperty ? (
+                        <StyledAddProperty>
+                            {/*<AutoComplete*/}
+                            {/*    requestUrl={predicatesUrl}*/}
+                            {/*    placeholder="Select or type to enter a property"*/}
+                            {/*    onItemSelected={this.handlePropertySelect}*/}
+                            {/*    onNewItemSelected={this.toggleConfirmNewProperty}*/}
+                            {/*    onKeyUp={() => {}}*/}
+                            {/*    additionalData={this.getNewProperties()}*/}
+                            {/*    disableBorderRadiusRight*/}
+                            {/*    allowCreate*/}
+                            {/*    defaultOptions={this.getDefaultProperties()}*/}
+                            {/*/>*/}
+                            <TableGenerator
+                                parentResource={{ resourceId: this.props.selectedResource }}
+                                killTheTable={this.handleHideAddTable}
+                                insertTableIntoGraph={this.insertTableIntoGraph}
+                            />
+                            {/*<InputGroupAddon addonType="append">*/}
+                            {/*    <Button color="light" className={'addPropertyActionButton'} onClick={this.handleHideAddTable}>*/}
+                            {/*        Cancel*/}
+                            {/*    </Button>*/}
+                            {/*</InputGroupAddon>*/}
+                        </StyledAddProperty>
+                    ) : (
+                        <>
+                            {!this.state.showAddProperty && (
+                                <span className="btn btn-link p-0 border-0 align-baseline" onClick={this.handleShowAddTable}>
+                                    + Add table
+                                </span>
+                            )}
+                        </>
                     )}
                 </StyledStatementItem>
 

@@ -49,11 +49,15 @@ class Comparison extends Component {
             errors: null,
             locationSearch: ''
         };
+        this.comparisionTable = React.createRef();
     }
 
     componentDidMount = () => {
         this.performComparison();
         document.title = 'Comparison - ORKG';
+        // bind new shortcuts;
+        window.addEventListener('keypress', this.handleKeyPress);
+        window.addEventListener('wheel', this.handleWheelEvent);
     };
 
     componentDidUpdate = (prevProps, prevState) => {
@@ -72,6 +76,12 @@ class Comparison extends Component {
         if (prevContributions.length !== currentContributions.length || !currentContributions.every(e => prevContributions.includes(e))) {
             this.performComparison();
         }
+    };
+
+    componentWillUnmount = () => {
+        // remove keyEvents
+        window.removeEventListener('keypress', this.handleKeyPress);
+        window.removeEventListener('keypress', this.handleWheelEvent);
     };
 
     updateComparisonMetadata = (title, description) => {
@@ -316,6 +326,20 @@ class Comparison extends Component {
         }));
     };
 
+    handleKeyPress = event => {
+        if (event.shiftKey === true && event.charCode === 32) {
+            event.preventDefault();
+            this.handleFullWidth();
+        }
+    };
+
+    handleWheelEvent = event => {
+        if (event.shiftKey === true && this.comparisionTable.current) {
+            event.preventDefault();
+            this.comparisionTable.current.handleScrollEvent(event.deltaY);
+        }
+    };
+
     render() {
         const contributionAmount = getContributionIdsFromUrl(this.state.locationSearch || this.props.location.search).length;
         const containerStyle = this.state.fullWidth ? { maxWidth: 'calc(100% - 20px)' } : {};
@@ -450,6 +474,7 @@ class Comparison extends Component {
                             {contributionAmount > 1 || this.props.match.params.comparisonId ? (
                                 !this.state.isLoading ? (
                                     <ComparisonTable
+                                        ref={this.comparisionTable}
                                         data={this.state.data}
                                         properties={this.state.properties}
                                         contributions={this.state.contributions}

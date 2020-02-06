@@ -76,12 +76,11 @@ function angle2NormedVec(angle) {
 
 function drawArrowHead(parent, container, identifier, configObject) {
     if (configObject.link_arrowHead === 'true') {
-        let v1, v2, v3, v4;
         const scale = configObject.link_arrowHead_scaleFactor;
-        v1 = scale * -14;
-        v2 = scale * -10;
-        v3 = scale * 28;
-        v4 = scale * 20;
+        const v1 = scale * -14;
+        const v2 = scale * -10;
+        const v3 = scale * 28;
+        const v4 = scale * 20;
 
         const vB_String = v1 + ' ' + v2 + ' ' + v3 + ' ' + v4;
         const arrowHead = container

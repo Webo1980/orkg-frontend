@@ -81,6 +81,10 @@ class ComparisonTable extends Component {
         rtTable.scrollLeft -= this.scrollAmount;
     };
 
+    handleScrollEvent = offset => {
+        const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
+        rtTable.scrollLeft += 100 * offset;
+    };
     handleScroll = () => {
         const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
         const { scrollWidth, offsetWidth, scrollLeft } = rtTable;

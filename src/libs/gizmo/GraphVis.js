@@ -139,6 +139,7 @@ export default class GraphVis {
                 levelsToExpand.push(it);
             }
         }
+
         await this.performExpansion(levelsToExpand);
 
         const explorationDepth = maxIterationCounter;
