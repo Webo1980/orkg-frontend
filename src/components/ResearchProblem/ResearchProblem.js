@@ -13,6 +13,7 @@ import ExternalDescription from './ExternalDescription';
 import ROUTES from 'constants/routes';
 import styled from 'styled-components';
 import { filterObjectOfStatementsByPredicate, getPaperData } from 'utils';
+import DiscussionModal from 'components/Discussion/DiscussionModal';
 
 class ResearchProblem extends Component {
     constructor(props) {
@@ -134,7 +135,15 @@ class ResearchProblem extends Component {
                 {!this.state.loading && (
                     <div>
                         <Container className="p-0">
-                            <h1 className="h4 mt-4 mb-4 flex-grow-1">Research Problem</h1>
+                            <div className="d-flex align-items-center">
+                                <h1 className="h4 mt-4 mb-4 flex-grow-1">Research Problem</h1>
+                                <div className="flex-shrink-0">
+                                    <DiscussionModal
+                                        title={this.state.researchProblem && this.state.researchProblem.label}
+                                        id={this.state.researchProblem.id}
+                                    />
+                                </div>
+                            </div>
                         </Container>
                         <Container className="p-0">
                             <Card>

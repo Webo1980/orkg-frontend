@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Button } from 'reactstrap';
+import { Container, Button, ButtonGroup } from 'reactstrap';
 import { getResource } from '../network';
 import StatementBrowser from '../components/StatementBrowser/Statements';
 import EditableHeader from '../components/EditableHeader';
@@ -10,6 +10,7 @@ import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { EditModeHeader, Title } from 'components/ViewPaper/ViewPaper';
 import PropTypes from 'prop-types';
 import SameAsStatements from './SameAsStatements';
+import DiscussionModal from 'components/Discussion/DiscussionModal';
 
 class ResourceDetails extends Component {
     constructor(props) {
@@ -82,27 +83,35 @@ class ResourceDetails extends Component {
                             <div className={'mb-2'}>
                                 {!this.state.editMode ? (
                                     <div className="pb-2 mb-3">
-                                        <h3 className={''} style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
-                                            {this.state.label}
-                                            <Button className="float-right" color="darkblue" size="sm" onClick={() => this.toggle('editMode')}>
-                                                <Icon icon={faPen} /> Edit
-                                            </Button>
-                                        </h3>
-                                        {this.state.classes.length > 0 && (
-                                            <span style={{ fontSize: '90%' }}>
-                                                Classes:{' '}
-                                                {this.state.classes.map((className, index) => {
-                                                    const separator = index < this.state.classes.length - 1 ? ', ' : '';
+                                        <div className="p-0 d-flex align-items-start">
+                                            <div className="flex-grow-1">
+                                                <h3 style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>{this.state.label}</h3>
 
-                                                    return (
-                                                        <i key={index}>
-                                                            {className}
-                                                            {separator}
-                                                        </i>
-                                                    );
-                                                })}
-                                            </span>
-                                        )}
+                                                {this.state.classes.length > 0 && (
+                                                    <span style={{ fontSize: '90%' }}>
+                                                        Classes:{' '}
+                                                        {this.state.classes.map((className, index) => {
+                                                            const separator = index < this.state.classes.length - 1 ? ', ' : '';
+
+                                                            return (
+                                                                <i key={index}>
+                                                                    {className}
+                                                                    {separator}
+                                                                </i>
+                                                            );
+                                                        })}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <ButtonGroup className="flex-shrink-0">
+                                                <Button className="float-right" color="darkblue" size="sm" onClick={() => this.toggle('editMode')}>
+                                                    <Icon icon={faPen} /> Edit
+                                                </Button>
+
+                                                <DiscussionModal title={this.state.label} id={this.props.match.params.id} />
+                                            </ButtonGroup>
+                                        </div>
                                     </div>
                                 ) : (
                                     <EditableHeader id={id} value={this.state.label} onChange={this.handleHeaderChange} />

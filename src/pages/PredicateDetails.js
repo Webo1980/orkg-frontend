@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { predicatesUrl, submitGetRequest } from '../network';
 import PropTypes from 'prop-types';
 import { Container } from 'reactstrap';
+import DiscussionModal from 'components/Discussion/DiscussionModal';
 
 class PredicateDetails extends Component {
     constructor(props) {
@@ -46,11 +47,13 @@ class PredicateDetails extends Component {
         if (resultsPresent) {
             const titleText = this.state.title;
             const titleJsx = titleText && (
-                <div
-                    style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}
-                    className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom"
-                >
-                    <h1 className="h2">{titleText}</h1>
+                <div style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
+                    <div className="d-flex align-items-center">
+                        <h1 className="h3 flex-grow-1">{titleText}</h1>
+                        <div className="flex-shrink-0">
+                            <DiscussionModal title={titleText} id={this.props.match.params.id} />
+                        </div>
+                    </div>
                 </div>
             );
 

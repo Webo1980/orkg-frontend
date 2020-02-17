@@ -3,7 +3,7 @@ import { Container, Button, Alert, UncontrolledAlert, ButtonGroup, Badge } from 
 import { getStatementsBySubject, getResource, updateResource, createResource, createResourceStatement, deleteStatementById } from '../../network';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faUser, faCalendar, faBars, faProjectDiagram, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faCalendar, faBars, faProjectDiagram, faPen, faCheck, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { faFacebook, faTwitter } from '@fortawesome/free-brands-svg-icons';
 import NotFound from '../StaticPages/NotFound';
 import ContentLoader from 'react-content-loader';
@@ -23,6 +23,7 @@ import Confirm from 'reactstrap-confirm';
 import EditPaperDialog from './EditDialog/EditPaperDialog';
 import styled from 'styled-components';
 import SharePaper from './SharePaper';
+import DiscussionModal from '../Discussion/DiscussionModal';
 
 export const EditModeHeader = styled(Container)`
     background-color: #80869b !important;
@@ -321,6 +322,8 @@ class ViewPaper extends Component {
                                 <Button className="flex-shrink-0" color="darkblue" size="sm" onClick={() => this.toggle('showGraphModal')}>
                                     <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view
                                 </Button>
+
+                                <DiscussionModal title={this.props.viewPaper.title} id={this.props.match.params.resourceId} />
 
                                 {!this.state.editMode ? (
                                     <Button
