@@ -27,6 +27,10 @@ import AuthorsInput from '../../Utils/AuthorsInput';
 import FormValidator from '../../Utils/FormValidator';
 import { connect } from 'react-redux';
 import { updateGeneralData, nextStep, openTour, closeTour } from '../../../actions/addPaper';
+import { getPaperByDOI } from 'network';
+import { Redirect } from 'react-router-dom';
+import { reverse } from 'named-urls';
+import ROUTES from 'constants/routes.js';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { withCookies, Cookies } from 'react-cookie';
 import styled, { withTheme } from 'styled-components';
@@ -94,7 +98,8 @@ class GeneralData extends Component {
             paperPublicationYear: this.props.publicationYear,
             publishedIn: this.props.publishedIn,
             validation: this.validator.valid(),
-            errors: null
+            errors: null,
+            paperID: null
         };
 
         // Hide the tour if a cookie 'taketour' exist
@@ -152,6 +157,13 @@ class GeneralData extends Component {
             entry = this.state.entry.trim().substring(this.state.entry.trim().indexOf('10.'));
         } else {
             entry = this.state.entry.trim();
+        }
+
+        // If the entry is a DOI check if it exists in the database
+        if (entry.includes('10.') && entry.startsWith('10.')) {
+            getPaperByDOI(entry).then(result => {
+                this.setState({ paperID: result.id });
+            });
         }
 
         await Cite.async(entry)
@@ -355,6 +367,8 @@ class GeneralData extends Component {
     render() {
         return (
             <div>
+                {this.state.paperID && <Redirect to={reverse(ROUTES.VIEW_PAPER, { resourceId: this.state.paperID }) + '?comingFromAddPaper=true'} />}
+
                 <h2 className="h4 mt-4">General paper data</h2>
 
                 <Modal isOpen={this.state.isFirstVisit} toggle={() => this.toggle('isFirstVisit')}>

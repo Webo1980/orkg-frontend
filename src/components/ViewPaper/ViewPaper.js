@@ -321,8 +321,9 @@ class ViewPaper extends Component {
     };
 
     render() {
-        let comingFromWizard = queryString.parse(this.props.location.search);
-        comingFromWizard = comingFromWizard ? comingFromWizard.comingFromWizard === 'true' : false;
+        const comingFrom = queryString.parse(this.props.location.search);
+        const comingFromWizard = comingFrom ? comingFrom.comingFromWizard === 'true' : false;
+        const comingFromAddPaper = comingFrom ? comingFrom.comingFromAddPaper === 'true' : false;
 
         return (
             <div>
@@ -386,6 +387,11 @@ class ViewPaper extends Component {
                                                 fill out the online evaluation form
                                             </a>
                                             . Thank you!
+                                        </UncontrolledAlert>
+                                    )}
+                                    {comingFromAddPaper && (
+                                        <UncontrolledAlert color="info">
+                                            Someone already added the paper. Please contribute by editing the paper.
                                         </UncontrolledAlert>
                                     )}
                                     <div className="d-flex align-items-start">

@@ -441,3 +441,7 @@ export const updateUserPassword = ({ current_password, new_password, new_matchin
 
     return submitPutRequest(`${url}user/password/`, headers, data);
 };
+
+export const getPaperByDOI = doi => {
+    return submitGetRequest(`${url}widgets/?doi=${doi}`);
+};
