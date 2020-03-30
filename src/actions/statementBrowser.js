@@ -133,7 +133,6 @@ export const updatePropertyLabel = data => dispatch => {
 };
 
 export const createValue = data => dispatch => {
-    console.log(data);
     const resourceId = data.existingResourceId ? data.existingResourceId : data.type === 'object' || data.type === 'template' ? guid() : null;
     dispatch({
         type: type.CREATE_VALUE,
