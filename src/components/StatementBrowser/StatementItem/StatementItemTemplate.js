@@ -6,18 +6,51 @@ import classNames from 'classnames';
 import ValueItem from 'components/StatementBrowser/ValueItem/ValueItemContainer';
 import AddValue from 'components/StatementBrowser/AddValue/AddValueContainer';
 import StatementOptionButton from 'components/StatementBrowser/StatementOptionButton/StatementOptionButton';
-import { StatementsGroupStyle, PropertyStyle, ValuesStyle } from 'components/StatementBrowser/styled';
-import { customStyles } from './style';
+import { StatementsGroupStyle, PropertyStyle, ValuesStyle, ValueItemStyle } from 'components/StatementBrowser/styled';
+import { customStyles, StyledStatementItemValueDropZoneHelper } from './style';
+import DndTypes from 'constants/DndTypes';
+import { useDrop } from 'react-dnd';
+import capitalize from 'capitalize';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
 export default function StatementItemTemplate(props) {
     const [disableHover, setDisableHover] = useState(false);
 
+    const [{ isOver, canDrop }, drop] = useDrop({
+        accept: DndTypes.VALUE,
+        canDrop: () => {
+            return true;
+        },
+        drop: (item, monitor) => {
+            if (monitor.didDrop()) {
+                return;
+            }
+            props.dndSelectedValues.map(v => {
+                props.createValue({
+                    label: v.label,
+                    type: 'object',
+                    propertyId: props.id,
+                    existingResourceId: v.resourceId ? v.resourceId : null,
+                    isExistingValue: true
+                });
+
+                props.toggleSelectedDndValues({ id: v.id, label: v.label });
+                return true;
+            });
+            return { moved: true };
+        },
+        collect: monitor => ({
+            isOver: monitor.isOver(),
+            isOverCurrent: monitor.isOver({ shallow: true }),
+            canDrop: monitor.canDrop(),
+            itemToDrop: monitor.getItem()
+        })
+    });
+
     const propertyOptionsClasses = classNames({
         propertyOptions: true,
         disableHover: disableHover
     });
-
     return (
         <StatementsGroupStyle className={`${props.inTemplate ? 'inTemplate' : 'noTemplate'}`}>
             <div className={'row no-gutters'}>
@@ -74,7 +107,7 @@ export default function StatementItemTemplate(props) {
                         </div>
                     )}
                 </PropertyStyle>
-                <ValuesStyle className={'col-8 valuesList'}>
+                <ValuesStyle className={'col-8 valuesList'} ref={drop}>
                     <ListGroup flush className="px-3">
                         {props.property.valueIds.map((valueId, index) => {
                             const value = props.values.byId[valueId];
@@ -92,7 +125,25 @@ export default function StatementItemTemplate(props) {
                                 />
                             );
                         })}
-                        {props.enableEdit && <AddValue contextStyle="Template" propertyId={props.id} syncBackend={props.syncBackend} />}
+                        {canDrop && !isOver && (
+                            <StyledStatementItemValueDropZoneHelper>
+                                <div className={'pt-1 pb-1'}>Drop here to insert data</div>
+                            </StyledStatementItemValueDropZoneHelper>
+                        )}
+                        {isOver && (
+                            <>
+                                {props.dndSelectedValues.map(p => {
+                                    return (
+                                        <ValueItemStyle key={`preview${p.id}`} className={'dropView'}>
+                                            {capitalize(p.label)}
+                                        </ValueItemStyle>
+                                    );
+                                })}
+                            </>
+                        )}
+                        {!canDrop && !isOver && props.enableEdit && (
+                            <AddValue contextStyle="Template" propertyId={props.id} syncBackend={props.syncBackend} />
+                        )}
                     </ListGroup>
                 </ValuesStyle>
             </div>
@@ -116,5 +167,8 @@ StatementItemTemplate.propTypes = {
     inTemplate: PropTypes.bool,
     showValueHelp: PropTypes.bool,
     openExistingResourcesInDialog: PropTypes.bool.isRequired,
-    handleDeleteStatement: PropTypes.func.isRequired
+    handleDeleteStatement: PropTypes.func.isRequired,
+    dndSelectedValues: PropTypes.array.isRequired,
+    toggleSelectedDndValues: PropTypes.func.isRequired,
+    createValue: PropTypes.func.isRequired
 };

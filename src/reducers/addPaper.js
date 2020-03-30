@@ -6,6 +6,10 @@ import { Cookies } from 'react-cookie';
 const initialState = {
     isTourOpen: false,
     showAbstractDialog: false,
+    isAbstractLoading: false,
+    isAbstractFailedLoading: false,
+    isAnnotationLoading: false,
+    isAnnotationFailedLoading: false,
     abstractDialogView: 'annotator', // annotator | input | list
     currentStep: 1,
     shouldBlockNavigation: false,
@@ -27,7 +31,8 @@ const initialState = {
     contributions: {
         byId: {},
         allIds: []
-    }
+    },
+    dndSelectedValues: []
 };
 
 export default (state = initialState, action) => {
@@ -74,6 +79,69 @@ export default (state = initialState, action) => {
                 ...state,
                 shouldBlockNavigation: false
             };
+        }
+
+        case type.SET_LOADING_ABSTRACT: {
+            const { payload } = action;
+            return {
+                ...state,
+                isAbstractLoading: payload
+            };
+        }
+
+        case type.SET_FAILED_LOADING_ABSTRACT: {
+            const { payload } = action;
+            return {
+                ...state,
+                isAbstractFailedLoading: payload
+            };
+        }
+
+        case type.SET_LOADING_ANNOTATION: {
+            const { payload } = action;
+            return {
+                ...state,
+                isAnnotationLoading: payload
+            };
+        }
+
+        case type.SET_FAILED_LOADING_ANNOTATION: {
+            const { payload } = action;
+            return {
+                ...state,
+                isAnnotationFailedLoading: payload
+            };
+        }
+
+        case type.PUSH_TO_SELECTED_DND_VALUES: {
+            const { payload } = action;
+            if (!state.dndSelectedValues.some(c => c.id === payload.id)) {
+                return {
+                    ...state,
+                    dndSelectedValues: [...state.dndSelectedValues, payload]
+                };
+            }
+            return state;
+        }
+
+        case type.TOGGLE_SELECTED_DND_VALUES: {
+            const { payload } = action;
+
+            if (state.dndSelectedValues.some(c => c.id === payload.id)) {
+                // unselect
+                const filteredItems = state.dndSelectedValues.filter(item => {
+                    return item.id !== payload.id;
+                });
+                return {
+                    ...state,
+                    dndSelectedValues: filteredItems
+                };
+            } else {
+                return {
+                    ...state,
+                    dndSelectedValues: [...state.dndSelectedValues, payload]
+                };
+            }
         }
 
         case type.ADD_PAPER_LOAD_DATA: {
@@ -132,6 +200,13 @@ export default (state = initialState, action) => {
             const { payload } = action;
             return {
                 ...dotProp.set(state, `ranges.${payload.id}`, payload)
+            };
+        }
+
+        case type.SET_ANNOTATIONS: {
+            const { payload } = action;
+            return {
+                ...dotProp.set(state, `ranges`, payload)
             };
         }
 

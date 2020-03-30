@@ -5,8 +5,10 @@ import {
     changeProperty,
     isSavingProperty,
     doneSavingProperty,
-    deleteProperty
+    deleteProperty,
+    createValue
 } from 'actions/statementBrowser';
+import { toggleSelectedDndValues } from 'actions/addPaper';
 import StatementItem from './StatementItem';
 
 const mapStateToProps = state => {
@@ -14,7 +16,8 @@ const mapStateToProps = state => {
         selectedProperty: state.statementBrowser.selectedProperty,
         selectedResource: state.statementBrowser.selectedResource,
         properties: state.statementBrowser.properties,
-        values: state.statementBrowser.values
+        values: state.statementBrowser.values,
+        dndSelectedValues: state.addPaper.dndSelectedValues
     };
 };
 
@@ -24,7 +27,9 @@ const mapDispatchToProps = dispatch => ({
     toggleEditPropertyLabel: data => dispatch(toggleEditPropertyLabel(data)),
     changeProperty: data => dispatch(changeProperty(data)),
     isSavingProperty: data => dispatch(isSavingProperty(data)),
-    doneSavingProperty: data => dispatch(doneSavingProperty(data))
+    doneSavingProperty: data => dispatch(doneSavingProperty(data)),
+    toggleSelectedDndValues: data => dispatch(toggleSelectedDndValues(data)),
+    createValue: data => dispatch(createValue(data))
 });
 
 export default connect(

@@ -155,6 +155,9 @@ export default function StatementItem(props) {
             showValueHelp={props.showValueHelp}
             openExistingResourcesInDialog={props.openExistingResourcesInDialog}
             handleDeleteStatement={handleDeleteStatement}
+            dndSelectedValues={props.dndSelectedValues}
+            toggleSelectedDndValues={props.toggleSelectedDndValues}
+            createValue={props.createValue}
         />
     );
 }
@@ -182,7 +185,10 @@ StatementItem.propTypes = {
     toggleEditPropertyLabel: PropTypes.func.isRequired,
     changeProperty: PropTypes.func.isRequired,
     isSavingProperty: PropTypes.func.isRequired,
-    doneSavingProperty: PropTypes.func.isRequired
+    doneSavingProperty: PropTypes.func.isRequired,
+    dndSelectedValues: PropTypes.array.isRequired,
+    toggleSelectedDndValues: PropTypes.func.isRequired,
+    createValue: PropTypes.func.isRequired
 };
 
 StatementItem.defaultProps = {

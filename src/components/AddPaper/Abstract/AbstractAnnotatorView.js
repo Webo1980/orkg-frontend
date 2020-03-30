@@ -181,7 +181,10 @@ AbstractAnnotatorView.propTypes = {
 
 const mapStateToProps = state => ({
     ranges: state.addPaper.ranges,
-    abstract: state.addPaper.abstract
+    abstract: state.addPaper.abstract,
+    isAbstractLoading: state.addPaper.isAbstractLoading,
+    isAnnotationLoading: state.addPaper.isAnnotationLoading,
+    isAnnotationFailedLoading: state.addPaper.isAnnotationFailedLoading
 });
 
 const mapDispatchToProps = dispatch => ({});

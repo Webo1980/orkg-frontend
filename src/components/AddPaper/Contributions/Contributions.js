@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import { Row, Col, Button } from 'reactstrap';
 import ContributionItemList from './ContributionItemList';
 import ContributionsHelpTour from './ContributionsHelpTour';
-import Tooltip from '../../Utils/Tooltip';
+import Tooltip from 'components/Utils/Tooltip';
 import { StyledHorizontalContributionsList } from './styled';
 import { connect } from 'react-redux';
+import Sidebar from './Sidebar/Sidebar';
 import {
     nextStep,
     previousStep,
@@ -15,8 +16,8 @@ import {
     saveAddPaper,
     openTour,
     toggleAbstractDialog
-} from '../../../actions/addPaper';
-import Abstract from './../Abstract/Abstract';
+} from 'actions/addPaper';
+import Abstract from 'components/AddPaper/Abstract/Abstract';
 import Confirm from 'reactstrap-confirm';
 import Contribution from './Contribution';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
@@ -191,6 +192,8 @@ class Contributions extends Component {
                             </div>
                         </AnimationContainer>
                     </TransitionGroup>
+
+                    <Sidebar />
                 </Row>
 
                 <hr className="mt-5 mb-3" />

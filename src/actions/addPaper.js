@@ -78,6 +78,13 @@ export const createAnnotation = data => dispatch => {
     });
 };
 
+export const setAnnotations = data => dispatch => {
+    dispatch({
+        type: type.SET_ANNOTATIONS,
+        payload: data
+    });
+};
+
 export const toggleEditAnnotation = data => dispatch => {
     dispatch({
         type: type.TOGGLE_EDIT_ANNOTATION,
@@ -251,6 +258,126 @@ export const updateResearchProblems = data => dispatch => {
         type: type.UPDATE_RESEARCH_PROBLEMS,
         payload: data
     });
+};
+
+export const toggleSelectedDndValues = data => dispatch => {
+    dispatch({
+        type: type.TOGGLE_SELECTED_DND_VALUES,
+        payload: data
+    });
+};
+
+export const pushToSelectedDndValues = data => dispatch => {
+    dispatch({
+        type: type.PUSH_TO_SELECTED_DND_VALUES,
+        payload: data
+    });
+};
+
+export const setLoadingAbstract = data => dispatch => {
+    dispatch({
+        type: type.SET_LOADING_ABSTRACT,
+        payload: data
+    });
+};
+
+export const setFailedLoadingAbstract = data => dispatch => {
+    dispatch({
+        type: type.SET_FAILED_LOADING_ABSTRACT,
+        payload: data
+    });
+};
+
+export const setLoadingAnnotation = data => dispatch => {
+    dispatch({
+        type: type.SET_LOADING_ANNOTATION,
+        payload: data
+    });
+};
+
+export const setFailedLoadingAnnotation = data => dispatch => {
+    dispatch({
+        type: type.SET_FAILED_LOADING_ANNOTATION,
+        payload: data
+    });
+};
+
+export const getAnnotation = data => dispatch => {
+    const { abstract, classOptions } = data;
+    dispatch(setLoadingAbstract(true));
+    return network
+        .getAnnotations(abstract)
+        .then(data => {
+            const annotated = [];
+            const ranges = {};
+            if (data && data.entities) {
+                data.entities
+                    .map(entity => {
+                        const text = data.text.substring(entity[2][0][0], entity[2][0][1]);
+                        if (annotated.indexOf(text.toLowerCase()) < 0) {
+                            annotated.push(text.toLowerCase());
+                            // Predicate label entity[1]
+                            let rangeClass = classOptions.filter(c => c.label.toLowerCase() === entity[1].toLowerCase());
+                            if (rangeClass.length > 0) {
+                                rangeClass = rangeClass[0];
+                            } else {
+                                rangeClass = { id: entity[1], label: entity[1] };
+                            }
+                            const id = guid();
+                            ranges[id] = {
+                                id,
+                                text: text,
+                                start: entity[2][0][0],
+                                end: entity[2][0][1] - 1,
+                                certainty: entity[3],
+                                class: rangeClass,
+                                isEditing: false,
+                                resourceId: entity[4]
+                            };
+                            return ranges[id];
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(r => r);
+            }
+            //Clear annotations
+            dispatch(clearAnnotations());
+            dispatch(setAnnotations(ranges));
+            dispatch(setLoadingAbstract(false));
+            dispatch(setFailedLoadingAbstract(false));
+            dispatch(setLoadingAnnotation(false));
+            dispatch(setFailedLoadingAnnotation(false));
+        })
+        .catch(e => {
+            dispatch(setLoadingAnnotation(false));
+            dispatch(setFailedLoadingAnnotation(true));
+        });
+};
+
+export const fetchAbstract = data => dispatch => {
+    const { DOI, classOptions } = data;
+    setLoadingAbstract(true);
+    return network
+        .submitGetRequest(network.semanticScholarUrl + DOI)
+        .then((data, reject) => {
+            if (!data.abstract) {
+                return reject;
+            }
+            return data.abstract;
+        })
+        .then(abstract => {
+            // remove line breaks from the abstract
+            abstract = abstract.replace(/(\r\n|\n|\r)/gm, ' ');
+            dispatch(setLoadingAbstract(false));
+            dispatch(updateAbstract(abstract));
+            dispatch(getAnnotation({ abstract, classOptions }));
+        })
+        .catch(() => {
+            dispatch(setAbstractDialogView('input'));
+            dispatch(setLoadingAbstract(false));
+            dispatch(setFailedLoadingAbstract(true));
+        });
 };
 
 // The function to customize merging objects (to handle using the same existing predicate twice in the same ressource)
