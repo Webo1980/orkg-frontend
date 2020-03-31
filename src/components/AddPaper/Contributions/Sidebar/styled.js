@@ -8,6 +8,10 @@ export const StyledSideBar = styled.div`
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     border-left-width: 0;
+
+    .isSticky {
+        margin-top: 100px;
+    }
 `;
 
 export const SideBarHeaderStyle = styled.div`
@@ -21,9 +25,10 @@ export const StyledGraggableData = styled.ul`
     list-style: none;
     padding-left: 0;
     padding-right: 0;
-    max-height: 400px;
+    max-height: 300px;
     overflow: scroll;
     overflow-x: hidden;
+    margin-bottom: 0;
 
     &.scrollbox {
         overflow: auto;
@@ -67,5 +72,11 @@ export const StyledDraggableResource = styled.li`
 
     &:hover .dragIcon {
         visibility: visible;
+    }
+`;
+
+export const StyledStickyContainer = styled.div`
+    &.isSticky {
+        margin-top: 100px;
     }
 `;

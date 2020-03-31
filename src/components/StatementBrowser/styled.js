@@ -111,6 +111,11 @@ export const ValueItemStyle = styled(ListGroupItem)`
     overflow-wrap: break-word;
     padding: 8px 0px !important;
 
+    &.dropView {
+        background: '#e9ebf2';
+        opacity: 0.5;
+    }
+
     &:last-child {
         margin-bottom: 5px;
     }
