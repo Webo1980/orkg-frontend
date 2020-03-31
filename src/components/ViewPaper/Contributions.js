@@ -48,6 +48,16 @@ const AnimationContainer = styled(CSSTransition)`
     }
 `;
 
+const StyledTransitionGroup = styled(TransitionGroup)`
+    border-radius: ${props => props.theme.borderRadius};
+    border-width: ${props => props.theme.borderWidth};
+    border-color: ${props => props.theme.ultraLightBlueDarker};
+    border-style: solid;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+`;
+
 // TODO: right now, the reducer from addPaper is being used, since the setup of this page is very similar.
 // Dependent on the future look/functionalitiy of this page, the reducers should split and renamed so viewing
 // a paper is not needing a reducer that is called: addPaper (e.g. make a reducer for the statement browser?)
@@ -190,7 +200,7 @@ class Contributions extends Component {
                             )}
                         </Col>
 
-                        <TransitionGroup className="col-md-9" exit={false}>
+                        <StyledTransitionGroup className="col-md-9" exit={false}>
                             <AnimationContainer key={selectedContributionId} classNames="fadeIn" timeout={{ enter: 500, exit: 0 }}>
                                 <StyledHorizontalContribution>
                                     {!this.state.loading && (
@@ -325,7 +335,7 @@ class Contributions extends Component {
                                     </Form>
                                 </StyledHorizontalContribution>
                             </AnimationContainer>
-                        </TransitionGroup>
+                        </StyledTransitionGroup>
                     </Row>
                 </Container>
             </div>

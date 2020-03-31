@@ -27,6 +27,16 @@ import styled from 'styled-components';
 import Tippy from '@tippy.js/react';
 import PropTypes from 'prop-types';
 
+const StyledTransitionGroup = styled(TransitionGroup)`
+    border-radius: ${props => props.theme.borderRadius};
+    border-width: ${props => props.theme.borderWidth};
+    border-color: ${props => props.theme.ultraLightBlueDarker};
+    border-style: solid;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+`;
+
 const AnimationContainer = styled(CSSTransition)`
     transition: 0.3s background-color, 0.3s border-color;
 
@@ -184,14 +194,15 @@ class Contributions extends Component {
                             </li>
                         </StyledHorizontalContributionsList>
                     </Col>
-
-                    <TransitionGroup className="col-md-9" exit={false}>
+                </Row>
+                <Row noGutters={true}>
+                    <StyledTransitionGroup className="col-md-9" exit={false}>
                         <AnimationContainer classNames="fadeIn" timeout={{ enter: 700, exit: 0 }} key={selectedResourceId}>
                             <div>
                                 <Contribution id={selectedResourceId} />
                             </div>
                         </AnimationContainer>
-                    </TransitionGroup>
+                    </StyledTransitionGroup>
 
                     <Sidebar />
                 </Row>
