@@ -27,7 +27,7 @@ function Sidebar(props) {
                                     </span>
                                 }
                             >
-                                Resources from abstract
+                                Resources that might be interesting
                             </Tooltip>{' '}
                         </SideBarHeaderStyle>
                         <div className="d-block">
