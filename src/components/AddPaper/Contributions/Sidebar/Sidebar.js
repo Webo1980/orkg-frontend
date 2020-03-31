@@ -15,8 +15,8 @@ function Sidebar(props) {
     const [rangesLimit, setRangesLimit] = useState(6);
     if (props.resources.byId[props.resourceId] && props.resources.byId[props.resourceId].propertyIds.length > 0) {
         return (
-            <StyledSideBar className="col-md-3">
-                <Sticky topOffset={0} stickyClassName={'isSticky'}>
+            <StyledSideBar className="col-md-3 scrollarea" style={{ position: 'relative' }}>
+                <Sticky topOffset={0} stickyClassName={'isSticky'} boundaryElement=".scrollarea">
                     <div>
                         <SideBarHeaderStyle>
                             {' '}

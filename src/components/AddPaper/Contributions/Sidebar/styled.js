@@ -10,7 +10,6 @@ export const StyledSideBar = styled.div`
     border-left-width: 0;
 
     .isSticky {
-        margin-top: 100px;
     }
 `;
 
