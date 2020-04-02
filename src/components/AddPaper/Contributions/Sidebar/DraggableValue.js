@@ -86,11 +86,13 @@ class DraggableValue extends Component {
         return (
             <StyledDraggableResource
                 onClick={() => this.props.toggleSelect({ id, label })}
-                className={classnames({ dragging: isDragging, selected: this.props.selected.some(c => c.id === id) })}
                 ref={instance => connectDragSource(instance)}
+                className={classnames({ 'pl-2': true, dragging: isDragging, selected: this.props.selected.some(c => c.id === id) })}
             >
-                <Icon icon={faGripVertical} color={'#cbcece'} className={'dragIcon mr-2'} />
-                {label}
+                <div className="p-0 text-left text-link text-primary" color="">
+                    <Icon icon={faGripVertical} color={'#cbcece'} className={'dragIcon mr-2'} />
+                    {label}
+                </div>
             </StyledDraggableResource>
         );
     }

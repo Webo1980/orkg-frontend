@@ -304,7 +304,8 @@ export const setFailedLoadingAnnotation = data => dispatch => {
 
 export const getAnnotation = data => dispatch => {
     const { abstract, classOptions } = data;
-    dispatch(setLoadingAbstract(true));
+    dispatch(setLoadingAnnotation(true));
+    dispatch(setFailedLoadingAnnotation(false));
     return network
         .getAnnotations(abstract)
         .then(data => {
@@ -358,6 +359,7 @@ export const getAnnotation = data => dispatch => {
 export const fetchAbstract = data => dispatch => {
     const { DOI, classOptions } = data;
     setLoadingAbstract(true);
+    setFailedLoadingAbstract(false);
     return network
         .submitGetRequest(network.semanticScholarUrl + DOI)
         .then((data, reject) => {

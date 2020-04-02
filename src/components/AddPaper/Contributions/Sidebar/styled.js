@@ -46,17 +46,24 @@ export const StyledGraggableData = styled.ul`
 `;
 
 export const StyledDraggableResource = styled.li`
+    background-color: #fff;
+    margin-bottom: 0;
+    padding: 8px 0px !important;
+    border-right: 0 !important;
+    border-left: 0 !important;
+    border-top: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
     position: relative;
+    overflow-wrap: break-word;
     cursor: move;
-    margin-bottom: 8px;
-    transition: 0.3s background;
-    border: dotted 1px;
-    border-radius: ${props => props.theme.borderRadius};
-    box-shadow: -2px 0px 2px 0px rgba(0, 0, 0, 0.1);
-    padding: 9px 9px 9px 15px;
-
     font-size: small;
-
+    .btn {
+        font-size: small;
+        &:hover {
+            text-decoration: none;
+        }
+    }
     &.selected {
         background: #c2dbff;
     }
@@ -66,11 +73,16 @@ export const StyledDraggableResource = styled.li`
     }
 
     & .dragIcon {
-        visibility: hidden;
+        visibility: visible;
     }
 
-    &:hover .dragIcon {
-        visibility: visible;
+    &:hover {
+        -moz-box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+        box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+        z-index: 1;
+        .dragIcon {
+            visibility: visible;
+        }
     }
 `;
 

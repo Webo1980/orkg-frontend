@@ -7,7 +7,7 @@ import ValueItem from 'components/StatementBrowser/ValueItem/ValueItemContainer'
 import AddValue from 'components/StatementBrowser/AddValue/AddValueContainer';
 import StatementOptionButton from 'components/StatementBrowser/StatementOptionButton/StatementOptionButton';
 import { StatementsGroupStyle, PropertyStyle, ValuesStyle, ValueItemStyle } from 'components/StatementBrowser/styled';
-import { customStyles, StyledStatementItemValueDropZoneHelper } from './style';
+import { customStyles } from './style';
 import DndTypes from 'constants/DndTypes';
 import { useDrop } from 'react-dnd';
 import capitalize from 'capitalize';
@@ -126,9 +126,9 @@ export default function StatementItemTemplate(props) {
                             );
                         })}
                         {canDrop && !isOver && (
-                            <StyledStatementItemValueDropZoneHelper>
-                                <div className={'pt-1 pb-1'}>Drop here to insert data</div>
-                            </StyledStatementItemValueDropZoneHelper>
+                            <ValueItemStyle className={'dropView'}>
+                                <i>Drag here to insert value</i>
+                            </ValueItemStyle>
                         )}
                         {isOver && (
                             <>

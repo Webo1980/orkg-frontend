@@ -243,8 +243,9 @@ export default (state = initialState, action) => {
         }
 
         case type.CLEAR_ANNOTATIONS: {
+            const newstate = dotProp.set(state, 'ranges', {});
             return {
-                ...dotProp.set(state, 'ranges', {})
+                ...dotProp.set(newstate, 'dndSelectedValues', [])
             };
         }
 

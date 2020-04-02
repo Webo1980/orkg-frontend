@@ -13,24 +13,28 @@ import Sticky from 'react-sticky-el';
 
 function Sidebar(props) {
     const [rangesLimit, setRangesLimit] = useState(6);
-    if (props.resources.byId[props.resourceId] && props.resources.byId[props.resourceId].propertyIds.length > 0) {
-        return (
-            <StyledSideBar className="col-md-3 scrollarea" style={{ position: 'relative' }}>
-                <Sticky topOffset={0} stickyClassName={'isSticky'} boundaryElement=".scrollarea">
-                    <div>
-                        <SideBarHeaderStyle>
-                            {' '}
-                            <Tooltip
-                                message={
-                                    <span>
-                                        Here we list resources extracted from the abstract, you can drag and drop items to your contributions data.
-                                    </span>
-                                }
-                            >
-                                Resources that might be interesting
-                            </Tooltip>{' '}
-                        </SideBarHeaderStyle>
-                        <div className="d-block">
+    //if (props.resources.byId[props.resourceId] && props.resources.byId[props.resourceId].propertyIds.length > 0) {
+    return (
+        <StyledSideBar className="col-md-3 scrollarea" style={{ position: 'relative' }}>
+            <Sticky topOffset={0} stickyClassName={'isSticky'} boundaryElement=".scrollarea">
+                <div>
+                    <SideBarHeaderStyle>
+                        {' '}
+                        <Tooltip
+                            message={
+                                <span>
+                                    Here we list resources extracted from the abstract, you can drag and drop items to your contributions data.
+                                </span>
+                            }
+                        >
+                            Resources that might be interesting
+                        </Tooltip>{' '}
+                    </SideBarHeaderStyle>
+                    <div className="d-block">
+                        {(props.isAbstractLoading ||
+                            props.isAbstractFailedLoading ||
+                            props.isAnnotationLoading ||
+                            props.isAnnotationFailedLoading) && (
                             <div className="p-2">
                                 {props.isAbstractLoading && (
                                     <ContentLoader title={'Loading abstract'} height={120} speed={2} primaryColor="#f3f3f3" secondaryColor="#ecebeb">
@@ -61,54 +65,52 @@ function Sidebar(props) {
                                         <rect x="0" y="18" rx="7" ry="7" width="340" height="120" />
                                     </ContentLoader>
                                 )}
-                                {!props.isAnnotationLoading && props.isAnnotationFailedLoading && (
+                                {!props.isAbstractFailedLoading && !props.isAnnotationLoading && props.isAnnotationFailedLoading && (
                                     <div>Failed to connect to the annotation service!</div>
                                 )}
-                                {!props.isAbstractLoading &&
-                                    !props.isAbstractFailedLoading &&
-                                    !props.isAnnotationLoading &&
-                                    !props.isAnnotationFailedLoading && (
-                                        <div className="p-2">
-                                            {props.resources.byId[props.resourceId] && props.resources.byId[props.resourceId].propertyIds.length > 0 && (
-                                                <>
-                                                    <StyledGraggableData className={'scrollbox'}>
-                                                        {toArray(props.ranges)
-                                                            .sort((a, b) => (a.certainty > b.certainty ? -1 : 1))
-                                                            .slice(0, rangesLimit)
-                                                            .map(range => {
-                                                                return (
-                                                                    <DraggableValue
-                                                                        key={`s${range.id}`}
-                                                                        resourceId={range.resourceId}
-                                                                        id={range.id}
-                                                                        label={range.text}
-                                                                    />
-                                                                );
-                                                            })}
-                                                    </StyledGraggableData>
-                                                    {toArray(props.ranges).length > rangesLimit && (
-                                                        <Button
-                                                            style={{ verticalAlign: 'initial', fontSize: 'smaller' }}
-                                                            color="link"
-                                                            onClick={() => setRangesLimit(prev => prev + 6)}
-                                                            className="p-0"
-                                                        >
-                                                            + See more
-                                                        </Button>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
                             </div>
-                        </div>
+                        )}
+                        {!props.isAbstractLoading &&
+                            !props.isAbstractFailedLoading &&
+                            !props.isAnnotationLoading &&
+                            !props.isAnnotationFailedLoading && (
+                                <div>
+                                    {/*props.resources.byId[props.resourceId] && props.resources.byId[props.resourceId].propertyIds.length > 0 && (*/}
+                                    <>
+                                        <StyledGraggableData className={'scrollbox'}>
+                                            {toArray(props.ranges)
+                                                .sort((a, b) => (a.certainty > b.certainty ? -1 : 1))
+                                                .slice(0, rangesLimit)
+                                                .map(range => {
+                                                    return (
+                                                        <DraggableValue
+                                                            key={`s${range.id}`}
+                                                            resourceId={range.resourceId}
+                                                            id={range.id}
+                                                            label={range.text}
+                                                        />
+                                                    );
+                                                })}
+                                        </StyledGraggableData>
+                                        {toArray(props.ranges).length > rangesLimit && (
+                                            <Button
+                                                style={{ verticalAlign: 'initial', fontSize: 'smaller' }}
+                                                color="link"
+                                                onClick={() => setRangesLimit(prev => prev + 6)}
+                                                className="p-0"
+                                            >
+                                                + See more
+                                            </Button>
+                                        )}
+                                    </>
+                                </div>
+                            )}
                     </div>
-                </Sticky>
-            </StyledSideBar>
-        );
-    } else {
-        return '';
-    }
+                </div>
+            </Sticky>
+        </StyledSideBar>
+    );
+    //}
 }
 
 Sidebar.propTypes = {

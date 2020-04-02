@@ -80,7 +80,11 @@ class Abstract extends Component {
     }
 
     componentDidMount() {
-        this.props.fetchAbstract({ DOI: this.props.doi, classOptions: this.state.classOptions });
+        if (!this.props.abstract) {
+            this.props.fetchAbstract({ DOI: this.props.doi, classOptions: this.state.classOptions });
+        } else {
+            this.props.getAnnotation({ abstract: this.props.abstract, classOptions: this.state.classOptions });
+        }
     }
 
     getClassColor = rangeClass => {
