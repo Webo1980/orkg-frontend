@@ -34,10 +34,11 @@ export default function AddValueTemplate(props) {
         }
     }, [showAddValue]);
 
-    /* Select component reference can be used to check if menu is opened */
+    /* Select component reference can be used to check if menu is opened 
     const isMenuOpen = () => {
         return resourceInputRef.current.select.state.menuIsOpen && resourceInputRef.current.state.loadedOptions.length > 0;
     };
+    */
 
     return (
         <ValueItemStyle className={showAddValue ? 'editingLabel' : ''}>
@@ -74,57 +75,57 @@ export default function AddValueTemplate(props) {
                                     props.handleValueSelect(valueType, i);
                                     setShowAddValue(false);
                                 }}
+                                onNewItemSelected={i => {
+                                    props.handleAddValue(valueType, inputValue);
+                                    setShowAddValue(false);
+                                }}
                                 onInput={(e, value) => setInputValue(e ? e.target.value : value)}
                                 value={inputValue}
                                 additionalData={props.newResources}
-                                disableBorderRadiusRight
-                                disableBorderRadiusLeft
                                 cssClasses={'form-control-sm'}
                                 onKeyDown={e => {
                                     if (e.keyCode === 27) {
                                         // escape
                                         setShowAddValue(false);
-                                    } else if (e.keyCode === 13 && !isMenuOpen()) {
-                                        props.handleAddValue(valueType, inputValue);
-                                        setShowAddValue(false);
                                     }
                                 }}
                                 innerRef={ref => (resourceInputRef.current = ref)}
+                                allowCreate
+                                createOptionPosition={'first'}
+                                rewriteIsValidNewOption={true}
                             />
                         ) : (
-                            <Input
-                                placeholder="Enter a value"
-                                name="literalValue"
-                                bsSize="sm"
-                                value={inputValue}
-                                onChange={(e, value) => setInputValue(e ? e.target.value : value)}
-                                innerRef={literalInputRef}
-                                onKeyDown={e => {
-                                    if (e.keyCode === 27) {
-                                        // escape
-                                        setShowAddValue(false);
-                                    } else if (e.keyCode === 13) {
-                                        props.handleAddValue(valueType, inputValue);
-                                        setShowAddValue(false);
-                                    }
-                                }}
-                            />
+                            <>
+                                <Input
+                                    placeholder="Enter a value"
+                                    name="literalValue"
+                                    bsSize="sm"
+                                    value={inputValue}
+                                    onChange={(e, value) => setInputValue(e ? e.target.value : value)}
+                                    innerRef={literalInputRef}
+                                    onKeyDown={e => {
+                                        if (e.keyCode === 27) {
+                                            // escape
+                                            setShowAddValue(false);
+                                        } else if (e.keyCode === 13) {
+                                            props.handleAddValue(valueType, inputValue);
+                                            setShowAddValue(false);
+                                        }
+                                    }}
+                                />
+                                <InputGroupAddon addonType="append">
+                                    <StyledButton
+                                        outline
+                                        onClick={() => {
+                                            setShowAddValue(false);
+                                            props.handleAddValue(valueType, inputValue);
+                                        }}
+                                    >
+                                        Create
+                                    </StyledButton>
+                                </InputGroupAddon>
+                            </>
                         )}
-
-                        <InputGroupAddon addonType="append">
-                            <StyledButton outline onClick={() => setShowAddValue(false)}>
-                                Cancel
-                            </StyledButton>
-                            <StyledButton
-                                outline
-                                onClick={() => {
-                                    setShowAddValue(false);
-                                    props.handleAddValue(valueType, inputValue);
-                                }}
-                            >
-                                Create
-                            </StyledButton>
-                        </InputGroupAddon>
                     </InputGroup>
                 </div>
             )}

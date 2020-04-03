@@ -223,6 +223,8 @@ class AutoComplete extends Component {
                     onBlur={this.props.onBlur}
                     onKeyDown={this.props.onKeyDown}
                     ref={this.props.innerRef}
+                    createOptionPosition={'first'}
+                    isValidNewOption={this.props.rewriteIsValidNewOption ? this.isValidNewOption : undefined}
                 />
             </StyledAutoCompleteInputFormControl>
         );
@@ -248,7 +250,8 @@ AutoComplete.propTypes = {
     cssClasses: PropTypes.string,
     hideAfterSelection: PropTypes.bool,
     theme: PropTypes.object.isRequired,
-    innerRef: PropTypes.func
+    innerRef: PropTypes.func,
+    rewriteIsValidNewOption: PropTypes.bool
 };
 
 AutoComplete.defaultProps = {
