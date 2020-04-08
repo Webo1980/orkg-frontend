@@ -12,6 +12,9 @@ export default {
     PREDICATE: '/predicate/:id',
     CONTRIBUTION_TEMPLATES: '/templates',
     CONTRIBUTION_TEMPLATE: '/template/:id?',
+    ORGANIZATIONS: '/organizations',
+    ORGANIZATION: '/organizations/:id',
+    ADD_ORGANIZATION: '/addorganization',
     ADD_PAPER: {
         GENERAL_DATA: '/add-paper'
     },

@@ -4,6 +4,7 @@ export const url = `${process.env.REACT_APP_SERVER_URL}api/`;
 export const similaireServiceUrl = process.env.REACT_APP_SIMILARITY_SERVICE_URL;
 export const annotationServiceUrl = process.env.REACT_APP_ANNOTATION_SERVICE_URL;
 export const resourcesUrl = `${url}resources/`;
+export const organizationsUrl = `${url}organizations/`;
 export const predicatesUrl = `${url}predicates/`;
 export const statementsUrl = `${url}statements/`;
 export const literalsUrl = `${url}literals/`;
@@ -577,4 +578,12 @@ export const getTemplatesByClass = classID => {
         objectId: classID,
         predicateId: process.env.REACT_APP_TEMPLATE_OF_CLASS
     }).then(statements => Promise.all(statements.map(st => getTemplateById(st.subject.id))));
+};
+
+export const getAllOrganizations = () => {
+    return submitGetRequest(`${organizationsUrl}`);
+};
+
+export const getOrganization = id => {
+    return submitGetRequest(`${organizationsUrl}${encodeURIComponent(id)}/`);
 };

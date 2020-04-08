@@ -20,6 +20,9 @@ import RedirectShortLinks from './components/Comparison/RedirectShortLinks';
 import ResearchField from './components/ResearchField/ResearchField';
 import ResearchProblem from './components/ResearchProblem/ResearchProblem';
 import Resources from './pages/Resources';
+import Organizations from './pages/Organizations';
+import OrganizationDetails from './pages/OrganizationDetails';
+import AddOrganization from './pages/AddOrganization';
 import SearchResults from './components/Search/Search';
 import ViewPaper from './components/ViewPaper/ViewPaper';
 import Stats from './components/Stats/Stats';
@@ -91,6 +94,11 @@ const routes = [
         component: Comparison
     },
     {
+        path: ROUTES.ORGANIZATIONS,
+        exact: true,
+        component: Organizations
+    },
+    {
         /* TODO: Remove this route (it's temporarily backward compatibility for moving contributions ids from view args to query string) */
         path: ROUTES.COMPARISON + '*',
         exact: true,
@@ -154,6 +162,16 @@ const routes = [
     {
         path: ROUTES.FEATURED_COMPARISONS,
         component: FeaturedComparisons
+    },
+    {
+        path: ROUTES.ORGANIZATION,
+        exact:true,
+        component: OrganizationDetails
+    },
+    {
+        path: ROUTES.ADD_ORGANIZATION,
+        exact:true,
+        component: AddOrganization
     },
     {
         path: ROUTES.TPDL,
