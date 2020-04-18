@@ -5,6 +5,7 @@ export const similaireServiceUrl = process.env.REACT_APP_SIMILARITY_SERVICE_URL;
 export const annotationServiceUrl = process.env.REACT_APP_ANNOTATION_SERVICE_URL;
 export const resourcesUrl = `${url}resources/`;
 export const organizationsUrl = `${url}organizations/`;
+export const observatoriesUrl = `${url}observatories/`;
 export const predicatesUrl = `${url}predicates/`;
 export const statementsUrl = `${url}statements/`;
 export const literalsUrl = `${url}literals/`;
@@ -457,6 +458,14 @@ export const updateUserPassword = ({ current_password, new_password, new_matchin
     return submitPutRequest(`${url}user/password/`, headers, data);
 };
 
+export const updateUserRole = () => {
+    const headers = { 'Content-Type': 'application/json' };
+    const data={};
+    //alert(organizationLogo);
+    //debugger;
+    return submitPutRequest(`${url}user/role/`, headers, data );
+};
+
 /**
  * Load template by ID
  *
@@ -586,4 +595,25 @@ export const getAllOrganizations = () => {
 
 export const getOrganization = id => {
     return submitGetRequest(`${organizationsUrl}${encodeURIComponent(id)}/`);
+};
+
+export const createOrganization = (organizationName, organizationLogo) => {
+    //alert(organizationLogo);
+    //debugger;
+    return submitPostRequest(organizationsUrl, { 'Content-Type': 'application/json' }, { organizationName, organizationLogo });
+};
+
+export const getAllObservatoriesbyOrganizationId = id => {
+    const v="search/";
+    return submitGetRequest(`${observatoriesUrl}${v}${encodeURIComponent(id)}/`);
+};
+
+export const getObservatorybyId = id => {
+    return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/`);
+};
+
+export const createObservatory = (observatoryName, organizationId) => {
+    //alert(organizationLogo);
+    //debugger;
+    return submitPostRequest(observatoriesUrl, { 'Content-Type': 'application/json' }, { observatoryName, organizationId });
 };

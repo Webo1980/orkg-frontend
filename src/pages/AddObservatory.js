@@ -1,27 +1,14 @@
 import React, { Component } from 'react';
-import { createLiteralStatement, createOrganization, crossrefUrl, submitGetRequest, createLiteral } from '../network';
+import { createLiteralStatement, createObservatory, crossrefUrl, submitGetRequest, createLiteral } from '../network';
 import { Redirect } from 'react-router-dom';
 import { Container, Button, Form, FormGroup, Input, Label, Alert } from 'reactstrap';
 import { toast } from 'react-toastify';
 import { getAllClasses } from 'network';
-import { updateUserRole, getUserInformation } from '../network';
-import Gravatar from 'react-gravatar';
-import styled from 'styled-components';
-import { openAuthDialog, updateAuth, resetAuth } from '../actions/auth';
-import Authentication from '../components/Authentication/Authentication';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { Cookies } from 'react-cookie';
 import Select from 'react-select';
 import { reverse } from 'named-urls';
 import ROUTES from '../constants/routes';
 
-const StyledGravatar = styled(Gravatar)`
-    border: 3px solid ${props => props.theme.avatarBorderColor};
-    cursor: pointer;
-`;
-
-class AddOrganization extends Component {
+export default class AddObservatory extends Component {
     constructor(props) {
         super(props);
 
@@ -38,11 +25,8 @@ class AddOrganization extends Component {
         };
     }
 
-    
-
     componentDidMount = () => {
         console.log("test");
-        this.userInformation();
         this.getClasses();
     };
 
@@ -81,24 +65,6 @@ class AddOrganization extends Component {
         }
     };
 
-    userInformation = () => {
-        const cookies = new Cookies();
-        const token = cookies.get('token') ? cookies.get('token') : null;
-        //alert(token);
-        if (token && !this.props.user) {
-            getUserInformation()
-                .then(userData => {
-                    //alert(userData);
-                    //debugger;
-                    this.props.updateAuth({ user: { displayName: userData.display_name, id: userData.id, token: token, email: userData.email } });
-                    //alert(this.props.user);
-                })
-                .catch(error => {
-                    cookies.remove('token');
-                });
-        }
-    };
-
     handleChange = event => {
         this.setState({ [event.target.name]: event.target.value.trim() });
     };
@@ -121,13 +87,13 @@ class AddOrganization extends Component {
 
     createNewResource = async usingDoi => {
         const value = this.state.value;
-        const image = this.state.previewSrc;
-        console.log("123"+image[0]);
+        //const image = this.state.previewSrc;
+        //console.log("123"+image[0]);
         if (value && value.length !== 0) {
             try {
-                const responseJson = await createOrganization(value, image[0]);
+                //alert(value+"-"+this.props.match.params.id);
+                const responseJson = await createObservatory(value, this.props.match.params.id);
                 const resourceId = responseJson.id;
-                const res = await updateUserRole();
 
                 if (usingDoi) {
                     await this.createDoiStatement(resourceId, process.env.REACT_APP_PREDICATES_HAS_DOI);
@@ -177,9 +143,6 @@ class AddOrganization extends Component {
     }
 
     render() {
-        const email = this.props.user && this.props.user.email ? this.props.user.email : 'example@example.com';
-        console.log(this.props.user);
-        //console.log(this.state.email);
         const loading = this.state.editorState === 'loading';
         if (this.state.redirect) {
             this.setState({
@@ -188,7 +151,7 @@ class AddOrganization extends Component {
                 resourceId: ''
             });
 
-            return <Redirect to={reverse(ROUTES.ORGANIZATION, { id: this.state.resourceId })} />;
+            return <Redirect to={reverse(ROUTES.OBSERVATORY, { id: this.state.resourceId })} />;
         }
 
         return (
@@ -196,7 +159,7 @@ class AddOrganization extends Component {
                 <Form className="pl-3 pr-3 pt-2">
                     {this.state.errors && <Alert color="danger">{this.state.errors}</Alert>}
                     <FormGroup>
-                        <Label for="ResourceLabel">Add Organization</Label>
+                        <Label for="ResourceLabel">Add Observatory</Label>
                         <Input
                             onChange={this.handleChange}
                             onKeyUp={this.handleKeyUp}
@@ -204,19 +167,9 @@ class AddOrganization extends Component {
                             name="value"
                             id="ResourceLabel"
                             disabled={loading}
-                            placeholder="Add Organiztion"
+                            placeholder="Add Observatory"
                         />
                     </FormGroup>
-                    <div>
-                    <img src={this.state.previewSrc} style={ {width: '20%', height:'20%'}} className="Avatar" alt="" />
-                    </div>
-                    <FormGroup>
-                        <Label>Logo</Label><br />
-                        <input type="file" onChange={this.handlePreview} />
-                        
-                    </FormGroup>
-                    
-                    
                     <Button
                         color="primary"
                         onClick={() => {
@@ -227,33 +180,10 @@ class AddOrganization extends Component {
                         block
                         disabled={loading}
                     >
-                        {!loading ? 'Create Organization' : <span>Loading</span>}
+                        {!loading ? 'Create Observatory' : <span>Loading</span>}
                     </Button>
                 </Form>
             </Container>
         );
     }
 }
-
-const mapStateToProps = state => ({
-    dialogIsOpen: state.auth.dialogIsOpen,
-    user: state.auth.user
-});
-
-const mapDispatchToProps = dispatch => ({
-    resetAuth: () => dispatch(resetAuth()),
-    openAuthDialog: action => dispatch(openAuthDialog(action)),
-    updateAuth: data => dispatch(updateAuth(data))
-});
-
-AddOrganization.propTypes = {
-    openAuthDialog: PropTypes.func.isRequired,
-    updateAuth: PropTypes.func.isRequired,
-    user: PropTypes.object,
-    resetAuth: PropTypes.func.isRequired
-};
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(AddOrganization);

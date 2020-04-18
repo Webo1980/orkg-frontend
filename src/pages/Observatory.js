@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Container,Button } from 'reactstrap';
-import { getOrganization, getAllObservatoriesbyOrganizationId } from '../network';
+import { getObservatorybyId, getOrganization } from '../network';
 import { StyledStatementItem } from 'components/AddPaper/Contributions/styled';
+import ShortRecord from '../components/ShortRecord/ShortRecord';
 import StatementBrowser from '../components/StatementBrowser/Statements';
 import EditableHeader from '../components/EditableHeader';
 import InternalServerError from '../components/StaticPages/InternalServerError';
@@ -16,7 +17,7 @@ import { Redirect } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 
-class OrganizationDetails extends Component {
+class Observatory extends Component {
     constructor(props) {
         super(props);
 
@@ -30,29 +31,40 @@ class OrganizationDetails extends Component {
             image: '',
             resourceId:'',
             totalObservatories:'',
-            url:''
+            url:'',
+            users:[]
         };
     }
 
     componentDidMount() {
-        this.findOrg();
-        this.getTotalObservatories(this.props.match.params.id);
+        this.findObs();
+        //this.getTotalObservatories(this.props.match.params.id);
     }
 
     componentDidUpdate = prevProps => {
         if (this.props.match.params.id !== prevProps.match.params.id) {
-            this.findOrg();
+            //this.findObs();
         }
     };
 
-    findOrg = () => {
+    findObs = () => {
         //alert(this.props.match.params.id);
         this.setState({ isLoading: true });
-        getOrganization(this.props.match.params.id)
+        getObservatorybyId(this.props.match.params.id)
             .then(responseJson => {
-                document.title = `${responseJson.organizationName} - Org - ORKG`;
-                this.setState({ label: responseJson.organizationName, isLoading: false});
-                this.setState({ image: responseJson.organizationLogo, isLoading: false});
+                //console.log(responseJson.users[0].displayName);
+                const allUsers = [...this.state.users, responseJson.users];
+                console.log(allUsers[0]);
+                this.setState({
+                    users: allUsers[0]
+                 });
+                 console.log(this.state.users);
+                //this.state.users: [...this.state.users, ...responseJson.users],
+                document.title = `${responseJson.name} - Org - ORKG`;
+                this.setState({ label: responseJson.name, isLoading: false});
+                const orgInfo = getOrganization(responseJson.organizationId);
+                console.log(orgInfo);
+                //this.setState({ image: responseJson.organizationLogo, isLoading: false});
                 this.setState({ resourceId: this.props.match.params.id});
                 //this.getTotalObservatories(this.props.match.params.id);
             })
@@ -96,21 +108,6 @@ class OrganizationDetails extends Component {
         //return <Redirect to={ROUTES.ADD_ORGANIZATION}  />
     };
 
-    getTotalObservatories = id => {
-        //alert(this.props.match.params.id);
-        this.setState({ isLoading: true });
-        getAllObservatoriesbyOrganizationId(this.props.match.params.id)
-            .then(responseJson => {
-                //document.title = `${responseJson.organizationName} - Org - ORKG`;
-                this.setState({ totalObservatories: responseJson.length, isLoading: false});
-                //this.setState({ image: responseJson.organizationLogo, isLoading: false});
-                //this.setState({ resourceId: this.props.match.params.id});
-            })
-            .catch(error => {
-                this.setState({ label: null, isLoading: false});
-            });
-    };
-
 
     render() {
         const id = this.props.match.params.id;
@@ -152,13 +149,27 @@ class OrganizationDetails extends Component {
                                 {!this.state.editMode ? (
                                     <div className="pb-2 mb-3">
                                         <h3 className={''} style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
-                                           {/* <Button className="float-right" color="darkblue" size="sm" onClick={() => this.toggle('editMode')}> */}
+                                            {/* <Button className="float-right" color="darkblue" size="sm" onClick={() => this.toggle('editMode')}> */}
                                                 {/* <Icon icon={faPen} /> Edit */}
                                             {/* </Button> */}
-                
+
                                             {this.state.label}
-                                            <img width="150" height="150" className="float-right" src={this.state.image} alt="" />
-                                        </h3>
+                                            <br />
+                                            <br />
+                                            {this.state.users.length > 0 && (                                                
+                                            <div>
+                                                {this.state.users.map(user => {
+                                                    return (
+                                                       <h5> <ShortRecord key={user.id} header={user.displayName}>
+                                                        </ShortRecord> </h5>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+
+
+                                                </h3>
                                         {this.state.classes.length > 0 && (
                                             <span style={{ fontSize: '90%' }}>
                                                 Classes:{' '}
@@ -180,24 +191,8 @@ class OrganizationDetails extends Component {
                                 )}
                             </div>
                             <div className={'clearfix'}>
+ 
                             
-
-                            { 
-                    (this.state.totalObservatories)?( 
-                    <div><i>Total Observatories: {this.state.totalObservatories}</i></div> 
-                    ) : ( 
-                        <div>No observatories yet </div> 
-                    ) 
-                } 
-                            
-                            <br />
-                            <Button outline size="sm" className={'mb-3'} value="listObservatories" onClick={this.handleAdd}>
-                            List Observatories
-                            </Button>
-                            &nbsp; &nbsp;
-                            <Button outline size="sm" className={'mb-3'} value="addObservatory" onClick={this.handleAdd}>
-                            Create new observatoy
-                            </Button>
                                         
                                 <SameAsStatements />
                             </div>
@@ -209,7 +204,7 @@ class OrganizationDetails extends Component {
     }
 }
 
-OrganizationDetails.propTypes = {
+Observatory.propTypes = {
     match: PropTypes.shape({
         params: PropTypes.shape({
             id: PropTypes.string.isRequired
@@ -217,4 +212,4 @@ OrganizationDetails.propTypes = {
     }).isRequired
 };
 
-export default OrganizationDetails;
+export default Observatory;

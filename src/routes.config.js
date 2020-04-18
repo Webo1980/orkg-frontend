@@ -23,6 +23,9 @@ import Resources from './pages/Resources';
 import Organizations from './pages/Organizations';
 import OrganizationDetails from './pages/OrganizationDetails';
 import AddOrganization from './pages/AddOrganization';
+import AddObservatory from './pages/AddObservatory';
+import Observatory from './pages/Observatory';
+import Observatories from './pages/ObservatoryDetails';
 import SearchResults from './components/Search/Search';
 import ViewPaper from './components/ViewPaper/ViewPaper';
 import Stats from './components/Stats/Stats';
@@ -172,6 +175,21 @@ const routes = [
         path: ROUTES.ADD_ORGANIZATION,
         exact:true,
         component: AddOrganization
+    },
+    {
+        path: ROUTES.ADD_OBSERVATORY,
+        exact:true,
+        component: AddObservatory
+    },
+    {
+        path: ROUTES.OBSERVATORY,
+        exact:true,
+        component: Observatory
+    },
+    {
+        path: ROUTES.OBSERVATORIES,
+        exact:true,
+        component: Observatories
     },
     {
         path: ROUTES.TPDL,
