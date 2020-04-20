@@ -13,4 +13,4 @@ RUN npm rebuild node-sass
 RUN npm install
 RUN cp default.env .env
 RUN ./pre-release.sh
-RUN npm start
+CMD npm start
