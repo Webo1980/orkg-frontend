@@ -6,8 +6,9 @@ ENV PATH /app/node_modules/.bin:$PATH
 
 COPY package.json package-lock.json ./
 
+# NOTE: opencollective is not required but leads to warnings if missing
 RUN npm install react-scripts opencollective --production
-RUN HUSKY_SKIP_INSTALL=1 npm clean-install
+RUN npm clean-install --production
 
 COPY . ./
 
