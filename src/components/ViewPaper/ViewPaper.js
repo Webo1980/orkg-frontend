@@ -17,6 +17,7 @@ import queryString from 'query-string';
 import { toast } from 'react-toastify';
 import Confirm from 'reactstrap-confirm';
 import styled from 'styled-components';
+import AltmetricsBox from 'components/AltmetricsBox/AltmetricsBox';
 import SharePaper from './SharePaper';
 
 export const EditModeHeader = styled(Container)`
@@ -445,6 +446,8 @@ class ViewPaper extends Component {
                                     <Alert color="danger">Failed to load contributions.</Alert>
                                 </>
                             )}
+
+                            <AltmetricsBox />
                         </Container>
                     </>
                 )}
