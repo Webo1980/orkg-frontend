@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Alert, Col, Container, Form, FormGroup, Row, Button } from 'reactstrap';
-import { StyledContribution, StyledContributionsList } from '../AddPaper/Contributions/styled';
-import { getResource, getSimilaireContribution, deleteStatementById, createResource, createResourceStatement } from '../../network';
+import { getResource, getSimilaireContribution, deleteStatementById, createResource, createResourceStatement, getObservatorybyId, getOrganization, getUserInformationById, getContributorsByResourceId } from '../../network';
 import AddToComparison from './AddToComparison';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import ContentLoader from 'react-content-loader';
@@ -9,7 +8,7 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import ROUTES from '../../constants/routes';
 import SimilarContributions from './SimilarContributions';
-import StatementBrowser from '../StatementBrowser/Statements';
+import StatementBrowser from 'components/StatementBrowser/Statements/StatementsContainer';
 import ResearchProblemInput from 'components/AddPaper/Contributions/ResearchProblemInput';
 import ContributionItemList from 'components/AddPaper/Contributions/ContributionItemList';
 import { connect } from 'react-redux';
@@ -17,6 +16,58 @@ import { reverse } from 'named-urls';
 import { toast } from 'react-toastify';
 import { selectContribution, updateResearchProblems } from '../../actions/viewPaper';
 import styled from 'styled-components';
+import { StyledHorizontalContributionsList, StyledHorizontalContribution } from '../AddPaper/Contributions/styled';
+import Tippy from '@tippy.js/react';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faPlus, faHandMiddleFinger } from '@fortawesome/free-solid-svg-icons';
+import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
+import 'react-vertical-timeline-component/style.min.css';
+
+
+  const FeaturedTabs = styled.div`
+    .tab {
+        margin-bottom: 0;
+        padding: 10px;
+        color: #666666;
+        cursor: pointer;
+        -webkit-transition: border 500ms ease-out;
+        -moz-transition: border 500ms ease-out;
+        -o-transition: border 500ms ease-out;
+        transition: border 500ms ease-out;
+        background-color: #d4d8e0;
+        font-size:12px;
+        font-weight:bold;
+        &.active,
+        &:hover {
+            background-color: #f8f9fb;
+            color: #666666;
+        }
+    }
+`;
+
+const ErrorMessage = styled.div`
+        margin-bottom: 0;
+        padding: 10px;
+        color: #666666;
+        cursor: pointer;
+        height: 60px;
+        -webkit-transition: border 500ms ease-out;
+        -moz-transition: border 500ms ease-out;
+        -o-transition: border 500ms ease-out;
+        transition: border 500ms ease-out;
+        background-color: #E0F2FC;
+        border-color: #E0F2FC;
+        font-size:12px;
+        font-weight:bold;
+`;
+
+const SidebarStyledBox = styled.div`
+    flex-grow: 1;
+    overflow: hidden;
+    @media (max-width: 768px) {
+        margin-top: 20px;
+    }
+`;
 
 const Title = styled.div`
     font-size: 18px;
@@ -31,6 +82,16 @@ const Title = styled.div`
         }
     }
 `;
+
+const buttonStyle = {
+        backgroundColor: "#f8f9fb",
+        paddingLeft: 15,
+        paddingTop: 10,
+        borderBottom: '1px solid #eeeff3',
+        fontSize:12
+        //border: solid,
+        };
+
 
 const AnimationContainer = styled(CSSTransition)`
     transition: 0.3s background-color, 0.3s border-color;
@@ -56,9 +117,19 @@ class Contributions extends Component {
             loading: true,
             similaireContributions: [],
             isSimilaireContributionsLoading: true,
-            isSimilaireContributionsFailedLoading: false
+            isSimilaireContributionsFailedLoading: false,
+            observatory:[],
+            label:'',
+            activeTab: 1,
+            userData:[]
         };
     }
+
+    toggle = tab => {
+        if (this.state.activeTab !== tab) {
+            this.setState({ activeTab: tab });
+        }
+    };
 
     componentDidUpdate = prevProps => {
         if (this.props.paperId !== prevProps.paperId) {
@@ -67,6 +138,9 @@ class Contributions extends Component {
         if (this.props.selectedContribution !== '' && this.props.selectedContribution !== this.state.selectedContribution) {
             this.setState({ selectedContribution: this.props.selectedContribution }, () => {
                 this.handleSelectContribution(this.state.selectedContribution);
+                
+                this.getObservatoryAndOrganizationInformation(this.props.observatoryInfo[0]);
+                this.getResourceContributors(this.props.paperId);
             });
         }
     };
@@ -140,54 +214,194 @@ class Contributions extends Component {
         });
     };
 
+    getObservatoryAndOrganizationInformation = async (id) => {
+        //const temp = [];
+        getObservatorybyId(id)
+        .then(responseJson => {
+            //const orgInfo = 
+            
+            getOrganization(responseJson.organizationId)
+            .then(orgResponse => {
+                //console.log(orgResponse);
+                
+                getUserInformationById(this.props.observatoryInfo[2])
+            .then(userResponse => {
+                console.log(userResponse);
+            
+            this.setState({
+                observatory:  [...this.state.observatory, responseJson.name.toUpperCase()]
+            });
+
+            this.setState({
+                observatory:  [...this.state.observatory, orgResponse.organizationName]
+            });
+
+            this.setState({
+                observatory:  [...this.state.observatory, orgResponse.organizationLogo]
+            });
+
+            this.setState({
+                observatory:  [...this.state.observatory, userResponse.display_name]
+            });
+
+        })
+        .catch(error => {
+            this.setState({ label: null, isLoading: false});
+        });
+
+        })
+        .catch(error => {
+            this.setState({ label: null, isLoading: false});
+        });
+
+        })
+        .catch(error => {
+            this.setState({ label: null, isLoading: false});
+        });
+        
+        };
+
+        getResourceContributors = async (id) => {
+            //const temp = [];
+            getContributorsByResourceId(id)
+            .then(responseJson => {
+                //const orgInfo = 
+                const a={};
+                for(let i=0; i<responseJson.length; i++) {
+                    console.log(responseJson.length);
+                    a[i]={};
+                    if((/^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/).test(responseJson[i].created_by)) {
+                        a[i]["created_by"]="Unknown";
+                    }
+                    else {
+                     getUserInformationById(responseJson[i].created_by)
+                                        .then(userResponse=> {
+                                            if(userResponse!=="")
+                                            a[i]["created_by"]=userResponse.display_name;
+                                        });
+                    } 
+                    a[i]["created_at"] = responseJson[i].created_at.substring(0,10);
+                    this.setState({
+                    userData:  [...this.state.userData, a[i]]
+                    });
+                }
+                console.log(this.state.userData);
+                console.log("--------");
+                    
+            })      
+            .catch(error => {
+                this.setState({ label: null, isLoading: false});
+            });
+            
+            }
+
     render() {
         const selectedContributionId = this.state.selectedContribution;
+        
+        let rightSidebar;
+
+        switch (this.state.activeTab) {
+            case 1:
+            default:
+                rightSidebar = (
+                    <AnimationContainer key={1} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div>
+                        
+                            <ul class="list-group">
+                                
+                                <li style={buttonStyle}>
+                                    <p>        
+                                        <b>{this.state.observatory[0]}</b>
+                                        <br/>
+                                    <center> 
+                                        <img style={{paddingTop: 8}} height="70" src={this.state.observatory[2]} alt="" />
+                                    </center>
+                                    <p style={{fontSize:12}}>{this.state.observatory[1]}</p>
+                                    </p>
+                                </li>
+                
+                            <li style={buttonStyle}>
+                            
+                                <p><b>DATE ADDED</b>
+                                <br/>
+                                {this.props.observatoryInfo[1]}</p>
+                            </li>
+                            
+                            <li style={buttonStyle}>
+                                <p><b>ADDED BY</b>
+                                <br/>
+                                {this.state.observatory[3]}</p>
+                            </li>
+                            <li style={buttonStyle}>
+                                <b>CONTRIBUTORS</b>
+                                {this.state.userData.map((key,user) => {  
+                                return (
+                                 <div>
+                                        {key["created_by"]!=="Unknown" &&(
+                                        <span>{key["created_by"]}</span>
+                                        )}
+                                </div>
+
+                            );
+                        })}
+                            </li>
+
+
+                    </ul>
+                                
+                            
+                        </div>
+                    </AnimationContainer>
+                );
+                break;
+            case 2:
+                rightSidebar = (
+                    <AnimationContainer key={2} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div>
+                        {this.state.userData.map((key,user) => {  
+                            return (
+                                <VerticalTimeline>
+                                <VerticalTimelineElement
+                                  className="vertical-timeline-element--work"
+                                  date={key["created_at"]}
+                                  iconStyle={{ background: "rgb(212, 216, 224)", color: "#b8b8b9" }}
+                                >
+                                    {key["created_by"]==this.state.observatory[3] &&(
+                                    <p>Added by <b>{key["created_by"]}</b> </p>
+                                    )}
+
+                                    {key["created_by"]!==this.state.observatory[3] &&(
+                                        <p>Updated by <b>{key["created_by"]}</b> </p>
+                                    )}
+                                </VerticalTimelineElement>
+                                </VerticalTimeline>
+                            );
+                            
+                        })} 
+                        
+                    </div>
+                    </AnimationContainer>
+                );
+                break;
+        }
 
         return (
             <div>
                 <Container>
                     <Row noGutters={true}>
-                        <Col md="3">
+                        <Col md="9">
                             {this.state.loading && (
                                 <div>
-                                    <ContentLoader height={20} width={100} speed={2} primaryColor="#E86161" secondaryColor="#ecebeb">
-                                        <rect x="0" y="5" rx="0" ry="0" width={100} height="15" />
-                                    </ContentLoader>
-                                    <ContentLoader height={40} width={100} speed={2} primaryColor="#f3f3f3" secondaryColor="#ecebeb">
-                                        <rect x="0" y="5" rx="0" ry="0" width={100} height="15" />
-                                        <rect x="0" y="25" rx="0" ry="0" width={100} height="15" />
+                                    <ContentLoader height={6} width={100} speed={2} primaryColor="#f3f3f3" secondaryColor="#ecebeb">
+                                        <rect x="0" y="0" rx="1" ry="1" width={20} height="5" />
+                                        <rect x="21" y="0" rx="1" ry="1" width={20} height="5" />
+                                        <rect x="42" y="0" rx="1" ry="1" width={20} height="5" />
                                     </ContentLoader>
                                 </div>
                             )}
-                            {!this.state.loading && !this.props.enableEdit && (
-                                <StyledContributionsList>
-                                    {this.props.contributions.map((contribution, index) => {
-                                        return (
-                                            <li
-                                                className={contribution.id === selectedContributionId ? 'activeContribution' : ''}
-                                                key={contribution.id}
-                                            >
-                                                {contribution.id !== selectedContributionId ? (
-                                                    <Link
-                                                        to={reverse(ROUTES.VIEW_PAPER, {
-                                                            resourceId: this.props.paperId,
-                                                            contributionId: contribution.id
-                                                        })}
-                                                        className={'selectContribution'}
-                                                    >
-                                                        {contribution.label}
-                                                    </Link>
-                                                ) : (
-                                                    contribution.label
-                                                )}
-                                            </li>
-                                        );
-                                    })}
-                                </StyledContributionsList>
-                            )}
-                            {!this.state.loading && this.props.enableEdit && (
-                                <StyledContributionsList>
-                                    {this.props.contributions.map((contribution, index) => {
+                            {!this.state.loading && (
+                                <StyledHorizontalContributionsList className={!this.props.enableEdit && 'noEdit'}>
+                                    {this.props.contributions.map(contribution => {
                                         return (
                                             <ContributionItemList
                                                 paperId={this.props.paperId}
@@ -198,18 +412,26 @@ class Contributions extends Component {
                                                 contribution={contribution}
                                                 key={contribution.id}
                                                 toggleDeleteContribution={this.props.toggleDeleteContribution}
+                                                enableEdit={this.props.enableEdit}
                                             />
                                         );
                                     })}
-                                    <li className={'addContribution text-primary'}>
-                                        <span onClick={() => this.props.handleCreateContribution()}>+ Add another contribution</span>
-                                    </li>
-                                </StyledContributionsList>
+                                    {this.props.enableEdit && (
+                                        <li className={'addContribution'} onClick={() => this.props.handleCreateContribution()}>
+                                            <Tippy content="Add contribution">
+                                                <span>
+                                                    <Icon size="xs" icon={faPlus} />
+                                                </span>
+                                            </Tippy>
+                                        </li>
+                                    )}
+                                </StyledHorizontalContributionsList>
                             )}
                         </Col>
+
                         <TransitionGroup className="col-md-9" exit={false}>
                             <AnimationContainer key={selectedContributionId} classNames="fadeIn" timeout={{ enter: 500, exit: 0 }}>
-                                <StyledContribution>
+                                <StyledHorizontalContribution>
                                     {!this.state.loading && (
                                         <AddToComparison
                                             contributionId={selectedContributionId}
@@ -340,10 +562,36 @@ class Contributions extends Component {
                                             )}
                                         </FormGroup>
                                     </Form>
-                                </StyledContribution>
+                                </StyledHorizontalContribution>
                             </AnimationContainer>
                         </TransitionGroup>
+                        {!(/^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/).test(this.props.observatoryInfo[0]) && (
+                        <div>
+                    
+                        
+                        <SidebarStyledBox style={{width:230, minHeight:430, backgroundColor: "#f8f9fb", marginLeft:20}} className="box rounded-lg">
+                            <FeaturedTabs className="clearfix d-flex">
+                                <div id="div1" className={`h6 col-md-6 text-center tab ${this.state.activeTab === 1 ? 'active' : ''}`} onClick={() => this.toggle(1)}>
+                                    Provenance
+                                </div>
+                                <div id="div2" className={`h6 col-md-6 text-center tab ${this.state.activeTab === 2 ? 'active' : ''}`} onClick={() => this.toggle(2)}>
+                                Timeline
+                                </div>
+                            </FeaturedTabs>
+                        {this.props.observatoryInfo[3] && (
+                            <ErrorMessage class="alert-server">
+                                The data has been partially imported automatically.
+                            </ErrorMessage>
+                        )}
+                        <TransitionGroup exit={false}>{rightSidebar}</TransitionGroup>
+                        </SidebarStyledBox>
+
+
+                        </div>
+                    )}
+                        
                     </Row>
+
                 </Container>
             </div>
         );

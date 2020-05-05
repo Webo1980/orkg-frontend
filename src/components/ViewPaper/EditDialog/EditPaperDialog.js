@@ -47,7 +47,9 @@ class EditPaperDialog extends Component {
             publicationYear: this.props.viewPaper.publicationYear,
             doi: this.props.viewPaper.doi,
             authors: this.props.viewPaper.authors,
-            publishedIn: this.props.viewPaper.publishedIn
+            publishedIn: this.props.viewPaper.publishedIn,
+            url: this.props.viewPaper.url,
+            researchField: this.props.viewPaper.researchField
         };
     };
 
@@ -95,25 +97,37 @@ class EditPaperDialog extends Component {
             this.setState({ publishedIn: '' });
         }
 
+        // research field
+        if (this.state.researchField && this.state.researchField.statementId && this.state.researchField.id) {
+            await updateStatement(this.state.researchField.statementId, { object_id: this.state.researchField.id });
+        }
+
         //publication month
-        this.updateOrCreateLiteral({
+        loadPaper['publicationMonthResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'publicationMonthResourceId',
             value: this.state.publicationMonth,
             predicateIdForCreate: process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_MONTH
         });
 
         //publication year
-        this.updateOrCreateLiteral({
+        loadPaper['publicationYearResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'publicationYearResourceId',
             value: this.state.publicationYear,
             predicateIdForCreate: process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR
         });
 
         //doi
-        this.updateOrCreateLiteral({
+        loadPaper['doiResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'doiResourceId',
             value: this.state.doi,
             predicateIdForCreate: process.env.REACT_APP_PREDICATES_HAS_DOI
+        });
+
+        //url
+        loadPaper['urlResourceId'] = await this.updateOrCreateLiteral({
+            reducerName: 'urlResourceId',
+            value: this.state.url,
+            predicateIdForCreate: process.env.REACT_APP_PREDICATES_URL
         });
 
         //update redux state with changes, so it is updated on the view paper page
@@ -124,7 +138,9 @@ class EditPaperDialog extends Component {
             publicationYear: this.state.publicationYear,
             doi: this.state.doi,
             authors: this.state.authors,
-            publishedIn: this.state.publishedIn
+            publishedIn: this.state.publishedIn,
+            url: this.state.url,
+            researchField: this.state.researchField
         });
 
         this.setState({
@@ -139,11 +155,13 @@ class EditPaperDialog extends Component {
 
         if (literalId) {
             updateLiteral(literalId, value);
+            return literalId;
         } else if (value) {
             // only create a new literal if a value has been provided
             const newLiteral = await this.createNewLiteral(this.props.viewPaper.paperResourceId, predicateIdForCreate, value);
-            loadPaper[reducerName] = newLiteral.literalId;
+            return newLiteral.literalId;
         }
+        return null;
     };
 
     createNewLiteral = async (resourceId, predicateId, label) => {
@@ -262,6 +280,15 @@ class EditPaperDialog extends Component {
         }
     };
 
+    handleResearchFieldChange = async (selected, action) => {
+        if (action.action === 'select-option') {
+            selected.statementId = this.state.researchField && this.state.researchField.statementId ? this.state.researchField.statementId : '';
+            this.setState({
+                researchField: selected
+            });
+        }
+    };
+
     render() {
         return (
             <>
@@ -334,16 +361,32 @@ class EditPaperDialog extends Component {
                                 />
                                 <EditItem
                                     open={this.state.openItem === 'publishedIn'}
-                                    isLastItem={true}
                                     label="Published in"
                                     type="publishedIn"
                                     value={this.state.publishedIn}
                                     onChange={this.handleVenueChange}
                                     toggleItem={() => this.toggleItem('publishedIn')}
                                 />
+                                <EditItem
+                                    open={this.state.openItem === 'researchField'}
+                                    label="Research Field"
+                                    type="researchField"
+                                    value={this.state.researchField}
+                                    onChange={this.handleResearchFieldChange}
+                                    toggleItem={() => this.toggleItem('researchField')}
+                                />
+                                <EditItem
+                                    open={this.state.openItem === 'url'}
+                                    isLastItem={true}
+                                    label="Paper URL"
+                                    type="text"
+                                    value={this.state.url}
+                                    onChange={e => this.handleChange(e, 'url')}
+                                    toggleItem={() => this.toggleItem('url')}
+                                />
                             </ListGroup>
 
-                            <Button color="primary" className="float-right mt-2 mb-2" onClick={this.handleSave}>
+                            <Button disabled={this.state.isLoading} color="primary" className="float-right mt-2 mb-2" onClick={this.handleSave}>
                                 Save
                             </Button>
                         </ModalBody>
@@ -363,6 +406,8 @@ EditPaperDialog.propTypes = {
         publicationYear: PropTypes.number.isRequired,
         doi: PropTypes.string.isRequired,
         publishedIn: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+        url: PropTypes.string,
+        researchField: PropTypes.object.isRequired,
         authors: PropTypes.arrayOf(
             PropTypes.shape({
                 id: PropTypes.string.isRequired,

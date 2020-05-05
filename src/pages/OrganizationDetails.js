@@ -1,20 +1,28 @@
 import React, { Component } from 'react';
 import { Container,Button } from 'reactstrap';
 import { getOrganization, getAllObservatoriesbyOrganizationId } from '../network';
-import { StyledStatementItem } from 'components/AddPaper/Contributions/styled';
-import StatementBrowser from '../components/StatementBrowser/Statements';
 import EditableHeader from '../components/EditableHeader';
 import InternalServerError from '../components/StaticPages/InternalServerError';
 import NotFound from '../components/StaticPages/NotFound';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+import styled from 'styled-components';
 import { EditModeHeader, Title } from 'components/ViewPaper/ViewPaper';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import SameAsStatements from './SameAsStatements';
 import ROUTES from '../constants/routes';
 import { Redirect } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
+
+const ImageBox = styled.div`        
+    border: 5px solid black;
+    float: right;
+    padding: 15px;
+    margin-top: 25px;
+    align: center;
+`;  
 
 class OrganizationDetails extends Component {
     constructor(props) {
@@ -157,7 +165,9 @@ class OrganizationDetails extends Component {
                                             {/* </Button> */}
                 
                                             {this.state.label}
-                                            <img width="150" height="150" className="float-right" src={this.state.image} alt="" />
+                                            
+                                            <img style={{float: 'right', marginTop:15}} height= "100" src={this.state.image} alt="" />
+
                                         </h3>
                                         {this.state.classes.length > 0 && (
                                             <span style={{ fontSize: '90%' }}>
@@ -195,9 +205,12 @@ class OrganizationDetails extends Component {
                             List Observatories
                             </Button>
                             &nbsp; &nbsp;
-                            <Button outline size="sm" className={'mb-3'} value="addObservatory" onClick={this.handleAdd}>
-                            Create new observatoy
-                            </Button>
+                            {this.props.user && (
+                                <Button outline size="sm" className={'mb-3'} value="addObservatory" onClick={this.handleAdd}>
+                                Create new observatoy
+                                </Button>
+                            )}
+                            
                                         
                                 <SameAsStatements />
                             </div>
@@ -217,4 +230,13 @@ OrganizationDetails.propTypes = {
     }).isRequired
 };
 
-export default OrganizationDetails;
+const mapStateToProps = state => ({
+    user: state.auth.user
+    });
+    
+    export default connect(
+        mapStateToProps,
+        null
+    )(OrganizationDetails);
+
+//export default OrganizationDetails;

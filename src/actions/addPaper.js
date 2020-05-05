@@ -179,7 +179,7 @@ export const prefillStatements = ({ statements, resourceId }) => dispatch => {
     for (const value of statements.values) {
         dispatch(
             createValue({
-                valueId: value.valueId,
+                valueId: value.valueId ? value.valueId : guid(),
                 label: value.label,
                 type: value.type ? value.type : 'object',
                 templateId: value.templateId ? value.templateId : null,
@@ -325,6 +325,7 @@ export const saveAddPaper = data => {
                 publicationMonth: data.publicationMonth,
                 publicationYear: data.publicationYear,
                 publishedIn: data.publishedIn,
+                url: data.url,
                 researchField: data.selectedResearchField,
                 // Set the contributions data
                 contributions: data.contributions.allIds.map(c => {

@@ -7,6 +7,7 @@ export const resourcesUrl = `${url}resources/`;
 export const organizationsUrl = `${url}organizations/`;
 export const observatoriesUrl = `${url}observatories/`;
 export const predicatesUrl = `${url}predicates/`;
+export const userUrl = `${url}user/`;
 export const statementsUrl = `${url}statements/`;
 export const literalsUrl = `${url}literals/`;
 export const classesUrl = `${url}classes/`;
@@ -158,6 +159,10 @@ const submitDeleteRequest = (url, headers, data) => {
 
 export const updateResource = (id, label) => {
     return submitPutRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json' }, { label: label });
+};
+
+export const updateResourceClasses = (id, classes = null) => {
+    return submitPutRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json' }, { ...(classes ? { classes: classes } : null) });
 };
 
 export const updateLiteral = (id, label) => {
@@ -594,6 +599,7 @@ export const getAllOrganizations = () => {
 };
 
 export const getOrganization = id => {
+    console.log("123");
     return submitGetRequest(`${organizationsUrl}${encodeURIComponent(id)}/`);
 };
 
@@ -612,8 +618,19 @@ export const getObservatorybyId = id => {
     return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/`);
 };
 
+export const getUsersByObservatoryId = id => {
+    return submitGetRequest(`${userUrl}listuser/${encodeURIComponent(id)}/`);
+};
+
+export const getResourcesByObservatoryId = id => {
+    return submitGetRequest(`${resourcesUrl}findByObservatory/${encodeURIComponent(id)}/`);
+};
+
 export const createObservatory = (observatoryName, organizationId) => {
     //alert(organizationLogo);
     //debugger;
     return submitPostRequest(observatoriesUrl, { 'Content-Type': 'application/json' }, { observatoryName, organizationId });
+};
+export const getContributorsByResourceId = id => {
+    return submitGetRequest(`${resourcesUrl}findContributors/${encodeURIComponent(id)}/`);
 };

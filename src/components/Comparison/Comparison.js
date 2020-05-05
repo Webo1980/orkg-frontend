@@ -3,7 +3,7 @@ import { Alert, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Bu
 import { comparisonUrl, submitGetRequest, getResource, getStatementsBySubject } from 'network';
 import { getContributionIdsFromUrl, getPropertyIdsFromUrl, getTransposeOptionFromUrl, getResonseHashFromUrl, get_error_message } from 'utils';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faDownload, faArrowsAltH, faLightbulb } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisV, faPlus, faArrowsAltH, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import ComparisonLoadingComponent from './ComparisonLoadingComponent';
 import ComparisonTable from './ComparisonTable.js';
@@ -11,6 +11,7 @@ import ExportToLatex from './ExportToLatex.js';
 import GeneratePdf from './GeneratePdf.js';
 import SelectProperties from './SelectProperties.js';
 import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
+import AddContribution from 'components/Comparison/AddContribution/AddContribution';
 import Share from './Share.js';
 import Publish from './Publish.js';
 import { Link } from 'react-router-dom';
@@ -22,6 +23,7 @@ import dotProp from 'dot-prop-immutable';
 import { reverse } from 'named-urls';
 import { generateRdfDataVocabularyFile } from 'utils';
 import { ContainerAnimated } from './styled';
+import RelatedResources from './RelatedResources';
 
 class Comparison extends Component {
     constructor(props) {
@@ -37,7 +39,6 @@ class Comparison extends Component {
             createdBy: '',
             contributions: [],
             dropdownOpen: false,
-            dropdownExportOpen: false,
             properties: [],
             data: {},
             csvData: [],
@@ -45,11 +46,13 @@ class Comparison extends Component {
             showShareDialog: false,
             showLatexDialog: false,
             showPublishDialog: false,
+            showAddContribuion: false,
             isLoading: false,
             loadingFailed: false,
             fullWidth: false,
             errors: null,
-            locationSearch: ''
+            locationSearch: '',
+            relatedResources: []
         };
     }
 
@@ -197,6 +200,14 @@ class Comparison extends Component {
                             statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_REFERENCE
                         );
                         const urlStatement = comparisonStatement.find(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_URL);
+                        const resourcesStatements = comparisonStatement.filter(
+                            statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_RELATED_RESOURCES
+                        );
+                        const relatedResources = [];
+                        for (const resource of resourcesStatements) {
+                            relatedResources.push(resource.object.label);
+                        }
+
                         if (urlStatement) {
                             this.getComparisonResult(urlStatement.object.label.substring(urlStatement.object.label.indexOf('?')));
                             this.setState({
@@ -205,7 +216,8 @@ class Comparison extends Component {
                                 description: descriptionStatement.object.label,
                                 reference: referenceStatement ? referenceStatement.object.label : '',
                                 createdAt: descriptionStatement.object.created_at,
-                                createdBy: descriptionStatement.object.created_by
+                                createdBy: descriptionStatement.object.created_by,
+                                relatedResources
                             });
                         } else {
                             throw new Error('The requested comparison has no contributions.');
@@ -236,6 +248,11 @@ class Comparison extends Component {
         }
 
         this.generateUrl(contributionIds.join(','));
+    };
+
+    addContributions = newContributionIds => {
+        const contributionIds = getContributionIdsFromUrl(this.state.locationSearch || this.props.location.search);
+        this.generateUrl(contributionIds.concat(newContributionIds).join(','));
     };
 
     toggle = type => {
@@ -328,8 +345,76 @@ class Comparison extends Component {
 
         return (
             <div>
-                <ContainerAnimated className="p-0 d-flex align-items-center" style={containerStyle}>
-                    <h1 className="h4 mt-4 mb-4 ">Contribution comparison</h1>
+                <ContainerAnimated className="d-flex align-items-center">
+                    <h1 className="h4 mt-4 mb-4 flex-grow-1">Contribution comparison</h1>
+
+                    {contributionAmount > 1 && !this.state.isLoading && !this.state.loadingFailed && (
+                        <div style={{ marginLeft: 'auto' }} className="flex-shrink-0 mt-4">
+                            <ButtonGroup className="float-right mb-4 ml-1">
+                                <Button color="darkblue" size="sm" onClick={this.handleFullWidth} style={{ marginRight: 3 }}>
+                                    <Icon icon={faArrowsAltH} /> <span className="mr-2">Full width</span>
+                                </Button>
+                                <Button
+                                    className="flex-shrink-0"
+                                    color="darkblue"
+                                    size="sm"
+                                    style={{ marginRight: 3 }}
+                                    onClick={() => this.toggle('showAddContribuion')}
+                                >
+                                    <Icon icon={faPlus} style={{ margin: '2px 4px 0 0' }} /> Add contribution
+                                </Button>
+                                <Dropdown group isOpen={this.state.dropdownOpen} toggle={() => this.toggle('dropdownOpen')}>
+                                    <DropdownToggle color="darkblue" size="sm" className="rounded-right">
+                                        <span className="mr-2">More</span> <Icon icon={faEllipsisV} />
+                                    </DropdownToggle>
+                                    <DropdownMenu>
+                                        <DropdownItem header>Customize</DropdownItem>
+                                        <DropdownItem onClick={() => this.toggle('showPropertiesDialog')}>Select properties</DropdownItem>
+                                        <DropdownItem onClick={() => this.toggleTranpose()}>Transpose table</DropdownItem>
+                                        <DropdownItem divider />
+                                        <DropdownItem header>Export</DropdownItem>
+                                        <DropdownItem onClick={() => this.toggle('showLatexDialog')}>Export as LaTeX</DropdownItem>
+                                        {this.state.csvData ? (
+                                            <CSVLink
+                                                data={this.state.csvData}
+                                                filename={'ORKG Contribution Comparison.csv'}
+                                                className="dropdown-item"
+                                                target="_blank"
+                                                onClick={() => this.toggle('dropdownOpen')}
+                                            >
+                                                Export as CSV
+                                            </CSVLink>
+                                        ) : (
+                                            ''
+                                        )}
+                                        <GeneratePdf id="comparisonTable" />
+                                        <DropdownItem
+                                            onClick={() =>
+                                                generateRdfDataVocabularyFile(
+                                                    this.state.data,
+                                                    this.state.contributions,
+                                                    this.state.properties,
+                                                    this.props.match.params.comparisonId
+                                                        ? {
+                                                              title: this.state.title,
+                                                              description: this.state.description,
+                                                              creator: this.state.createdBy,
+                                                              date: this.state.createdAt
+                                                          }
+                                                        : { title: '', description: '', creator: '', date: '' }
+                                                )
+                                            }
+                                        >
+                                            Export as RDF
+                                        </DropdownItem>
+                                        <DropdownItem divider />
+                                        <DropdownItem onClick={() => this.toggle('showShareDialog')}>Share link</DropdownItem>
+                                        <DropdownItem onClick={() => this.toggle('showPublishDialog')}>Publish</DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </ButtonGroup>
+                        </div>
+                    )}
                     {/* 
                     // Created a breadcrumb so it is possible to navigate back to the original paper (or the first paper)
                     // problem is: when a contribution is performed, the first paper is not the paper from where the contribution started 
@@ -374,76 +459,6 @@ class Comparison extends Component {
                                             <ComparisonTitle>{this.state.title}</ComparisonTitle>
                                         </>
                                     )*/}
-                                    {contributionAmount > 1 && !this.state.isLoading && (
-                                        <div style={{ marginLeft: 'auto' }} className="flex-shrink-0 mt-4">
-                                            <ButtonGroup className="float-right mb-4 ml-1">
-                                                <Button color="darkblue" size="sm" onClick={this.handleFullWidth} style={{ marginRight: 3 }}>
-                                                    <span className="mr-2">Full width</span> <Icon icon={faArrowsAltH} />
-                                                </Button>
-                                                <Dropdown
-                                                    group
-                                                    isOpen={this.state.dropdownExportOpen}
-                                                    toggle={() => this.toggle('dropdownExportOpen')}
-                                                >
-                                                    <DropdownToggle color="darkblue" size="sm" style={{ marginRight: 3 }}>
-                                                        <span className="mr-2">Export</span> <Icon icon={faDownload} />
-                                                    </DropdownToggle>
-                                                    <DropdownMenu>
-                                                        <DropdownItem onClick={() => this.toggle('showLatexDialog')}>Export as LaTeX</DropdownItem>
-                                                        {this.state.csvData ? (
-                                                            <CSVLink
-                                                                data={this.state.csvData}
-                                                                filename={'ORKG Contribution Comparison.csv'}
-                                                                className="dropdown-item"
-                                                                target="_blank"
-                                                                onClick={() => this.toggle('dropdownExportOpen')}
-                                                            >
-                                                                Export as CSV
-                                                            </CSVLink>
-                                                        ) : (
-                                                            ''
-                                                        )}
-                                                        <GeneratePdf id="comparisonTable" />
-                                                        <DropdownItem
-                                                            onClick={() =>
-                                                                generateRdfDataVocabularyFile(
-                                                                    this.state.data,
-                                                                    this.state.contributions,
-                                                                    this.state.properties,
-                                                                    this.props.match.params.comparisonId
-                                                                        ? {
-                                                                              title: this.state.title,
-                                                                              description: this.state.description,
-                                                                              creator: this.state.createdBy,
-                                                                              date: this.state.createdAt
-                                                                          }
-                                                                        : { title: '', description: '', creator: '', date: '' }
-                                                                )
-                                                            }
-                                                        >
-                                                            Export as RDF
-                                                        </DropdownItem>
-                                                    </DropdownMenu>
-                                                </Dropdown>
-
-                                                <Dropdown group isOpen={this.state.dropdownOpen} toggle={() => this.toggle('dropdownOpen')}>
-                                                    <DropdownToggle color="darkblue" size="sm" className="rounded-right">
-                                                        <span className="mr-2">More</span> <Icon icon={faEllipsisV} />
-                                                    </DropdownToggle>
-                                                    <DropdownMenu>
-                                                        <DropdownItem header>Customize</DropdownItem>
-                                                        <DropdownItem onClick={() => this.toggle('showPropertiesDialog')}>
-                                                            Select properties
-                                                        </DropdownItem>
-                                                        <DropdownItem onClick={() => this.toggleTranpose()}>Transpose table</DropdownItem>
-                                                        <DropdownItem divider />
-                                                        <DropdownItem onClick={() => this.toggle('showShareDialog')}>Share link</DropdownItem>
-                                                        <DropdownItem onClick={() => this.toggle('showPublishDialog')}>Publish</DropdownItem>
-                                                    </DropdownMenu>
-                                                </Dropdown>
-                                            </ButtonGroup>
-                                        </div>
-                                    )}
                                 </div>
                                 {this.props.match.params.comparisonId ? (
                                     <>
@@ -499,6 +514,8 @@ class Comparison extends Component {
                             )}
                         </>
                     )}
+
+                    <RelatedResources resources={this.state.relatedResources} />
                 </ContainerAnimated>
 
                 <SelectProperties
@@ -514,6 +531,7 @@ class Comparison extends Component {
                     showDialog={this.state.showShareDialog}
                     toggle={() => this.toggle('showShareDialog')}
                     url={window.location.href}
+                    locationSearch={this.state.locationSearch || this.props.location.search}
                     comparisonId={this.props.match.params.comparisonId}
                     response_hash={this.state.response_hash}
                 />
@@ -525,6 +543,12 @@ class Comparison extends Component {
                     response_hash={this.state.response_hash}
                     comparisonId={this.props.match.params.comparisonId}
                     updateComparisonMetadata={this.updateComparisonMetadata}
+                />
+
+                <AddContribution
+                    addContributions={this.addContributions}
+                    showDialog={this.state.showAddContribuion}
+                    toggle={() => this.toggle('showAddContribuion')}
                 />
 
                 <ExportToLatex
