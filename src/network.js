@@ -465,10 +465,10 @@ export const updateUserPassword = ({ current_password, new_password, new_matchin
 
 export const updateUserRole = () => {
     const headers = { 'Content-Type': 'application/json' };
-    const data={};
+    const data = {};
     //alert(organizationLogo);
     //debugger;
-    return submitPutRequest(`${url}user/role/`, headers, data );
+    return submitPutRequest(`${url}user/role/`, headers, data);
 };
 
 /**
@@ -599,7 +599,7 @@ export const getAllOrganizations = () => {
 };
 
 export const getOrganization = id => {
-    console.log("123");
+    console.log('123');
     return submitGetRequest(`${organizationsUrl}${encodeURIComponent(id)}/`);
 };
 
@@ -610,7 +610,7 @@ export const createOrganization = (organizationName, organizationLogo) => {
 };
 
 export const getAllObservatoriesbyOrganizationId = id => {
-    const v="search/";
+    const v = 'search/';
     return submitGetRequest(`${observatoriesUrl}${v}${encodeURIComponent(id)}/`);
 };
 

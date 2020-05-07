@@ -4,7 +4,6 @@ import { Redirect } from 'react-router-dom';
 import { Container, Button, Form, FormGroup, Input, Label, Alert } from 'reactstrap';
 import { toast } from 'react-toastify';
 import { getAllClasses } from 'network';
-import Select from 'react-select';
 import { reverse } from 'named-urls';
 import ROUTES from '../constants/routes';
 
@@ -26,7 +25,7 @@ export default class AddObservatory extends Component {
     }
 
     componentDidMount = () => {
-        console.log("test");
+        console.log('test');
         this.getClasses();
     };
 
@@ -46,9 +45,9 @@ export default class AddObservatory extends Component {
         if (!doiRegex.test(this.state.value)) {
             await this.createNewResource(false);
         } //else {
-            //console.log('this is a DOI');
-            //this.doi = this.state.value;
-            //await this.createResourceUsingDoi();
+        //console.log('this is a DOI');
+        //this.doi = this.state.value;
+        //await this.createResourceUsingDoi();
         //}
     };
 
@@ -122,25 +121,24 @@ export default class AddObservatory extends Component {
         });
     };
 
-    handlePreview = async (e) => {
+    handlePreview = async e => {
         e.preventDefault();
-    
-        let file = e.target.files[0];
-        let reader = new FileReader();
-    
-        if (e.target.files.length === 0) {
-          return;
-        }
-    
-        reader.onloadend = (e) => {
-          this.setState({
-            previewSrc: [reader.result]
-          });
-        }
-    
-        reader.readAsDataURL(file);
 
-    }
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        if (e.target.files.length === 0) {
+            return;
+        }
+
+        reader.onloadend = e => {
+            this.setState({
+                previewSrc: [reader.result]
+            });
+        };
+
+        reader.readAsDataURL(file);
+    };
 
     render() {
         const loading = this.state.editorState === 'loading';

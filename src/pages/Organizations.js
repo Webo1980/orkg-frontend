@@ -5,14 +5,12 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { getAllOrganizations, getUserInformation } from '../network';
 import { openAuthDialog, updateAuth, resetAuth } from '../actions/auth';
-import Authentication from '../components/Authentication/Authentication';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Cookies } from 'react-cookie';
 import { Container } from 'reactstrap';
 import ROUTES from '../constants/routes';
 import { reverse } from 'named-urls';
-import Header from 'components/Layout/Header/Header';
 
 class Organizations extends Component {
     constructor(props) {
@@ -33,7 +31,6 @@ class Organizations extends Component {
         document.title = 'Organizations - ORKG';
         this.userInformation();
         this.loadMoreResources();
-        
     }
 
     componentDidUpdate() {
@@ -88,37 +85,34 @@ class Organizations extends Component {
     };
 
     render() {
-        const email = this.props.user && this.props.user.email ? this.props.user.email : 'example@example.com';
-        console.log(this.props.user);
+        //const email = this.props.user && this.props.user.email ? this.props.user.email : 'example@example.com';
+        //console.log(this.props.user);
         //console.log(this.state.email);
         return (
             <>
-            
                 <Container className="p-0">
                     <h1 className="h4 mt-4 mb-4">View all organizations </h1>
                 </Container>
                 <Container className={'box pt-4 pb-4 pl-5 pr-5 clearfix'}>
                     <div className="clearfix">
-                    {this.props.user!==null && (
-                    <Link className="float-right mb-2 mt-2 clearfix" to={ROUTES.ADD_ORGANIZATION}>
-                        <span className="fa fa-plus" /> Create new organization
-                    </Link>
-                )}
+                        {this.props.user !== null && (
+                            <Link className="float-right mb-2 mt-2 clearfix" to={ROUTES.ADD_ORGANIZATION}>
+                                <span className="fa fa-plus" /> Create new organization
+                            </Link>
+                        )}
 
-                {!this.props.user && (
-                <Link className="float-right mb-2 mt-2 clearfix">
-                <span className="fa fa-plus" /> Signin to create organization
-                </Link>
-                )}
-                </div>
-                
-                    
+                        {!this.props.user && (
+                            <Link className="float-right mb-2 mt-2 clearfix">
+                                <span className="fa fa-plus" /> Signin to create organization
+                            </Link>
+                        )}
+                    </div>
+
                     {this.state.resources.length > 0 && (
                         <div>
                             {this.state.resources.map(resource => {
                                 return (
-                                    <ShortRecord key={resource.id} header={resource.name} href={reverse(ROUTES.ORGANIZATION, { id: resource.id })}>
-                                    </ShortRecord>
+                                    <ShortRecord key={resource.id} header={resource.name} href={reverse(ROUTES.ORGANIZATION, { id: resource.id })} />
                                 );
                             })}
                         </div>

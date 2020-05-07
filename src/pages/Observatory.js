@@ -1,23 +1,18 @@
 import React, { Component } from 'react';
-import { Container,Button } from 'reactstrap';
-import { getUsersByObservatoryId, getOrganization, getResourcesByObservatoryId, getObservatorybyId } from '../network';
-import { StyledStatementItem } from 'components/AddPaper/Contributions/styled';
+import { Container, Button } from 'reactstrap';
+import { getUsersByObservatoryId, getResourcesByObservatoryId, getObservatorybyId } from '../network';
 import EditableHeader from '../components/EditableHeader';
 import InternalServerError from '../components/StaticPages/InternalServerError';
 import NotFound from '../components/StaticPages/NotFound';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { EditModeHeader, Title } from 'components/ViewPaper/ViewPaper';
 import PropTypes from 'prop-types';
 import SameAsStatements from './SameAsStatements';
 import ROUTES from '../constants/routes';
 import { Redirect } from 'react-router-dom';
 import { reverse } from 'named-urls';
-import Tabs from 'react';
 import styled from 'styled-components';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { Link } from 'react-router-dom';
-
 
 const SidebarStyledBox = styled.div`
     flex-grow: 1;
@@ -85,12 +80,12 @@ class Observatory extends Component {
             editMode: false,
             classes: [],
             //image: '',
-            resourceId:'',
+            resourceId: '',
             //totalObservatories:'',
-            url:'',
-            users:[],
+            url: '',
+            users: [],
             activeTab: 1,
-            resourcesList:[]
+            resourcesList: []
         };
     }
 
@@ -103,20 +98,19 @@ class Observatory extends Component {
         if (this.props.match.params.id !== prevProps.match.params.id) {
         }
     };
-     
 
-    getResources=()=> {
+    getResources = () => {
         this.setState({ isLoading: true });
-    getResourcesByObservatoryId(this.props.match.params.id)
-                .then(responseJson=>{
-                    const allres = [...this.state.resourcesList, responseJson]
-                    this.setState({
-                        resourcesList: allres[0]
-                     })
-                })
-                .catch(error => {
-                    this.setState({ label: null, isLoading: false});
+        getResourcesByObservatoryId(this.props.match.params.id)
+            .then(responseJson => {
+                const allres = [...this.state.resourcesList, responseJson];
+                this.setState({
+                    resourcesList: allres[0]
                 });
+            })
+            .catch(error => {
+                this.setState({ label: null, isLoading: false });
+            });
     };
 
     getContributors = () => {
@@ -126,20 +120,20 @@ class Observatory extends Component {
                 const allUsers = [...this.state.users, responseJson];
                 this.setState({
                     users: allUsers[0]
-                 })
+                });
             })
             .catch(error => {
-                this.setState({ label: null, isLoading: false});
+                this.setState({ label: null, isLoading: false });
             });
 
-            getObservatorybyId(this.props.match.params.id)
-            .then(ObsresponseJson=> {
+        getObservatorybyId(this.props.match.params.id)
+            .then(ObsresponseJson => {
                 document.title = `${ObsresponseJson.name} - Org - ORKG`;
-                this.setState({ label: ObsresponseJson.name, isLoading: false});
-                this.setState({ resourceId: this.props.match.params.id})
+                this.setState({ label: ObsresponseJson.name, isLoading: false });
+                this.setState({ resourceId: this.props.match.params.id });
             })
             .catch(error => {
-                this.setState({ label: null, isLoading: false});
+                this.setState({ label: null, isLoading: false });
             });
     };
 
@@ -174,89 +168,77 @@ class Observatory extends Component {
             default:
                 rightSidebar = (
                     <AnimationContainer key={1} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
-                       <div>
-                       <div className={'mb-6'}>
+                        <div>
+                            <div className={'mb-6'}>
                                 {!this.state.editMode ? (
                                     <div className="pb-2 mb-6">
                                         <h3 className={''} style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
-                                       
-                                            {this.state.users.length > 0 ? (                                                
-                                                <div style={{paddingLeft:20, paddingTop:10}}>
+                                            {this.state.users.length > 0 && (
+                                                <div style={{ paddingLeft: 20, paddingTop: 10 }}>
                                                     {this.state.users.map(user => {
-
-                                                         return ( 
-
-                                                             <StyledShortRecord> 
-                                                                 <div className="shortRecord-header"> <p style={{fontSize: 14, marginBottom:-12}}> 
-                                                                     <p to={user.id}>{user.display_name}</p>  
-                                                                     </p> 
-                                                                 </div> 
-                                        
-                                                             </StyledShortRecord> 
-                                                       
-                                                             ); 
-                                                         })} 
-                                                 </div> 
-                                                     ):(
-                                                        <div style={{paddingLeft:'20%'}} className="mt-4"><h5>No Contributors</h5></div>
-                                                     )
-                                                     }
-
-                                                </h3>
+                                                        return (
+                                                            <StyledShortRecord>
+                                                                <div className="shortRecord-header">
+                                                                    {' '}
+                                                                    <p style={{ fontSize: 14, marginBottom: -12 }}>
+                                                                        <p to={user.id}>{user.display_name}</p>
+                                                                    </p>
+                                                                </div>
+                                                            </StyledShortRecord>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </h3>
                                     </div>
                                 ) : (
                                     <EditableHeader id={id} value={this.state.label} onChange={this.handleHeaderChange} />
                                 )}
-                            </div> 
                             </div>
+                        </div>
                     </AnimationContainer>
                 );
                 break;
             case 2:
                 rightSidebar = (
                     <AnimationContainer key={2} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
-                       <div>
-                       
-                       <div className={'mb-6'}>
+                        <div>
+                            <div className={'mb-6'}>
                                 {!this.state.editMode ? (
                                     <div className="pb-2 mb-6">
                                         <h3 className={''} style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
-                                            {this.state.resourcesList.length > 0 ? (                                                
-                                            <div style={{paddingLeft:20, paddingTop:10}}>
-                                                {this.state.resourcesList.map(resources => {        
-
-                                                    return (
-
-                                                        <StyledShortRecord>
-                                                            <div className="shortRecord-header"> 
-                                                                <p style={{fontSize:14, marginBottom:4}}>
-                                                                    <Link to={reverse(ROUTES.RESOURCE, { id: resources.id })}>{resources.label}</Link> 
-                                                                </p>
-                                                            </div>
-                                        
-                                                        </StyledShortRecord>
-                                                       
-                                                    );
-                                                })}
-                                            </div>
-                                        ):(
-                                            <div style={{paddingLeft:'70%'}} className="mt-4"><h5>No Resources</h5></div>
-                                        )
-                                        }
-
-
-                                            </h3>
+                                            {this.state.resourcesList.length > 0 ? (
+                                                <div style={{ paddingLeft: 20, paddingTop: 10 }}>
+                                                    {this.state.resourcesList.map(resources => {
+                                                        return (
+                                                            <StyledShortRecord>
+                                                                <div className="shortRecord-header">
+                                                                    <p style={{ fontSize: 14, marginBottom: 4 }}>
+                                                                        <Link to={reverse(ROUTES.RESOURCE, { id: resources.id })}>
+                                                                            {resources.label}
+                                                                        </Link>
+                                                                    </p>
+                                                                </div>
+                                                            </StyledShortRecord>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div style={{ paddingLeft: '70%' }} className="mt-4">
+                                                    <h5>No Resources</h5>
+                                                </div>
+                                            )}
+                                        </h3>
                                     </div>
                                 ) : (
                                     <EditableHeader id={id} value={this.state.label} onChange={this.handleHeaderChange} />
                                 )}
-                            </div> 
-                            </div> 
+                            </div>
+                        </div>
                     </AnimationContainer>
                 );
                 break;
         }
-
 
         if (this.state.redirect) {
             this.setState({
@@ -269,7 +251,6 @@ class Observatory extends Component {
         }
 
         return (
-            
             <>
                 {this.state.isLoading && <Container className="box pt-4 pb-4 pl-5 pr-5 mt-5 clearfix">Loading ...</Container>}
                 {!this.state.isLoading && this.state.error && <>{this.state.error.statusCode === 404 ? <NotFound /> : <InternalServerError />}</>}
@@ -296,23 +277,27 @@ class Observatory extends Component {
                                 {!this.state.editMode ? (
                                     <div className="pb-2 mb-3">
                                         <h3 className={''} style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
-
                                             {this.state.label}
                                             <br />
                                             <br />
                                             <SidebarStyledBox>
                                                 <FeaturedTabs className="clearfix d-flex">
-                                                    <div className={`h6 col-md-6 text-center tab ${this.state.activeTab === 1 ? 'active' : ''}`} onClick={() => this.barToggle(1)}>
+                                                    <div
+                                                        className={`h6 col-md-6 text-center tab ${this.state.activeTab === 1 ? 'active' : ''}`}
+                                                        onClick={() => this.barToggle(1)}
+                                                    >
                                                         Contributors
                                                     </div>
-                                                    <div className={`h6 col-md-6 text-center tab ${this.state.activeTab === 2 ? 'active' : ''}`} onClick={() => this.barToggle(2)}>
+                                                    <div
+                                                        className={`h6 col-md-6 text-center tab ${this.state.activeTab === 2 ? 'active' : ''}`}
+                                                        onClick={() => this.barToggle(2)}
+                                                    >
                                                         Resources
                                                     </div>
                                                 </FeaturedTabs>
                                                 <TransitionGroup exit={false}>{rightSidebar}</TransitionGroup>
                                             </SidebarStyledBox>
-
-                                                </h3>
+                                        </h3>
                                         {this.state.classes.length > 0 && (
                                             <span style={{ fontSize: '90%' }}>
                                                 Classes:{' '}
@@ -334,20 +319,14 @@ class Observatory extends Component {
                                 )}
                             </div>
                             <div className={'clearfix'}>
- 
-                            
-                                        
                                 <SameAsStatements />
                             </div>
                         </div>
-                                    
                     </Container>
                 )}
-
-
             </>
         );
-    }
+    };
 }
 
 Observatory.propTypes = {

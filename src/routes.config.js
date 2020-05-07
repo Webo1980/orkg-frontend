@@ -168,27 +168,27 @@ const routes = [
     },
     {
         path: ROUTES.ORGANIZATION,
-        exact:true,
+        exact: true,
         component: OrganizationDetails
     },
     {
         path: ROUTES.ADD_ORGANIZATION,
-        exact:true,
+        exact: true,
         component: AddOrganization
     },
     {
         path: ROUTES.ADD_OBSERVATORY,
-        exact:true,
+        exact: true,
         component: AddObservatory
     },
     {
         path: ROUTES.OBSERVATORY,
-        exact:true,
+        exact: true,
         component: Observatory
     },
     {
         path: ROUTES.OBSERVATORIES,
-        exact:true,
+        exact: true,
         component: Observatories
     },
     {

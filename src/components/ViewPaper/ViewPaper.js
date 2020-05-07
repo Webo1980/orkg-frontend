@@ -49,7 +49,6 @@ class ViewPaper extends Component {
         //observatoryId:'',
         observatoryInfo: []
         //obs:[{id:'', name:''}]
-
     };
 
     componentDidMount() {
@@ -72,26 +71,23 @@ class ViewPaper extends Component {
 
         getResource(resourceId)
             .then(paperResource => {
-                if(paperResource.observatory_id) {
+                if (paperResource.observatory_id) {
                     this.setState({
-                        observatoryInfo:  [...this.state.observatoryInfo, paperResource.observatory_id]
-                    });
-
-                     
-                    this.setState({
-                        observatoryInfo:  [...this.state.observatoryInfo, paperResource.created_at.substring(0,10)]
-                    });
-
-
-                    this.setState({
-                        observatoryInfo:  [...this.state.observatoryInfo, paperResource.created_by]
+                        observatoryInfo: [...this.state.observatoryInfo, paperResource.observatory_id]
                     });
 
                     this.setState({
-                        observatoryInfo:  [...this.state.observatoryInfo, paperResource.automatic_extraction]
+                        observatoryInfo: [...this.state.observatoryInfo, paperResource.created_at.substring(0, 10)]
                     });
-                    
-                }            
+
+                    this.setState({
+                        observatoryInfo: [...this.state.observatoryInfo, paperResource.created_by]
+                    });
+
+                    this.setState({
+                        observatoryInfo: [...this.state.observatoryInfo, paperResource.automatic_extraction]
+                    });
+                }
                 getStatementsBySubject({ id: resourceId })
                     .then(paperStatements => {
                         // check if type is paper
@@ -459,7 +455,6 @@ class ViewPaper extends Component {
                                         handleCreateContribution={this.handleCreateContribution}
                                         toggleDeleteContribution={this.toggleDeleteContribution}
                                         observatoryInfo={this.state.observatoryInfo}
-                                        
                                     />
 
                                     <ComparisonPopup />

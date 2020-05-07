@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
-import { Container,Button } from 'reactstrap';
+import { Container, Button } from 'reactstrap';
 import { getOrganization, getAllObservatoriesbyOrganizationId } from '../network';
 import EditableHeader from '../components/EditableHeader';
 import InternalServerError from '../components/StaticPages/InternalServerError';
 import NotFound from '../components/StaticPages/NotFound';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
-import styled from 'styled-components';
 import { EditModeHeader, Title } from 'components/ViewPaper/ViewPaper';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -14,15 +11,6 @@ import SameAsStatements from './SameAsStatements';
 import ROUTES from '../constants/routes';
 import { Redirect } from 'react-router-dom';
 import { reverse } from 'named-urls';
-import { Link } from 'react-router-dom';
-
-const ImageBox = styled.div`        
-    border: 5px solid black;
-    float: right;
-    padding: 15px;
-    margin-top: 25px;
-    align: center;
-`;  
 
 class OrganizationDetails extends Component {
     constructor(props) {
@@ -36,9 +24,9 @@ class OrganizationDetails extends Component {
             editMode: false,
             classes: [],
             image: '',
-            resourceId:'',
-            totalObservatories:'',
-            url:''
+            resourceId: '',
+            totalObservatories: '',
+            url: ''
         };
     }
 
@@ -59,13 +47,13 @@ class OrganizationDetails extends Component {
         getOrganization(this.props.match.params.id)
             .then(responseJson => {
                 document.title = `${responseJson.organizationName} - Org - ORKG`;
-                this.setState({ label: responseJson.organizationName, isLoading: false});
-                this.setState({ image: responseJson.organizationLogo, isLoading: false});
-                this.setState({ resourceId: this.props.match.params.id});
+                this.setState({ label: responseJson.organizationName, isLoading: false });
+                this.setState({ image: responseJson.organizationLogo, isLoading: false });
+                this.setState({ resourceId: this.props.match.params.id });
                 //this.getTotalObservatories(this.props.match.params.id);
             })
             .catch(error => {
-                this.setState({ label: null, isLoading: false});
+                this.setState({ label: null, isLoading: false });
             });
     };
 
@@ -80,17 +68,18 @@ class OrganizationDetails extends Component {
     };
 
     handleAdd = event => {
-        if(event.target.value=="listObservatories")
-            this.setState({url:ROUTES.OBSERVATORIES});
-        else if(event.target.value="addObservatory")
-            this.setState({url:ROUTES.ADD_OBSERVATORY});
-        
+        if (event.target.value === 'listObservatories') {
+            this.setState({ url: ROUTES.OBSERVATORIES });
+        } else if ((event.target.value = 'addObservatory')) {
+            this.setState({ url: ROUTES.ADD_OBSERVATORY });
+        }
+
         this.navigateToResource(this.state.resourceId);
-            //await this.createNewResource(false);
-         //else {
-            //console.log('this is a DOI');
-            //this.doi = this.state.value;
-            //await this.createResourceUsingDoi();
+        //await this.createNewResource(false);
+        //else {
+        //console.log('this is a DOI');
+        //this.doi = this.state.value;
+        //await this.createResourceUsingDoi();
         //}
     };
 
@@ -110,15 +99,14 @@ class OrganizationDetails extends Component {
         getAllObservatoriesbyOrganizationId(this.props.match.params.id)
             .then(responseJson => {
                 //document.title = `${responseJson.organizationName} - Org - ORKG`;
-                this.setState({ totalObservatories: responseJson.length, isLoading: false});
+                this.setState({ totalObservatories: responseJson.length, isLoading: false });
                 //this.setState({ image: responseJson.organizationLogo, isLoading: false});
                 //this.setState({ resourceId: this.props.match.params.id});
             })
             .catch(error => {
-                this.setState({ label: null, isLoading: false});
+                this.setState({ label: null, isLoading: false });
             });
     };
-
 
     render() {
         const id = this.props.match.params.id;
@@ -160,14 +148,13 @@ class OrganizationDetails extends Component {
                                 {!this.state.editMode ? (
                                     <div className="pb-2 mb-3">
                                         <h3 className={''} style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
-                                           {/* <Button className="float-right" color="darkblue" size="sm" onClick={() => this.toggle('editMode')}> */}
-                                                {/* <Icon icon={faPen} /> Edit */}
+                                            {/* <Button className="float-right" color="darkblue" size="sm" onClick={() => this.toggle('editMode')}> */}
+                                            {/* <Icon icon={faPen} /> Edit */}
                                             {/* </Button> */}
-                
-                                            {this.state.label}
-                                            
-                                            <img style={{float: 'right', marginTop:15}} height= "100" src={this.state.image} alt="" />
 
+                                            {this.state.label}
+
+                                            <img style={{ float: 'right', marginTop: 15 }} height="100" src={this.state.image} alt="" />
                                         </h3>
                                         {this.state.classes.length > 0 && (
                                             <span style={{ fontSize: '90%' }}>
@@ -190,28 +177,23 @@ class OrganizationDetails extends Component {
                                 )}
                             </div>
                             <div className={'clearfix'}>
-                            
-
-                            { 
-                    (this.state.totalObservatories)?( 
-                    <div><i>Total Observatories: {this.state.totalObservatories}</i></div> 
-                    ) : ( 
-                        <div>No observatories yet </div> 
-                    ) 
-                } 
-                            
-                            <br />
-                            <Button outline size="sm" className={'mb-3'} value="listObservatories" onClick={this.handleAdd}>
-                            List Observatories
-                            </Button>
-                            &nbsp; &nbsp;
-                            {this.props.user && (
-                                <Button outline size="sm" className={'mb-3'} value="addObservatory" onClick={this.handleAdd}>
-                                Create new observatoy
+                                {this.state.totalObservatories ? (
+                                    <div>
+                                        <i>Total Observatories: {this.state.totalObservatories}</i>
+                                    </div>
+                                ) : (
+                                    <div>No observatories yet </div>
+                                )}
+                                <br />
+                                <Button outline size="sm" className={'mb-3'} value="listObservatories" onClick={this.handleAdd}>
+                                    List Observatories
                                 </Button>
-                            )}
-                            
-                                        
+                                &nbsp; &nbsp;
+                                {this.props.user && (
+                                    <Button outline size="sm" className={'mb-3'} value="addObservatory" onClick={this.handleAdd}>
+                                        Create new observatoy
+                                    </Button>
+                                )}
                                 <SameAsStatements />
                             </div>
                         </div>
@@ -232,11 +214,11 @@ OrganizationDetails.propTypes = {
 
 const mapStateToProps = state => ({
     user: state.auth.user
-    });
-    
-    export default connect(
-        mapStateToProps,
-        null
-    )(OrganizationDetails);
+});
+
+export default connect(
+    mapStateToProps,
+    null
+)(OrganizationDetails);
 
 //export default OrganizationDetails;

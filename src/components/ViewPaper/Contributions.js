@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 import { Alert, Col, Container, Form, FormGroup, Row, Button } from 'reactstrap';
-import { getResource, getSimilaireContribution, deleteStatementById, createResource, createResourceStatement, getObservatorybyId, getOrganization, getUserInformationById, getContributorsByResourceId } from '../../network';
+import {
+    getResource,
+    getSimilaireContribution,
+    deleteStatementById,
+    createResource,
+    createResourceStatement,
+    getObservatorybyId,
+    getOrganization,
+    getUserInformationById,
+    getContributorsByResourceId
+} from '../../network';
 import AddToComparison from './AddToComparison';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import ContentLoader from 'react-content-loader';
@@ -20,11 +30,10 @@ import { StyledHorizontalContributionsList, StyledHorizontalContribution } from 
 import Tippy from '@tippy.js/react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPlus, faHandMiddleFinger } from '@fortawesome/free-solid-svg-icons';
-import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
+import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import 'react-vertical-timeline-component/style.min.css';
 
-
-  const FeaturedTabs = styled.div`
+const FeaturedTabs = styled.div`
     .tab {
         margin-bottom: 0;
         padding: 10px;
@@ -35,8 +44,8 @@ import 'react-vertical-timeline-component/style.min.css';
         -o-transition: border 500ms ease-out;
         transition: border 500ms ease-out;
         background-color: #d4d8e0;
-        font-size:12px;
-        font-weight:bold;
+        font-size: 12px;
+        font-weight: bold;
         &.active,
         &:hover {
             background-color: #f8f9fb;
@@ -46,19 +55,19 @@ import 'react-vertical-timeline-component/style.min.css';
 `;
 
 const ErrorMessage = styled.div`
-        margin-bottom: 0;
-        padding: 10px;
-        color: #666666;
-        cursor: pointer;
-        height: 60px;
-        -webkit-transition: border 500ms ease-out;
-        -moz-transition: border 500ms ease-out;
-        -o-transition: border 500ms ease-out;
-        transition: border 500ms ease-out;
-        background-color: #E0F2FC;
-        border-color: #E0F2FC;
-        font-size:12px;
-        font-weight:bold;
+    margin-bottom: 0;
+    padding: 10px;
+    color: #666666;
+    cursor: pointer;
+    height: 60px;
+    -webkit-transition: border 500ms ease-out;
+    -moz-transition: border 500ms ease-out;
+    -o-transition: border 500ms ease-out;
+    transition: border 500ms ease-out;
+    background-color: #e0f2fc;
+    border-color: #e0f2fc;
+    font-size: 12px;
+    font-weight: bold;
 `;
 
 const SidebarStyledBox = styled.div`
@@ -84,14 +93,13 @@ const Title = styled.div`
 `;
 
 const buttonStyle = {
-        backgroundColor: "#f8f9fb",
-        paddingLeft: 15,
-        paddingTop: 10,
-        borderBottom: '1px solid #eeeff3',
-        fontSize:12
-        //border: solid,
-        };
-
+    backgroundColor: '#f8f9fb',
+    paddingLeft: 15,
+    paddingTop: 10,
+    borderBottom: '1px solid #eeeff3',
+    fontSize: 12
+    //border: solid,
+};
 
 const AnimationContainer = styled(CSSTransition)`
     transition: 0.3s background-color, 0.3s border-color;
@@ -118,10 +126,10 @@ class Contributions extends Component {
             similaireContributions: [],
             isSimilaireContributionsLoading: true,
             isSimilaireContributionsFailedLoading: false,
-            observatory:[],
-            label:'',
+            observatory: [],
+            label: '',
             activeTab: 1,
-            userData:[]
+            userData: []
         };
     }
 
@@ -138,7 +146,7 @@ class Contributions extends Component {
         if (this.props.selectedContribution !== '' && this.props.selectedContribution !== this.state.selectedContribution) {
             this.setState({ selectedContribution: this.props.selectedContribution }, () => {
                 this.handleSelectContribution(this.state.selectedContribution);
-                
+
                 this.getObservatoryAndOrganizationInformation(this.props.observatoryInfo[0]);
                 this.getResourceContributors(this.props.paperId);
             });
@@ -214,90 +222,92 @@ class Contributions extends Component {
         });
     };
 
-    getObservatoryAndOrganizationInformation = async (id) => {
+    getObservatoryAndOrganizationInformation = async id => {
         //const temp = [];
         getObservatorybyId(id)
-        .then(responseJson => {
-            //const orgInfo = 
-            
-            getOrganization(responseJson.organizationId)
-            .then(orgResponse => {
-                //console.log(orgResponse);
-                
-                getUserInformationById(this.props.observatoryInfo[2])
-            .then(userResponse => {
-                console.log(userResponse);
-            
-            this.setState({
-                observatory:  [...this.state.observatory, responseJson.name.toUpperCase()]
-            });
-
-            this.setState({
-                observatory:  [...this.state.observatory, orgResponse.organizationName]
-            });
-
-            this.setState({
-                observatory:  [...this.state.observatory, orgResponse.organizationLogo]
-            });
-
-            this.setState({
-                observatory:  [...this.state.observatory, userResponse.display_name]
-            });
-
-        })
-        .catch(error => {
-            this.setState({ label: null, isLoading: false});
-        });
-
-        })
-        .catch(error => {
-            this.setState({ label: null, isLoading: false});
-        });
-
-        })
-        .catch(error => {
-            this.setState({ label: null, isLoading: false});
-        });
-        
-        };
-
-        getResourceContributors = async (id) => {
-            //const temp = [];
-            getContributorsByResourceId(id)
             .then(responseJson => {
-                //const orgInfo = 
-                const a={};
-                for(let i=0; i<responseJson.length; i++) {
+                //const orgInfo =
+
+                getOrganization(responseJson.organizationId)
+                    .then(orgResponse => {
+                        //console.log(orgResponse);
+
+                        getUserInformationById(this.props.observatoryInfo[2])
+                            .then(userResponse => {
+                                console.log(userResponse);
+
+                                this.setState({
+                                    observatory: {
+                                        name: responseJson.name.toUpperCase(),
+                                        organization: orgResponse.organizationName,
+                                        organizationLogo: orgResponse.organizationLogo,
+                                        userName: userResponse.display_name
+                                    }
+                                });
+
+                                //this.setState({
+                                //observatory: [...this.state.observatory, responseJson.name.toUpperCase()]
+                                //});
+
+                                //this.setState({
+                                //observatory: [...this.state.observatory, orgResponse.organizationName]
+                                //});
+
+                                //this.setState({
+                                //observatory: [...this.state.observatory, orgResponse.organizationLogo]
+                                //});
+
+                                //this.setState({
+                                //observatory: [...this.state.observatory, userResponse.display_name]
+                                //});
+                            })
+                            .catch(error => {
+                                this.setState({ label: null, isLoading: false });
+                            });
+                    })
+                    .catch(error => {
+                        this.setState({ label: null, isLoading: false });
+                    });
+            })
+            .catch(error => {
+                this.setState({ label: null, isLoading: false });
+            });
+    };
+
+    getResourceContributors = async id => {
+        //const temp = [];
+        getContributorsByResourceId(id)
+            .then(responseJson => {
+                //const orgInfo =
+                const a = {};
+                for (let i = 0; i < responseJson.length; i++) {
                     console.log(responseJson.length);
-                    a[i]={};
-                    if((/^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/).test(responseJson[i].created_by)) {
-                        a[i]["created_by"]="Unknown";
+                    a[i] = {};
+                    if (/^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/.test(responseJson[i].created_by)) {
+                        a[i]['created_by'] = 'Unknown';
+                    } else {
+                        getUserInformationById(responseJson[i].created_by).then(userResponse => {
+                            if (userResponse !== '') {
+                                a[i]['created_by'] = userResponse.display_name;
+                            }
+                        });
                     }
-                    else {
-                     getUserInformationById(responseJson[i].created_by)
-                                        .then(userResponse=> {
-                                            if(userResponse!=="")
-                                            a[i]["created_by"]=userResponse.display_name;
-                                        });
-                    } 
-                    a[i]["created_at"] = responseJson[i].created_at.substring(0,10);
+                    a[i]['created_at'] = responseJson[i].created_at.substring(0, 10);
                     this.setState({
-                    userData:  [...this.state.userData, a[i]]
+                        userData: [...this.state.userData, a[i]]
                     });
                 }
                 console.log(this.state.userData);
-                console.log("--------");
-                    
-            })      
+                console.log('--------');
+            })
             .catch(error => {
-                this.setState({ label: null, isLoading: false});
+                this.setState({ label: null, isLoading: false });
             });
-            
-            }
+    };
 
     render() {
         const selectedContributionId = this.state.selectedContribution;
-        
+
         let rightSidebar;
 
         switch (this.state.activeTab) {
@@ -306,50 +316,40 @@ class Contributions extends Component {
                 rightSidebar = (
                     <AnimationContainer key={1} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
                         <div>
-                        
                             <ul class="list-group">
-                                
                                 <li style={buttonStyle}>
-                                    <p>        
-                                        <b>{this.state.observatory[0]}</b>
-                                        <br/>
-                                    <center> 
-                                        <img style={{paddingTop: 8}} height="70" src={this.state.observatory[2]} alt="" />
-                                    </center>
-                                    <p style={{fontSize:12}}>{this.state.observatory[1]}</p>
+                                    <p>
+                                        <b>{this.state.observatory.name}</b>
+                                        <br />
+                                        <center>
+                                            <img style={{ paddingTop: 8 }} height="70" src={this.state.observatory.organizationLogo} alt="" />
+                                        </center>
+                                        <p style={{ fontSize: 12 }}>{this.state.observatory.organizationName}</p>
                                     </p>
                                 </li>
-                
-                            <li style={buttonStyle}>
-                            
-                                <p><b>DATE ADDED</b>
-                                <br/>
-                                {this.props.observatoryInfo[1]}</p>
-                            </li>
-                            
-                            <li style={buttonStyle}>
-                                <p><b>ADDED BY</b>
-                                <br/>
-                                {this.state.observatory[3]}</p>
-                            </li>
-                            <li style={buttonStyle}>
-                                <b>CONTRIBUTORS</b>
-                                {this.state.userData.map((key,user) => {  
-                                return (
-                                 <div>
-                                        {key["created_by"]!=="Unknown" &&(
-                                        <span>{key["created_by"]}</span>
-                                        )}
-                                </div>
 
-                            );
-                        })}
-                            </li>
+                                <li style={buttonStyle}>
+                                    <p>
+                                        <b>DATE ADDED</b>
+                                        <br />
+                                        {this.props.observatoryInfo[1]}
+                                    </p>
+                                </li>
 
-
-                    </ul>
-                                
-                            
+                                <li style={buttonStyle}>
+                                    <p>
+                                        <b>ADDED BY</b>
+                                        <br />
+                                        {this.state.observatory.userName}
+                                    </p>
+                                </li>
+                                <li style={buttonStyle}>
+                                    <b>CONTRIBUTORS</b>
+                                    {this.state.userData.map((key, user) => {
+                                        return <div>{key['created_by'] !== 'Unknown' && <span>{key['created_by']}</span>}</div>;
+                                    })}
+                                </li>
+                            </ul>
                         </div>
                     </AnimationContainer>
                 );
@@ -358,28 +358,30 @@ class Contributions extends Component {
                 rightSidebar = (
                     <AnimationContainer key={2} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
                         <div>
-                        {this.state.userData.map((key,user) => {  
-                            return (
-                                <VerticalTimeline>
-                                <VerticalTimelineElement
-                                  className="vertical-timeline-element--work"
-                                  date={key["created_at"]}
-                                  iconStyle={{ background: "rgb(212, 216, 224)", color: "#b8b8b9" }}
-                                >
-                                    {key["created_by"]==this.state.observatory[3] &&(
-                                    <p>Added by <b>{key["created_by"]}</b> </p>
-                                    )}
+                            {this.state.userData.map((key, user) => {
+                                return (
+                                    <VerticalTimeline>
+                                        <VerticalTimelineElement
+                                            className="vertical-timeline-element--work"
+                                            date={key['created_at']}
+                                            iconStyle={{ background: 'rgb(212, 216, 224)', color: '#b8b8b9' }}
+                                        >
+                                            {key['created_by'] == this.state.observatory.userName && (
+                                                <p>
+                                                    Added by <b>{key['created_by']}</b>{' '}
+                                                </p>
+                                            )}
 
-                                    {key["created_by"]!==this.state.observatory[3] &&(
-                                        <p>Updated by <b>{key["created_by"]}</b> </p>
-                                    )}
-                                </VerticalTimelineElement>
-                                </VerticalTimeline>
-                            );
-                            
-                        })} 
-                        
-                    </div>
+                                            {key['created_by'] !== this.state.observatory.userName && (
+                                                <p>
+                                                    Updated by <b>{key['created_by']}</b>{' '}
+                                                </p>
+                                            )}
+                                        </VerticalTimelineElement>
+                                    </VerticalTimeline>
+                                );
+                            })}
+                        </div>
                     </AnimationContainer>
                 );
                 break;
@@ -565,33 +567,36 @@ class Contributions extends Component {
                                 </StyledHorizontalContribution>
                             </AnimationContainer>
                         </TransitionGroup>
-                        {!(/^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/).test(this.props.observatoryInfo[0]) && (
-                        <div>
-                    
-                        
-                        <SidebarStyledBox style={{width:230, minHeight:430, backgroundColor: "#f8f9fb", marginLeft:20}} className="box rounded-lg">
-                            <FeaturedTabs className="clearfix d-flex">
-                                <div id="div1" className={`h6 col-md-6 text-center tab ${this.state.activeTab === 1 ? 'active' : ''}`} onClick={() => this.toggle(1)}>
-                                    Provenance
-                                </div>
-                                <div id="div2" className={`h6 col-md-6 text-center tab ${this.state.activeTab === 2 ? 'active' : ''}`} onClick={() => this.toggle(2)}>
-                                Timeline
-                                </div>
-                            </FeaturedTabs>
-                        {this.props.observatoryInfo[3] && (
-                            <ErrorMessage class="alert-server">
-                                The data has been partially imported automatically.
-                            </ErrorMessage>
+                        {!/^[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}$/.test(this.props.observatoryInfo[0]) && (
+                            <div>
+                                <SidebarStyledBox
+                                    style={{ width: 230, minHeight: 430, backgroundColor: '#f8f9fb', marginLeft: 20 }}
+                                    className="box rounded-lg"
+                                >
+                                    <FeaturedTabs className="clearfix d-flex">
+                                        <div
+                                            id="div1"
+                                            className={`h6 col-md-6 text-center tab ${this.state.activeTab === 1 ? 'active' : ''}`}
+                                            onClick={() => this.toggle(1)}
+                                        >
+                                            Provenance
+                                        </div>
+                                        <div
+                                            id="div2"
+                                            className={`h6 col-md-6 text-center tab ${this.state.activeTab === 2 ? 'active' : ''}`}
+                                            onClick={() => this.toggle(2)}
+                                        >
+                                            Timeline
+                                        </div>
+                                    </FeaturedTabs>
+                                    {this.props.observatoryInfo[3] && (
+                                        <ErrorMessage class="alert-server">The data has been partially imported automatically.</ErrorMessage>
+                                    )}
+                                    <TransitionGroup exit={false}>{rightSidebar}</TransitionGroup>
+                                </SidebarStyledBox>
+                            </div>
                         )}
-                        <TransitionGroup exit={false}>{rightSidebar}</TransitionGroup>
-                        </SidebarStyledBox>
-
-
-                        </div>
-                    )}
-                        
                     </Row>
-
                 </Container>
             </div>
         );

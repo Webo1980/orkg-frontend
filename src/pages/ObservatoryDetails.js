@@ -22,8 +22,8 @@ class ObservatoryDetails extends Component {
             hasNextPage: false,
             page: 1,
             isLastPageReached: false,
-            resourceId:'',
-            label:''
+            resourceId: '',
+            label: ''
         };
     }
 
@@ -39,7 +39,7 @@ class ObservatoryDetails extends Component {
             if (resources.length > 0) {
                 this.setState({
                     resources: [...this.state.resources, ...resources],
-                    isNextPageLoading: false,
+                    isNextPageLoading: false
                     //hasNextPage: resources.length < this.pageSize ? false : true,
                     //page: this.state.page + 1
                 });
@@ -63,23 +63,23 @@ class ObservatoryDetails extends Component {
                     <div className="clearfix">
                         {console.log(this.props.user)}
                         {this.props.user && (
-                            <Link className="float-right mb-2 mt-2 clearfix" to={reverse(ROUTES.ADD_OBSERVATORY, {id: this.props.match.params.id})}>
-                            <span className="fa fa-plus" /> Create new observatory
-                        </Link>
+                            <Link className="float-right mb-2 mt-2 clearfix" to={reverse(ROUTES.ADD_OBSERVATORY, { id: this.props.match.params.id })}>
+                                <span className="fa fa-plus" /> Create new observatory
+                            </Link>
                         )}
-                        
                     </div>
                     {this.state.resources.length > 0 && (
                         <div>
                             {this.state.resources.map(resource => {
                                 return (
-                                    <ShortRecord key={resource.id} header={resource.name} href={reverse(ROUTES.OBSERVATORY, { id: resource.id })}>
-                                    </ShortRecord>
+                                    <ShortRecord key={resource.id} header={resource.name} href={reverse(ROUTES.OBSERVATORY, { id: resource.id })} />
                                 );
                             })}
                         </div>
                     )}
-                    {this.state.resources.length === 0 && !this.state.isNextPageLoading && <div className="text-center mt-4 mb-4">No Observatories</div>}
+                    {this.state.resources.length === 0 && !this.state.isNextPageLoading && (
+                        <div className="text-center mt-4 mb-4">No Observatories</div>
+                    )}
                     {this.state.isNextPageLoading && (
                         <div className="text-center mt-4 mb-4">
                             <Icon icon={faSpinner} spin /> Loading
@@ -105,9 +105,9 @@ class ObservatoryDetails extends Component {
 
 const mapStateToProps = state => ({
     user: state.auth.user
-    });
-    
-    export default connect(
-        mapStateToProps,
-        null
-    )(ObservatoryDetails);
+});
+
+export default connect(
+    mapStateToProps,
+    null
+)(ObservatoryDetails);
