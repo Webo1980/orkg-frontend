@@ -6,6 +6,7 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { connect } from 'react-redux';
 import { getAllObservatoriesbyOrganizationId } from '../network';
 import { Container } from 'reactstrap';
+import PropTypes from 'prop-types';
 import ROUTES from '../constants/routes';
 import { reverse } from 'named-urls';
 
@@ -61,7 +62,7 @@ class ObservatoryDetails extends Component {
                 </Container>
                 <Container className={'box pt-4 pb-4 pl-5 pr-5 clearfix'}>
                     <div className="clearfix">
-                        {console.log(this.props.user)}
+                        {/* {console.log(this.props.user)} */}
                         {this.props.user && (
                             <Link className="float-right mb-2 mt-2 clearfix" to={reverse(ROUTES.ADD_OBSERVATORY, { id: this.props.match.params.id })}>
                                 <span className="fa fa-plus" /> Create new observatory
@@ -106,6 +107,15 @@ class ObservatoryDetails extends Component {
 const mapStateToProps = state => ({
     user: state.auth.user
 });
+
+ObservatoryDetails.propTypes = {
+    match: PropTypes.shape({
+        params: PropTypes.shape({
+            id: PropTypes.string.isRequired
+        }).isRequired
+    }).isRequired,
+    user: PropTypes.object
+};
 
 export default connect(
     mapStateToProps,

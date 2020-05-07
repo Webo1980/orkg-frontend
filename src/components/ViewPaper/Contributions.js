@@ -133,12 +133,6 @@ class Contributions extends Component {
         };
     }
 
-    toggle = tab => {
-        if (this.state.activeTab !== tab) {
-            this.setState({ activeTab: tab });
-        }
-    };
-
     componentDidUpdate = prevProps => {
         if (this.props.paperId !== prevProps.paperId) {
             this.setState({ loading: true });
@@ -150,6 +144,12 @@ class Contributions extends Component {
                 this.getObservatoryAndOrganizationInformation(this.props.observatoryInfo[0]);
                 this.getResourceContributors(this.props.paperId);
             });
+        }
+    };
+
+    toggle = tab => {
+        if (this.state.activeTab !== tab) {
+            this.setState({ activeTab: tab });
         }
     };
 
@@ -366,7 +366,7 @@ class Contributions extends Component {
                                             date={key['created_at']}
                                             iconStyle={{ background: 'rgb(212, 216, 224)', color: '#b8b8b9' }}
                                         >
-                                            {key['created_by'] == this.state.observatory.userName && (
+                                            {key['created_by'] === this.state.observatory.userName && (
                                                 <p>
                                                     Added by <b>{key['created_by']}</b>{' '}
                                                 </p>
@@ -628,6 +628,10 @@ const mapDispatchToProps = dispatch => ({
     selectContribution: data => dispatch(selectContribution(data)),
     updateResearchProblems: data => dispatch(updateResearchProblems(data))
 });
+
+Contributions.propTypes = {
+    observatoryInfo: PropTypes.object
+};
 
 export default connect(
     mapStateToProps,

@@ -209,7 +209,8 @@ OrganizationDetails.propTypes = {
         params: PropTypes.shape({
             id: PropTypes.string.isRequired
         }).isRequired
-    }).isRequired
+    }).isRequired,
+    user: PropTypes.object
 };
 
 const mapStateToProps = state => ({

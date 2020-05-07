@@ -5,6 +5,7 @@ import { Container, Button, Form, FormGroup, Input, Label, Alert } from 'reactst
 import { toast } from 'react-toastify';
 import { getAllClasses } from 'network';
 import { reverse } from 'named-urls';
+import PropTypes from 'prop-types';
 import ROUTES from '../constants/routes';
 
 export default class AddObservatory extends Component {
@@ -185,3 +186,11 @@ export default class AddObservatory extends Component {
         );
     }
 }
+
+AddObservatory.propTypes = {
+    match: PropTypes.shape({
+        params: PropTypes.shape({
+            id: PropTypes.string.isRequired
+        }).isRequired
+    }).isRequired
+};
