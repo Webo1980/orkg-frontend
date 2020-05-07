@@ -1,0 +1,9 @@
+export default {
+    api: 'https://profiles.impactstory.org/api/person/',
+    concepts: {
+        'scientific-impact': ['base'],
+        'societal-impact': ['wikipedia', 'twitter', 'mendeley'],
+        community: ['hypothesis', 'stackexchange'],
+        openness: ['unpaywall']
+    }
+};

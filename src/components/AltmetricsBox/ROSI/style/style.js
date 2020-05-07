@@ -1,0 +1,113 @@
+import styled from 'styled-components';
+
+export const AltmetricsBoxStyled = styled.div`
+    a,
+    a:active,
+    a:focus {
+        outline: none; /* Works in Firefox, Chrome, IE8 and above */
+    }
+    .container {
+        margin: auto;
+        position: relative;
+        padding-left: 0;
+    }
+
+    .section,
+    #impactviz-details,
+    #impactviz-overview {
+        padding-top: 10px;
+        padding-bottom: 20px;
+    }
+
+    #result,
+    .concept {
+        display: none;
+    }
+
+    .alert-info {
+        border-color: #eee;
+        background-color: #eee;
+        color: #4d4d4d;
+    }
+
+    .source-icon {
+        width: 20px;
+    }
+
+    #impactviz-customize {
+        width: 20%;
+        float: right;
+    }
+
+    /* header */
+
+    .header {
+        padding-top: 25px;
+        padding-bottom: 10px;
+        background-color: #4b4b4b;
+        text-decoration: none;
+        margin-bottom: 20px;
+    }
+
+    #logo {
+        float: right;
+        padding-top: 10px;
+    }
+
+    /* footer */
+
+    .footer {
+        position: fixed;
+        bottom: 0;
+    }
+
+    /* links */
+
+    .header a,
+    .header a:hover {
+        color: white !important;
+    }
+
+    .container a,
+    .footer a {
+        color: rgb(23, 55, 94);
+    }
+
+    /* form */
+
+    .alpaca-control {
+        padding-top: 7px;
+    }
+
+    input::placeholder {
+        font-size: 80%;
+    }
+
+    textarea::placeholder {
+        font-size: 80%;
+        font-family: sans-serif;
+        background-color: #f8f8f8;
+    }
+
+    label {
+        font-size: 110%;
+    }
+
+    /* paperbuzzviz */
+
+    .paperbuzz-title {
+        text-decoration: none !important;
+    }
+
+    .paperbuzz-bar.main {
+        fill: black !important;
+    }
+
+    .paperbuzz-bar.alt {
+        fill: none !important;
+    }
+
+    .paperbuzz-source-row {
+        width: 200px;
+    }
+`;

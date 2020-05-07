@@ -446,8 +446,9 @@ class ViewPaper extends Component {
                                     <Alert color="danger">Failed to load contributions.</Alert>
                                 </>
                             )}
-
-                            <AltmetricsBox />
+                            {this.props.viewPaper.doi && this.props.viewPaper.doi.startsWith('10.') && (
+                                <AltmetricsBox doi={this.props.viewPaper.doi} />
+                            )}
                         </Container>
                     </>
                 )}
