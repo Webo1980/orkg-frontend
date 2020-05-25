@@ -5,7 +5,6 @@ import { uniq } from 'lodash';
 import { getResource } from 'network';
 import { connect } from 'react-redux';
 import { fetchStatementsForResource, createResource } from 'actions/statementBrowser';
-import { getValueClass, isInlineResource } from 'components/StatementBrowser/AddValue/helpers/utils';
 import format from 'string-format';
 
 class FormatedLabel extends Component {
