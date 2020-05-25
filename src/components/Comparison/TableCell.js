@@ -70,7 +70,9 @@ class TableCell extends Component {
                                                 onClick={() => this.openStatementBrowser(date.resourceId, date.label)}
                                                 style={{ cursor: 'pointer' }}
                                             >
-                                                <ValuePlugins type={'resource'}>{date.label}</ValuePlugins>
+                                                <ValuePlugins type={'resource'} showFormatedLabel={true} resourceId={date.resourceId}>
+                                                    {date.label}
+                                                </ValuePlugins>
                                             </span>
                                         </Tippy>
                                     </span>
