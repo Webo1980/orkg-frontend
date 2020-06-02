@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
-import { getResourcesByClass, getStatementsBySubjects } from '../network';
+import { getResourcesByClass } from '../network';
 import { Container } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { getPaperData } from 'utils';
-import { find } from 'lodash';
-import PaperCard from './../components/PaperCard/PaperCard';
+import PaperCardDynamic from './../components/PaperCard/PaperCardDynamic';
 
 export default class Papers extends Component {
     constructor(props) {
@@ -14,11 +12,11 @@ export default class Papers extends Component {
         this.pageSize = 25;
 
         this.state = {
-            statements: [],
             isNextPageLoading: false,
             hasNextPage: false,
             page: 1,
-            isLastPageReached: false
+            isLastPageReached: false,
+            paperCards: []
         };
     }
 
@@ -38,27 +36,16 @@ export default class Papers extends Component {
             desc: true
         }).then(papers => {
             if (papers.length > 0) {
-                // Fetch the data of each paper
-                getStatementsBySubjects({ ids: papers.map(p => p.id) })
-                    .then(papersStatements => {
-                        const statements = papersStatements.map(paperStatements => {
-                            return getPaperData(paperStatements.id, find(papers, { id: paperStatements.id }).label, paperStatements.statements);
-                        });
-                        this.setState({
-                            statements: [...this.state.statements, ...statements],
-                            isNextPageLoading: false,
-                            hasNextPage: statements.length < this.pageSize ? false : true,
-                            page: this.state.page + 1
-                        });
-                    })
-                    .catch(error => {
-                        this.setState({
-                            isNextPageLoading: false,
-                            hasNextPage: false,
-                            isLastPageReached: true
-                        });
-                        console.log(error);
-                    });
+                // Fetch the data for each paper
+                const paperCards = papers.map(paper => {
+                    return this.getPaperCard(paper);
+                });
+                this.setState({
+                    paperCards: [...this.state.paperCards, ...paperCards],
+                    isNextPageLoading: false,
+                    hasNextPage: paperCards.length >= this.pageSize,
+                    page: this.state.page + 1
+                });
             } else {
                 this.setState({
                     isNextPageLoading: false,
@@ -69,6 +56,10 @@ export default class Papers extends Component {
         });
     };
 
+    getPaperCard = paper => {
+        return <PaperCardDynamic paper={{ title: paper.label, id: paper.id }} key={`pc${paper.id}`} />;
+    };
+
     render() {
         return (
             <>
@@ -76,14 +67,8 @@ export default class Papers extends Component {
                     <h1 className="h4 mt-4 mb-4">View all papers</h1>
                 </Container>
                 <Container className={'p-0'}>
-                    {this.state.statements.length > 0 && (
-                        <div>
-                            {this.state.statements.map(resource => {
-                                return <PaperCard paper={{ title: resource.label, ...resource }} key={`pc${resource.id}`} />;
-                            })}
-                        </div>
-                    )}
-                    {this.state.statements.length === 0 && !this.state.isNextPageLoading && <div className="text-center mt-4 mb-4">No Papers</div>}
+                    {this.state.paperCards.length > 0 && this.state.paperCards}
+                    {this.state.paperCards.length === 0 && !this.state.isNextPageLoading && <div className="text-center mt-4 mb-4">No Papers</div>}
                     {this.state.isNextPageLoading && (
                         <div className="text-center mt-4 mb-4">
                             <Icon icon={faSpinner} spin /> Loading
