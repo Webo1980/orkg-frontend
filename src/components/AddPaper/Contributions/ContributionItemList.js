@@ -37,6 +37,19 @@ class ContributionItemList extends Component {
     constructor(props) {
         super(props);
 
+        this.flags = {
+            disableDraggable: true
+        };
+        this.stopDraggingObject = {}; // default empty object
+        if (this.flags.disableDraggable) {
+            // if we want to disable drag on links >> then we create this object
+            this.stopDraggingObject = {
+                onDragStart: e => {
+                    e.preventDefault();
+                }
+            };
+        }
+
         this.state = {
             modal: false,
             modalDataset: false,
@@ -148,7 +161,12 @@ class ContributionItemList extends Component {
         );
 
         return this.props.paperId && !this.props.isSelected && !this.state.isEditing ? (
-            <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: this.props.paperId, contributionId: this.props.contribution.id })}>{listItem}</Link>
+            <Link
+                {...this.stopDraggingObject}
+                to={reverse(ROUTES.VIEW_PAPER, { resourceId: this.props.paperId, contributionId: this.props.contribution.id })}
+            >
+                {listItem}
+            </Link>
         ) : (
             listItem
         );

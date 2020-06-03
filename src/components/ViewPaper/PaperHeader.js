@@ -11,6 +11,24 @@ import PropTypes from 'prop-types';
 import EditPaperDialog from './EditDialog/EditPaperDialog';
 
 class PaperHeader extends Component {
+    constructor() {
+        super();
+
+        this.flags = {
+            disableDraggable: true
+        };
+        this.stopDraggingObject = {}; // default empty object
+        if (this.flags.disableDraggable) {
+            // if we want to disable drag on links >> then we create this object
+            this.stopDraggingObject = {
+                onDragStart: e => {
+                    e.preventDefault();
+                }
+            };
+        }
+        //stopDraggingObject is unrolled as property in the respective item ( here the links)
+    }
+
     render() {
         return (
             <>
@@ -30,7 +48,10 @@ class PaperHeader extends Component {
                     ''
                 )}
                 {this.props.viewPaper.researchField && (
-                    <Link to={reverse(ROUTES.RESEARCH_FIELD, { researchFieldId: this.props.viewPaper.researchField.id })}>
+                    <Link
+                        {...this.stopDraggingObject}
+                        to={reverse(ROUTES.RESEARCH_FIELD, { researchFieldId: this.props.viewPaper.researchField.id })}
+                    >
                         <span className="badge badge-lightblue mr-2 mb-2">
                             <Icon icon={faBars} className="text-primary" /> {this.props.viewPaper.researchField.label}
                         </span>
@@ -38,7 +59,7 @@ class PaperHeader extends Component {
                 )}
                 {this.props.viewPaper.authors.map((author, index) =>
                     author.classes && author.classes.includes(process.env.REACT_APP_CLASSES_AUTHOR) ? (
-                        <Link key={index} to={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.id })}>
+                        <Link {...this.stopDraggingObject} key={index} to={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.id })}>
                             <Badge color="lightblue" className="mr-2 mb-2" key={index}>
                                 <Icon icon={faUser} className="text-primary" /> {author.label}
                             </Badge>
@@ -56,6 +77,7 @@ class PaperHeader extends Component {
                             <small>
                                 Published in:{' '}
                                 <Link
+                                    {...this.stopDraggingObject}
                                     style={{ color: '#60687a', fontStyle: 'italic' }}
                                     to={reverse(ROUTES.VENUE_PAGE, { venueId: this.props.viewPaper.publishedIn.id })}
                                 >
