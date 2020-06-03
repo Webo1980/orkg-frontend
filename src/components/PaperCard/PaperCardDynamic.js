@@ -13,7 +13,7 @@ import AddToComparison from './../ViewPaper/AddToComparison';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import ContentLoader from 'react-content-loader';
-import { getStatementsBySubject } from '../../network';
+
 import { getPaperDataForViewAllPapers } from '../../utils';
 
 const PaperCardStyled = styled.div`
@@ -34,14 +34,23 @@ const PaperCardStyled = styled.div`
 class PaperCardDynamic extends Component {
     constructor(props) {
         super();
-        this.state = { isLoading: true, paperStatements: [] };
+        this.state = { isLoading: true, paperStatements: [], optimizePaperObject: null };
     }
 
     componentDidMount() {
-        getStatementsBySubject({ id: this.props.paper.id }).then(paperStatements => {
-            const optimizedPaperObject = getPaperDataForViewAllPapers(paperStatements);
+        /** this is experimental code, where each paper request its own data when paper Card is mounted **/
+        // getStatementsBySubject({ id: this.props.paper.id }).then(paperStatements => {
+        //     const optimizedPaperObject = getPaperDataForViewAllPapers(paperStatements);
+        //     this.setState({ optimizedPaperObject: optimizedPaperObject, isLoading: false });
+        // });
+    }
+
+    componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS): void {
+        // use the property for that;
+        if (this.state.optimizePaperObject === null && this.state.isLoading) {
+            const optimizedPaperObject = getPaperDataForViewAllPapers(this.props.paper.paperData.statements);
             this.setState({ optimizedPaperObject: optimizedPaperObject, isLoading: false });
-        });
+        }
     }
 
     render() {
@@ -83,7 +92,7 @@ class PaperCardDynamic extends Component {
                         )}
                         {/*Show Loading Dynamic data indicator if we are loading */}
                         {this.state.isLoading && (
-                            <ContentLoader height={12} speed={2} primaryColor="#f3f3f3" secondaryColor="#ccc">
+                            <ContentLoader style={{ marginTop: '-8px' }} height={12} speed={2} primaryColor="#f3f3f3" secondaryColor="#ccc">
                                 <rect x="0" y="5" width="100%" height="5" rx="2" ry="2" />
                             </ContentLoader>
                         )}
@@ -112,7 +121,8 @@ PaperCardDynamic.propTypes = {
         title: PropTypes.string,
         authorNames: PropTypes.array,
         publicationMonth: PropTypes.string,
-        publicationYear: PropTypes.string
+        publicationYear: PropTypes.string,
+        paperData: PropTypes.object
     }).isRequired,
     contribution: PropTypes.shape({
         id: PropTypes.string.isRequired,

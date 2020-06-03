@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getResourcesByClass } from '../network';
+import { getResourcesByClass, getStatementsBySubjects } from '../network';
 import { Container } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -16,18 +16,28 @@ export default class Papers extends Component {
             hasNextPage: false,
             page: 1,
             isLastPageReached: false,
-            paperCards: []
+            papers: [],
+            paperCards: [],
+            bulkStatements: [],
+            callUpdateInPaperCard: false
         };
     }
 
     componentDidMount() {
         document.title = 'Papers - ORKG';
-
         this.loadMorePapers();
+    }
+    componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS): void {
+        if (this.state.callUpdateInPaperCard) {
+            const paperCards = this.state.papers.map((paper, index) => {
+                return this.getPaperCard(paper, this.state.bulkStatements[index]);
+            });
+            this.setState({ paperCards: [...paperCards], callUpdateInPaperCard: false });
+        }
     }
 
     loadMorePapers = () => {
-        this.setState({ isNextPageLoading: true });
+        this.setState({ isNextPageLoading: true, callUpdateInPaperCard: false });
         getResourcesByClass({
             id: process.env.REACT_APP_CLASSES_PAPER,
             page: this.state.page,
@@ -41,10 +51,15 @@ export default class Papers extends Component {
                     return this.getPaperCard(paper);
                 });
                 this.setState({
+                    papers: [...this.state.papers, ...papers],
                     paperCards: [...this.state.paperCards, ...paperCards],
                     isNextPageLoading: false,
                     hasNextPage: paperCards.length >= this.pageSize,
                     page: this.state.page + 1
+                });
+                // fetch the statements for the individual papers as a bulk fetch call
+                getStatementsBySubjects({ ids: papers.map(p => p.id) }).then(bulkStatements => {
+                    this.setState({ bulkStatements: [...this.state.bulkStatements, ...bulkStatements], callUpdateInPaperCard: true });
                 });
             } else {
                 this.setState({
@@ -56,8 +71,8 @@ export default class Papers extends Component {
         });
     };
 
-    getPaperCard = paper => {
-        return <PaperCardDynamic paper={{ title: paper.label, id: paper.id }} key={`pc${paper.id}`} />;
+    getPaperCard = (paper, paperData) => {
+        return <PaperCardDynamic paper={{ title: paper.label, id: paper.id, paperData: paperData }} key={`pc${paper.id}`} />;
     };
 
     render() {
