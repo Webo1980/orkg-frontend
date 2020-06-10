@@ -3,7 +3,7 @@ import { Alert, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Bu
 import { comparisonUrl, submitGetRequest, getResource, getStatementsBySubject } from 'network';
 import { getContributionIdsFromUrl, getPropertyIdsFromUrl, getTransposeOptionFromUrl, getResonseHashFromUrl, get_error_message } from 'utils';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faPlus, faArrowsAltH, faLightbulb } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisV, faPlus, faArrowsAltH, faLightbulb, faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import ComparisonLoadingComponent from './ComparisonLoadingComponent';
 import ComparisonTable from './ComparisonTable.js';
@@ -56,7 +56,8 @@ class Comparison extends Component {
             errors: null,
             locationSearch: '',
             resourcesStatements: [],
-            hideScrollHint: cookies.get('seenShiftMouseWheelScroll') ? cookies.get('seenShiftMouseWheelScroll') : false
+            hideScrollHint: cookies.get('seenShiftMouseWheelScroll') ? cookies.get('seenShiftMouseWheelScroll') : false,
+            useFullWidthForComparisonTable: cookies.get('useFullWidthForComparisonTable') ? cookies.get('useFullWidthForComparisonTable') : false
         };
     }
 
@@ -351,9 +352,12 @@ class Comparison extends Component {
     };
 
     handleFullWidth = () => {
-        this.setState(prevState => ({
-            fullWidth: !prevState.fullWidth
-        }));
+        const newStateFlag = !this.state.useFullWidthForComparisonTable;
+        this.setState({ useFullWidthForComparisonTable: newStateFlag });
+        cookies.set('useFullWidthForComparisonTable', newStateFlag, {
+            path: process.env.PUBLIC_URL,
+            maxAge: 315360000
+        });
     };
 
     onDismiss = () => {
@@ -365,7 +369,7 @@ class Comparison extends Component {
 
     render() {
         const contributionAmount = getContributionIdsFromUrl(this.state.locationSearch || this.props.location.search).length;
-        const containerStyle = this.state.fullWidth ? { maxWidth: 'calc(100% - 20px)' } : {};
+        const containerStyle = this.state.useFullWidthForComparisonTable ? { maxWidth: 'calc(100% - 20px)' } : {};
 
         return (
             <div>
@@ -385,7 +389,18 @@ class Comparison extends Component {
                         <div style={{ marginLeft: 'auto' }} className="flex-shrink-0 mt-4">
                             <ButtonGroup className="float-right mb-4 ml-1">
                                 <Button color="darkblue" size="sm" onClick={this.handleFullWidth} style={{ marginRight: 3 }}>
-                                    <Icon icon={faArrowsAltH} /> <span className="mr-2">Full width</span>
+                                    {/** Adding state related aspect 
+                                     if state==fullWidth then show reducedWith icon and text  **/}
+                                    {!this.state.useFullWidthForComparisonTable && (
+                                        <>
+                                            <Icon icon={faArrowsAltH} /> <span className="mr-2">Full width</span>
+                                        </>
+                                    )}
+                                    {this.state.useFullWidthForComparisonTable && (
+                                        <>
+                                            <Icon icon={faArrowRight} /> <Icon icon={faArrowLeft} /> <span className="mr-2">Reduced width</span>
+                                        </>
+                                    )}
                                 </Button>
                                 <Button
                                     className="flex-shrink-0"
