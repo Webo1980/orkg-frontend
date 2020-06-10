@@ -22,6 +22,8 @@ class ComparisonTable extends Component {
     constructor(props) {
         super(props);
 
+        this.oldWidth = 0;
+
         this.state = {
             showPropertiesDialog: false,
             showShareDialog: false,
@@ -37,10 +39,13 @@ class ComparisonTable extends Component {
     componentDidMount = () => {
         const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
         rtTable.addEventListener('scroll', this.handleScroll, 1000);
+        window.addEventListener('resize', this.handleScroll);
         this.defaultNextButtonState();
     };
 
     componentDidUpdate = (prevProps, prevState) => {
+        setTimeout(this.reEvaluateScrollSize, 510);
+        // the animation of the table size takes 0.5 sec so we push an evaluation function on the event stack
         if (!this.props.transpose) {
             if (this.props.contributions !== prevProps.contributions && this.props.contributions.length > 3) {
                 this.defaultNextButtonState();
@@ -55,8 +60,16 @@ class ComparisonTable extends Component {
     componentWillUnmount = () => {
         const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
         rtTable.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleScroll);
     };
 
+    reEvaluateScrollSize = () => {
+        const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
+        if (rtTable.clientWidth !== this.oldWidth) {
+            this.oldWidth = rtTable.clientWidth;
+            this.handleScroll();
+        }
+    };
     defaultNextButtonState = () => {
         if (!this.props.transpose) {
             if (this.props.contributions.length > 3) {
