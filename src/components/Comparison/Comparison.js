@@ -52,7 +52,6 @@ class Comparison extends Component {
             showAddContribution: false,
             isLoading: false,
             loadingFailed: false,
-            fullWidth: false,
             errors: null,
             locationSearch: '',
             resourcesStatements: [],
