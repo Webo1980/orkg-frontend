@@ -21,6 +21,8 @@ const ReactTableFixedColumns = withFixedColumnsScrollEvent(ReactTable);
 class ComparisonTable extends Component {
     constructor(props) {
         super(props);
+        this.runningEvaluation = undefined;
+        this.runningEvaluationCounter = 0;
 
         this.state = {
             showPropertiesDialog: false,
@@ -37,10 +39,20 @@ class ComparisonTable extends Component {
     componentDidMount = () => {
         const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
         rtTable.addEventListener('scroll', this.handleScroll, 1000);
+        window.addEventListener('resize', this.handleScroll);
+
+        document.addEventListener('transitionstart', this.listenToTransitionStartEvent);
+        document.addEventListener('transitionend', this.listenToTransitionEndEvent);
+
         this.defaultNextButtonState();
     };
 
     componentDidUpdate = (prevProps, prevState) => {
+        // state changed;
+        if (prevState.showBackButton !== this.state.showBackButton || prevState.showNextButton !== this.state.showNextButton) {
+            this.props.needScrollHint(this.state.showNextButton || this.state.showBackButton);
+        }
+
         if (!this.props.transpose) {
             if (this.props.contributions !== prevProps.contributions && this.props.contributions.length > 3) {
                 this.defaultNextButtonState();
@@ -55,6 +67,9 @@ class ComparisonTable extends Component {
     componentWillUnmount = () => {
         const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
         rtTable.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleScroll);
+        document.removeEventListener('transitionstart', this.listenToTransitionStartEvent);
+        document.removeEventListener('transitionend', this.listenToTransitionEndEvent);
     };
 
     defaultNextButtonState = () => {
@@ -81,6 +96,31 @@ class ComparisonTable extends Component {
     scrollBack = () => {
         const rtTable = ReactDOM.findDOMNode(this.scrollContainer).getElementsByClassName('rt-table')[0];
         rtTable.scrollLeft -= this.scrollAmount;
+    };
+
+    listenToTransitionStartEvent = param => {
+        if (param.propertyName === 'max-width') {
+            if (param.target.id && param.target.id === 'flexibleContainerForComparisonTable') {
+                this.runningEvaluation = setInterval(this.reEvaluateScrollSize, 50);
+            }
+        }
+    };
+    listenToTransitionEndEvent = param => {
+        if (param.propertyName === 'max-width') {
+            if (param.target.id && param.target.id === 'flexibleContainerForComparisonTable') {
+                clearInterval(this.runningEvaluation);
+                this.runningEvaluationCounter = 0;
+            }
+        }
+    };
+
+    reEvaluateScrollSize = () => {
+        // maxValidationSize, just as fallback ;
+        if (this.runningEvaluationCounter > 50) {
+            clearInterval(this.runningEvaluation);
+        }
+        this.handleScroll();
+        this.runningEvaluationCounter++;
     };
 
     handleScroll = () => {
@@ -294,7 +334,8 @@ ComparisonTable.propTypes = {
     data: PropTypes.object.isRequired,
     properties: PropTypes.array.isRequired,
     removeContribution: PropTypes.func.isRequired,
-    transpose: PropTypes.bool.isRequired
+    transpose: PropTypes.bool.isRequired,
+    needScrollHint: PropTypes.func.isRequired
 };
 
 export default ComparisonTable;

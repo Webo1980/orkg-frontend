@@ -57,6 +57,7 @@ class Comparison extends Component {
             locationSearch: '',
             resourcesStatements: [],
             hideScrollHint: false,
+            needScrollHint: false,
             useFullWidthForComparisonTable: false
         };
     }
@@ -83,6 +84,11 @@ class Comparison extends Component {
         if (prevContributions.length !== currentContributions.length || !currentContributions.every(e => prevContributions.includes(e))) {
             this.performComparison();
         }
+    };
+
+    needScrollHint = value => {
+        // add evaluation based on the state of the scrollArea in ComparisionTable Component
+        this.setState({ needScrollHint: value });
     };
 
     evaluateCookies = () => {
@@ -413,7 +419,7 @@ class Comparison extends Component {
                                 <Button color="darkblue" size="sm" onClick={this.handleFullWidth} style={{ marginRight: 3 }}>
                                     {/** Adding state related aspect 
                                      if state==fullWidth then show reducedWith icon and text  **/}
-                                    {this.state.useFullWidthForComparisonTable ? (
+                                    {!this.state.useFullWidthForComparisonTable ? (
                                         <>
                                             <Icon icon={faArrowsAltH} /> <span className="mr-2">Full width</span>
                                         </>
@@ -496,7 +502,7 @@ class Comparison extends Component {
                     }*/}
                 </ContainerAnimated>
 
-                <ContainerAnimated className="box pt-4 pb-4 pl-5 pr-5 clearfix" style={containerStyle}>
+                <ContainerAnimated id="flexibleContainerForComparisonTable" className="box pt-4 pb-4 pl-5 pr-5 clearfix" style={containerStyle}>
                     {!this.state.isLoading && this.state.loadingFailed && (
                         <div>
                             <Alert color="danger">
@@ -550,28 +556,32 @@ class Comparison extends Component {
                                     <br />
                                 )}
                             </div>
-                            {contributionAmount > 3 && (
-                                <Alert color="info" isOpen={!this.state.hideScrollHint} toggle={this.onDismiss}>
-                                    <Icon icon={faLightbulb} /> Use{' '}
-                                    <b>
-                                        <i>Shift</i>
-                                    </b>{' '}
-                                    +{' '}
-                                    <b>
-                                        <i>Mouse Wheel</i>
-                                    </b>{' '}
-                                    for horizontal scrolling in the table.
-                                </Alert>
-                            )}
+
                             {contributionAmount > 1 || this.props.match.params.comparisonId ? (
                                 !this.state.isLoading ? (
-                                    <ComparisonTable
-                                        data={this.state.data}
-                                        properties={this.state.properties}
-                                        contributions={this.state.contributions}
-                                        removeContribution={this.removeContribution}
-                                        transpose={this.state.transpose}
-                                    />
+                                    <>
+                                        {this.state.needScrollHint && (
+                                            <Alert color="info" isOpen={!this.state.hideScrollHint} toggle={this.onDismiss}>
+                                                <Icon icon={faLightbulb} /> Use{' '}
+                                                <b>
+                                                    <i>Shift</i>
+                                                </b>{' '}
+                                                +{' '}
+                                                <b>
+                                                    <i>Mouse Wheel</i>
+                                                </b>{' '}
+                                                for horizontal scrolling in the table.
+                                            </Alert>
+                                        )}
+                                        <ComparisonTable
+                                            data={this.state.data}
+                                            needScrollHint={this.needScrollHint}
+                                            properties={this.state.properties}
+                                            contributions={this.state.contributions}
+                                            removeContribution={this.removeContribution}
+                                            transpose={this.state.transpose}
+                                        />
+                                    </>
                                 ) : (
                                     <ComparisonLoadingComponent />
                                 )
