@@ -49,7 +49,7 @@ class Comparison extends Component {
             showShareDialog: false,
             showLatexDialog: false,
             showPublishDialog: false,
-            showAddContribuion: false,
+            showAddContribution: false,
             isLoading: false,
             loadingFailed: false,
             fullWidth: false,
@@ -413,12 +413,11 @@ class Comparison extends Component {
                                 <Button color="darkblue" size="sm" onClick={this.handleFullWidth} style={{ marginRight: 3 }}>
                                     {/** Adding state related aspect 
                                      if state==fullWidth then show reducedWith icon and text  **/}
-                                    {!this.state.useFullWidthForComparisonTable && (
+                                    {this.state.useFullWidthForComparisonTable ? (
                                         <>
                                             <Icon icon={faArrowsAltH} /> <span className="mr-2">Full width</span>
                                         </>
-                                    )}
-                                    {this.state.useFullWidthForComparisonTable && (
+                                    ) : (
                                         <>
                                             <Icon icon={faArrowRight} /> <Icon icon={faArrowLeft} /> <span className="mr-2">Reduced width</span>
                                         </>
@@ -429,7 +428,7 @@ class Comparison extends Component {
                                     color="darkblue"
                                     size="sm"
                                     style={{ marginRight: 3 }}
-                                    onClick={() => this.toggle('showAddContribuion')}
+                                    onClick={() => this.toggle('showAddContribution')}
                                 >
                                     <Icon icon={faPlus} style={{ margin: '2px 4px 0 0' }} /> Add contribution
                                 </Button>
@@ -618,8 +617,8 @@ class Comparison extends Component {
 
                 <AddContribution
                     addContributions={this.addContributions}
-                    showDialog={this.state.showAddContribuion}
-                    toggle={() => this.toggle('showAddContribuion')}
+                    showDialog={this.state.showAddContribution}
+                    toggle={() => this.toggle('showAddContribution')}
                 />
 
                 <ExportToLatex
