@@ -56,12 +56,13 @@ class Comparison extends Component {
             errors: null,
             locationSearch: '',
             resourcesStatements: [],
-            hideScrollHint: cookies.get('seenShiftMouseWheelScroll') ? cookies.get('seenShiftMouseWheelScroll') : false,
-            useFullWidthForComparisonTable: cookies.get('useFullWidthForComparisonTable') ? cookies.get('useFullWidthForComparisonTable') : false
+            hideScrollHint: false,
+            useFullWidthForComparisonTable: false
         };
     }
 
     componentDidMount = () => {
+        this.evaluateCookies();
         this.performComparison();
         document.title = 'Comparison - ORKG';
     };
@@ -84,6 +85,28 @@ class Comparison extends Component {
         }
     };
 
+    evaluateCookies = () => {
+        const token_hideScrollHint = cookies.get('hideScrollHint');
+        const token_useFullWidthForComparisonTable = cookies.get('useFullWidthForComparisonTable');
+
+        // scrollHint Cookie
+        if (token_hideScrollHint) {
+            // evaluate its value;
+            const booleanToken = token_hideScrollHint === 'true';
+            if (booleanToken !== this.state.hideScrollHint) {
+                this.setState({ hideScrollHint: booleanToken });
+            }
+        }
+
+        //fullWidthCookie
+        if (token_useFullWidthForComparisonTable) {
+            // evaluate its value;
+            const booleanToken = token_useFullWidthForComparisonTable === 'true';
+            if (booleanToken !== this.state.useFullWidthForComparisonTable) {
+                this.setState({ useFullWidthForComparisonTable: booleanToken });
+            }
+        }
+    };
     updateComparisonMetadata = (title, description, reference) => {
         this.setState({ title, description, reference });
     };
@@ -362,9 +385,8 @@ class Comparison extends Component {
 
     onDismiss = () => {
         // dismiss function for the alert thingy!;
-        cookies.set('seenShiftMouseWheelScroll', true, { path: process.env.PUBLIC_URL, maxAge: 315360000 }); // << TEN YEARS
-        const token = cookies.get('seenShiftMouseWheelScroll');
-        this.setState({ hideScrollHint: token });
+        cookies.set('hideScrollHint', true, { path: process.env.PUBLIC_URL, maxAge: 315360000 }); // << TEN YEARS
+        this.setState({ hideScrollHint: true });
     };
 
     render() {
