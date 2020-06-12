@@ -54,18 +54,21 @@ export default function ContributionTemplate(props) {
                         />
                     );
                 })}
-                <AddPropertWrapper>
-                    <div className={'row no-gutters'}>
-                        <div className={'col-4 propertyHolder'} />
-                    </div>
-                    <AddProperty
-                        isDisabled={!props.canAddProperty}
-                        syncBackend={props.syncBackend}
-                        inTemplate={true}
-                        contextStyle="Template"
-                        resourceId={props.value.resourceId}
-                    />
-                </AddPropertWrapper>
+                {props.canAddProperty && (
+                    <AddPropertWrapper>
+                        <div className={'row no-gutters'}>
+                            <div className={'col-4 propertyHolder'} />
+                        </div>
+
+                        <AddProperty
+                            isDisabled={!props.canAddProperty}
+                            syncBackend={props.syncBackend}
+                            inTemplate={true}
+                            contextStyle="Template"
+                            resourceId={props.value.resourceId}
+                        />
+                    </AddPropertWrapper>
+                )}
             </ListGroup>
         </AnimationContainer>
     );

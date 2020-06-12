@@ -95,7 +95,11 @@ export default function Statements(props) {
                         </StyledStatementItem>
                     )}
 
-                    {shared <= 1 && props.enableEdit ? <AddProperty isDisabled={!props.canAddProperty} syncBackend={props.syncBackend} /> : ''}
+                    {shared <= 1 && props.enableEdit && props.canAddProperty ? (
+                        <AddProperty isDisabled={!props.canAddProperty} syncBackend={props.syncBackend} />
+                    ) : (
+                        ''
+                    )}
                     {shared <= 1 && props.enableEdit && props.suggestedProperties.length > 0 && <PropertySuggestions />}
                 </ListGroup>
             </div>

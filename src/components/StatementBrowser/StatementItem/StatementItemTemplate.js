@@ -34,7 +34,7 @@ export default function StatementItemTemplate(props) {
                                     props.predicateLabel
                                 )}
                             </div>
-                            {props.enableEdit && (
+                            {props.enableEdit && props.canDeleteProperty && (
                                 <div className={propertyOptionsClasses}>
                                     <StatementOptionButton
                                         isDisabled={!props.canDeleteProperty}

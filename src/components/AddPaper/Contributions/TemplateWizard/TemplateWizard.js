@@ -3,6 +3,7 @@ import AddProperty from 'components/StatementBrowser/AddProperty/AddPropertyCont
 import StatementItem from 'components/StatementBrowser/StatementItem/StatementItemContainer';
 import ContributionTemplate from 'components/StatementBrowser/ContributionTemplate/ContributionTemplateContainer';
 import NoData from 'components/StatementBrowser/NoData/NoData';
+import { canAddProperty } from 'actions/statementBrowser';
 import { compose } from 'redux';
 import { withCookies, Cookies } from 'react-cookie';
 import { connect } from 'react-redux';
@@ -62,7 +63,14 @@ class TemplateWizard extends Component {
                     <NoData enableEdit={this.props.enableEdit} templatesFound={this.props.templatesFound} />
                 )}
 
-                <AddProperty contextStyle="Template" syncBackend={false} resourceId={this.props.initialResourceId} />
+                {this.props.canAddProperty && (
+                    <AddProperty
+                        isDisabled={!this.props.canAddProperty}
+                        contextStyle="Template"
+                        syncBackend={false}
+                        resourceId={this.props.initialResourceId}
+                    />
+                )}
             </div>
         );
     }
@@ -76,6 +84,7 @@ TemplateWizard.propTypes = {
     enableEdit: PropTypes.bool.isRequired,
     syncBackend: PropTypes.bool.isRequired,
     templatesFound: PropTypes.bool,
+    canAddProperty: PropTypes.bool,
     cookies: PropTypes.instanceOf(Cookies).isRequired
 };
 
@@ -83,7 +92,8 @@ const mapStateToProps = (state, ownProps) => {
     return {
         resources: state.statementBrowser.resources,
         values: state.statementBrowser.values,
-        properties: state.statementBrowser.properties
+        properties: state.statementBrowser.properties,
+        canAddProperty: canAddProperty(state, ownProps.initialResourceId)
     };
 };
 

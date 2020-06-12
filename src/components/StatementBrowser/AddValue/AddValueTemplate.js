@@ -92,7 +92,7 @@ export default function AddValueTemplate(props) {
     }
 
     return (
-        <ValueItemStyle className={showAddValue ? 'editingLabel' : ''}>
+        <>
             {modal ? (
                 <StatementBrowserDialog
                     show={modal}
@@ -105,130 +105,134 @@ export default function AddValueTemplate(props) {
             ) : (
                 ''
             )}
-            {!showAddValue ? (
-                <StatementOptionButton
-                    isDisabled={props.isDisabled}
-                    title={!props.isDisabled ? 'Add value' : 'This property reached the maximum number of values set by template'}
-                    icon={faPlus}
-                    action={() => {
-                        if (isInlineResource) {
-                            // 1 - create a resource
-                            props.handleAddValue(valueType, isInlineResource).then(resourceId => {
-                                // 2 - open the dialog on that resource
-                                if (props.openExistingResourcesInDialog) {
-                                    props.createRequiredPropertiesInResource(resourceId).then(() => {
-                                        setDialogResourceId(resourceId);
-                                        setDialogResourceLabel(isInlineResource);
-                                        setModal(true);
+            {!props.isDisabled && (
+                <ValueItemStyle className={showAddValue ? 'editingLabel' : ''}>
+                    {!showAddValue ? (
+                        <StatementOptionButton
+                            isDisabled={props.isDisabled}
+                            title={!props.isDisabled ? 'Add value' : 'This property reached the maximum number of values set by template'}
+                            icon={faPlus}
+                            action={() => {
+                                if (isInlineResource) {
+                                    // 1 - create a resource
+                                    props.handleAddValue(valueType, isInlineResource).then(resourceId => {
+                                        // 2 - open the dialog on that resource
+                                        if (props.openExistingResourcesInDialog) {
+                                            props.createRequiredPropertiesInResource(resourceId).then(() => {
+                                                setDialogResourceId(resourceId);
+                                                setDialogResourceLabel(isInlineResource);
+                                                setModal(true);
+                                            });
+                                        } else {
+                                            props.selectResource({
+                                                increaseLevel: true,
+                                                resourceId: resourceId,
+                                                label: isInlineResource
+                                            });
+                                        }
                                     });
                                 } else {
-                                    props.selectResource({
-                                        increaseLevel: true,
-                                        resourceId: resourceId,
-                                        label: isInlineResource
-                                    });
+                                    setShowAddValue(true);
                                 }
-                            });
-                        } else {
-                            setShowAddValue(true);
-                        }
-                    }}
-                />
-            ) : (
-                <div>
-                    <InputGroup size="sm">
-                        {!props.valueClass && (
-                            <InputGroupButtonDropdown addonType="prepend" isOpen={dropdownValueTypeOpen} toggle={setDropdownValueTypeOpen}>
-                                <StyledDropdownToggle>
-                                    <small>{valueType.charAt(0).toUpperCase() + valueType.slice(1) + ' '}</small>
-                                    <Icon size="xs" icon={faBars} />
-                                </StyledDropdownToggle>
-                                <DropdownMenu>
-                                    <StyledDropdownItem onClick={() => setValueType('object')}>
-                                        <Tippy content="Choose object to link this to an object, which can contain values on its own">
-                                            <span>Object</span>
-                                        </Tippy>
-                                    </StyledDropdownItem>
-                                    <StyledDropdownItem onClick={() => setValueType('literal')}>
-                                        <Tippy content="Choose literal for values like numbers or plain text">
-                                            <span>Literal</span>
-                                        </Tippy>
-                                    </StyledDropdownItem>
-                                </DropdownMenu>
-                            </InputGroupButtonDropdown>
-                        )}
-                        {valueType === 'object' ? (
-                            <AutoComplete
-                                requestUrl={resourcesUrl}
-                                excludeClasses={`${process.env.REACT_APP_CLASSES_CONTRIBUTION},${process.env.REACT_APP_CLASSES_PROBLEM},${process.env.REACT_APP_CLASSES_CONTRIBUTION_TEMPLATE}`}
-                                optionsClass={props.valueClass ? props.valueClass.id : undefined}
-                                placeholder="Enter a resource"
-                                onItemSelected={i => {
-                                    props.handleValueSelect(valueType, i);
-                                    setShowAddValue(false);
-                                }}
-                                onInput={(e, value) => setInputValue(e ? e.target.value : value)}
-                                value={inputValue}
-                                additionalData={props.newResources}
-                                disableBorderRadiusRight
-                                disableBorderRadiusLeft={!props.valueClass}
-                                cssClasses={'form-control-sm'}
-                                onKeyDown={e => {
-                                    if (e.keyCode === 27) {
-                                        // escape
-                                        setShowAddValue(false);
-                                    } else if (e.keyCode === 13 && !isMenuOpen()) {
-                                        props.handleAddValue(valueType, inputValue);
-                                        setShowAddValue(false);
-                                    }
-                                }}
-                                innerRef={ref => (resourceInputRef.current = ref)}
-                            />
-                        ) : (
-                            <InputField
-                                components={props.components}
-                                valueClass={props.valueClass}
-                                inputValue={inputValue}
-                                setInputValue={setInputValue}
-                                setShowAddValue={setShowAddValue}
-                                onSubmit={onSubmit}
-                                isValid={isValid}
-                                literalInputRef={literalInputRef}
-                                onKeyDown={e => {
-                                    if (e.keyCode === 27) {
-                                        // escape
-                                        setShowAddValue(false);
-                                    } else if (e.keyCode === 13) {
-                                        onSubmit();
-                                    }
-                                }}
-                            />
-                        )}
-                        <InputGroupAddon addonType="append">
-                            <StyledButton
-                                outline
-                                onClick={() => {
-                                    setShowAddValue(false);
-                                    setIsValid(true);
-                                    setFormFeedback(null);
-                                }}
-                            >
-                                Cancel
-                            </StyledButton>
-                            <StyledButton
-                                outline
-                                onClick={() => {
-                                    onSubmit();
-                                }}
-                            >
-                                Create
-                            </StyledButton>
-                        </InputGroupAddon>
-                    </InputGroup>
-                    {!isValid && <FormFeedback className={'d-block'}>{formFeedback}</FormFeedback>}
-                </div>
+                            }}
+                        />
+                    ) : (
+                        <div>
+                            <InputGroup size="sm">
+                                {!props.valueClass && (
+                                    <InputGroupButtonDropdown addonType="prepend" isOpen={dropdownValueTypeOpen} toggle={setDropdownValueTypeOpen}>
+                                        <StyledDropdownToggle>
+                                            <small>{valueType.charAt(0).toUpperCase() + valueType.slice(1) + ' '}</small>
+                                            <Icon size="xs" icon={faBars} />
+                                        </StyledDropdownToggle>
+                                        <DropdownMenu>
+                                            <StyledDropdownItem onClick={() => setValueType('object')}>
+                                                <Tippy content="Choose object to link this to an object, which can contain values on its own">
+                                                    <span>Object</span>
+                                                </Tippy>
+                                            </StyledDropdownItem>
+                                            <StyledDropdownItem onClick={() => setValueType('literal')}>
+                                                <Tippy content="Choose literal for values like numbers or plain text">
+                                                    <span>Literal</span>
+                                                </Tippy>
+                                            </StyledDropdownItem>
+                                        </DropdownMenu>
+                                    </InputGroupButtonDropdown>
+                                )}
+                                {valueType === 'object' ? (
+                                    <AutoComplete
+                                        requestUrl={resourcesUrl}
+                                        excludeClasses={`${process.env.REACT_APP_CLASSES_CONTRIBUTION},${process.env.REACT_APP_CLASSES_PROBLEM},${process.env.REACT_APP_CLASSES_CONTRIBUTION_TEMPLATE}`}
+                                        optionsClass={props.valueClass ? props.valueClass.id : undefined}
+                                        placeholder="Enter a resource"
+                                        onItemSelected={i => {
+                                            props.handleValueSelect(valueType, i);
+                                            setShowAddValue(false);
+                                        }}
+                                        onInput={(e, value) => setInputValue(e ? e.target.value : value)}
+                                        value={inputValue}
+                                        additionalData={props.newResources}
+                                        disableBorderRadiusRight
+                                        disableBorderRadiusLeft={!props.valueClass}
+                                        cssClasses={'form-control-sm'}
+                                        onKeyDown={e => {
+                                            if (e.keyCode === 27) {
+                                                // escape
+                                                setShowAddValue(false);
+                                            } else if (e.keyCode === 13 && !isMenuOpen()) {
+                                                props.handleAddValue(valueType, inputValue);
+                                                setShowAddValue(false);
+                                            }
+                                        }}
+                                        innerRef={ref => (resourceInputRef.current = ref)}
+                                    />
+                                ) : (
+                                    <InputField
+                                        components={props.components}
+                                        valueClass={props.valueClass}
+                                        inputValue={inputValue}
+                                        setInputValue={setInputValue}
+                                        setShowAddValue={setShowAddValue}
+                                        onSubmit={onSubmit}
+                                        isValid={isValid}
+                                        literalInputRef={literalInputRef}
+                                        onKeyDown={e => {
+                                            if (e.keyCode === 27) {
+                                                // escape
+                                                setShowAddValue(false);
+                                            } else if (e.keyCode === 13) {
+                                                onSubmit();
+                                            }
+                                        }}
+                                    />
+                                )}
+                                <InputGroupAddon addonType="append">
+                                    <StyledButton
+                                        outline
+                                        onClick={() => {
+                                            setShowAddValue(false);
+                                            setIsValid(true);
+                                            setFormFeedback(null);
+                                        }}
+                                    >
+                                        Cancel
+                                    </StyledButton>
+                                    <StyledButton
+                                        outline
+                                        onClick={() => {
+                                            onSubmit();
+                                        }}
+                                    >
+                                        Create
+                                    </StyledButton>
+                                </InputGroupAddon>
+                            </InputGroup>
+                            {!isValid && <FormFeedback className={'d-block'}>{formFeedback}</FormFeedback>}
+                        </div>
+                    )}
+                </ValueItemStyle>
             )}
-        </ValueItemStyle>
+        </>
     );
 }
 
