@@ -204,6 +204,7 @@ export default (state = initialState, action) => {
                         type: payload.type,
                         classes: payload.classes ? payload.classes : [],
                         label: payload.label ? payload.label : '',
+                        formattedLabel: payload.formattedLabel ? payload.formattedLabel : null,
                         resourceId: payload.resourceId ? payload.resourceId : null,
                         isExistingValue: payload.isExistingValue ? payload.isExistingValue : false,
                         existingStatement: payload.existingStatement ? payload.existingStatement : false,
@@ -230,6 +231,7 @@ export default (state = initialState, action) => {
                             existingResourceId: payload.existingResourceId && payload.isExistingValue ? payload.existingResourceId : null,
                             id: payload.resourceId,
                             label: payload.label,
+                            formattedLabel: payload.formattedLabel ? payload.formattedLabel : null,
                             shared: payload.shared ? payload.shared : 1,
                             propertyIds: [],
                             classes: payload.classes ? payload.classes : []
@@ -441,10 +443,9 @@ export default (state = initialState, action) => {
         }
 
         case type.SET_STATEMENT_IS_FECHTED: {
-            const { resourceId, depth } = action;
+            const { resourceId } = action;
 
             let newState = dotProp.set(state, `resources.byId.${resourceId}.isFechted`, true);
-            newState = dotProp.set(newState, `resources.byId.${resourceId}.fetshedDepth`, depth);
             newState = dotProp.set(newState, `resources.byId.${resourceId}.isFetching`, false);
 
             return {

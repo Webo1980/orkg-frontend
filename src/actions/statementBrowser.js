@@ -205,6 +205,27 @@ export function getTemplateIDsByResourceID(state, resourceId) {
 }
 
 /**
+ * Get properties of a resource
+ *
+ * @param {Object} state Current state of the Store
+ * @param {String} resourceId Resource ID
+ * @return {String[]} list of template IDs
+ */
+export function getPropertiesByResourceID(state, resourceId) {
+    const resource = state.statementBrowser.resources.byId[resourceId];
+    const createdProperties = [];
+    for (const pid of resource.propertyIds) {
+        const propert = state.statementBrowser.properties.byId[pid];
+        createdProperties.push({
+            existingPredicateId: propert.existingPredicateId,
+            propertyId: pid
+        });
+    }
+
+    return createdProperties;
+}
+
+/**
  * Get components by resource ID
  *
  * @param {Object} state Current state of the Store
@@ -683,12 +704,11 @@ export const goToResourceHistory = data => dispatch => {
  *
  * @param {Object} state - Current state of the Store
  * @param {String} resourceId - Resource ID
- * @param {Number} depth - The required depth
  * @return {Boolean} if the resource statements should be fetched or not
  */
-function shouldFetchStatementsForResource(state, resourceId, depth) {
+function shouldFetchStatementsForResource(state, resourceId) {
     const resource = state.statementBrowser.resources.byId[resourceId];
-    if (!resource || !resource.isFechted || (resource.isFechted && resource.fetshedDepth < depth)) {
+    if (!resource || !resource.isFechted) {
         return true;
     } else {
         return false;
@@ -703,19 +723,12 @@ function shouldFetchStatementsForResource(state, resourceId, depth) {
  * @param {String} data.resourceId - Resource ID
  * @param {String} data.existingResourceId - Existing resource ID
  * @param {Boolean} data.isContribution - If the resource if a contribution
- * @param {Number} data.depth - The required depth
  * @return {Promise} Promise object
  */
 export const fetchStatementsForResource = data => {
-    let { isContribution, depth, rootNodeType } = data;
+    let { isContribution, rootNodeType } = data;
     const { resourceId, existingResourceId } = data;
     isContribution = isContribution ? isContribution : false;
-
-    if (typeof depth == 'number') {
-        depth = depth - 1;
-    } else {
-        depth = 0;
-    }
 
     rootNodeType = rootNodeType ?? 'resource';
 
@@ -723,7 +736,7 @@ export const fetchStatementsForResource = data => {
 
     // Get the resource classes
     return (dispatch, getState) => {
-        if (shouldFetchStatementsForResource(getState(), existingResourceId, depth)) {
+        if (shouldFetchStatementsForResource(getState(), existingResourceId)) {
             dispatch({
                 type: type.IS_FETCHING_STATEMENTS,
                 resourceId: resourceId
@@ -759,6 +772,7 @@ export const fetchStatementsForResource = data => {
 
                 return promises
                     .then(() => dispatch(createRequiredPropertiesInResource(resourceId)))
+                    .then(() => getPropertiesByResourceID(getState(), resourceId))
                     .then(existingProperties => {
                         // all the template of classes are loaded
                         // add the required proerty first
@@ -817,6 +831,7 @@ export const fetchStatementsForResource = data => {
                                         existingResourceId: statement.object.id,
                                         propertyId: propertyId,
                                         label: statement.object.label,
+                                        formattedLabel: statement.object.formatted_label,
                                         type: statement.object._class === 'resource' ? 'object' : statement.object._class, // TODO: change 'object' to 'resource' (wrong term used here, since it is always an object)
                                         classes: statement.object.classes ? statement.object.classes : [],
                                         ...(statement.object._class === 'literal' && {
@@ -827,20 +842,7 @@ export const fetchStatementsForResource = data => {
                                         statementId: statement.id,
                                         shared: statement.object.shared
                                     })
-                                ).then(() => {
-                                    if (depth >= 1 && statement.object._class === 'resource') {
-                                        dispatch(
-                                            fetchStatementsForResource({
-                                                existingResourceId: statement.object.id,
-                                                resourceId: statement.object.id,
-                                                depth: depth
-                                            })
-                                        );
-                                    }
-                                });
-
-                                //Load template of objects
-                                statement.object.classes && statement.object.classes.map(classID => dispatch(fetchTemplatesofClassIfNeeded(classID)));
+                                );
                             }
                         }
 
@@ -856,8 +858,7 @@ export const fetchStatementsForResource = data => {
 
                         dispatch({
                             type: type.SET_STATEMENT_IS_FECHTED,
-                            resourceId: resourceId,
-                            depth: depth
+                            resourceId: resourceId
                         });
                     });
             });

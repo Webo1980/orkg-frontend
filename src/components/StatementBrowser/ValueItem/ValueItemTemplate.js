@@ -61,10 +61,22 @@ export default function ValueItemTemplate(props) {
                         <Button className="p-0 text-left" color="link" onClick={props.handleOnClick} style={{ userSelect: 'text' }}>
                             {props.showHelp && props.value.type === 'object' ? (
                                 <Pulse content="Click on the resource to browse it">
-                                    <ValuePlugins type="resource">{props.value.label}</ValuePlugins>
+                                    <ValuePlugins type="resource">
+                                        {props.value.isExistingValue
+                                            ? props.value.formattedLabel
+                                                ? props.value.formattedLabel
+                                                : props.value.label
+                                            : props.getLabel() || ''}
+                                    </ValuePlugins>
                                 </Pulse>
                             ) : (
-                                <ValuePlugins type="resource">{props.getLabel() || ''}</ValuePlugins>
+                                <ValuePlugins type="resource">
+                                    {props.value.isExistingValue
+                                        ? props.value.formattedLabel
+                                            ? props.value.formattedLabel
+                                            : props.value.label
+                                        : props.getLabel() || ''}
+                                </ValuePlugins>
                             )}
 
                             {props.resource && props.resource.existingResourceId && props.openExistingResourcesInDialog ? (
@@ -109,7 +121,14 @@ export default function ValueItemTemplate(props) {
                                     <StatementOptionButton
                                         title="Edit value"
                                         icon={faPen}
-                                        action={props.isInlineResource ? props.handleOnClick : () => props.toggleEditValue({ id: props.id })}
+                                        action={
+                                            props.isInlineResource ||
+                                            (props.value.isExistingValue &&
+                                                props.value.formattedLabel &&
+                                                props.value.formattedLabel !== props.value.label)
+                                                ? props.handleOnClick
+                                                : () => props.toggleEditValue({ id: props.id })
+                                        }
                                     />
                                 )}
 

@@ -120,8 +120,7 @@ export default function ValueItem(props) {
         if (existingResourceId) {
             props.fetchStatementsForResource({
                 resourceId: props.value.resourceId,
-                existingResourceId,
-                depth: 3
+                existingResourceId
             });
         }
 
