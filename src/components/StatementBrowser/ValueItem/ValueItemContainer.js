@@ -8,7 +8,8 @@ import {
     createResource,
     doneSavingValue,
     isSavingValue,
-    changeValue
+    changeValue,
+    refetchSubjectLabelByPropertyId
 } from 'actions/statementBrowser';
 import { getValueClass, isInlineResource } from 'components/StatementBrowser/AddValue/helpers/utils';
 import ValueItem from './ValueItem';
@@ -42,7 +43,8 @@ const mapDispatchToProps = dispatch => ({
     updateValueLabel: data => dispatch(updateValueLabel(data)),
     isSavingValue: data => dispatch(isSavingValue(data)),
     doneSavingValue: data => dispatch(doneSavingValue(data)),
-    changeValue: data => dispatch(changeValue(data))
+    changeValue: data => dispatch(changeValue(data)),
+    refetchSubjectLabelByPropertyId: data => dispatch(refetchSubjectLabelByPropertyId(data))
 });
 
 export default connect(

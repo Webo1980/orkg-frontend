@@ -52,6 +52,11 @@ export default class Papers extends Component {
 
                 // Fetch the data of each paper
                 this.fetchDataForPapers(papers);
+            } else {
+                this.setState({
+                    isNextPageLoading: false,
+                    hasNextPage: false
+                });
             }
         });
     };

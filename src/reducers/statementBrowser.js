@@ -317,6 +317,19 @@ export default (state = initialState, action) => {
             return newState;
         }
 
+        case type.UPDATE_RESOURCE_FORMATTED_LABEL: {
+            const { payload } = action;
+            let newState = dotProp.set(state, `resources.byId.${payload.resourceId}.formattedLabel`, payload.formattedLabel);
+            for (const valueId of newState.values.allIds) {
+                // update the values
+                const value = state.values.byId[valueId];
+                if (value.isExistingValue && value.resourceId === payload.resourceId) {
+                    newState = dotProp.set(state, `values.byId.${valueId}.formattedLabel`, payload.formattedLabel);
+                }
+            }
+            return newState;
+        }
+
         case type.UPDATE_VALUE_LABEL: {
             const { payload } = action;
             let newState = dotProp.set(state, `values.byId.${payload.valueId}.label`, payload.label);

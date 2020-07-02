@@ -42,6 +42,8 @@ export default function ValueItem(props) {
                         await updateResource(props.value.resourceId, draftLabel);
                         toast.success('Resource label updated successfully');
                     }
+                    // incase this label is part of a formatted label, the propertyId guide us to the subject resource
+                    props.refetchSubjectLabelByPropertyId(props.propertyId);
                 }
                 props.doneSavingValue({ id: props.id });
             }
@@ -367,6 +369,7 @@ ValueItem.propTypes = {
     selectResource: PropTypes.func.isRequired,
     createResource: PropTypes.func.isRequired,
     fetchStatementsForResource: PropTypes.func.isRequired,
+    refetchSubjectLabelByPropertyId: PropTypes.func.isRequired,
     resources: PropTypes.object.isRequired,
     values: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,

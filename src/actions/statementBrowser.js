@@ -456,6 +456,13 @@ export const updatePropertyLabel = data => dispatch => {
     });
 };
 
+export const updateResourceFormattedLabel = data => dispatch => {
+    dispatch({
+        type: type.UPDATE_RESOURCE_FORMATTED_LABEL,
+        payload: data
+    });
+};
+
 /**
  * Update resource classes
  *
@@ -525,6 +532,30 @@ export const doneSavingValue = data => dispatch => {
         type: type.DONE_SAVING_VALUE,
         payload: data
     });
+};
+
+/**
+ * Refetch from the backend the subject of a predicate and update its formatted label
+ *
+ * @param {String} propertyId - Property Id
+ */
+export const refetchSubjectLabelByPropertyId = propertyId => {
+    return async (dispatch, getState) => {
+        const state = getState().statementBrowser;
+        // find the subject of the predicate
+        for (const resourceId of state.resources.allIds) {
+            if (state.resources.byId[resourceId].propertyIds.includes(propertyId)) {
+                // subject found, check if it has a formatted label
+                if (
+                    state.resources.byId[resourceId].formattedLabel &&
+                    state.resources.byId[resourceId].label !== state.resources.byId[resourceId].formattedLabel
+                ) {
+                    const newResource = await network.getResource(resourceId);
+                    dispatch(updateResourceFormattedLabel({ resourceId: resourceId, formattedLabel: newResource.formatted_label }));
+                }
+            }
+        }
+    };
 };
 
 export const updateValueLabel = data => dispatch => {
