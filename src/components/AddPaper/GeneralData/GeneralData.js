@@ -465,6 +465,7 @@ class GeneralData extends Component {
                                                             onKeyPress={target => {
                                                                 target.charCode === 13 && this.handleLookupClick();
                                                             }}
+                                                            data-testid="paperDoi"
                                                         />
                                                         <FormFeedback className="order-1">{this.state.validation.entry.message}</FormFeedback>{' '}
                                                         {/* Need to set order-1 here to fix Bootstrap bug of missing rounded borders */}
@@ -476,7 +477,7 @@ class GeneralData extends Component {
                                                                 style={{ minWidth: 130 }}
                                                                 onClick={this.handleLookupClick}
                                                                 disabled={this.state.isFetching}
-                                                                data-test="lookupDoi"
+                                                                data-testid="handleLookup"
                                                             >
                                                                 {!this.state.isFetching ? 'Lookup' : <FontAwesomeIcon icon={faSpinner} spin />}
                                                             </Button>
@@ -489,7 +490,7 @@ class GeneralData extends Component {
                                                 {this.state.showLookupTable ? (
                                                     <Container key={1} classNames="slideDown" timeout={{ enter: 500, exit: 300 }}>
                                                         <>
-                                                            <div className="mt-5">
+                                                            <div className="mt-5" data-testid="lookupResult">
                                                                 <h3 className="h4 mb-3">
                                                                     Lookup result
                                                                     <Button
@@ -664,7 +665,7 @@ class GeneralData extends Component {
                         })}
                     </ul>
                 )}
-                <Button color="primary" className="float-right mb-4" onClick={this.handleNextClick} data-test="nextStep">
+                <Button color="primary" className="float-right mb-4" onClick={this.handleNextClick} data-testid="nextStep">
                     Next step
                 </Button>
                 {!this.state.showHelpButton && (

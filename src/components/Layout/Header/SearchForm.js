@@ -50,10 +50,11 @@ const SearchForm = props => {
                     onChange={handleChange}
                     aria-label="Search ORKG"
                     aria-describedby="button-main-search"
+                    data-testid="headerSearchInput"
                 />
 
                 <InputGroupAddon addonType="append">
-                    <Button id="button-main-search" className="pl-2 pr-2 search-icon" type="submit">
+                    <Button id="button-main-search" className="pl-2 pr-2 search-icon" type="submit" data-testid="headerSearchSubmit">
                         <Icon icon={faSearch} />
                     </Button>
                 </InputGroupAddon>

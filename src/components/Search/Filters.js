@@ -25,6 +25,7 @@ const Filters = props => {
                     aria-label="Search ORKG"
                     id="searchQuery"
                     name="value"
+                    data-testid="searchQuery"
                 />
 
                 <InputGroupAddon addonType="append">
@@ -45,6 +46,7 @@ const Filters = props => {
                     label={<span>{filter.label}</span>}
                     onChange={() => props.toggleFilter(key)}
                     checked={props.selectedFilters.includes(key)}
+                    data-testid="searchFilters"
                 />
             ))}
         </Form>

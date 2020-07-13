@@ -284,7 +284,7 @@ class Search extends Component {
                                                 (this.state.selectedFilters.length > 0 && this.state.selectedFilters.includes(filterIndex))
                                             ) {
                                                 return (
-                                                    <div key={`filter${filterIndex}`}>
+                                                    <div key={`filter${filterIndex}`} data-testid="searchResults">
                                                         <Results
                                                             loading={this.state.isNextPageLoading[filter.class] || false}
                                                             hasNextPage={this.state.hasNextPage[filter.class] || false}

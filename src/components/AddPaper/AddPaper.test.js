@@ -38,8 +38,10 @@ it('renders without crashing', () => {
 it('lookup doi', () => {
     const wrap = mountComponent();
 
-    wrap.find('input[name="entry"]').simulate('click');
-    wrap.find('[data-test="nextStep"]')
+    wrap.find('[data-testid="paperDoi"]')
+        .hostNodes()
+        .simulate('click');
+    wrap.find('[data-testid="nextStep"]')
         .hostNodes()
         .simulate('click');
 });
