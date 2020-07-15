@@ -219,7 +219,9 @@
                 "as-needed"
             ],
             "import/no-unresolved": "off",
-            "indent": "off"
+            "indent": "off",
+            "operator-linebreak": "off",
+            "object-curly-newline": "off"
         }
     }
 }
