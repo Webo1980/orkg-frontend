@@ -151,7 +151,8 @@
     "eslintConfig": {
         "extends": [
             "react-app",
-            "prettier"
+            "prettier",
+            "airbnb-base"
         ],
         "plugins": [
             "prettier"
@@ -204,7 +205,21 @@
             ],
             "react/jsx-curly-brace-presence": [
                 "error"
-            ]
+            ],
+            "comma-dangle": [
+                "error",
+                "never"
+            ],
+            "max-len": [
+                "error",
+                150
+            ],
+            "arrow-parens": [
+                "error",
+                "as-needed"
+            ],
+            "import/no-unresolved": "off",
+            "indent": "off"
         }
     }
 }
