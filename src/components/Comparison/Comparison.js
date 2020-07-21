@@ -371,7 +371,7 @@ class Comparison extends Component {
         const containerStyle = this.state.fullWidth ? { maxWidth: 'calc(100% - 20px)' } : {};
 
         return (
-            <div>
+            <div id="mainContainerForComparison" tabIndex={-1}>
                 <ContainerAnimated className="d-flex align-items-center">
                     <h1 className="h4 mt-4 mb-4 flex-grow-1">
                         Contribution comparison{' '}

@@ -37,6 +37,10 @@ class ComparisonTable extends Component {
 
     componentDidMount = () => {
         this.defaultNextButtonState();
+        // getting the main container in which we rendered the comparison page ;
+        this.mainContainer = document.getElementById('mainContainerForComparison');
+        this.mainContainer.addEventListener('keydown', this.handleKeyDown);
+        this.mainContainer.focus();
     };
 
     getSnapshotBeforeUpdate() {
@@ -59,7 +63,19 @@ class ComparisonTable extends Component {
                 this.defaultNextButtonState();
             }
         }
+
+        // get main container and force focus on it when component updates
+        if (this.mainContainer) {
+            this.mainContainer.focus();
+        }
     };
+
+    componentWillUnmount() {
+        // remove event from the main container
+        if (this.mainContainer) {
+            this.mainContainer.removeEventListener('keydown', this.handleKeyDown);
+        }
+    }
 
     defaultNextButtonState = () => {
         if (!this.props.transpose) {
@@ -93,6 +109,42 @@ class ComparisonTable extends Component {
             left: rtTable.scrollLeft - this.scrollAmount,
             behavior: 'smooth'
         });
+    };
+
+    /**  handle keydown tests and temp shift key interactions uses a get document by id table ; **/
+    // maybe reuse some of its code to handle the shift key or prevent selection on shift + arrowKey
+    // handleKeyDown = e => {
+    //   if (this.tableComponent) {
+    //     let offset = 50;
+    //     if (e.keyCode === 37) {
+    //       // left arrow
+    //       offset = -1 * offset;
+    //       if (e.shiftKey) {
+    //         e.preventDefault(); // prevents char  selection when using shift key
+    //         offset *= 3;
+    //       }
+    //     }
+    //     if (e.keyCode === 39) {
+    //       // right arrow
+    //       if (e.shiftKey) {
+    //         e.preventDefault(); // prevents char  selection when using shift key
+    //         offset *= 3;
+    //       }
+    //     }
+    //     // only one call to set the scroll value (offset is computed based on keys and modifiers)
+    //     this.tableComponent.scrollLeft += offset;
+    //   }
+    // };
+
+    handleKeyDown = e => {
+        if (e.keyCode === 37) {
+            // left arrow
+            this.scrollBack();
+        }
+        if (e.keyCode === 39) {
+            // right arrow
+            this.scrollNext();
+        }
     };
 
     // debounce is used to prevent real time overwriting of scroll position via the getSnapshotBeforeUpdate
