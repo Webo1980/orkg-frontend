@@ -12,8 +12,11 @@ import {
 } from 'network';
 import { toast } from 'react-toastify';
 import { guid } from 'utils';
+import { uniq } from 'lodash';
+import format from 'string-format';
 import ValueItemTemplate from './ValueItemTemplate';
 import PropTypes from 'prop-types';
+import { CLASSES, PREDICATES } from 'constants/graphSettings';
 
 export default function ValueItem(props) {
     const [modal, setModal] = useState(false);
@@ -111,27 +114,23 @@ export default function ValueItem(props) {
         });
     };
 
-    const handleResourceClick = e => {
+    const handleResourceClick = async e => {
         const resource = props.resources.byId[props.value.resourceId];
         const existingResourceId = resource.existingResourceId;
-        const templateId = resource.templateId;
 
-        if (existingResourceId && !resource.isFechted) {
+        if (existingResourceId) {
             props.fetchStatementsForResource({
                 resourceId: props.value.resourceId,
-                existingResourceId
-            });
-        } else if (templateId && !resource.isFechted) {
-            props.fetchStructureForTemplate({
-                resourceId: props.value.resourceId,
-                templateId
+                existingResourceId,
+                depth: 3
             });
         }
 
         props.selectResource({
             increaseLevel: true,
             resourceId: props.value.resourceId,
-            label: props.value.label
+            label: props.value.label,
+            propertyLabel: props.properties.byId[props.propertyId].label
         });
     };
 
@@ -145,7 +144,8 @@ export default function ValueItem(props) {
         props.selectResource({
             increaseLevel: true,
             resourceId: ressource.id,
-            label: ressource.rlabel ? ressource.rlabel : ressource.label
+            label: ressource.rlabel ? ressource.rlabel : ressource.label,
+            propertyLabel: props.properties.byId[props.propertyId].label
         });
 
         props.fetchStatementsForResource({
@@ -154,21 +154,15 @@ export default function ValueItem(props) {
         });
     };
 
-    const handleExistingResourceClick = () => {
+    const handleExistingResourceClick = async () => {
         const resource = props.resources.byId[props.value.resourceId];
         const existingResourceId = resource.existingResourceId ? resource.existingResourceId : props.value.resourceId;
-        const templateId = resource.templateId;
 
-        if (templateId && !resource.isFechted) {
-            props.fetchStructureForTemplate({
-                resourceId: props.value.resourceId,
-                templateId
-            });
-        }
-
-        setModal(true);
+        // Load template of this class
+        //show the statement browser
         setDialogResourceId(existingResourceId);
         setDialogResourceLabel(resource.label);
+        setModal(true);
     };
 
     const handleDatasetClick = () => {
@@ -216,7 +210,7 @@ export default function ValueItem(props) {
                     '?q=' +
                     encodeURIComponent(value) +
                     queryParams +
-                    `&exclude=${encodeURIComponent(process.env.REACT_APP_CLASSES_CONTRIBUTION + ',' + process.env.REACT_APP_CLASSES_PROBLEM)}`
+                    `&exclude=${encodeURIComponent(CLASSES.CONTRIBUTION + ',' + CLASSES.PROBLEM)}`
             );
             responseJson = await IdMatch(value, responseJson);
 
@@ -260,26 +254,88 @@ export default function ValueItem(props) {
         handleOnClick = handleResourceClick;
     }
 
+    const generatedFormattedLabel = labelFormat => {
+        const resource = props.resources.byId[props.value.resourceId];
+        const valueObject = {};
+        for (const propertyId of resource.propertyIds) {
+            const property = props.properties.byId[propertyId];
+            valueObject[property.existingPredicateId] =
+                property.valueIds && property.valueIds.length > 0 ? props.values.byId[property.valueIds[0]].label : property.label;
+        }
+        if (Object.keys(valueObject).length > 0) {
+            return format(labelFormat, valueObject);
+        } else {
+            return props.value.label;
+        }
+    };
+
+    const getLabel = () => {
+        if (props.value.classes) {
+            // get all template ids
+            let templateIds = [];
+            for (const c of props.value.classes) {
+                if (props.classes[c]) {
+                    templateIds = templateIds.concat(props.classes[c].templateIds);
+                }
+            }
+            templateIds = uniq(templateIds);
+            // check if it formatted label
+            let hasLabelFormat = false;
+            let labelFormat = '';
+            for (const templateId of templateIds) {
+                const template = props.templates[templateId];
+                if (template && template.hasLabelFormat) {
+                    hasLabelFormat = true;
+                    labelFormat = template.labelFormat;
+                }
+            }
+            if (!hasLabelFormat) {
+                return props.value.label;
+            }
+
+            if (existingResourceId && !resource.isFechted && !resource.isFetching) {
+                props
+                    .fetchStatementsForResource({
+                        resourceId: props.value.resourceId,
+                        existingResourceId
+                    })
+                    .then(() => {
+                        return generatedFormattedLabel(labelFormat);
+                    });
+            } else {
+                return generatedFormattedLabel(labelFormat);
+            }
+        } else {
+            return props.value.label;
+        }
+    };
+
     return (
         <>
             <ValueItemTemplate
-                isProperty={[process.env.REACT_APP_TEMPLATE_COMPONENT_PROPERTY, process.env.REACT_APP_TEMPLATE_OF_PREDICATE].includes(
+                isProperty={[PREDICATES.TEMPLATE_COMPONENT_PROPERTY, PREDICATES.TEMPLATE_OF_PREDICATE].includes(
                     props.properties.byId[props.propertyId].existingPredicateId
                 )}
                 id={props.id}
                 value={value}
                 resource={resource}
+                predicate={props.properties.byId[props.propertyId]}
                 handleOnClick={handleOnClick}
                 inline={props.inline}
                 loadOptions={loadOptions}
                 handleChangeResource={handleChangeResource}
                 toggleEditValue={props.toggleEditValue}
                 commitChangeLabel={commitChangeLabel}
-                openExistingResourcesInDialog={props.openExistingResourcesInDialog}
                 handleDatasetClick={handleDatasetClick}
                 enableEdit={props.enableEdit}
                 handleDeleteValue={handleDeleteValue}
                 showHelp={props.showHelp}
+                openExistingResourcesInDialog={props.openExistingResourcesInDialog}
+                resourcesAsLinks={props.resourcesAsLinks}
+                getLabel={getLabel}
+                components={props.components}
+                valueClass={props.valueClass}
+                isInlineResource={props.isInlineResource}
             />
 
             {modal ? (
@@ -315,10 +371,11 @@ ValueItem.propTypes = {
     selectResource: PropTypes.func.isRequired,
     createResource: PropTypes.func.isRequired,
     fetchStatementsForResource: PropTypes.func.isRequired,
-    fetchStructureForTemplate: PropTypes.func.isRequired,
     resources: PropTypes.object.isRequired,
     values: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,
+    classes: PropTypes.object.isRequired,
+    templates: PropTypes.object.isRequired,
     value: PropTypes.object.isRequired,
     id: PropTypes.string.isRequired,
     selectedProperty: PropTypes.string.isRequired,
@@ -331,7 +388,12 @@ ValueItem.propTypes = {
     inline: PropTypes.bool,
     openExistingResourcesInDialog: PropTypes.bool,
     contextStyle: PropTypes.string.isRequired,
-    showHelp: PropTypes.bool
+    showHelp: PropTypes.bool,
+    resourcesAsLinks: PropTypes.bool.isRequired,
+
+    components: PropTypes.array.isRequired,
+    valueClass: PropTypes.object,
+    isInlineResource: PropTypes.oneOfType([PropTypes.string, PropTypes.bool])
 };
 
 ValueItem.defaultProps = {

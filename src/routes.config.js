@@ -1,31 +1,41 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
-import ResourceDetails from './pages/ResourceDetails';
-import AddPaper from './components/AddPaper/AddPaper';
-import AuthorPage from 'components/AuthorPage/AuthorPage';
-import VenuePage from 'components/VenuePage/VenuePage';
-import AddResource from './pages/AddResource';
-import Comparison from './components/Comparison/Comparison';
-import Home from './components/Home/Home';
-import License from './components/StaticPages/License';
-import Changelog from './components/StaticPages/Changelog';
-import NotFound from './components/StaticPages/NotFound';
-import Papers from './pages/Papers';
-import PredicateDetails from './pages/PredicateDetails';
-import Predicates from './pages/Predicates';
-import ContributionTemplates from './components/ContributionTemplates/ContributionTemplates';
-import ContributionTemplate from './components/ContributionTemplates/ContributionTemplate';
-import ROUTES from './constants/routes';
-import RedirectShortLinks from './components/Comparison/RedirectShortLinks';
-import ResearchField from './components/ResearchField/ResearchField';
-import ResearchProblem from './components/ResearchProblem/ResearchProblem';
-import Resources from './pages/Resources';
-import SearchResults from './components/Search/Search';
-import ViewPaper from './components/ViewPaper/ViewPaper';
-import Stats from './components/Stats/Stats';
-import UserSettings from './components/UserSettings/UserSettings';
-import UserProfile from './components/UserProfile/UserProfile';
-import FeaturedComparisons from 'components/FeaturedComparisons/FeaturedComparisons';
+import ResourceDetails from 'pages/Resources/Resource';
+import AddPaper from 'pages/AddPaper';
+import AuthorPage from 'pages/AuthorPage';
+import VenuePage from 'pages/VenuePage';
+import AddResource from 'pages/Resources/AddResource';
+import Comparison from 'pages/Comparison';
+import Home from 'pages/Home';
+import License from 'pages/License';
+import Changelog from 'pages/Changelog/Changelog';
+import NotFound from 'pages/NotFound';
+import Papers from 'pages/Papers';
+import Comparisons from 'pages/Comparisons';
+import PredicateDetails from 'pages/Predicates/Predicate';
+import ClassDetails from 'pages/ClassDetails/ClassDetails';
+import Classes from 'pages/Classes/Classes';
+import Predicates from 'pages/Predicates/Predicates';
+import ContributionTemplates from 'pages/ContributionTemplates/ContributionTemplates';
+import ContributionTemplate from 'pages/ContributionTemplates/ContributionTemplate';
+import ROUTES from 'constants/routes';
+import RedirectShortLinks from 'pages/RedirectShortLinks';
+import ResearchField from 'pages/ResearchField';
+import ResearchProblem from './pages/ResearchProblem';
+import Resources from 'pages/Resources/Resources';
+import Organizations from 'pages/Organizations/Organizations';
+import Observatories from 'pages/Observatories/Observatories';
+import OrganizationDetails from 'pages/Organizations/OrganizationDetails';
+import AddOrganization from 'pages/Organizations/AddOrganization';
+import AddObservatory from 'pages/AddObservatory';
+import Observatory from 'pages/Observatories/Observatory';
+import OrganizationObservatories from 'pages/Observatories/OrganizationObservatories';
+import SearchResults from 'pages/Search';
+import ViewPaper from 'pages/ViewPaper';
+import Stats from 'pages/Stats';
+import UserSettings from 'pages/UserSettings';
+import UserProfile from 'pages/UserProfile';
+import FeaturedComparisons from 'pages/FeaturedComparisons';
 import { reverse } from 'named-urls';
 
 const routes = [
@@ -48,6 +58,11 @@ const routes = [
         path: ROUTES.PREDICATES,
         exact: true,
         component: Predicates
+    },
+    {
+        path: ROUTES.CLASSES,
+        exact: true,
+        component: Classes
     },
     {
         path: ROUTES.CONTRIBUTION_TEMPLATES,
@@ -91,6 +106,16 @@ const routes = [
         component: Comparison
     },
     {
+        path: ROUTES.ORGANIZATIONS,
+        exact: true,
+        component: Organizations
+    },
+    {
+        path: ROUTES.OBSERVATORIES,
+        exact: true,
+        component: Observatories
+    },
+    {
         /* TODO: Remove this route (it's temporarily backward compatibility for moving contributions ids from view args to query string) */
         path: ROUTES.COMPARISON + '*',
         exact: true,
@@ -109,6 +134,11 @@ const routes = [
         path: ROUTES.PAPERS,
         exact: true,
         component: Papers
+    },
+    {
+        path: ROUTES.COMPARISONS,
+        exact: true,
+        component: Comparisons
     },
     {
         path: ROUTES.RESEARCH_PROBLEM,
@@ -152,12 +182,41 @@ const routes = [
         component: PredicateDetails
     },
     {
+        path: ROUTES.CLASS,
+        component: ClassDetails
+    },
+    {
         path: ROUTES.FEATURED_COMPARISONS,
         component: FeaturedComparisons
     },
     {
+        path: ROUTES.ORGANIZATION,
+        exact: true,
+        component: OrganizationDetails
+    },
+    {
+        path: ROUTES.ADD_ORGANIZATION,
+        exact: true,
+        component: AddOrganization
+    },
+    {
+        path: ROUTES.ADD_OBSERVATORY,
+        exact: true,
+        component: AddObservatory
+    },
+    {
+        path: ROUTES.OBSERVATORY,
+        exact: true,
+        component: Observatory
+    },
+    {
+        path: ROUTES.ORGANIZATION_OBSERVATORIES,
+        exact: true,
+        component: OrganizationObservatories
+    },
+    {
         path: ROUTES.TPDL,
-        component: () => <Redirect to={'/'} />
+        component: () => <Redirect to="/" />
     },
     /* Don't add routes below this line */
     {

@@ -1,7 +1,6 @@
 import { Button, Input, Modal, ModalBody, ModalHeader, Nav, NavItem, NavLink, Tooltip as ReactstrapTooltip } from 'reactstrap';
 import React, { Component } from 'react';
-import { createShortLink, getStatementsBySubject, getComparison } from '../../network';
-
+import { createShortLink, getStatementsBySubject, getComparison } from 'network';
 import Cite from 'citation-js';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { CustomInput } from 'reactstrap';
@@ -16,6 +15,7 @@ import queryString from 'query-string';
 import { reverse } from 'named-urls';
 import styled from 'styled-components';
 import { getContributionIdsFromUrl } from 'utils';
+import { PREDICATES } from 'constants/graphSettings';
 
 const Textarea = styled(Input)`
     font-family: 'Courier New';
@@ -43,15 +43,9 @@ class ExportToLatex extends Component {
     componentDidUpdate = (prevProps, prevState) => {
         if (this.props.location.href !== prevProps.location.href) {
             this.setState({ shortLink: null });
-            this.generateLatex();
         }
         if (this.props.contributions !== prevProps.contributions) {
             this.setState({ shortLink: null });
-            this.generateBibTex();
-        }
-        if (this.props.showDialog === true && this.props.showDialog !== prevProps.showDialog) {
-            this.setState({ shortLink: null });
-            this.generateLatex();
         }
     };
 
@@ -153,7 +147,7 @@ class ExportToLatex extends Component {
                           `${this.props.location.href.indexOf('?') !== -1 ? '&response_hash=' : '?response_hash='}${
                               this.props.response_hash ? this.props.response_hash : comparison.response_hash
                           }`;
-                    createShortLink({
+                    return createShortLink({
                         long_url: link,
                         response_hash: this.props.response_hash ? this.props.response_hash : comparison.response_hash,
                         contributions: this.props.contributions.map(c => c.id),
@@ -195,14 +189,14 @@ class ExportToLatex extends Component {
 
     parsePaperStatements = paperStatements => {
         // publication year
-        let publicationYear = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR);
+        let publicationYear = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_PUBLICATION_YEAR);
 
         if (publicationYear.length > 0) {
             publicationYear = publicationYear[0].object.label;
         }
 
         // authors
-        const authors = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
+        const authors = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_AUTHOR);
 
         const authorNamesArray = [];
 
@@ -246,7 +240,7 @@ class ExportToLatex extends Component {
             // Fetch the data of each contribution
             return getStatementsBySubject({ id: contribution.paperId })
                 .then(paperStatements => {
-                    let publicationDOI = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_DOI);
+                    let publicationDOI = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_DOI);
                     if (publicationDOI.length > 0) {
                         publicationDOI = publicationDOI[0].object.label;
                         if (publicationDOI !== '') {
@@ -324,7 +318,17 @@ class ExportToLatex extends Component {
 
     render() {
         return (
-            <Modal isOpen={this.props.showDialog} toggle={this.props.toggle} size="lg">
+            <Modal
+                isOpen={this.props.showDialog}
+                toggle={this.props.toggle}
+                size="lg"
+                onOpened={() => {
+                    if (!this.state.shortLink) {
+                        this.generateLatex();
+                        this.generateBibTex();
+                    }
+                }}
+            >
                 <ModalHeader toggle={this.props.toggle}>LaTeX export</ModalHeader>
                 <ModalBody>
                     <Nav tabs className="mb-4">
@@ -356,7 +360,7 @@ class ExportToLatex extends Component {
                                     <CustomInput
                                         className="float-left"
                                         type="checkbox"
-                                        id={'replaceTitles'}
+                                        id="replaceTitles"
                                         label="Replace contribution titles by reference "
                                         onChange={() => this.toggleCheckbox('replaceTitles')}
                                         checked={this.state.replaceTitles}
@@ -367,7 +371,7 @@ class ExportToLatex extends Component {
                                 <CustomInput
                                     className="float-left"
                                     type="checkbox"
-                                    id={'includeFootnote'}
+                                    id="includeFootnote"
                                     label="Include a persistent link to this page as a footnote "
                                     onChange={() => this.toggleCheckbox('includeFootnote')}
                                     checked={this.state.includeFootnote}
@@ -389,7 +393,7 @@ class ExportToLatex extends Component {
                             <ReactstrapTooltip
                                 placement="top"
                                 target="copyToClipboardLatex"
-                                trigger={'hover'}
+                                trigger="hover"
                                 toggle={e => this.toggleTooltip(e, 'showTooltipCopiedLatex')}
                                 isOpen={this.state.showTooltipCopiedLatex}
                             >
@@ -422,7 +426,7 @@ class ExportToLatex extends Component {
                             <ReactstrapTooltip
                                 placement="top"
                                 target="copyToClipboardBibtex"
-                                trigger={'hover'}
+                                trigger="hover"
                                 toggle={e => this.toggleTooltip(e, 'showTooltipCopiedBibtex')}
                                 isOpen={this.state.showTooltipCopiedBibtex}
                             >

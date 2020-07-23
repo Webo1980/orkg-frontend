@@ -12,7 +12,8 @@ import {
     createResource,
     deleteStatementsByIds,
     deleteStatementById,
-    updateStatement
+    updateStatement,
+    getStatementsBySubjectAndPredicate
 } from 'network';
 import { connect } from 'react-redux';
 import EditItem from './EditItem';
@@ -23,6 +24,8 @@ import LoadingOverlay from 'react-loading-overlay';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { isEqual } from 'lodash';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { PREDICATES } from 'constants/graphSettings';
+import { CLASSES } from 'constants/graphSettings';
 
 const LoadingOverlayStyled = styled(LoadingOverlay)`
     //border-radius: 7px;
@@ -68,7 +71,12 @@ class EditPaperDialog extends Component {
     };
 
     handleChange = (event, name) => {
-        this.setState({ [name]: event.target.value });
+        // fixing publication month and year as int number edit;
+        if (name === 'publicationMonth' || name === 'publicationYear') {
+            this.setState({ [name]: parseInt(event.target.value) });
+        } else {
+            this.setState({ [name]: event.target.value });
+        }
     };
 
     handleSave = async () => {
@@ -87,11 +95,7 @@ class EditPaperDialog extends Component {
         if (this.state.publishedIn && this.state.publishedIn.statementId && this.state.publishedIn.id) {
             await updateStatement(this.state.publishedIn.statementId, { object_id: this.state.publishedIn.id });
         } else if (this.state.publishedIn && !this.state.publishedIn.statementId) {
-            await createResourceStatement(
-                this.props.viewPaper.paperResourceId,
-                process.env.REACT_APP_PREDICATES_HAS_VENUE,
-                this.state.publishedIn.id
-            );
+            await createResourceStatement(this.props.viewPaper.paperResourceId, PREDICATES.HAS_VENUE, this.state.publishedIn.id);
         } else if (this.state.publishedIn && this.state.publishedIn.statementId && !this.state.publishedIn.id) {
             await deleteStatementById(this.state.publishedIn.statementId);
             this.setState({ publishedIn: '' });
@@ -106,28 +110,28 @@ class EditPaperDialog extends Component {
         loadPaper['publicationMonthResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'publicationMonthResourceId',
             value: this.state.publicationMonth,
-            predicateIdForCreate: process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_MONTH
+            predicateIdForCreate: PREDICATES.HAS_PUBLICATION_MONTH
         });
 
         //publication year
         loadPaper['publicationYearResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'publicationYearResourceId',
             value: this.state.publicationYear,
-            predicateIdForCreate: process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR
+            predicateIdForCreate: PREDICATES.HAS_PUBLICATION_YEAR
         });
 
         //doi
         loadPaper['doiResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'doiResourceId',
             value: this.state.doi,
-            predicateIdForCreate: process.env.REACT_APP_PREDICATES_HAS_DOI
+            predicateIdForCreate: PREDICATES.HAS_DOI
         });
 
         //url
         loadPaper['urlResourceId'] = await this.updateOrCreateLiteral({
             reducerName: 'urlResourceId',
             value: this.state.url,
-            predicateIdForCreate: process.env.REACT_APP_PREDICATES_URL
+            predicateIdForCreate: PREDICATES.URL
         });
 
         //update redux state with changes, so it is updated on the view paper page
@@ -153,9 +157,17 @@ class EditPaperDialog extends Component {
     updateOrCreateLiteral = async ({ reducerName, value, predicateIdForCreate }) => {
         const literalId = this.props.viewPaper[reducerName];
 
-        if (literalId) {
+        if (literalId && value !== '') {
             updateLiteral(literalId, value);
             return literalId;
+        } else if (literalId && value === '') {
+            // delete statements because it's not possible to set empty label for literal
+            await getStatementsBySubjectAndPredicate({ subjectId: this.props.viewPaper.paperResourceId, predicateId: predicateIdForCreate }).then(
+                statements => {
+                    deleteStatementsByIds(statements.map(s => s.id));
+                }
+            );
+            return null;
         } else if (value) {
             // only create a new literal if a value has been provided
             const newLiteral = await this.createNewLiteral(this.props.viewPaper.paperResourceId, predicateIdForCreate, value);
@@ -199,10 +211,10 @@ class EditPaperDialog extends Component {
                 if (responseJson.length > 0) {
                     // Author resource exists
                     let authorResource = await getStatementsByObject({ id: responseJson[0].id });
-                    authorResource = authorResource.find(s => s.predicate.id === process.env.REACT_APP_PREDICATES_HAS_ORCID);
+                    authorResource = authorResource.find(s => s.predicate.id === PREDICATES.HAS_ORCID);
                     const authorStatement = await createResourceStatement(
                         this.props.viewPaper.paperResourceId,
-                        process.env.REACT_APP_PREDICATES_HAS_AUTHOR,
+                        PREDICATES.HAS_AUTHOR,
                         authorResource.subject.id
                     );
                     authors[i].statementId = authorStatement.id;
@@ -212,12 +224,12 @@ class EditPaperDialog extends Component {
                 } else {
                     // Author resource doesn't exist
                     // Create resource author
-                    const authorResource = await createResource(author.label, [process.env.REACT_APP_CLASSES_AUTHOR]);
+                    const authorResource = await createResource(author.label, [CLASSES.AUTHOR]);
                     const createLiteral = await createLiteralAPI(author.orcid);
-                    await createLiteralStatement(authorResource.id, process.env.REACT_APP_PREDICATES_HAS_ORCID, createLiteral.id);
+                    await createLiteralStatement(authorResource.id, PREDICATES.HAS_ORCID, createLiteral.id);
                     const authorStatement = await createResourceStatement(
                         this.props.viewPaper.paperResourceId,
-                        process.env.REACT_APP_PREDICATES_HAS_AUTHOR,
+                        PREDICATES.HAS_AUTHOR,
                         authorResource.id
                     );
                     authors[i].statementId = authorStatement.id;
@@ -229,11 +241,7 @@ class EditPaperDialog extends Component {
                 // Author resource doesn't exist
                 const newLiteral = await createLiteralAPI(author.label);
                 // Create literal of author
-                const authorStatement = await createLiteralStatement(
-                    this.props.viewPaper.paperResourceId,
-                    process.env.REACT_APP_PREDICATES_HAS_AUTHOR,
-                    newLiteral.id
-                );
+                const authorStatement = await createLiteralStatement(this.props.viewPaper.paperResourceId, PREDICATES.HAS_AUTHOR, newLiteral.id);
                 authors[i].statementId = authorStatement.id;
                 authors[i].id = newLiteral.id;
                 authors[i].class = authorStatement.object._class;
@@ -266,7 +274,7 @@ class EditPaperDialog extends Component {
                 publishedIn: selected
             });
         } else if (action.action === 'create-option') {
-            const newVenue = await createResource(selected.label, [process.env.REACT_APP_CLASSES_VENUE]);
+            const newVenue = await createResource(selected.label, [CLASSES.VENUE]);
             selected.id = newVenue.id;
             selected.statementId = this.state.publishedIn && this.state.publishedIn.statementId ? this.state.publishedIn.statementId : '';
             this.setState({

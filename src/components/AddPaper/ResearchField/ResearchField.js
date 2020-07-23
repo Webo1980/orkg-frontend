@@ -14,6 +14,7 @@ import Tour from 'reactour';
 import Tooltip from '../../Utils/Tooltip';
 import flattenDeep from 'lodash/flattenDeep';
 import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
+import { MISC } from 'constants/graphSettings';
 
 const ListGroupItemTransition = styled(CSSTransition)`
     &.fadeIn-enter,
@@ -64,7 +65,7 @@ class ResearchField extends Component {
     componentDidMount() {
         // select the main field is none is selected yet (i.e. first time visiting this step)
         if (this.props.selectedResearchField === '') {
-            this.getFields(process.env.REACT_APP_RESEARCH_FIELD_MAIN, 0);
+            this.getFields(MISC.RESEARCH_FIELD_MAIN, 0);
         }
     }
 
@@ -77,7 +78,7 @@ class ResearchField extends Component {
 
     handleNextClick = () => {
         // TODO validation: check if a research field is selected
-        if (this.props.selectedResearchField === process.env.REACT_APP_RESEARCH_FIELD_MAIN) {
+        if (this.props.selectedResearchField === MISC.RESEARCH_FIELD_MAIN) {
             this.setState({
                 showError: true
             });
@@ -181,7 +182,7 @@ class ResearchField extends Component {
                                                 <ListGroupItemTransition key={field.id} classNames="fadeIn" timeout={{ enter: 500, exit: 0 }}>
                                                     <ListGroupItemStyled
                                                         style={{ display: 'flex' }}
-                                                        className={'align-items-start'}
+                                                        className="align-items-start"
                                                         active={field.active}
                                                         onClick={() => this.handleFieldClick(field.id, level)}
                                                     >
@@ -191,7 +192,7 @@ class ResearchField extends Component {
                                                             this.props.researchFields[level + 1] &&
                                                             this.props.researchFields[level + 1].length > 0 && (
                                                                 <Icon
-                                                                    size={'1x'}
+                                                                    size="1x"
                                                                     style={{ marginLeft: 'auto' }}
                                                                     className="flex-shrink-0  align-self-center"
                                                                     icon={faAngleDoubleRight}
@@ -209,7 +210,7 @@ class ResearchField extends Component {
                         })}
                 </CardDeck>
 
-                {researchFieldLabel && this.props.selectedResearchField !== process.env.REACT_APP_RESEARCH_FIELD_MAIN ? (
+                {researchFieldLabel && this.props.selectedResearchField !== MISC.RESEARCH_FIELD_MAIN ? (
                     <div className="mt-5 mb-3">
                         Selected research field: <b>{researchFieldLabel}</b>
                     </div>
@@ -229,28 +230,30 @@ class ResearchField extends Component {
                 <Button color="light" className="float-right mb-4 mr-2" onClick={this.props.previousStep}>
                     Previous step
                 </Button>
-                <Tour
-                    onAfterOpen={this.disableBody}
-                    onBeforeClose={this.enableBody}
-                    disableInteraction={false}
-                    steps={[
-                        {
-                            selector: '.fieldSelector',
-                            content:
-                                'Select a close research field to the paper from the list. The research field can be selected from a hierarchical structure of fields and their subfields.',
-                            style: { borderTop: '4px solid #E86161' }
-                        }
-                    ]}
-                    showNumber={false}
-                    accentColor={this.props.theme.orkgPrimaryColor}
-                    rounded={10}
-                    onRequestClose={this.requestCloseTour}
-                    isOpen={this.props.isTourOpen}
-                    startAt={this.props.tourStartAt}
-                    showButtons={false}
-                    showNavigation={false}
-                    maskClassName="reactourMask"
-                />
+                {this.props.researchFields.length > 0 && (
+                    <Tour
+                        onAfterOpen={this.disableBody}
+                        onBeforeClose={this.enableBody}
+                        disableInteraction={false}
+                        steps={[
+                            {
+                                selector: '.fieldSelector',
+                                content:
+                                    'Select a close research field to the paper from the list. The research field can be selected from a hierarchical structure of fields and their subfields.',
+                                style: { borderTop: '4px solid #E86161' }
+                            }
+                        ]}
+                        showNumber={false}
+                        accentColor={this.props.theme.orkgPrimaryColor}
+                        rounded={10}
+                        onRequestClose={this.requestCloseTour}
+                        isOpen={this.props.isTourOpen}
+                        startAt={this.props.tourStartAt}
+                        showButtons={false}
+                        showNavigation={false}
+                        maskClassName="reactourMask"
+                    />
+                )}
             </div>
         );
     }

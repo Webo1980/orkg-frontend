@@ -9,6 +9,7 @@ import { range } from 'utils';
 import { truncate } from 'lodash';
 import { resourcesUrl } from 'network';
 import PropTypes from 'prop-types';
+import { CLASSES } from 'constants/graphSettings';
 
 const EditItem = props => {
     const listGroupClass = classNames({
@@ -62,9 +63,9 @@ const EditItem = props => {
             <AutoComplete
                 allowCreate
                 requestUrl={resourcesUrl}
-                optionsClass={process.env.REACT_APP_CLASSES_VENUE}
+                optionsClass={CLASSES.VENUE}
                 onItemSelected={props.onChange}
-                placeholder={'Select or type to enter a venue'}
+                placeholder="Select or type to enter a venue"
                 autoFocus
                 cacheOptions
                 value={props.value ? props.value : null}
@@ -77,9 +78,9 @@ const EditItem = props => {
             <AutoComplete
                 allowCreate={false}
                 requestUrl={resourcesUrl}
-                optionsClass={process.env.REACT_APP_CLASSES_RESEARCH_FIELD}
+                optionsClass={CLASSES.RESEARCH_FIELD}
                 onItemSelected={props.onChange}
-                placeholder={'Select a research field'}
+                placeholder="Select a research field"
                 autoFocus
                 cacheOptions
                 value={props.value ? props.value : null}

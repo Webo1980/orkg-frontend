@@ -1,15 +1,17 @@
 import 'react-app-polyfill/ie9';
 import 'react-app-polyfill/stable';
+import 'fast-text-encoding/text';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { unregister } from './registerServiceWorker';
 import { Provider } from 'react-redux';
 import configureStore, { history } from './store';
-import { AppContainer } from 'react-hot-loader';
 import rootReducer from './reducers/rootReducer';
 import { CookiesProvider } from 'react-cookie';
 import { ThemeProvider } from 'styled-components';
+import { DndProvider } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 
 // Extract Sass variables into a JS object
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -18,7 +20,7 @@ const theme = require('sass-extract-loader?{plugins: ["sass-extract-js"]}!./asse
 const store = configureStore();
 const render = () => {
     ReactDOM.render(
-        <AppContainer>
+        <DndProvider backend={HTML5Backend}>
             <CookiesProvider>
                 <Provider store={store}>
                     <ThemeProvider theme={theme}>
@@ -26,7 +28,7 @@ const render = () => {
                     </ThemeProvider>
                 </Provider>
             </CookiesProvider>
-        </AppContainer>,
+        </DndProvider>,
         document.getElementById('root')
     );
 };

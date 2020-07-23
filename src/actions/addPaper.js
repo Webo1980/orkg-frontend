@@ -4,6 +4,7 @@ import { guid } from '../utils';
 import { mergeWith, isArray, uniqBy } from 'lodash';
 import { createResource, selectResource, createProperty, createValue, loadStatementBrowserData } from './statementBrowser';
 import { toast } from 'react-toastify';
+import { PREDICATES, MISC } from 'constants/graphSettings';
 
 export const updateGeneralData = data => dispatch => {
     dispatch({
@@ -158,7 +159,16 @@ export const createContribution = ({ selectAfterCreation = false, prefillStateme
     }
 };
 
-export const prefillStatements = ({ statements, resourceId }) => dispatch => {
+/**
+ * prefill the statements of a resource
+ * (e.g : new store to show resource in dialog)
+ * @param {Object} statements - Statement
+ * @param {Array} statements.properties - The properties
+ * @param {Array} statements.values - The values
+ * @param {string} resourceId - The target resource ID
+ * @param {boolean} syncBackend - Sync the prefill with the backend
+ */
+export const prefillStatements = ({ statements, resourceId, syncBackend = false }) => async (dispatch, getState) => {
     // properties
     for (const property of statements.properties) {
         dispatch(
@@ -167,25 +177,67 @@ export const prefillStatements = ({ statements, resourceId }) => dispatch => {
                 existingPredicateId: property.existingPredicateId,
                 resourceId: resourceId,
                 label: property.label,
+                range: property.range ? property.range : null,
                 isTemplate: property.isTemplate ? property.isTemplate : false,
-                templateId: property.templateId ? property.templateId : null,
-                templateClass: property.templateClass ? property.templateClass : null,
-                isAnimated: property.isAnimated !== undefined ? property.isAnimated : false
+                validationRules: property.validationRules ? property.validationRules : {},
+                isAnimated: property.isAnimated !== undefined ? property.isAnimated : false,
+                canDuplicate: property.canDuplicate ? true : false
             })
         );
     }
 
     // values
     for (const value of statements.values) {
+        /**
+         * The resource ID of the value
+         * @type {string}
+         */
+        let newObject = null;
+        /**
+         * The statement of the value
+         * @type {string}
+         */
+        let newStatement = null;
+        /**
+         * The value ID in the statement browser
+         * @type {string}
+         */
+        const valueId = guid();
+
+        if (syncBackend) {
+            const predicate = getState().statementBrowser.properties.byId[value.propertyId];
+            if (value.existingResourceId) {
+                // The value exist in the database
+                newStatement = await network.createResourceStatement(resourceId, predicate.existingPredicateId, value.existingResourceId);
+            } else {
+                // The value doesn't exist in the database
+                switch (value.type) {
+                    case 'object':
+                        newObject = await network.createResource(value.label, value.classes ? value.classes : []);
+                        newStatement = await network.createResourceStatement(resourceId, predicate.existingPredicateId, newObject.id);
+                        break;
+                    case 'property':
+                        newObject = await network.createPredicate(value.label);
+                        newStatement = await network.createResourceStatement(resourceId, predicate.existingPredicateId, newObject.id);
+                        break;
+                    default:
+                        newObject = await network.createLiteral(value.label, value.datatype);
+                        newStatement = await network.createLiteralStatement(resourceId, predicate.existingPredicateId, newObject.id);
+                }
+            }
+        }
+
         dispatch(
             createValue({
-                valueId: value.valueId ? value.valueId : guid(),
+                valueId: value.valueId ? value.valueId : valueId,
                 label: value.label,
                 type: value.type ? value.type : 'object',
-                templateId: value.templateId ? value.templateId : null,
+                ...(value.type === 'literal' && { datatype: value.datatype ?? MISC.DEFAULT_LITERAL_DATATYPE }),
                 propertyId: value.propertyId,
-                existingResourceId: value.existingResourceId ? value.existingResourceId : null,
-                classes: value.classes ? value.classes : []
+                existingResourceId: syncBackend && newObject ? newObject.id : value.existingResourceId ? value.existingResourceId : null,
+                isExistingValue: syncBackend ? true : value.isExistingValue ? value.isExistingValue : false,
+                classes: value.classes ? value.classes : [],
+                statementId: newStatement ? newStatement.id : null
             })
         );
     }
@@ -278,7 +330,8 @@ export const getResourceObject = (data, resourceId, newProperties) => {
                     const value = data.values.byId[valueId];
                     if (value.type === 'literal' && !value.isExistingValue) {
                         return {
-                            text: value.label
+                            text: value.label,
+                            datatype: value.datatype
                         };
                     } else {
                         if (!value.isExistingValue) {
@@ -287,7 +340,7 @@ export const getResourceObject = (data, resourceId, newProperties) => {
                             return {
                                 '@temp': `_${value.resourceId}`,
                                 label: value.label,
-                                class: value.classes && value.classes.length > 0 ? value.classes[0].id : null,
+                                class: value.classes && value.classes.length > 0 ? value.classes[0] : null,
                                 values: Object.assign({}, getResourceObject(data, value.resourceId, newProperties))
                             };
                         } else {
@@ -306,7 +359,7 @@ export const getResourceObject = (data, resourceId, newProperties) => {
 // Middleware function to transform frontend data to backend format
 export const saveAddPaper = data => {
     return async dispatch => {
-        const researchProblemPredicate = process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM;
+        const researchProblemPredicate = PREDICATES.HAS_RESEARCH_PROBLEM;
         // Get new properties (ensure that  no duplicate labels are in the new properties)
         let newProperties = data.properties.allIds.filter(propertyId => !data.properties.byId[propertyId].existingPredicateId);
         newProperties = newProperties.map(propertyId => ({ id: propertyId, label: data.properties.byId[propertyId].label }));
