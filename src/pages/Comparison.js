@@ -29,6 +29,7 @@ import RelatedFigures from '../components/Comparison/RelatedFigures';
 import Tippy from '@tippy.js/react';
 import { Cookies } from 'react-cookie';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
+import env from '@beam-australia/react-env';
 
 const cookies = new Cookies();
 
@@ -354,7 +355,7 @@ class Comparison extends Component {
 
     onDismiss = () => {
         // dismiss function for the alert thingy!;
-        cookies.set('seenShiftMouseWheelScroll', true, { path: process.env.PUBLIC_URL, maxAge: 315360000 }); // << TEN YEARS
+        cookies.set('seenShiftMouseWheelScroll', true, { path: env('PUBLIC_URL'), maxAge: 315360000 }); // << TEN YEARS
         const token = cookies.get('seenShiftMouseWheelScroll');
         this.setState({ hideScrollHint: token });
     };

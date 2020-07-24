@@ -3,9 +3,10 @@ import queryString from 'query-string';
 import { orderBy } from 'lodash';
 import { sortMethod } from 'utils';
 import { PREDICATES, MISC, CLASSES } from 'constants/graphSettings';
-export const url = `${process.env.REACT_APP_SERVER_URL}api/`;
-export const similaireServiceUrl = process.env.REACT_APP_SIMILARITY_SERVICE_URL;
-export const annotationServiceUrl = process.env.REACT_APP_ANNOTATION_SERVICE_URL;
+import env from '@beam-australia/react-env';
+export const url = `${env('SERVER_URL')}api/`;
+export const similaireServiceUrl = env('SIMILARITY_SERVICE_URL');
+export const annotationServiceUrl = env('ANNOTATION_SERVICE_URL');
 export const resourcesUrl = `${url}resources/`;
 export const organizationsUrl = `${url}organizations/`;
 export const observatoriesUrl = `${url}observatories/`;
@@ -16,11 +17,11 @@ export const statementsUrl = `${url}statements/`;
 export const literalsUrl = `${url}literals/`;
 export const classesUrl = `${url}classes/`;
 export const statsUrl = `${url}stats/`;
-export const crossrefUrl = process.env.REACT_APP_CROSSREF_URL;
-export const semanticScholarUrl = process.env.REACT_APP_SEMANTICSCHOLAR_URL;
+export const crossrefUrl = env('CROSSREF_URL');
+export const semanticScholarUrl = env('SEMANTICSCHOLAR_URL');
 export const comparisonUrl = `${similaireServiceUrl}compare/`;
 export const similaireUrl = `${similaireServiceUrl}similar/`;
-export const authenticationUrl = process.env.REACT_APP_SERVER_URL;
+export const authenticationUrl = env('SERVER_URL');
 
 /**
  * Sends simple GET request to the URL.
@@ -393,7 +394,7 @@ export const signInWithEmailAndPassword = async (email, password) => {
     const data = {
         username: email,
         grant_type: 'password',
-        client_id: `${process.env.REACT_APP_AUTHENTICATION_CLIENT_ID}`,
+        client_id: `${env('AUTHENTICATION_CLIENT_ID')}`,
         password
     };
 

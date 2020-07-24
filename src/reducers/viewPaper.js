@@ -99,7 +99,6 @@ export default (state = initialState, action) => {
                 byId: comparisonContributions
             };
             asyncLocalStorage.setItem('comparison', JSON.stringify(newComparison));
-            //cookies.set('comparison', newComparison, { path: process.env.PUBLIC_URL, maxAge: 604800 });
             return {
                 ...state,
                 comparison: newComparison
@@ -116,7 +115,6 @@ export default (state = initialState, action) => {
                 byId: dotProp.delete(state.comparison.byId, payload.id)
             };
             asyncLocalStorage.setItem('comparison', JSON.stringify(newComparison));
-            //cookies.set('comparison', newComparison, { path: process.env.PUBLIC_URL, maxAge: 604800 });
             return {
                 ...newState,
                 comparison: newComparison
