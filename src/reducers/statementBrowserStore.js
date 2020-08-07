@@ -1,7 +1,9 @@
 import * as type from '../actions/types';
 
 const initialState = {
-    contributionStatementStore: {}
+    contributionStatementStore: {},
+    metaInformationStore: {},
+    authorsOrcidStore: {}
 };
 
 export default (state = initialState, action) => {
@@ -19,6 +21,13 @@ export default (state = initialState, action) => {
             // fallback when no id is given
             return state;
         }
+        case type.SB_SAVE_META_INFORMATION: {
+            return { ...state, metaInformationStore: { statements: [...action.payload.statements] } };
+        }
+        case type.SB_SAVE_AUTHOR_ORCID: {
+            return { ...state, authorsOrcidStore: { statements: [...action.payload.statements] } };
+        }
+
         default: {
             return state;
         }

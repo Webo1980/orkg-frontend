@@ -11,3 +11,19 @@ export const updateStatementStore = data => dispatch => {
         }
     });
 };
+export const updateMetaInformationStore = data => dispatch => {
+    dispatch({
+        type: type.SB_SAVE_META_INFORMATION,
+        payload: {
+            statements: data
+        }
+    });
+};
+export const updateMetaInformationAuthors = data => dispatch => {
+    dispatch({
+        type: type.SB_SAVE_AUTHOR_ORCID,
+        payload: {
+            statements: data
+        }
+    });
+};

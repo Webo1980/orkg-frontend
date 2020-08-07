@@ -31,6 +31,7 @@ import styled from 'styled-components';
 import SharePaper from '../components/ViewPaper/SharePaper';
 import { getPaperData_ViewPaper } from 'utils';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
+import { updateMetaInformationStore, updateMetaInformationAuthors } from 'actions/statementBrowserStoreActions';
 
 export const EditModeHeader = styled(Container)`
     background-color: #80869b !important;
@@ -206,6 +207,8 @@ class ViewPaper extends Component {
     }
 
     processPaperStatements = (paperResource, paperStatements) => {
+        console.log(paperStatements);
+        this.props.updateMetaInformationStore(paperStatements);
         const paperData = getPaperData_ViewPaper(paperResource.id, paperResource.label, paperStatements);
 
         // Set document title
@@ -242,6 +245,7 @@ class ViewPaper extends Component {
     };
 
     loadAuthorsORCID = () => {
+        // todo Integrate into the store;
         let authors = [];
         if (this.props.viewPaper.authors.length > 0) {
             authors = this.props.viewPaper.authors
@@ -251,8 +255,12 @@ class ViewPaper extends Component {
                         return authorStatements.find(statement => statement.predicate.id === PREDICATES.HAS_ORCID);
                     });
                 });
+
+            // this.props.updateMetaInformationAuthros(orcidAuthorStatements);
         }
+
         return Promise.all(authors).then(authorsORCID => {
+            this.props.updateMetaInformationAuthors(authorsORCID);
             const authorsArray = [];
             for (const author of this.props.viewPaper.authors) {
                 const orcid = authorsORCID.find(a => a.subject.id === author.id);
@@ -392,7 +400,9 @@ ViewPaper.propTypes = {
     location: PropTypes.object.isRequired,
     viewPaper: PropTypes.object.isRequired,
     loadPaper: PropTypes.func.isRequired,
-    setPaperAuthors: PropTypes.func.isRequired
+    setPaperAuthors: PropTypes.func.isRequired,
+    updateMetaInformationStore: PropTypes.func.isRequired,
+    updateMetaInformationAuthors: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -403,6 +413,8 @@ const mapDispatchToProps = dispatch => ({
     resetStatementBrowser: () => dispatch(resetStatementBrowser()),
     loadPaper: payload => dispatch(loadPaper(payload)),
     selectContribution: payload => dispatch(selectContribution(payload)),
+    updateMetaInformationStore: payload => dispatch(updateMetaInformationStore(payload)),
+    updateMetaInformationAuthors: payload => dispatch(updateMetaInformationAuthors(payload)),
     setPaperAuthors: payload => dispatch(setPaperAuthors(payload))
 });
 

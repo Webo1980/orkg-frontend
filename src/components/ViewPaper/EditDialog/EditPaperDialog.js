@@ -13,7 +13,9 @@ import {
     deleteStatementsByIds,
     deleteStatementById,
     updateStatement,
-    getStatementsBySubjectAndPredicate
+    getStatementsBySubjectAndPredicate,
+    getStatementsBySubject,
+    getStatementsBySubjects
 } from 'network';
 import { connect } from 'react-redux';
 import EditItem from './EditItem';
@@ -26,6 +28,7 @@ import { isEqual } from 'lodash';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { PREDICATES } from 'constants/graphSettings';
 import { CLASSES } from 'constants/graphSettings';
+import { updateMetaInformationAuthors, updateMetaInformationStore } from 'actions/statementBrowserStoreActions';
 
 const LoadingOverlayStyled = styled(LoadingOverlay)`
     //border-radius: 7px;
@@ -36,6 +39,7 @@ class EditPaperDialog extends Component {
         super(props);
 
         this.state = {
+            noChanges: true,
             showDialog: false,
             openItem: 'title',
             isLoading: false,
@@ -73,9 +77,9 @@ class EditPaperDialog extends Component {
     handleChange = (event, name) => {
         // fixing publication month and year as int number edit;
         if (name === 'publicationMonth' || name === 'publicationYear') {
-            this.setState({ [name]: parseInt(event.target.value) });
+            this.setState({ [name]: parseInt(event.target.value), noChanges: false });
         } else {
-            this.setState({ [name]: event.target.value });
+            this.setState({ [name]: event.target.value, noChanges: false });
         }
     };
 
@@ -85,15 +89,23 @@ class EditPaperDialog extends Component {
         });
         const loadPaper = {};
 
-        //title
-        updateResource(this.props.viewPaper.paperResourceId, this.state.title);
+        const reduxState = this.getStateFromRedux();
+
+        // add the validation if we need to update the title
+        if (this.state.title !== reduxState.title) {
+            await updateResource(this.props.viewPaper.paperResourceId, this.state.title);
+        }
 
         //authors
-        await this.updateAuthors(this.state.authors); //use await to prevent updating the props, which are needed to check whether authors exist
+        if (reduxState.authors !== this.state.authors) {
+            await this.updateAuthors(this.state.authors); //use await to prevent updating the props, which are needed to check whether authors exist
+        }
 
         //venue
         if (this.state.publishedIn && this.state.publishedIn.statementId && this.state.publishedIn.id) {
-            await updateStatement(this.state.publishedIn.statementId, { object_id: this.state.publishedIn.id });
+            if (reduxState.publishedIn !== reduxState.publishedIn) {
+                await updateStatement(this.state.publishedIn.statementId, { object_id: this.state.publishedIn.id });
+            }
         } else if (this.state.publishedIn && !this.state.publishedIn.statementId) {
             await createResourceStatement(this.props.viewPaper.paperResourceId, PREDICATES.HAS_VENUE, this.state.publishedIn.id);
         } else if (this.state.publishedIn && this.state.publishedIn.statementId && !this.state.publishedIn.id) {
@@ -103,36 +115,51 @@ class EditPaperDialog extends Component {
 
         // research field
         if (this.state.researchField && this.state.researchField.statementId && this.state.researchField.id) {
-            await updateStatement(this.state.researchField.statementId, { object_id: this.state.researchField.id });
+            // console.log('RESEARCH FIELD');
+            // console.log(reduxState.researchField, ' vs ', this.state.researchField);
+            // console.log('are equal', reduxState.researchField === reduxState.researchField);
+            // TODO : VALIDATE!!!!
+            if (reduxState.researchField !== reduxState.researchField) {
+                await updateStatement(this.state.researchField.statementId, { object_id: this.state.researchField.id });
+            }
         }
 
-        //publication month
-        loadPaper['publicationMonthResourceId'] = await this.updateOrCreateLiteral({
-            reducerName: 'publicationMonthResourceId',
-            value: this.state.publicationMonth,
-            predicateIdForCreate: PREDICATES.HAS_PUBLICATION_MONTH
-        });
+        if (reduxState.publicationMonth !== this.state.publicationMonth) {
+            //publication month
+            loadPaper['publicationMonthResourceId'] = await this.updateOrCreateLiteral({
+                reducerName: 'publicationMonthResourceId',
+                value: this.state.publicationMonth,
+                predicateIdForCreate: PREDICATES.HAS_PUBLICATION_MONTH
+            });
+        }
 
-        //publication year
-        loadPaper['publicationYearResourceId'] = await this.updateOrCreateLiteral({
-            reducerName: 'publicationYearResourceId',
-            value: this.state.publicationYear,
-            predicateIdForCreate: PREDICATES.HAS_PUBLICATION_YEAR
-        });
+        if (reduxState.publicationYear !== this.state.publicationYear) {
+            //publication year
+            loadPaper['publicationYearResourceId'] = await this.updateOrCreateLiteral({
+                reducerName: 'publicationYearResourceId',
+                value: this.state.publicationYear,
+                predicateIdForCreate: PREDICATES.HAS_PUBLICATION_YEAR
+            });
+        }
 
-        //doi
-        loadPaper['doiResourceId'] = await this.updateOrCreateLiteral({
-            reducerName: 'doiResourceId',
-            value: this.state.doi,
-            predicateIdForCreate: PREDICATES.HAS_DOI
-        });
-
-        //url
-        loadPaper['urlResourceId'] = await this.updateOrCreateLiteral({
-            reducerName: 'urlResourceId',
-            value: this.state.url,
-            predicateIdForCreate: PREDICATES.URL
-        });
+        if (reduxState.doi !== this.state.doi) {
+            // TODO VALIDATE
+            //doi
+            loadPaper['doiResourceId'] = await this.updateOrCreateLiteral({
+                reducerName: 'doiResourceId',
+                value: this.state.doi,
+                predicateIdForCreate: PREDICATES.HAS_DOI
+            });
+        }
+        if (reduxState.url !== this.state.url) {
+            // TODO : VALIDATE
+            //url
+            loadPaper['urlResourceId'] = await this.updateOrCreateLiteral({
+                reducerName: 'urlResourceId',
+                value: this.state.url,
+                predicateIdForCreate: PREDICATES.URL
+            });
+        }
 
         //update redux state with changes, so it is updated on the view paper page
         this.props.loadPaper({
@@ -146,6 +173,38 @@ class EditPaperDialog extends Component {
             url: this.state.url,
             researchField: this.state.researchField
         });
+
+        // if we have any change we update the statementBrowserStore
+
+        if (!this.state.noChanges) {
+            console.log('THIS IS WHERE WE NOW NEED TO UPDATE ONLY THE META INFORMATION STORES');
+            const newPaperStatements = await getStatementsBySubject({ id: this.props.viewPaper.paperResourceId });
+            this.props.updateMetaInformationStore(newPaperStatements);
+        }
+        if (reduxState.authors !== this.state.authors) {
+            console.log('THIS IS WHERE WE NOW NEED TO UPDATE THE META INFORMATION AUTHORS (ORCIDS AND SO )');
+            let authors = [];
+            if (this.props.viewPaper.authors.length > 0) {
+                authors = this.props.viewPaper.authors
+                    .filter(author => author.classes && author.classes.includes(CLASSES.AUTHOR))
+                    .map(author => {
+                        return author.id;
+                    });
+                console.log(authors);
+                // author orchid statments;
+                const authroStatements = await getStatementsBySubjects({ ids: authors });
+                const singleStatementsArray = [];
+                authroStatements.forEach(res => {
+                    singleStatementsArray.push(...res.statements);
+                });
+
+                console.log(singleStatementsArray);
+                this.props.updateMetaInformationAuthors(singleStatementsArray);
+            }
+            // also update the meta information store
+            const newPaperStatements = await getStatementsBySubject({ id: this.props.viewPaper.paperResourceId });
+            this.props.updateMetaInformationStore(newPaperStatements);
+        }
 
         this.setState({
             isLoading: false
@@ -271,19 +330,22 @@ class EditPaperDialog extends Component {
         if (action.action === 'select-option') {
             selected.statementId = this.state.publishedIn && this.state.publishedIn.statementId ? this.state.publishedIn.statementId : '';
             this.setState({
-                publishedIn: selected
+                publishedIn: selected,
+                noChanges: false
             });
         } else if (action.action === 'create-option') {
             const newVenue = await createResource(selected.label, [CLASSES.VENUE]);
             selected.id = newVenue.id;
             selected.statementId = this.state.publishedIn && this.state.publishedIn.statementId ? this.state.publishedIn.statementId : '';
             this.setState({
-                publishedIn: selected
+                publishedIn: selected,
+                noChanges: false
             });
         } else if (action.action === 'clear') {
             const statementId = this.state.publishedIn && this.state.publishedIn.statementId ? this.state.publishedIn.statementId : '';
             this.setState({
-                publishedIn: { statementId: statementId, id: null, label: null }
+                publishedIn: { statementId: statementId, id: null, label: null },
+                noChanges: false
             });
         }
     };
@@ -292,7 +354,8 @@ class EditPaperDialog extends Component {
         if (action.action === 'select-option') {
             selected.statementId = this.state.researchField && this.state.researchField.statementId ? this.state.researchField.statementId : '';
             this.setState({
-                researchField: selected
+                researchField: selected,
+                noChanges: false
             });
         }
     };
@@ -406,6 +469,8 @@ class EditPaperDialog extends Component {
 }
 
 EditPaperDialog.propTypes = {
+    updateMetaInformationStore: PropTypes.func.isRequired,
+    updateMetaInformationAuthors: PropTypes.func.isRequired,
     loadPaper: PropTypes.func.isRequired,
     viewPaper: PropTypes.shape({
         paperResourceId: PropTypes.string.isRequired,
@@ -430,7 +495,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    loadPaper: payload => dispatch(loadPaper(payload))
+    loadPaper: payload => dispatch(loadPaper(payload)),
+    updateMetaInformationStore: payload => dispatch(updateMetaInformationStore(payload)),
+    updateMetaInformationAuthors: payload => dispatch(updateMetaInformationAuthors(payload))
 });
 
 export default connect(
