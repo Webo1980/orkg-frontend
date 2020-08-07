@@ -32,6 +32,13 @@ const initialState = {
 
 export default (state = initialState, action) => {
     switch (action.type) {
+        case type.LOAD_CACHED_VERSION: {
+            const { payload } = action;
+            console.log('Loading chached store:', payload.store);
+            return payload.store;
+            // return payload.store; // << this is the cached version
+        }
+
         case type.CREATE_RESOURCE: {
             const { payload } = action;
 

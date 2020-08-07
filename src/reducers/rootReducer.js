@@ -3,6 +3,7 @@ import { connectRouter } from 'connected-react-router';
 import addPaper from './addPaper';
 import auth from './auth';
 import statementBrowser from './statementBrowser';
+import statementBrowserStore from './statementBrowserStore';
 import viewPaper from './viewPaper';
 import addTemplate from './addTemplate';
 
@@ -12,6 +13,7 @@ export default history =>
         addPaper,
         viewPaper,
         statementBrowser,
+        statementBrowserStore,
         auth,
         addTemplate
     });

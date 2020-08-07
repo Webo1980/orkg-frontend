@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Alert, Col, Container, Form, FormGroup, Row, Button } from 'reactstrap';
-import { getResource, getSimilaireContribution, deleteStatementById, createResource, createResourceStatement } from 'network';
+import { /*getResource, getSimilaireContribution,*/ deleteStatementById, createResource, createResourceStatement } from 'network';
 import AddToComparison from './AddToComparison';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import ContentLoader from 'react-content-loader';
@@ -25,6 +25,9 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import SuggestedTemplates from 'components/StatementBrowser/SuggestedTemplates/SuggestedTemplates';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
+
+import { updateStatementStore } from 'actions/statementBrowserStoreActions';
+import { loadCachedVersion } from 'actions/statementBrowser';
 
 const Title = styled.div`
     font-size: 18px;
@@ -79,6 +82,39 @@ class Contributions extends Component {
         if (this.props.paperId !== prevProps.paperId) {
             this.setState({ loading: true });
         }
+        if (!this.state.loading) {
+            const validation = [
+                'selectedResource',
+                'selectedProperty',
+                'level',
+                'isFetchingStatements',
+                'openExistingResourcesInDialog',
+                'propertiesAsLinks',
+                'resourcesAsLinks',
+                'resources',
+                'properties',
+                'values'
+            ];
+            let isDifferent = false;
+
+            validation.forEach(name => {
+                if (prevProps.statementBrowser[name] !== this.props.statementBrowser[name]) {
+                    isDifferent = true;
+                }
+            });
+            const isClearing = !this.props.statementBrowser.selectedResource;
+            if (isDifferent) {
+                if (this.state.selectedContribution) {
+                    if (!isClearing) {
+                        this.props.updateStatementStore({
+                            store: { ...this.props.statementBrowser },
+                            contributionId: this.state.selectedContribution
+                        });
+                    }
+                }
+            }
+        }
+
         if (this.props.selectedContribution !== '' && this.props.selectedContribution !== this.state.selectedContribution) {
             this.setState({ selectedContribution: this.props.selectedContribution }, () => {
                 this.handleSelectContribution(this.state.selectedContribution);
@@ -87,32 +123,37 @@ class Contributions extends Component {
     };
 
     handleSelectContribution = contributionId => {
-        this.setState({ loading: true, isSimilaireContributionsLoading: true });
-        const contributionIsLoaded = this.props.resources.byId[contributionId] ? true : false;
-        this.props.selectContribution({
-            contributionId,
-            contributionIsLoaded
-        });
-        getSimilaireContribution(this.state.selectedContribution)
-            .then(similaireContributions => {
-                const similaireContributionsData = similaireContributions.map(paper => {
-                    // Fetch the data of each paper
-                    return getResource(paper.paperId).then(paperResource => {
-                        paper.title = paperResource.label;
-                        return paper;
-                    });
-                });
-                Promise.all(similaireContributionsData).then(results => {
-                    this.setState({
-                        similaireContributions: results,
-                        isSimilaireContributionsLoading: false,
-                        isSimilaireContributionsFailedLoading: false
-                    });
-                });
-            })
-            .catch(error => {
-                this.setState({ similaireContributions: [], isSimilaireContributionsLoading: false, isSimilaireContributionsFailedLoading: true });
+        this.setState({ loading: true, isSimilaireContributionsLoading: false });
+        const contributionIsLoaded = !!this.props.resources.byId[contributionId];
+        if (this.props.statementBrowserStore.contributionStatementStore.hasOwnProperty(contributionId)) {
+            this.props.loadCachedVersion(this.props.statementBrowserStore.contributionStatementStore[contributionId]);
+        } else {
+            this.props.selectContribution({
+                contributionId,
+                contributionIsLoaded
             });
+        }
+
+        // getSimilaireContribution(this.state.selectedContribution)
+        //     .then(similaireContributions => {
+        //         const similaireContributionsData = similaireContributions.map(paper => {
+        //             // Fetch the data of each paper
+        //             return getResource(paper.paperId).then(paperResource => {
+        //                 paper.title = paperResource.label;
+        //                 return paper;
+        //             });
+        //         });
+        //         Promise.all(similaireContributionsData).then(results => {
+        //             this.setState({
+        //                 similaireContributions: results,
+        //                 isSimilaireContributionsLoading: false,
+        //                 isSimilaireContributionsFailedLoading: false
+        //             });
+        //         });
+        //     })
+        //     .catch(error => {
+        //         this.setState({ similaireContributions: [], isSimilaireContributionsLoading: false, isSimilaireContributionsFailedLoading: true });
+        //     });
         this.setState({ loading: false });
     };
 
@@ -369,7 +410,11 @@ Contributions.propTypes = {
     observatoryInfo: PropTypes.object,
     contributors: PropTypes.array,
     researchField: PropTypes.object.isRequired,
-    selectedResource: PropTypes.string
+    selectedResource: PropTypes.string,
+    statementBrowser: PropTypes.object,
+    statementBrowserStore: PropTypes.object,
+    loadCachedVersion: PropTypes.func.isRequired,
+    updateStatementStore: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state, ownProps) => {
@@ -394,13 +439,17 @@ const mapStateToProps = (state, ownProps) => {
         researchProblems: researchProblems,
         selectedResource: state.statementBrowser.selectedResource,
         resources: state.statementBrowser.resources,
-        researchField: state.viewPaper.researchField
+        researchField: state.viewPaper.researchField,
+        statementBrowser: state.statementBrowser,
+        statementBrowserStore: state.statementBrowserStore
     };
 };
 
 const mapDispatchToProps = dispatch => ({
     selectContribution: data => dispatch(selectContribution(data)),
-    updateResearchProblems: data => dispatch(updateResearchProblems(data))
+    updateResearchProblems: data => dispatch(updateResearchProblems(data)),
+    updateStatementStore: data => dispatch(updateStatementStore(data)),
+    loadCachedVersion: data => dispatch(loadCachedVersion(data))
 });
 
 export default connect(

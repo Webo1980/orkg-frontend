@@ -55,6 +55,15 @@ export const initializeWithoutContribution = data => dispatch => {
     );
 };
 
+export const loadCachedVersion = store => dispatch => {
+    dispatch({
+        type: type.LOAD_CACHED_VERSION,
+        payload: {
+            store: store
+        }
+    });
+};
+
 /**
  * Initialise the statement browser with a resource then add the required properties
  *
@@ -63,6 +72,7 @@ export const initializeWithoutContribution = data => dispatch => {
  * @param {string} data.resourceId - The resource id.
  * @return {Promise} Promise object of creating the required properties
  */
+
 export function initializeWithResource(data) {
     return dispatch => {
         const label = data.label;
