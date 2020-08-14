@@ -531,7 +531,7 @@ export default class GraphVis {
         this.graphIsInitialized = val;
     }
 
-    loadData() {
+    loadData(withInitialRendering = true) {
         // clear if something was there;
         this.classNodes = [];
         this.propNodes = [];
@@ -567,14 +567,16 @@ export default class GraphVis {
             this.nav.releaseMutex();
             const rootNode = this.computeDepth();
             this.layout.initializePositions(rootNode);
-            this.drawGraph();
 
+            this.drawGraph();
             this.layout.initializeLayoutEngine();
 
-            if (this.layout.layoutType() === 'force') {
-                this.nav.zoomToExtent(true);
-            } else {
-                this.nav.zoomToExtent();
+            if (withInitialRendering) {
+                if (this.layout.layoutType() === 'force') {
+                    this.nav.zoomToExtent(true);
+                } else {
+                    this.nav.zoomToExtent();
+                }
             }
         }
         this.buildDictionary();
@@ -966,8 +968,45 @@ export default class GraphVis {
         this.loadDefaultOptions(); // keep it here in order to make later adjustments easier :)
         this.initializeLayers();
         this.initializeRendering();
+        this.loadData(false);
+        this.applyInitialDepth(props.depth);
+        this.graphInitialized(true);
+    }
 
-        this.loadData();
+    applyInitialDepth(val) {
+        const internalVal = val + 1;
+        console.log('internal val', internalVal, 'vs max depth', this.maxDepth);
+
+        // todo some logic parts here;
+
+        if (this.maxDepth != val) {
+            this.sortedByDepthNodes.forEach((level, index) => {
+                let visible = false;
+                if (index <= internalVal) {
+                    visible = true;
+                }
+                level.forEach(node => {
+                    console.log(node.depthValue);
+                    node.visible(visible);
+                    node.incommingLink.forEach(link => {
+                        link.visible(visible);
+                        link.linkElement().visible(visible);
+                    });
+                    node.outgoingLink.forEach(link => {
+                        link.visible(visible);
+                        link.linkElement().visible(visible);
+                    });
+                });
+            });
+        }
+        this.redrawGraph();
+        this.layout.initializeLayoutEngine();
+        this.layout.initializePositions(this.mst.getRoot(), true);
+        if (this.layout.layoutType() === 'force') {
+            this.nav.zoomToExtent(true);
+        } else {
+            this.nav.zoomToExtent();
+        }
     }
 
     loadDefaultOptions() {
@@ -1022,18 +1061,18 @@ export default class GraphVis {
             }
         }
 
-        if (seenUnKnownObject === false) {
-            // we have searched the full graph and there is nothing more to explore !
-            // we have found maximum of data!\
-
-            if (!this.graphFullyExplored) {
-                this.propagateMaxDepthValue(this.getMaxDepth(), true);
-                this.graphFullyExplored = true;
-            }
-            if (this.graphFullyExplored && internalDepth > this.getMaxDepth()) {
-                // this.propagateMaxDepthValue(this.getMaxDepth(), true);
-            }
-        }
+        // if (seenUnKnownObject === false) {
+        //     // we have searched the full graph and there is nothing more to explore !
+        //     // we have found maximum of data!\
+        //
+        //     if (!this.graphFullyExplored) {
+        //         this.propagateMaxDepthValue(this.getMaxDepth(), true);
+        //         this.graphFullyExplored = true;
+        //     }
+        //     if (this.graphFullyExplored && internalDepth > this.getMaxDepth()) {
+        //         // this.propagateMaxDepthValue(this.getMaxDepth(), true);
+        //     }
+        // }
 
         if (!requiresCollapse && !requiresExpansions && !requiresExplore) {
             return;
@@ -1047,7 +1086,7 @@ export default class GraphVis {
                 this.performCollapse(needToCollapseLevel);
             }
             if (requiresExplore) {
-                this.performExplorations(needToExploreLevel, internalDepth);
+                // this.performExplorations(needToExploreLevel, internalDepth);
             }
             if (requiresExpansions) {
                 await this.performExpansion(needToExpandLevel);
@@ -1066,7 +1105,7 @@ export default class GraphVis {
         }
         await this.performCollapse(collapseGroup);
         await this.performExpansion(expandGroup);
-        await this.performExplorations(exploreGroup, internalDepth);
+        // await this.performExplorations(exploreGroup, internalDepth);
         if (this.layout.layoutType() === 'force') {
             this.layout.resumeForce();
         }

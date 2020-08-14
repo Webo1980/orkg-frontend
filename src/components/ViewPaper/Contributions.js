@@ -102,7 +102,6 @@ class Contributions extends Component {
                     isDifferent = true;
                 }
             });
-            console.log(this.props.statementBrowserStore);
             const isClearing = !this.props.statementBrowser.selectedResource;
             if (isDifferent) {
                 if (this.state.selectedContribution) {

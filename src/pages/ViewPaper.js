@@ -20,7 +20,7 @@ import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import PaperHeader from '../components/ViewPaper/PaperHeader';
 import { resetStatementBrowser } from 'actions/statementBrowser';
 import { loadPaper, selectContribution, setPaperAuthors } from 'actions/viewPaper';
-import GizmoGraphViewModal from '../components/ViewPaper/GraphView/GizmoGraphViewModal';
+import GizmoGraphViewModal from '../components/ViewPaper/GraphView/GizmoGraphViewModal2';
 import queryString from 'query-string';
 import { toast } from 'react-toastify';
 import Confirm from 'reactstrap-confirm';
