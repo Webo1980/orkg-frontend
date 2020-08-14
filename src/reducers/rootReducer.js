@@ -5,6 +5,7 @@ import auth from './auth';
 import statementBrowser from './statementBrowser';
 import statementBrowserStore from './statementBrowserStore';
 import viewPaper from './viewPaper';
+import pdfAnnotation from './pdfAnnotation';
 import addTemplate from './addTemplate';
 
 export default history =>
@@ -14,6 +15,7 @@ export default history =>
         viewPaper,
         statementBrowser,
         statementBrowserStore,
+        pdfAnnotation,
         auth,
         addTemplate
     });
