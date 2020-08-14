@@ -20,13 +20,17 @@ class GizMOGraph extends Component {
     componentDidMount() {
         console.log('The graph visualization is mounted!!! ');
         const graph = this.createGraphDataFromStatementStore();
-        // if (!this.graphVis.graphInitialized()) {
-        this.graphVis.bindComponentValues({
-            graph: graph,
-            layout: this.props.layout,
-            graphBgColor: '#ecf0f1',
-            depth: this.props.depth
-        });
+        if (!this.graphVis.graphInitialized()) {
+            this.graphVis.bindComponentValues({
+                graph: graph,
+                layout: this.props.layout,
+                graphBgColor: '#ecf0f1',
+                depth: this.props.depth
+            });
+        } else {
+            console.log('Should redraw the graph');
+            this.graphVis.redrawGraphPreviousState('#ecf0f1');
+        }
     }
 
     componentDidUpdate = prevProps => {
@@ -48,32 +52,25 @@ class GizMOGraph extends Component {
     }
 
     createGraphDataFromStatementStore = () => {
-        console.log('Creating the new graph structure from the store');
-        console.log(this.props.contributionStatementStore);
         const allNodes = [];
         const allLinks = [];
 
         // first fetch metadata store;
         const mds = this.props.metaInformationStore ? this.props.metaInformationStore.statements : [];
         const metaInformationNodesAndLinks = this.processStatements(mds, true);
-        console.log(metaInformationNodesAndLinks);
         allNodes.push(...metaInformationNodesAndLinks.nodes);
         allLinks.push(...metaInformationNodesAndLinks.edges);
         // then fetch orcid author ids;
         const authors_ods = this.props.authorsOrcidStore ? this.props.authorsOrcidStore.statements : [];
         const authrosOrcidStatements = this.processStatements(authors_ods, false);
-        console.log(authrosOrcidStatements);
         allNodes.push(...authrosOrcidStatements.nodes);
         allLinks.push(...authrosOrcidStatements.edges);
 
         // now extract the graph structure from the statement store;
         const contribStore = this.props.contributionStatementStore;
-        console.log(contribStore, '<<');
-
         const allContributionStatements = [];
 
         for (const name in contribStore) {
-            console.log('Extracting graph information for contribution:', name);
             const subjects = contribStore[name].resources;
             const predicates = contribStore[name].properties;
             const objects = contribStore[name].values;
@@ -96,7 +93,6 @@ class GizMOGraph extends Component {
                                 if (object.type === 'object') {
                                     object._class = 'resource';
                                 }
-                                console.log({ subject: resource, predicate: property, object: object });
                                 currentContributionStatements.push({ subject: resource, predicate: property, object: object });
                             });
                         }
@@ -108,7 +104,6 @@ class GizMOGraph extends Component {
         // try to process the individual contribution arrays as graphs;
         allContributionStatements.forEach(subArray => {
             const subGraph = this.processStatements(subArray, false);
-            console.log(subGraph);
             allNodes.push(...subGraph.nodes);
             allLinks.push(...subGraph.edges);
         });
@@ -116,9 +111,6 @@ class GizMOGraph extends Component {
         // remove duplicate nodes
         const graphNodes = uniqBy(allNodes, 'id');
         const graphLinks = uniqBy(allLinks, e => [e.from, e.to, e.label].join());
-
-        console.log(graphNodes);
-        console.log(graphLinks);
 
         return { nodes: graphNodes, edges: graphLinks };
     };

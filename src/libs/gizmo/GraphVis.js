@@ -69,7 +69,6 @@ export default class GraphVis {
 
         // helper functions
         this.stopBackgroundProcesses = this.stopBackgroundProcesses.bind(this);
-        this.bindComponentValues = this.bindComponentValues.bind(this);
         this.loadDefaultOptions = this.loadDefaultOptions.bind(this);
         this.ensureLayoutConsistency = this.ensureLayoutConsistency.bind(this);
         this.updateNodeStatus = this.updateNodeStatus.bind(this);
@@ -689,8 +688,8 @@ export default class GraphVis {
         });
     }
 
-    initializeRendering() {
-        this.nav.initializeRendering();
+    initializeRendering(useExistingParams) {
+        this.nav.initializeRendering(useExistingParams);
     }
 
     blackOpsRedraw() {
@@ -745,6 +744,29 @@ export default class GraphVis {
         this.layout.initializePositions(this.mst.getRoot(), true);
         this.drawGraph();
     }
+
+    redrawGraphPreviousState = graphBgColor => {
+        if (this.svgRoot) {
+            this.svgRoot.remove();
+        }
+
+        this.renderedNodes = [];
+        this.edgeElements = [];
+        this.renderedLink = [];
+
+        this.svgRoot = d3.select('#graphRendering').append('svg');
+        this.svgRoot.style('width', '100%');
+        this.svgRoot.style('height', '100%');
+        this.svgRoot.style('background-color', graphBgColor);
+
+        this.graphRoot = this.svgRoot.append('g'); // d3 node for the svg container
+        this.graphRoot.style('overflow', 'hidden');
+        this.loadDefaultOptions(); // keep it here in order to make later adjustments easier :)
+        this.initializeLayers();
+        this.initializeRendering(true);
+        this.layout.initializeLayoutEngine();
+        this.drawGraph();
+    };
 
     redrawGraphWithReset(props) {
         this.resetSvgRoot(props.graphBgColor);
@@ -958,7 +980,7 @@ export default class GraphVis {
         }
     }
 
-    bindComponentValues(props) {
+    bindComponentValues = props => {
         this.layout.layoutType(props.layout);
         this.nodes = props.graph.nodes;
         this.edges = props.graph.edges;
@@ -971,7 +993,7 @@ export default class GraphVis {
         this.loadData(false);
         this.applyInitialDepth(props.depth);
         this.graphInitialized(true);
-    }
+    };
 
     applyInitialDepth(val) {
         const internalVal = val + 1;
@@ -986,7 +1008,6 @@ export default class GraphVis {
                     visible = true;
                 }
                 level.forEach(node => {
-                    console.log(node.depthValue);
                     node.visible(visible);
                     node.incommingLink.forEach(link => {
                         link.visible(visible);
