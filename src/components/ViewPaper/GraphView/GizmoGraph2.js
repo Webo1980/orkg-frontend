@@ -29,7 +29,7 @@ class GizMOGraph extends Component {
             });
         } else {
             console.log('Should redraw the graph');
-            this.graphVis.redrawGraphPreviousState('#ecf0f1');
+            this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
         }
     }
 

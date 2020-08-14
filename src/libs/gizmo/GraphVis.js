@@ -46,7 +46,6 @@ export default class GraphVis {
 
         // state, load, unload functions`
         this.graphInitialized = this.graphInitialized.bind(this);
-        this.loadData = this.loadData.bind(this);
         this.getMaxDepth = this.getMaxDepth.bind(this);
         this.computeDepth = this.computeDepth.bind(this);
         this.clearGraphData = this.clearGraphData.bind(this);
@@ -530,7 +529,7 @@ export default class GraphVis {
         this.graphIsInitialized = val;
     }
 
-    loadData(withInitialRendering = true) {
+    loadData = (withInitialRendering = true) => {
         // clear if something was there;
         this.classNodes = [];
         this.propNodes = [];
@@ -579,7 +578,7 @@ export default class GraphVis {
             }
         }
         this.buildDictionary();
-    }
+    };
 
     updateNodeStatus() {
         // go through the nodes;
@@ -745,7 +744,7 @@ export default class GraphVis {
         this.drawGraph();
     }
 
-    redrawGraphPreviousState = graphBgColor => {
+    redrawGraphPreviousState = props => {
         if (this.svgRoot) {
             this.svgRoot.remove();
         }
@@ -757,7 +756,7 @@ export default class GraphVis {
         this.svgRoot = d3.select('#graphRendering').append('svg');
         this.svgRoot.style('width', '100%');
         this.svgRoot.style('height', '100%');
-        this.svgRoot.style('background-color', graphBgColor);
+        this.svgRoot.style('background-color', props.graphBgColor);
 
         this.graphRoot = this.svgRoot.append('g'); // d3 node for the svg container
         this.graphRoot.style('overflow', 'hidden');
@@ -991,23 +990,29 @@ export default class GraphVis {
         this.initializeLayers();
         this.initializeRendering();
         this.loadData(false);
-        this.applyInitialDepth(props.depth);
+        this.applyInitialDepth(props.depth, true); // true/ false flag will apply expand on meta node on initial rendering
         this.graphInitialized(true);
     };
 
-    applyInitialDepth(val) {
+    applyInitialDepth(val, expandMetaNodeOnLoad = false) {
         const internalVal = val + 1;
         console.log('internal val', internalVal, 'vs max depth', this.maxDepth);
 
         // todo some logic parts here;
 
-        if (this.maxDepth != val) {
+        let metaNode = null;
+        if (this.maxDepth !== val) {
             this.sortedByDepthNodes.forEach((level, index) => {
                 let visible = false;
                 if (index <= internalVal) {
                     visible = true;
                 }
                 level.forEach(node => {
+                    // simple logic to expand the meta node directly
+
+                    if (node.resourceId() === '__META_NODE__') {
+                        metaNode = node;
+                    }
                     node.visible(visible);
                     node.incommingLink.forEach(link => {
                         link.visible(visible);
@@ -1020,6 +1025,10 @@ export default class GraphVis {
                 });
             });
         }
+        if (expandMetaNodeOnLoad) {
+            this.singleNodeExpansion(metaNode);
+        }
+
         this.redrawGraph();
         this.layout.initializeLayoutEngine();
         this.layout.initializePositions(this.mst.getRoot(), true);
