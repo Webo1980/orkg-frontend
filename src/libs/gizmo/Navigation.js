@@ -108,11 +108,6 @@ export default class Navigation {
     initializeRendering(useExistingParams) {
         const graph = this.graph;
         const that = this;
-
-        console.log('---- INITIAL GRAPH PARAMETERS ----');
-        console.log(this.zoomFactor);
-        console.log(this.graphTranslation);
-
         this.dragBehaviour = d3.behavior
             .drag()
             .origin(function(d) {
@@ -161,7 +156,6 @@ export default class Navigation {
             });
 
         if (useExistingParams) {
-            console.log('Initializaing with given parameters');
             this.zoom.translate(that.graphTranslation);
             this.zoom.scale(that.zoomFactor);
         }

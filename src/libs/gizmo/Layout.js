@@ -435,11 +435,11 @@ export default class Layout {
         this.distanceValue = Math.min(500, maxDist);
         // create forceLinks;
         this.force
-            .charge(-700)
+            .charge(-2200)
             .linkDistance(this.distanceValue) // just make sure that our links are not to long.
             .linkStrength(1)
             .size([that.layoutSize[0], that.layoutSize[1]])
-            .gravity(0.025);
+            .gravity(0.015);
 
         this.force.linkDistance(this.distanceValue); // just make sure that our links are not to long.
     }
