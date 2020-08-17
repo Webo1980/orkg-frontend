@@ -18,7 +18,6 @@ class GizMOGraph extends Component {
     }
 
     componentDidMount() {
-        console.log('The graph visualization is mounted!!! ');
         const graph = this.createGraphDataFromStatementStore();
         if (!this.graphVis.graphInitialized()) {
             this.graphVis.bindComponentValues({
@@ -28,14 +27,11 @@ class GizMOGraph extends Component {
                 depth: this.props.depth
             });
         } else {
-            console.log('Should redraw the graph');
             this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
         }
     }
 
     componentDidUpdate = prevProps => {
-        console.log('GizMOGraph Container Updates');
-        console.log(this.props);
         this.createGraphDataFromStatementStore();
 
         if (this.props.layout !== prevProps.layout) {
@@ -46,7 +42,6 @@ class GizMOGraph extends Component {
     componentWillUnmount() {
         this.graphVis.stopBackgroundProcesses();
         if (this.graphVis.graphIsInitialized) {
-            // todo : make sure memory is cleared!
             this.clearGraphData();
         }
     }
@@ -112,13 +107,29 @@ class GizMOGraph extends Component {
         const graphNodes = uniqBy(allNodes, 'id');
         const graphLinks = uniqBy(allLinks, e => [e.from, e.to, e.label].join());
 
+        // update node status for already exploread resources;
+        const nodeMap = {};
+        graphNodes.forEach(node => {
+            nodeMap[node.id] = node;
+        });
+
+        for (const name in contribStore) {
+            if (contribStore.hasOwnProperty(name)) {
+                const resources = contribStore[name].resources;
+                resources.allIds.forEach(item => {
+                    if (resources.byId[item].isFechted && resources.byId[item].isFechted === true) {
+                        nodeMap[resources.byId[item].existingResourceId].status = 'expanded';
+                    }
+                });
+            }
+        }
+
         return { nodes: graphNodes, edges: graphLinks };
     };
 
     processSingleStatement = (nodes, edges, statement) => {
         const subjectLabel = statement.subject.label.substring(0, 20);
         const objectLabel = statement.object.label.substring(0, 20);
-
         nodes.push({
             id: statement.subject.id,
             label: subjectLabel,
@@ -141,12 +152,12 @@ class GizMOGraph extends Component {
                 id: statement.object.id,
                 label: objectLabel,
                 title: statement.object.label,
-                type: 'literal'
+                type: 'literal',
+                status: 'leafNode'
             });
         }
 
         if (statement.predicate.id === PREDICATES.HAS_AUTHOR) {
-            // add user Icon to target node if we have 'has author' property === P27
             edges.push({
                 from: statement.subject.id,
                 to: statement.object.id,
@@ -155,7 +166,6 @@ class GizMOGraph extends Component {
                 predicateId: statement.predicate.id
             });
         } else if (statement.predicate.id === PREDICATES.HAS_DOI) {
-            // add DOI Icon to target node
             edges.push({
                 from: statement.subject.id,
                 to: statement.object.id,

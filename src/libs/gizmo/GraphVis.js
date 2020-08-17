@@ -634,7 +634,6 @@ export default class GraphVis {
     }
 
     clearGraphData() {
-        console.log('clearing the graphVis Data');
         if (this.layout) {
             this.layout.clearData();
         }
@@ -947,6 +946,7 @@ export default class GraphVis {
         node.setPosition(-1, -1);
         node.graph = this;
         node.isResearchFieldRelated = node_data.isResearchFieldRelated;
+
         if (node_data.type === 'literal') {
             node.type('literal');
             node.setConfigObj(this.graphOptions.datatypeConfig());
@@ -959,7 +959,16 @@ export default class GraphVis {
             this.mapOfResources[node_data.id] = node;
             node.setGraph(this);
         }
+
+        if (node_data.status) {
+            node.status = node_data.status;
+            if (node.status === 'expanded') {
+                node.nodeHasBeenExplored = true;
+            }
+        }
+
         // append to map;
+
         this.nodeMap[node_data.id] = node;
 
         if (node_data.classificationArray) {
@@ -996,8 +1005,6 @@ export default class GraphVis {
 
     applyInitialDepth(val, expandMetaNodeOnLoad = false) {
         const internalVal = val + 1;
-        console.log('internal val', internalVal, 'vs max depth', this.maxDepth);
-
         // todo some logic parts here;
 
         let metaNode = null;
