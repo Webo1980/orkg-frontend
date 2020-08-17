@@ -108,7 +108,6 @@ export default (state = initialState, action) => {
         }
 
         case type.CREATE_PROPERTY: {
-            console.log('REDUX CALL ', action);
             const { payload } = action;
             let newState;
             if (
@@ -138,7 +137,6 @@ export default (state = initialState, action) => {
             if (payload.createAndSelect) {
                 newState = dotProp.set(newState, 'selectedProperty', payload.propertyId);
             }
-            console.log(newState);
             return newState ? newState : state;
         }
 

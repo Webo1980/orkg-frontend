@@ -74,20 +74,15 @@ export const loadContributionData = contributionId => dispatch => {
         })
     );
 
-    const promisedLoader = getDataPromised(contributionId, dispatch);
-    console.log(promisedLoader);
-
-    //
-    // then(d => {
-    //     console.log('>>>>>>>>>>>> ASYNC WAITER STUFF');
-    //     dispatch(showStatementBrowser());
-    // });
+    getDataPromised(contributionId, dispatch).then(() => {
+        console.log('//TODO: SAVE THE THING IN THE STORE');
+    });
 
     // this is where we will have a new temp store;
 };
 
 const getDataPromised = async (id, dispatch) => {
-    promisedFetchStatementsForResource(
+    return promisedFetchStatementsForResource(
         {
             resourceId: id,
             existingResourceId: id,
@@ -95,10 +90,7 @@ const getDataPromised = async (id, dispatch) => {
             depth: 3 // load depth 3 the first time
         },
         dispatch
-    ).then(() => {
-        console.log('EVERTHING IS SET UP');
-        dispatch(showStatementBrowser());
-    });
+    );
 };
 
 export const promisedFetchStatementsForResource = async (data, dispatch) => {
@@ -118,26 +110,30 @@ export const promisedFetchStatementsForResource = async (data, dispatch) => {
         rootNodeType = rootNodeType ?? 'resource';
         const resourceStatements = [];
 
-        const objRef = { narf: 'narf', idsToFetchOnDepth: {} };
+        const objRef = { idsToFetchOnDepth: {} };
         dispatch(serializedCall(resourceStatements, existingResourceId, resourceId, isContribution, 2, rootNodeType, objRef)).then(() => {
-            console.log('should be done correctly now', objRef);
-
             // going in level 1 ;
-            const promises = objRef.idsToFetchOnDepth[1].map(resource =>
-                dispatch(serializedCall(resourceStatements, resource, resource, isContribution, 1, rootNodeType, objRef))
-            );
-
-            Promise.all(promises).then(() => {
-                console.log('Level 1 DONE !!!', objRef.idsToFetchOnDepth);
-                // going in level 0 ;
+            if (objRef.idsToFetchOnDepth[1]) {
                 const promises = objRef.idsToFetchOnDepth[1].map(resource =>
-                    dispatch(serializedCall(resourceStatements, resource, resource, isContribution, 0, rootNodeType, objRef))
+                    dispatch(serializedCall(resourceStatements, resource, resource, isContribution, 1, rootNodeType, objRef))
                 );
+
                 Promise.all(promises).then(() => {
-                    resolve();
+                    // going in level 0 ;
+                    if (objRef.idsToFetchOnDepth[0]) {
+                        const promises = objRef.idsToFetchOnDepth[0].map(resource =>
+                            dispatch(serializedCall(resourceStatements, resource, resource, isContribution, 0, rootNodeType, objRef))
+                        );
+                        Promise.all(promises).then(() => {
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                    }
                 });
-            });
-            // here i would like to make promise all stuff
+            } else {
+                resolve();
+            }
         });
     });
 
@@ -146,11 +142,8 @@ export const promisedFetchStatementsForResource = async (data, dispatch) => {
 
 export const serializedCall = (resourceStatements, existingResourceId, resourceId, isContribution, depth, rootNodeType, objRef) => {
     // Get the resource classes
-    console.log('Calliing serialzed call');
     return (dispatch, getState) => {
-        console.log('>>> THIS IS WHERE IT SHOULD GO NOW');
         if (shouldFetchStatementsForResource(getState(), existingResourceId, depth)) {
-            console.log('fetchStatementsForResource', resourceId);
             dispatch({
                 type: type.IS_FETCHING_STATEMENTS,
                 resourceId: resourceId
@@ -190,7 +183,7 @@ export const serializedCall = (resourceStatements, existingResourceId, resourceI
                         // all the template of classes are loaded
                         // add the required proerty first
                         const researchProblems = [];
-                        console.log(resourceStatements);
+
                         // Sort predicates and values by label
                         resourceStatements = orderBy(
                             resourceStatements,
@@ -206,7 +199,6 @@ export const serializedCall = (resourceStatements, existingResourceId, resourceI
                         });
 
                         for (const statement of resourceStatements) {
-                            console.log('>>>>>>>>>>>>>>>>>>>>>', statement);
                             let propertyId = guid();
                             const valueId = guid();
                             // filter out research problem to show differently
@@ -219,7 +211,6 @@ export const serializedCall = (resourceStatements, existingResourceId, resourceI
                             } else {
                                 // check whether there already exist a property for this, then combine
                                 if (existingProperties.filter(e => e.existingPredicateId === statement.predicate.id).length === 0) {
-                                    console.log('Creating the property', existingProperties, dispatch);
                                     dispatch(
                                         createProperty({
                                             propertyId: propertyId,
@@ -256,23 +247,11 @@ export const serializedCall = (resourceStatements, existingResourceId, resourceI
                                         shared: statement.object.shared
                                     })
                                 ).then(() => {
-                                    console.log('THIS IS WHERE WE SHOULD GET DEEPER!', depth);
-                                    console.log(resourceStatements);
-
                                     if (depth >= 1 && statement.object._class === 'resource') {
                                         if (!objRef.idsToFetchOnDepth[depth - 1]) {
                                             objRef.idsToFetchOnDepth[depth - 1] = [];
                                         }
                                         objRef.idsToFetchOnDepth[depth - 1].push(statement.object.id);
-                                        // if (depth >= 1 && statement.object._class === 'resource') {
-                                        //     console.log('Gooing Deeper !');
-                                        //     dispatch(
-                                        //         fetchStatementsForResource({
-                                        //             existingResourceId: statement.object.id,
-                                        //             resourceId: statement.object.id,
-                                        //             depth: depth
-                                        //         })
-                                        //     ).then(() => console.log('Okay, done fetching depth', depth));
                                     }
                                 });
 
@@ -290,7 +269,6 @@ export const serializedCall = (resourceStatements, existingResourceId, resourceI
                                 }
                             });
                         }
-                        console.log('Setting that the thing is fetched', depth, resourceId);
                         dispatch({
                             type: type.SET_STATEMENT_IS_FECHTED,
                             resourceId: resourceId,

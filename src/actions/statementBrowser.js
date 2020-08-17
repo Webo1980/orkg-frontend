@@ -283,11 +283,9 @@ export function getComponentsByResourceIDAndPredicateID(state, resourceId, predi
 }
 
 export const resetStatementBrowser = () => dispatch => {
-    console.log('resseting', dispatch);
     dispatch({
         type: type.RESET_STATEMENT_BROWSER
     });
-    console.log('oaky');
 };
 export const showStatementBrowser = () => dispatch => {
     dispatch({
@@ -335,7 +333,6 @@ export function createProperty(data) {
                 }
             }
         }
-        console.log('Creating Property', data);
         dispatch({
             type: type.CREATE_PROPERTY,
             payload: {
@@ -841,7 +838,6 @@ export const fetchStatementsForResource = data => {
     // Get the resource classes
     return (dispatch, getState) => {
         if (shouldFetchStatementsForResource(getState(), existingResourceId, depth)) {
-            console.log('fetchStatementsForResource', resourceId);
             dispatch({
                 type: type.IS_FETCHING_STATEMENTS,
                 resourceId: resourceId
