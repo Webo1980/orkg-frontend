@@ -22,6 +22,7 @@ export default class Node extends BaseElement {
         this.status = 'unknown';
         this.multicoloring = true;
         this._resourceId = 'unknown';
+        this._contributionOriginId = undefined; // this is used for exploration in statementBrowser
         this.nodeHasBeenExplored = false;
         this.graph = undefined;
         this.renderingAnimationGroup = undefined;
@@ -72,6 +73,13 @@ export default class Node extends BaseElement {
             this.x = this._parentNodeForPosition.x;
             this.y = this._parentNodeForPosition.y;
         }
+    }
+
+    contributionOriginId(id) {
+        if (!arguments.length) {
+            return this._contributionOriginId;
+        }
+        this._contributionOriginId = id;
     }
 
     parentNodeForPosition(node) {

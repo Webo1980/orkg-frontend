@@ -120,6 +120,12 @@ export function getExistingPredicatesByResource(state, resourceId) {
     }
 }
 
+export function currentState(currState) {
+    return (dispatch, getState) => {
+        currState.statementBrowser = getState().statementBrowser;
+    };
+}
+
 /**
  * Create required properties based on the used template
  *
@@ -277,8 +283,15 @@ export function getComponentsByResourceIDAndPredicateID(state, resourceId, predi
 }
 
 export const resetStatementBrowser = () => dispatch => {
+    console.log('resseting', dispatch);
     dispatch({
         type: type.RESET_STATEMENT_BROWSER
+    });
+    console.log('oaky');
+};
+export const showStatementBrowser = () => dispatch => {
+    dispatch({
+        type: type.SHOW_STATEMENT_BROWSER
     });
 };
 
@@ -322,6 +335,7 @@ export function createProperty(data) {
                 }
             }
         }
+        console.log('Creating Property', data);
         dispatch({
             type: type.CREATE_PROPERTY,
             payload: {
@@ -571,7 +585,7 @@ export const createResource = data => dispatch => {
  * @param {String} templateID - Template ID
  * @return {Boolean} if the template should be fetched or not
  */
-function shouldFetchTemplate(state, templateID) {
+export function shouldFetchTemplate(state, templateID) {
     const template = state.statementBrowser.templates[templateID];
     if (!template) {
         return true;
@@ -698,7 +712,7 @@ export function fillResourceWithTemplate({ templateID, selectedResource, syncBac
  * @param {String} classID - Class ID
  * @return {Boolean} if the class template should be fetched or not
  */
-function shouldFetchTemplatesofClass(state, classID) {
+export function shouldFetchTemplatesofClass(state, classID) {
     const classObj = state.statementBrowser.classes[classID];
     if (!classObj) {
         return true;
@@ -789,7 +803,7 @@ export const goToResourceHistory = data => dispatch => {
  * @param {Number} depth - The required depth
  * @return {Boolean} if the resource statements should be fetched or not
  */
-function shouldFetchStatementsForResource(state, resourceId, depth) {
+export function shouldFetchStatementsForResource(state, resourceId, depth) {
     const resource = state.statementBrowser.resources.byId[resourceId];
     if (!resource || !resource.isFechted || (resource.isFechted && resource.fetshedDepth < depth)) {
         return true;
@@ -827,6 +841,7 @@ export const fetchStatementsForResource = data => {
     // Get the resource classes
     return (dispatch, getState) => {
         if (shouldFetchStatementsForResource(getState(), existingResourceId, depth)) {
+            console.log('fetchStatementsForResource', resourceId);
             dispatch({
                 type: type.IS_FETCHING_STATEMENTS,
                 resourceId: resourceId
@@ -876,7 +891,6 @@ export const fetchStatementsForResource = data => {
                             ],
                             ['asc']
                         );
-
                         // Finished the call
                         dispatch({
                             type: type.DONE_FETCHING_STATEMENTS
@@ -965,6 +979,7 @@ export const fetchStatementsForResource = data => {
                     });
             });
         } else {
+            console.log('retruning resolve promise');
             return Promise.resolve();
         }
     };

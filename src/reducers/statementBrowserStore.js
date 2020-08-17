@@ -27,6 +27,11 @@ export default (state = initialState, action) => {
         case type.SB_SAVE_AUTHOR_ORCID: {
             return { ...state, authorsOrcidStore: { statements: [...action.payload.statements] } };
         }
+        case type.SB_LOAD_CONTRIBUTION_DATA: {
+            console.log('>> this is a loading info ', action.payload);
+            // todo : send request
+            return state;
+        }
 
         default: {
             return state;

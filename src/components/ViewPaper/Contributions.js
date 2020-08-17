@@ -189,13 +189,16 @@ class Contributions extends Component {
     };
 
     render() {
+        // console.log(this.props.statementBrowser);
         const selectedContributionId = this.state.selectedContribution;
-
         let shared = 1;
         if (Object.keys(this.props.resources.byId).length !== 0 && (this.props.selectedResource || selectedContributionId)) {
-            shared = this.props.resources.byId[this.props.selectedResource ? this.props.selectedResource : selectedContributionId].shared;
+            const selector = this.props.selectedResource ? this.props.selectedResource : selectedContributionId;
+            if (this.props.resources.byId[selector]) {
+                // todo test shared stuff;
+                shared = this.props.resources.byId[selector].shared;
+            }
         }
-
         return (
             <div>
                 <Container>

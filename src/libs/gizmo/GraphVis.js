@@ -946,7 +946,10 @@ export default class GraphVis {
         node.setPosition(-1, -1);
         node.graph = this;
         node.isResearchFieldRelated = node_data.isResearchFieldRelated;
-
+        // add contribution id for exploration within statementBrowser;
+        if (node_data.contributionOriginId) {
+            node.contributionOriginId(node_data.contributionOriginId);
+        }
         if (node_data.type === 'literal') {
             node.type('literal');
             node.setConfigObj(this.graphOptions.datatypeConfig());
@@ -1458,8 +1461,10 @@ export default class GraphVis {
         node.nodeHasBeenExplored = true;
         node.setExploreAnimation(true);
 
-        const incrementalData = await this.getDataFromApi(idToFetch);
+        this.getDataFromApi(node.contributionOriginId(), node._resourceId);
 
+        // const incrementalData = await this.getDataFromApi(idToFetch);
+        const incrementalData = {};
         if (!incrementalData.nodes) {
             node.setExploreAnimation(false);
             node.setStatusLeafNode();

@@ -1,17 +1,17 @@
 import React, { Component } from 'react';
 import * as PropTypes from 'prop-types';
-import { getReseachProblemsOfContribution, loadCachedVersion } from 'actions/statementBrowser';
-import { selectContribution, updateResearchProblems } from 'actions/viewPaper';
-import { updateStatementStore } from 'actions/statementBrowserStoreActions';
+
 import { connect } from 'react-redux';
 import uniqBy from 'lodash/uniqBy';
 import { PREDICATES } from 'constants/graphSettings';
+import { loadContributionData } from 'actions/statementBrowserStoreActions';
 
 class GizMOGraph extends Component {
     constructor(props) {
         super(props);
         this.graphRoot = undefined;
         this.graphVis = props.graphVis;
+        this.graphVis.getDataFromApi = this.getDataFromApi;
 
         // parent functions called by child
         this.updateDepthRange = props.updateDepthRange;
@@ -32,6 +32,8 @@ class GizMOGraph extends Component {
     }
 
     componentDidUpdate = prevProps => {
+        // console.log('The Graph updated! >> todo integrate the new data');
+        // console.log(this.props);
         this.createGraphDataFromStatementStore();
 
         if (this.props.layout !== prevProps.layout) {
@@ -45,6 +47,15 @@ class GizMOGraph extends Component {
             this.clearGraphData();
         }
     }
+
+    getDataFromApi = (contributionOriginId, resourceId) => {
+        console.log('reqeusting data', contributionOriginId, resourceId);
+
+        if (!contributionOriginId) {
+            // requesting the contribution from the parent store;
+            this.props.loadContributionData(resourceId);
+        }
+    };
 
     createGraphDataFromStatementStore = () => {
         const allNodes = [];
@@ -88,7 +99,12 @@ class GizMOGraph extends Component {
                                 if (object.type === 'object') {
                                     object._class = 'resource';
                                 }
-                                currentContributionStatements.push({ subject: resource, predicate: property, object: object });
+                                currentContributionStatements.push({
+                                    subject: resource,
+                                    predicate: property,
+                                    object: object,
+                                    contributionOriginId: name
+                                });
                             });
                         }
                     });
@@ -130,11 +146,13 @@ class GizMOGraph extends Component {
     processSingleStatement = (nodes, edges, statement) => {
         const subjectLabel = statement.subject.label.substring(0, 20);
         const objectLabel = statement.object.label.substring(0, 20);
+        const contributionOriginId = statement.contributionOriginId;
         nodes.push({
             id: statement.subject.id,
             label: subjectLabel,
             title: statement.subject.label,
-            classificationArray: statement.subject.classes
+            classificationArray: statement.subject.classes,
+            contributionOriginId: contributionOriginId // can be undefined
         });
 
         // check if node type is resource or literal
@@ -144,6 +162,7 @@ class GizMOGraph extends Component {
                 label: objectLabel,
                 title: statement.object.label,
                 classificationArray: statement.object.classes,
+                contributionOriginId: contributionOriginId, // can be undefined
                 isResearchFieldRelated:
                     statement.predicate.id === PREDICATES.HAS_RESEARCH_FIELD || statement.predicate.id === PREDICATES.HAS_SUB_RESEARCH_FIELD
             });
@@ -260,12 +279,14 @@ GizMOGraph.propTypes = {
 
     metaInformationStore: PropTypes.object.isRequired,
     authorsOrcidStore: PropTypes.object.isRequired,
-    contributionStatementStore: PropTypes.object.isRequired
+    contributionStatementStore: PropTypes.object.isRequired,
+    loadContributionData: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => {
     return {
         statementBrowserStore: state.statementBrowserStore,
+        statementBrowser: state.statementBrowser,
         contributionStatementStore: state.statementBrowserStore.contributionStatementStore,
         metaInformationStore: state.statementBrowserStore.metaInformationStore,
         authorsOrcidStore: state.statementBrowserStore.authorsOrcidStore
@@ -273,7 +294,9 @@ const mapStateToProps = state => {
 };
 
 // TODO : add graph interactions (connect to store actions)
-const mapDispatchToProps = dispatch => ({});
+const mapDispatchToProps = dispatch => ({
+    loadContributionData: contributionID => dispatch(loadContributionData(contributionID))
+});
 
 export default connect(
     mapStateToProps,

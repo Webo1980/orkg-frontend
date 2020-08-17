@@ -103,7 +103,7 @@ class EditPaperDialog extends Component {
 
         //venue
         if (this.state.publishedIn && this.state.publishedIn.statementId && this.state.publishedIn.id) {
-            if (reduxState.publishedIn !== reduxState.publishedIn) {
+            if (reduxState.publishedIn !== this.state.publishedIn) {
                 await updateStatement(this.state.publishedIn.statementId, { object_id: this.state.publishedIn.id });
             }
         } else if (this.state.publishedIn && !this.state.publishedIn.statementId) {
@@ -119,7 +119,7 @@ class EditPaperDialog extends Component {
             // console.log(reduxState.researchField, ' vs ', this.state.researchField);
             // console.log('are equal', reduxState.researchField === reduxState.researchField);
             // TODO : VALIDATE!!!!
-            if (reduxState.researchField !== reduxState.researchField) {
+            if (reduxState.researchField !== this.state.researchField) {
                 await updateStatement(this.state.researchField.statementId, { object_id: this.state.researchField.id });
             }
         }

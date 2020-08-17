@@ -34,9 +34,7 @@ export default (state = initialState, action) => {
     switch (action.type) {
         case type.LOAD_CACHED_VERSION: {
             const { payload } = action;
-            console.log('Loading chached store:', payload.store);
             return payload.store;
-            // return payload.store; // << this is the cached version
         }
 
         case type.CREATE_RESOURCE: {
@@ -110,6 +108,7 @@ export default (state = initialState, action) => {
         }
 
         case type.CREATE_PROPERTY: {
+            console.log('REDUX CALL ', action);
             const { payload } = action;
             let newState;
             if (
@@ -139,6 +138,7 @@ export default (state = initialState, action) => {
             if (payload.createAndSelect) {
                 newState = dotProp.set(newState, 'selectedProperty', payload.propertyId);
             }
+            console.log(newState);
             return newState ? newState : state;
         }
 
@@ -486,6 +486,10 @@ export default (state = initialState, action) => {
                 ...initialState
             };
         }
+        case type.SHOW_STATEMENT_BROWSER: {
+            console.log(state);
+            return state;
+        }
 
         case '@@router/LOCATION_CHANGE': {
             //from connected-react-router, reset the wizard when the page is changed
@@ -498,4 +502,8 @@ export default (state = initialState, action) => {
             return state;
         }
     }
+};
+
+export const getInitialState = () => {
+    return initialState;
 };
