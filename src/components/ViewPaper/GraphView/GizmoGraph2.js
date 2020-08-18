@@ -27,14 +27,21 @@ class GizMOGraph extends Component {
                 depth: this.props.depth
             });
         } else {
-            this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
+            if (this.graphVis.graphInitialized()) {
+                this.graphVis.integrateNewData(graph);
+                this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
+            }
         }
     }
 
     componentDidUpdate = prevProps => {
-        // console.log('The Graph updated! >> todo integrate the new data');
-        console.log(this.props.contributionStatementStore);
-        this.createGraphDataFromStatementStore();
+        if (!this.props.statementBrowserStore.blockUpdates) {
+            const graph = this.createGraphDataFromStatementStore();
+            if (this.graphVis.graphInitialized()) {
+                this.graphVis.integrateNewData(graph);
+                this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
+            }
+        }
 
         if (this.props.layout !== prevProps.layout) {
             this.graphVis.updateLayout(this.props.layout);
@@ -74,6 +81,7 @@ class GizMOGraph extends Component {
 
         // now extract the graph structure from the statement store;
         const contribStore = this.props.contributionStatementStore;
+        console.log(contribStore);
         const allContributionStatements = [];
 
         for (const name in contribStore) {
@@ -272,14 +280,19 @@ class GizMOGraph extends Component {
 
 /** Property Type Validation **/
 GizMOGraph.propTypes = {
+    // any
     updateDepthRange: PropTypes.func.isRequired,
     graphVis: PropTypes.any.isRequired,
     depth: PropTypes.any.isRequired,
     layout: PropTypes.any.isRequired,
 
+    // object
     metaInformationStore: PropTypes.object.isRequired,
     authorsOrcidStore: PropTypes.object.isRequired,
     contributionStatementStore: PropTypes.object.isRequired,
+    statementBrowserStore: PropTypes.object.isRequired,
+
+    // function
     loadContributionData: PropTypes.func.isRequired
 };
 

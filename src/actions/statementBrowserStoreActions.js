@@ -43,11 +43,21 @@ export const updateMetaInformationAuthors = data => dispatch => {
         }
     });
 };
+
+export const blockGraphUpdatesWhileLoading = val => dispatch => {
+    dispatch({
+        type: type.SB_BLOCK_UPDATES,
+        payload: {
+            blocked: val
+        }
+    });
+};
 export const loadContributionData = contributionId => dispatch => {
     // read the statementBrowser for this contribution Id;
     // can we request a new statemenentBrowser from exsisint ones;
     console.log('Wants to load ', contributionId);
     const temp = {};
+    dispatch(blockGraphUpdatesWhileLoading(true));
     dispatch(currentState(temp));
     dispatch(resetStatementBrowser());
     dispatch({
@@ -79,6 +89,7 @@ export const loadContributionData = contributionId => dispatch => {
             // and reload the cached version for the viewPaperPage so it shows the old state
             /* note : this is for the non hybrid view, in hybrid view we will update the selection based on the click event */
             dispatch(loadCachedVersion(temp.statementBrowser));
+            dispatch(blockGraphUpdatesWhileLoading(false));
         });
     });
 };

@@ -9,6 +9,7 @@ import Layout from './Layout';
 import Navigation from './Navigation';
 import groupBy from 'lodash/groupBy';
 import { CLASSES } from 'constants/graphSettings';
+import { find } from 'lodash';
 
 export default class GraphVis {
     constructor() {
@@ -20,6 +21,10 @@ export default class GraphVis {
         this.nodeMap = {};
         this.Id2NodeMap = {};
         this.Id2PropnodeMap = {};
+
+        this.resourceId2NodeMap = {};
+        this.resourceId2PropnodeMap = {};
+
         this.graphIsInitialized = false;
 
         this.renderedNodes = undefined;
@@ -547,6 +552,7 @@ export default class GraphVis {
                 const aNode = this.createNode(node);
                 aNode.id(aNode.id() + iterator);
                 this.Id2NodeMap[aNode.id()] = aNode;
+                this.resourceId2NodeMap[node.id] = aNode;
                 classNodes.push(aNode);
                 iterator++;
             });
@@ -558,6 +564,7 @@ export default class GraphVis {
                 const anEdge = this.createEdge(edge, iterator);
                 properties.push(anEdge);
                 this.Id2PropnodeMap[anEdge.id()] = anEdge;
+                this.resourceId2NodeMap[edge.id] = anEdge;
                 iterator++;
             });
             this.propNodes = properties;
@@ -1058,6 +1065,58 @@ export default class GraphVis {
         this.nav.stopBackgroundProcesses();
     }
 
+    integrateNewData = graph => {
+        console.log('wants to integrate the graph:', graph);
+
+        const oldNodes = this.nodes;
+        const oldEdges = this.edges;
+        console.log(oldNodes, 'vs', graph.nodes);
+        console.log(oldEdges, 'vs', graph.edges);
+
+        const incrementalData = { nodes: [], edges: [] };
+
+        // update alreadyRenderedNodes
+        graph.nodes.forEach(node => {
+            // check if data has changed (e.g. trough editing of the data)
+
+            const oldNode = find(oldNodes, { id: node.id });
+
+            if (!oldNode) {
+                // we have a new node we want to integrate;
+                incrementalData.nodes.push(node);
+            } else {
+                // we update old nodes if their label has changed or the id;
+                // label === node title (this is the given label in the resource, we use the label for cropped tex)
+                if (!(oldNode.id === node.id && oldNode.title === node.title)) {
+                    const renderingNode = this.resourceId2NodeMap[node.id];
+                    renderingNode.setLabel(node.title);
+                }
+            }
+        });
+
+        // update alreadyRenderedNodes
+        graph.edges.forEach(edge => {
+            // check if data has changed (e.g. trough editing of the data)
+
+            const oldEdge = find(oldEdges, { from: edge.from, to: edge.to });
+
+            if (!oldEdge) {
+                // we have a new node we want to integrate;
+                incrementalData.edges.push(edge);
+            } else {
+                // we update old nodes if their label has changed or the id;
+                // label === node title (this is the given label in the resource, we use the label for cropped tex)
+                // TODO: test how edge editing is affecting the graph
+                if (!(oldEdge.id === oldEdge.id && oldEdge.title === edge.title)) {
+                    const renderingEdge = this.resourceId2PropnodeMap[edge.id];
+                    renderingEdge.setLabel(edge.title);
+                }
+            }
+        });
+
+        console.log(incrementalData);
+    };
+
     async depthUpdateEvent(val) {
         // try to detect action;
         const internalDepth = val + 1;
@@ -1456,59 +1515,57 @@ export default class GraphVis {
     }
 
     async singleNodeExploration(node, redrawWhenFinished = true) {
-        const that = this;
-        const idToFetch = node._resourceId;
         node.nodeHasBeenExplored = true;
         node.setExploreAnimation(true);
-
         this.getDataFromApi(node.contributionOriginId(), node._resourceId);
+        // reducing the call (the graph will be re-rendered anyway
 
-        // const incrementalData = await this.getDataFromApi(idToFetch);
-        const incrementalData = {};
-        if (!incrementalData.nodes) {
-            node.setExploreAnimation(false);
-            node.setStatusLeafNode();
-            node.redraw(); // updated status >> drawing correct color and button;
-        } else {
-            // we will have to call a redraw function;
-            if (redrawWhenFinished) {
-                this.clearGraphAnimation(); // this removes the rendering elements
-            }
-            let iterator = that.classNodes.length + 1;
-            const parentPosition = [node.x, node.y];
-            const nodeRef = [];
-            incrementalData.nodes.forEach(node => {
-                if (node.id !== idToFetch && this.mapOfResources[node.id] === undefined) {
-                    // create a node;
-                    const aNode = that.createNode(node);
-                    aNode.id(aNode.id() + iterator);
-                    this.Id2NodeMap[aNode.id()] = aNode;
-                    nodeRef.push(aNode);
-                    if (aNode.type() === 'resource') {
-                        aNode.status = 'unknown';
-                    }
-                    // put parent position to the child node for the expand animation
-                    aNode.x = parentPosition[0];
-                    aNode.y = parentPosition[1];
-                    that.classNodes.push(aNode);
-                    iterator++;
-                }
-            });
-            iterator = that.propNodes.length + 1;
-            if (incrementalData.edges) {
-                incrementalData.edges.forEach(edge => {
-                    const anEdge = that.createEdge(edge, iterator);
-                    that.propNodes.push(anEdge);
-                    this.Id2PropnodeMap[anEdge.id()] = anEdge;
-                    iterator++;
-                });
-            }
-            if (redrawWhenFinished) {
-                this.computeDepth();
-                this.redrawGraphAfterExpand(nodeRef, node);
-                this.buildDictionary();
-            }
-        }
+        // // const incrementalData = await this.getDataFromApi(idToFetch);
+        // const incrementalData = {};
+        // if (!incrementalData.nodes) {
+        //     node.setExploreAnimation(false);
+        //     node.setStatusLeafNode();
+        //     node.redraw(); // updated status >> drawing correct color and button;
+        // } else {
+        //     // we will have to call a redraw function;
+        //     if (redrawWhenFinished) {
+        //         this.clearGraphAnimation(); // this removes the rendering elements
+        //     }
+        //     let iterator = that.classNodes.length + 1;
+        //     const parentPosition = [node.x, node.y];
+        //     const nodeRef = [];
+        //     incrementalData.nodes.forEach(node => {
+        //         if (node.id !== idToFetch && this.mapOfResources[node.id] === undefined) {
+        //             // create a node;
+        //             const aNode = that.createNode(node);
+        //             aNode.id(aNode.id() + iterator);
+        //             this.Id2NodeMap[aNode.id()] = aNode;
+        //             nodeRef.push(aNode);
+        //             if (aNode.type() === 'resource') {
+        //                 aNode.status = 'unknown';
+        //             }
+        //             // put parent position to the child node for the expand animation
+        //             aNode.x = parentPosition[0];
+        //             aNode.y = parentPosition[1];
+        //             that.classNodes.push(aNode);
+        //             iterator++;
+        //         }
+        //     });
+        //     iterator = that.propNodes.length + 1;
+        //     if (incrementalData.edges) {
+        //         incrementalData.edges.forEach(edge => {
+        //             const anEdge = that.createEdge(edge, iterator);
+        //             that.propNodes.push(anEdge);
+        //             this.Id2PropnodeMap[anEdge.id()] = anEdge;
+        //             iterator++;
+        //         });
+        //     }
+        //     if (redrawWhenFinished) {
+        //         this.computeDepth();
+        //         this.redrawGraphAfterExpand(nodeRef, node);
+        //         this.buildDictionary();
+        //     }
+        // }
     }
 
     // some helper functions;
