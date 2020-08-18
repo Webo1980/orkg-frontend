@@ -70,8 +70,7 @@ export const loadContributionData = contributionId => dispatch => {
     getDataPromised(contributionId, dispatch).then(() => {
         const newState = {};
 
-        // in the current statement browser, we select the contributioId as initial value;
-
+        // in the current statement browser, we select the contributionId as initial value;
         dispatch(selectResource({ increaseLevel: false, resourceId: contributionId, label: 'Main' })).then(() => {
             // we save it in the object newState
             dispatch(currentState(newState));
