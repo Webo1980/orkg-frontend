@@ -207,7 +207,6 @@ class ViewPaper extends Component {
     }
 
     processPaperStatements = (paperResource, paperStatements) => {
-        console.log(paperStatements);
         this.props.updateMetaInformationStore(paperStatements);
         const paperData = getPaperData_ViewPaper(paperResource.id, paperResource.label, paperStatements);
 

@@ -123,6 +123,7 @@ export function getExistingPredicatesByResource(state, resourceId) {
 export function currentState(currState) {
     return (dispatch, getState) => {
         currState.statementBrowser = getState().statementBrowser;
+        currState.contributionStore = getState().statementBrowserStore.contributionStatementStore;
     };
 }
 

@@ -19,11 +19,9 @@ export default class GraphVis {
         this.layout = new Layout({ graph: this }); // possible 'force, treeV, treeH'
         this.rootContainer = 'graphRendering';
         this.nodeMap = {};
+        this.edgeMap = {};
         this.Id2NodeMap = {};
         this.Id2PropnodeMap = {};
-
-        this.resourceId2NodeMap = {};
-        this.resourceId2PropnodeMap = {};
 
         this.graphIsInitialized = false;
 
@@ -552,7 +550,6 @@ export default class GraphVis {
                 const aNode = this.createNode(node);
                 aNode.id(aNode.id() + iterator);
                 this.Id2NodeMap[aNode.id()] = aNode;
-                this.resourceId2NodeMap[node.id] = aNode;
                 classNodes.push(aNode);
                 iterator++;
             });
@@ -564,7 +561,6 @@ export default class GraphVis {
                 const anEdge = this.createEdge(edge, iterator);
                 properties.push(anEdge);
                 this.Id2PropnodeMap[anEdge.id()] = anEdge;
-                this.resourceId2NodeMap[edge.id] = anEdge;
                 iterator++;
             });
             this.propNodes = properties;
@@ -822,13 +818,13 @@ export default class GraphVis {
 
     drawRenderingElements(elements, forceDraw) {
         elements.each(function(item) {
-            if (forceDraw === true) {
-                item.render(d3.select(this));
-                item.addHoverEvents();
-            }
+            // if (forceDraw === true) {
+            //     item.render(d3.select(this));
+            //     item.addHoverEvents();
+            // }
+            item.render(d3.select(this));
+            item.addHoverEvents();
             if (item.visible()) {
-                item.render(d3.select(this));
-                item.addHoverEvents();
                 item.updateDrawPosition();
             } else {
                 d3.select(this).remove();
@@ -895,6 +891,7 @@ export default class GraphVis {
 
         property.setLabel(edge_data.label);
         property.id(property.id() + iterator);
+        property.edgeId(edge_data.from + edge_data.to);
         property.graph = this;
 
         const srcNode = this.nodeMap[edge_data.from];
@@ -1065,56 +1062,123 @@ export default class GraphVis {
         this.nav.stopBackgroundProcesses();
     }
 
-    integrateNewData = graph => {
-        console.log('wants to integrate the graph:', graph);
+    integrateNewData = props => {
+        console.log('wants to integrate the graph:', props.graph);
 
         const oldNodes = this.nodes;
         const oldEdges = this.edges;
-        console.log(oldNodes, 'vs', graph.nodes);
-        console.log(oldEdges, 'vs', graph.edges);
 
-        const incrementalData = { nodes: [], edges: [] };
+        // save old rendering positions;
+        const oldClassNodes = this.classNodes;
+        const oldPropNodes = this.propNodes;
+        const oldLinks = this.links;
+        const oldNodeMap = this.Id2NodeMap;
+        const oldPropMap = this.Id2PropnodeMap;
 
-        // update alreadyRenderedNodes
-        graph.nodes.forEach(node => {
-            // check if data has changed (e.g. trough editing of the data)
+        const RenderingNodeMap = this.nodeMap;
 
-            const oldNode = find(oldNodes, { id: node.id });
+        console.log('oldNodes', oldNodes);
+        console.log('oldEdges', oldEdges);
+        console.log('oldClassNodes', oldClassNodes);
+        console.log('oldPropNodes', oldPropNodes);
+        console.log('oldLinks', oldLinks);
+        console.log('oldNodeMap', oldNodeMap);
+        console.log('oldPropMap', oldPropMap);
+        console.log('RenderingNodeMap', RenderingNodeMap);
 
-            if (!oldNode) {
-                // we have a new node we want to integrate;
-                incrementalData.nodes.push(node);
-            } else {
-                // we update old nodes if their label has changed or the id;
-                // label === node title (this is the given label in the resource, we use the label for cropped tex)
-                if (!(oldNode.id === node.id && oldNode.title === node.title)) {
-                    const renderingNode = this.resourceId2NodeMap[node.id];
-                    renderingNode.setLabel(node.title);
-                }
+        this.nodes = props.graph.nodes;
+        this.edges = props.graph.edges;
+
+        if (this.svgRoot) {
+            this.svgRoot.remove();
+        }
+
+        this.renderedNodes = [];
+        this.edgeElements = [];
+        this.renderedLink = [];
+
+        this.svgRoot = d3.select('#graphRendering').append('svg');
+        this.svgRoot.style('width', '100%');
+        this.svgRoot.style('height', '100%');
+        this.svgRoot.style('background-color', props.graphBgColor);
+
+        this.graphRoot = this.svgRoot.append('g'); // d3 node for the svg container
+        this.graphRoot.style('overflow', 'hidden');
+        this.loadDefaultOptions(); // keep it here in order to make later adjustments easier :)
+        this.initializeLayers();
+        this.initializeRendering(true);
+
+        // create the new updated rendering elements
+
+        this.classNodes = [];
+        this.propNodes = [];
+        this.links = [];
+        this.nodeMap = [];
+
+        if (this.nodes.length === 0) {
+            console.log('nope, we dont have any data !!!!');
+        }
+
+        if (this.nodes.length > 0) {
+            // create the nodes and edges using the provided data;
+            const classNodes = [];
+            let iterator = 0;
+            this.nodes.forEach(node => {
+                const aNode = this.createNode(node);
+                aNode.id(aNode.id() + iterator);
+                this.Id2NodeMap[aNode.id()] = aNode;
+                classNodes.push(aNode);
+                iterator++;
+            });
+            this.classNodes = classNodes;
+
+            iterator = 0; // reset the iterator for the edges;
+            const properties = [];
+            this.edges.forEach(edge => {
+                const anEdge = this.createEdge(edge, iterator);
+                properties.push(anEdge);
+                this.Id2PropnodeMap[anEdge.id()] = anEdge;
+                iterator++;
+            });
+            this.propNodes = properties;
+
+            this.nav.releaseMutex();
+            this.computeDepth();
+        }
+
+        // reset positions and states;
+
+        for (const name in RenderingNodeMap) {
+            if (RenderingNodeMap.hasOwnProperty(name)) {
+                const oldNode = RenderingNodeMap[name];
+                // find new node;
+                const newNode = this.nodeMap[name];
+                newNode.x = oldNode.x;
+                newNode.px = oldNode.px;
+                newNode.y = oldNode.y;
+                newNode.py = oldNode.py;
+
+                // update the rendering status: collapsed expanded etc;
+
+                console.log('Old', oldNode.status, 'vs ', newNode.status);
+                newNode.status = oldNode.status;
+            }
+        }
+
+        oldPropNodes.forEach(prop => {
+            const newProp = find(this.propNodes, { edgeIdValue: prop.edgeIdValue });
+            if (newProp) {
+                newProp.visibilityStatus = prop.visibilityStatus;
+                newProp.linkElement().visible(prop.visibilityStatus);
+                newProp
+                    .linkElement()
+                    .rangeNode()
+                    .visible(prop.visibilityStatus);
             }
         });
 
-        // update alreadyRenderedNodes
-        graph.edges.forEach(edge => {
-            // check if data has changed (e.g. trough editing of the data)
-
-            const oldEdge = find(oldEdges, { from: edge.from, to: edge.to });
-
-            if (!oldEdge) {
-                // we have a new node we want to integrate;
-                incrementalData.edges.push(edge);
-            } else {
-                // we update old nodes if their label has changed or the id;
-                // label === node title (this is the given label in the resource, we use the label for cropped tex)
-                // TODO: test how edge editing is affecting the graph
-                if (!(oldEdge.id === oldEdge.id && oldEdge.title === edge.title)) {
-                    const renderingEdge = this.resourceId2PropnodeMap[edge.id];
-                    renderingEdge.setLabel(edge.title);
-                }
-            }
-        });
-
-        console.log(incrementalData);
+        this.drawGraph();
+        this.layout.initializeLayoutEngine();
     };
 
     async depthUpdateEvent(val) {

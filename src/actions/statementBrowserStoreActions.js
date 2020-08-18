@@ -52,10 +52,47 @@ export const blockGraphUpdatesWhileLoading = val => dispatch => {
         }
     });
 };
+
+export const loadResourceDataForContribution = data => dispatch => {
+    const { contributionOriginId, resourceId } = data;
+    console.log('we want to load data for contribution id ', contributionOriginId);
+    console.log('In the resource  ', resourceId);
+
+    const temp = {};
+    dispatch(currentState(temp));
+
+    const contributonsStore = temp.contributionStore;
+
+    if (contributonsStore.hasOwnProperty(contributionOriginId)) {
+        // cool lets go
+        dispatch(blockGraphUpdatesWhileLoading(true));
+        const storeToLoad = contributonsStore[contributionOriginId];
+        console.log(storeToLoad);
+
+        dispatch(loadCachedVersion(storeToLoad));
+        const oldSelectedResource = storeToLoad.selectedResource;
+
+        getDataPromisedForResource(resourceId, dispatch).then(() => {
+            console.log('cool we have done it ');
+
+            const newState = {};
+            dispatch(currentState(temp));
+            console.log(newState);
+
+            // TODO : dispatch event that overwrites the selected resource value
+            //dispatch(selectResource())//<< this is where we need to attack
+            // dispatch(loadCachedVersion(temp.statementBrowser));
+            dispatch(blockGraphUpdatesWhileLoading(false));
+        });
+
+        // now we should be able to access other functions like selecting a resource
+    }
+};
+
 export const loadContributionData = contributionId => dispatch => {
     // read the statementBrowser for this contribution Id;
     // can we request a new statemenentBrowser from exsisint ones;
-    console.log('Wants to load ', contributionId);
+    console.log('Wants to load that ', contributionId);
     const temp = {};
     dispatch(blockGraphUpdatesWhileLoading(true));
     dispatch(currentState(temp));
@@ -92,6 +129,18 @@ export const loadContributionData = contributionId => dispatch => {
             dispatch(blockGraphUpdatesWhileLoading(false));
         });
     });
+};
+
+const getDataPromisedForResource = async (id, dispatch) => {
+    return promisedFetchStatementsForResource(
+        {
+            resourceId: id,
+            existingResourceId: id,
+            isContribution: false,
+            depth: 3 // load depth 3 the first time
+        },
+        dispatch
+    );
 };
 
 const getDataPromised = async (id, dispatch) => {

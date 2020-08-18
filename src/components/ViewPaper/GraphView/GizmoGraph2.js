@@ -4,7 +4,7 @@ import * as PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import uniqBy from 'lodash/uniqBy';
 import { PREDICATES } from 'constants/graphSettings';
-import { loadContributionData } from 'actions/statementBrowserStoreActions';
+import { loadContributionData, loadResourceDataForContribution } from 'actions/statementBrowserStoreActions';
 
 class GizMOGraph extends Component {
     constructor(props) {
@@ -28,18 +28,22 @@ class GizMOGraph extends Component {
             });
         } else {
             if (this.graphVis.graphInitialized()) {
-                this.graphVis.integrateNewData(graph);
-                this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
+                this.graphVis.integrateNewData({ graphBgColor: '#ecf0f1', graph: graph });
+                // this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
             }
         }
     }
 
     componentDidUpdate = prevProps => {
-        if (!this.props.statementBrowserStore.blockUpdates) {
+        if (this.props.layout !== prevProps.layout) {
+            this.graphVis.updateLayout(this.props.layout);
+        } else if (this.props.depth !== prevProps.depth) {
+            // ignore the update event will take care
+        } else if (!this.props.statementBrowserStore.blockUpdates) {
             const graph = this.createGraphDataFromStatementStore();
             if (this.graphVis.graphInitialized()) {
-                this.graphVis.integrateNewData(graph);
-                this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
+                this.graphVis.integrateNewData({ graphBgColor: '#ecf0f1', graph: graph });
+                // this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
             }
         }
 
@@ -58,9 +62,13 @@ class GizMOGraph extends Component {
     getDataFromApi = (contributionOriginId, resourceId) => {
         console.log('reqeusting data', contributionOriginId, resourceId);
 
-        if (!contributionOriginId) {
+        if (contributionOriginId === undefined) {
             // requesting the contribution from the parent store;
+            console.log('This should request the contribution as a resource id itself ');
             this.props.loadContributionData(resourceId);
+        } else {
+            console.log('>> this should load the contribution and call oit select resource value  ');
+            this.props.loadResourceDataForContribution({ contributionOriginId, resourceId });
         }
     };
 
@@ -293,7 +301,8 @@ GizMOGraph.propTypes = {
     statementBrowserStore: PropTypes.object.isRequired,
 
     // function
-    loadContributionData: PropTypes.func.isRequired
+    loadContributionData: PropTypes.func.isRequired,
+    loadResourceDataForContribution: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => {
@@ -308,7 +317,8 @@ const mapStateToProps = state => {
 
 // TODO : add graph interactions (connect to store actions)
 const mapDispatchToProps = dispatch => ({
-    loadContributionData: contributionID => dispatch(loadContributionData(contributionID))
+    loadContributionData: contributionID => dispatch(loadContributionData(contributionID)),
+    loadResourceDataForContribution: data => dispatch(loadResourceDataForContribution(data))
 });
 
 export default connect(

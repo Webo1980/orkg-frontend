@@ -32,7 +32,9 @@ export default class Edge extends BaseElement {
     }
 
     makeInvisibleForAnimation() {
-        this.svgRoot.classed('hidden', true);
+        if (this.svgRoot) {
+            this.svgRoot.classed('hidden', true);
+        }
     }
 
     propertyNode = function(p) {
