@@ -33,7 +33,7 @@ class GizMOGraph extends Component {
 
     componentDidUpdate = prevProps => {
         // console.log('The Graph updated! >> todo integrate the new data');
-        // console.log(this.props);
+        console.log(this.props.contributionStatementStore);
         this.createGraphDataFromStatementStore();
 
         if (this.props.layout !== prevProps.layout) {

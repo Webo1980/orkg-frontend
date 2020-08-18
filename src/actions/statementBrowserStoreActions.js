@@ -1,23 +1,16 @@
 import * as type from 'actions/types';
 import {
     createProperty,
-    getComponentsByResourceID,
-    getExistingPredicatesByResource,
     shouldFetchStatementsForResource,
-    shouldFetchTemplate,
-    shouldFetchTemplatesofClass,
     currentState,
-    fetchStatementsForResource,
-    fetchTemplateIfNeeded,
     fetchTemplatesofClassIfNeeded,
     updateResourceClasses,
     createRequiredPropertiesInResource,
     createValue,
-    createResource
+    createResource,
+    selectResource
 } from 'actions/statementBrowser';
-import { selectContribution } from 'actions/viewPaper';
-import { resetStatementBrowser, showStatementBrowser } from 'actions/statementBrowser';
-import statementBrowser, { getInitialState } from 'reducers/statementBrowser';
+import { resetStatementBrowser, loadCachedVersion } from 'actions/statementBrowser';
 import * as network from 'network';
 import { CLASSES, MISC, PREDICATES } from 'constants/graphSettings';
 import { orderBy } from 'lodash';
@@ -75,10 +68,20 @@ export const loadContributionData = contributionId => dispatch => {
     );
 
     getDataPromised(contributionId, dispatch).then(() => {
-        console.log('//TODO: SAVE THE THING IN THE STORE');
-    });
+        const newState = {};
 
-    // this is where we will have a new temp store;
+        // in the current statement browser, we select the contributioId as initial value;
+
+        dispatch(selectResource({ increaseLevel: false, resourceId: contributionId, label: 'Main' })).then(() => {
+            // we save it in the object newState
+            dispatch(currentState(newState));
+            // then we push this into out statementBrowser store
+            dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: contributionId }));
+            // and reload the cached version for the viewPaperPage so it shows the old state
+            /* note : this is for the non hybrid view, in hybrid view we will update the selection based on the click event */
+            dispatch(loadCachedVersion(temp.statementBrowser));
+        });
+    });
 };
 
 const getDataPromised = async (id, dispatch) => {
