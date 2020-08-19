@@ -1077,14 +1077,14 @@ export default class GraphVis {
 
         const RenderingNodeMap = this.nodeMap;
 
-        console.log('oldNodes', oldNodes);
-        console.log('oldEdges', oldEdges);
-        console.log('oldClassNodes', oldClassNodes);
-        console.log('oldPropNodes', oldPropNodes);
-        console.log('oldLinks', oldLinks);
-        console.log('oldNodeMap', oldNodeMap);
-        console.log('oldPropMap', oldPropMap);
-        console.log('RenderingNodeMap', RenderingNodeMap);
+        // console.log('oldNodes', oldNodes);
+        // console.log('oldEdges', oldEdges);
+        // console.log('oldClassNodes', oldClassNodes);
+        // console.log('oldPropNodes', oldPropNodes);
+        // console.log('oldLinks', oldLinks);
+        // console.log('oldNodeMap', oldNodeMap);
+        // console.log('oldPropMap', oldPropMap);
+        // console.log('RenderingNodeMap', RenderingNodeMap);
 
         this.nodes = props.graph.nodes;
         this.edges = props.graph.edges;
@@ -1147,21 +1147,23 @@ export default class GraphVis {
         }
 
         // reset positions and states;
-
+        console.log(RenderingNodeMap);
         for (const name in RenderingNodeMap) {
             if (RenderingNodeMap.hasOwnProperty(name)) {
                 const oldNode = RenderingNodeMap[name];
                 // find new node;
                 const newNode = this.nodeMap[name];
-                newNode.x = oldNode.x;
-                newNode.px = oldNode.px;
-                newNode.y = oldNode.y;
-                newNode.py = oldNode.py;
+                if (newNode) {
+                    newNode.x = oldNode.x;
+                    newNode.px = oldNode.px;
+                    newNode.y = oldNode.y;
+                    newNode.py = oldNode.py;
 
-                // update the rendering status: collapsed expanded etc;
+                    // update the rendering status: collapsed expanded etc;
 
-                console.log('Old', oldNode.status, 'vs ', newNode.status);
-                newNode.status = oldNode.status;
+                    // console.log('Old', oldNode.status, 'vs ', newNode.status);
+                    newNode.status = oldNode.status;
+                }
             }
         }
 

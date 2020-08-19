@@ -3,6 +3,7 @@ import * as PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import uniqBy from 'lodash/uniqBy';
+import { find } from 'lodash';
 import { PREDICATES } from 'constants/graphSettings';
 import { loadContributionData, loadResourceDataForContribution } from 'actions/statementBrowserStoreActions';
 
@@ -90,6 +91,7 @@ class GizMOGraph extends Component {
         // now extract the graph structure from the statement store;
         const contribStore = this.props.contributionStatementStore;
         console.log(contribStore);
+        console.log('>>>>>>>>>>>>>>>>>>>>>>');
         const allContributionStatements = [];
 
         for (const name in contribStore) {
@@ -129,8 +131,10 @@ class GizMOGraph extends Component {
             allContributionStatements.push(currentContributionStatements);
         }
         // try to process the individual contribution arrays as graphs;
+
         allContributionStatements.forEach(subArray => {
-            const subGraph = this.processStatements(subArray, false);
+            const validatedArrayOfStatements = this.validateSubGraphArray(subArray);
+            const subGraph = this.processStatements(validatedArrayOfStatements, false);
             allNodes.push(...subGraph.nodes);
             allLinks.push(...subGraph.edges);
         });
@@ -150,13 +154,49 @@ class GizMOGraph extends Component {
                 const resources = contribStore[name].resources;
                 resources.allIds.forEach(item => {
                     if (resources.byId[item].isFechted && resources.byId[item].isFechted === true) {
-                        nodeMap[resources.byId[item].existingResourceId].status = 'expanded';
+                        if (nodeMap[resources.byId[item].existingResourceId]) {
+                            nodeMap[resources.byId[item].existingResourceId].status = 'expanded';
+                        }
                     }
                 });
             }
         }
 
         return { nodes: graphNodes, edges: graphLinks };
+    };
+
+    validateSubGraphArray = statements => {
+        // the statements have a contribution origin which serves as the root node;
+
+        const validatedStatements = [];
+        console.log('statements', statements);
+
+        const contributionId = statements[0].contributionOriginId;
+        const rootStatement = statements.filter(s => s.subject.id === contributionId);
+        console.log('rootStatement', rootStatement);
+        validatedStatements.push(...rootStatement);
+
+        const queArray = [];
+        queArray.push(...rootStatement);
+        //
+        let itteration = 0;
+        while (queArray.length !== 0) {
+            console.log('While Loop itteration', itteration++);
+
+            const queItem = queArray[0];
+            const objectId = queItem.object.id;
+            console.log(queItem.object.label, 'object id', objectId);
+            // find all possible nodes;
+            const newStatements = statements.filter(statement => statement.subject.id === objectId);
+
+            console.log(newStatements, typeof newStatements);
+            queArray.push(...newStatements);
+            validatedStatements.push(...newStatements);
+            // deque;
+            queArray.shift();
+        }
+
+        return validatedStatements;
     };
 
     processSingleStatement = (nodes, edges, statement) => {
@@ -222,6 +262,10 @@ class GizMOGraph extends Component {
     processStatements = (statements, auxNode) => {
         let nodes = [];
         let edges = [];
+
+        if (statements.length === 0) {
+            return { nodes: nodes, edges: edges };
+        }
 
         for (const statement of statements) {
             this.processSingleStatement(nodes, edges, statement);
