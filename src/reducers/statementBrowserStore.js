@@ -32,6 +32,9 @@ export default (state = initialState, action) => {
         case type.SB_BLOCK_UPDATES: {
             return { ...state, blockUpdates: action.payload.blocked };
         }
+        case type.SB_RESET_STATEMENT_BROWSER_STORE: {
+            return { ...initialState, contributionStatementStore: {}, metaInformationStore: {}, authorsOrcidStore: {}, blockUpdates: false };
+        }
 
         default: {
             return state;

@@ -3,9 +3,9 @@ import * as PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import uniqBy from 'lodash/uniqBy';
-import { find } from 'lodash';
+
 import { PREDICATES } from 'constants/graphSettings';
-import { loadContributionData, loadResourceDataForContribution } from 'actions/statementBrowserStoreActions';
+import { loadContributionData, loadResourceDataForContribution, loadMultipleResource } from 'actions/statementBrowserStoreActions';
 
 class GizMOGraph extends Component {
     constructor(props) {
@@ -13,6 +13,7 @@ class GizMOGraph extends Component {
         this.graphRoot = undefined;
         this.graphVis = props.graphVis;
         this.graphVis.getDataFromApi = this.getDataFromApi;
+        this.graphVis.fetchMultipleResourcesFromAPI = this.fetchMultipleResourcesFromAPI;
 
         // parent functions called by child
         this.updateDepthRange = props.updateDepthRange;
@@ -71,6 +72,20 @@ class GizMOGraph extends Component {
             console.log('>> this should load the contribution and call oit select resource value  ');
             this.props.loadResourceDataForContribution({ contributionOriginId, resourceId });
         }
+    };
+
+    fetchMultipleResourcesFromAPI = arrayOfItemes => {
+        this.props.loadMultipleResource(arrayOfItemes);
+
+        //
+        // if (contributionOriginId === undefined) {
+        //     // requesting the contribution from the parent store;
+        //     console.log('This should request the contribution as a resource id itself ');
+        //     this.props.loadContributionData(resourceId);
+        // } else {
+        //     console.log('>> this should load the contribution and call oit select resource value  ');
+        //     this.props.loadResourceDataForContribution({ contributionOriginId, resourceId });
+        // }
     };
 
     createGraphDataFromStatementStore = () => {
@@ -167,35 +182,27 @@ class GizMOGraph extends Component {
 
     validateSubGraphArray = statements => {
         // the statements have a contribution origin which serves as the root node;
-
         const validatedStatements = [];
-        console.log('statements', statements);
-
+        if (statements.length === 0) {
+            return validatedStatements;
+        }
         const contributionId = statements[0].contributionOriginId;
         const rootStatement = statements.filter(s => s.subject.id === contributionId);
-        console.log('rootStatement', rootStatement);
         validatedStatements.push(...rootStatement);
 
         const queArray = [];
         queArray.push(...rootStatement);
-        //
-        let itteration = 0;
-        while (queArray.length !== 0) {
-            console.log('While Loop itteration', itteration++);
 
+        while (queArray.length !== 0) {
             const queItem = queArray[0];
             const objectId = queItem.object.id;
-            console.log(queItem.object.label, 'object id', objectId);
             // find all possible nodes;
             const newStatements = statements.filter(statement => statement.subject.id === objectId);
-
-            console.log(newStatements, typeof newStatements);
             queArray.push(...newStatements);
             validatedStatements.push(...newStatements);
             // deque;
             queArray.shift();
         }
-
         return validatedStatements;
     };
 
@@ -346,6 +353,7 @@ GizMOGraph.propTypes = {
 
     // function
     loadContributionData: PropTypes.func.isRequired,
+    loadMultipleResource: PropTypes.func.isRequired,
     loadResourceDataForContribution: PropTypes.func.isRequired
 };
 
@@ -362,7 +370,8 @@ const mapStateToProps = state => {
 // TODO : add graph interactions (connect to store actions)
 const mapDispatchToProps = dispatch => ({
     loadContributionData: contributionID => dispatch(loadContributionData(contributionID)),
-    loadResourceDataForContribution: data => dispatch(loadResourceDataForContribution(data))
+    loadResourceDataForContribution: data => dispatch(loadResourceDataForContribution(data)),
+    loadMultipleResource: data => dispatch(loadMultipleResource(data))
 });
 
 export default connect(

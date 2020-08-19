@@ -96,7 +96,6 @@ class Contributions extends Component {
                 'values'
             ];
             let isDifferent = false;
-
             validation.forEach(name => {
                 if (prevProps.statementBrowser[name] !== this.props.statementBrowser[name]) {
                     isDifferent = true;

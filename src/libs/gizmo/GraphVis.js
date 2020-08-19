@@ -41,6 +41,8 @@ export default class GraphVis {
         this.propagateMaxDepthValue = undefined; // has to be set from graphView modal;
         this.propagateDictionary = undefined;
 
+        this.nodesThatAreFetchedFromBackend = [];
+
         // dictionary stuff
         this.dictinary = [];
         this.drawHalo = false;
@@ -330,6 +332,18 @@ export default class GraphVis {
     expandNodesForHaloVis = async ids => {
         await this.planExpandAnimationsForHalos(ids);
     };
+
+    async exploreMultipleNodesNew(nodesToExplore) {
+        const itemsToExplore = nodesToExplore.map(o => {
+            o.setExploreAnimation(true);
+            this.nodesThatAreFetchedFromBackend.push(o._resourceId);
+            return { contributionOriginId: o.contributionOriginId(), resourceId: o._resourceId };
+        });
+
+        console.log(itemsToExplore);
+
+        this.fetchMultipleResourcesFromAPI(itemsToExplore);
+    }
 
     async exploreMultipleNodes(nodesToExplore) {
         const ResourceIds = nodesToExplore.map(o => {
@@ -1007,6 +1021,7 @@ export default class GraphVis {
         this.initializeRendering();
         this.loadData(false);
         this.applyInitialDepth(props.depth, true); // true/ false flag will apply expand on meta node on initial rendering
+        // this.applyInitialDepth(5, true); // true/ false flag will apply expand on meta node on initial rendering
         this.graphInitialized(true);
     };
 
@@ -1039,7 +1054,7 @@ export default class GraphVis {
                 });
             });
         }
-        if (expandMetaNodeOnLoad) {
+        if (expandMetaNodeOnLoad && metaNode) {
             this.singleNodeExpansion(metaNode);
         }
 
@@ -1064,18 +1079,22 @@ export default class GraphVis {
 
     integrateNewData = props => {
         console.log('wants to integrate the graph:', props.graph);
+        console.log('We assume there is one node that triggered the event ', this.nodesThatAreFetchedFromBackend);
+        if (this.nodesThatAreFetchedFromBackend.length === 0) {
+            console.log('Nothing to do ! ');
+        }
 
-        const oldNodes = this.nodes;
-        const oldEdges = this.edges;
-
-        // save old rendering positions;
-        const oldClassNodes = this.classNodes;
+        // const oldNodes = this.nodes;
+        // const oldEdges = this.edges;
+        //
+        // // save old rendering positions;
+        // const oldClassNodes = this.classNodes;
         const oldPropNodes = this.propNodes;
-        const oldLinks = this.links;
-        const oldNodeMap = this.Id2NodeMap;
-        const oldPropMap = this.Id2PropnodeMap;
+        // const oldLinks = this.links;
+        // const oldNodeMap = this.Id2NodeMap;
+        // const oldPropMap = this.Id2PropnodeMap;
 
-        const RenderingNodeMap = this.nodeMap;
+        const RenderingNodeMap = { ...this.nodeMap };
 
         // console.log('oldNodes', oldNodes);
         // console.log('oldEdges', oldEdges);
@@ -1146,26 +1165,67 @@ export default class GraphVis {
             this.computeDepth();
         }
 
-        // reset positions and states;
-        console.log(RenderingNodeMap);
-        for (const name in RenderingNodeMap) {
-            if (RenderingNodeMap.hasOwnProperty(name)) {
-                const oldNode = RenderingNodeMap[name];
-                // find new node;
+        // try the otherway roound;
+
+        const incrementalNodes = [];
+
+        for (const name in this.nodeMap) {
+            if (this.nodeMap.hasOwnProperty(name)) {
+                // try to find this in the old map;
                 const newNode = this.nodeMap[name];
-                if (newNode) {
+                const oldNode = RenderingNodeMap[name];
+
+                if (oldNode && newNode) {
                     newNode.x = oldNode.x;
                     newNode.px = oldNode.px;
                     newNode.y = oldNode.y;
                     newNode.py = oldNode.py;
-
-                    // update the rendering status: collapsed expanded etc;
-
-                    // console.log('Old', oldNode.status, 'vs ', newNode.status);
                     newNode.status = oldNode.status;
+                } else {
+                    newNode.visible(false);
+                    incrementalNodes.push(newNode);
                 }
             }
         }
+
+        const incremantalLinks = [];
+        this.propNodes.forEach(link => {
+            const oldProperty = find(oldPropNodes, { edgeIdValue: link.edgeIdValue });
+            if (oldProperty) {
+                link.visibilityStatus = oldProperty.visibilityStatus;
+                link.linkElement().visible(oldProperty.visibilityStatus);
+                link.linkElement()
+                    .rangeNode()
+                    .visible(oldProperty.visibilityStatus);
+            } else {
+                link.visibilityStatus = false;
+                link.linkElement().visible(false);
+                incremantalLinks.push(link);
+            }
+        });
+
+        console.log(incrementalNodes);
+        console.log(incremantalLinks);
+
+        // // reset positions and states;
+        // for (const name in RenderingNodeMap) {
+        //     if (RenderingNodeMap.hasOwnProperty(name)) {
+        //         const oldNode = RenderingNodeMap[name];
+        //         // find new node;
+        //         const newNode = this.nodeMap[name];
+        //         if (newNode) {
+        //             newNode.x = oldNode.x;
+        //             newNode.px = oldNode.px;
+        //             newNode.y = oldNode.y;
+        //             newNode.py = oldNode.py;
+        //
+        //             // update the rendering status: collapsed expanded etc;
+        //
+        //             // console.log('Old', oldNode.status, 'vs ', newNode.status);
+        //             newNode.status = oldNode.status;
+        //         }
+        //     }
+        // }
 
         oldPropNodes.forEach(prop => {
             const newProp = find(this.propNodes, { edgeIdValue: prop.edgeIdValue });
@@ -1179,8 +1239,23 @@ export default class GraphVis {
             }
         });
 
+        // we need to collapse all new incomming nodes;
+
         this.drawGraph();
         this.layout.initializeLayoutEngine();
+
+        // TODO nodesThatAreFetchedFromBackend can be larger than one item
+        // expand single node
+        const nodesToExpand = [];
+
+        this.nodesThatAreFetchedFromBackend.forEach(id => {
+            const expandingNode = this.nodeMap[id];
+            if (expandingNode) {
+                nodesToExpand.push(expandingNode);
+            }
+        });
+        this.singleGroupExpand(nodesToExpand);
+        this.nodesThatAreFetchedFromBackend = [];
     };
 
     async depthUpdateEvent(val) {
@@ -1226,6 +1301,8 @@ export default class GraphVis {
             }
         }
 
+        console.log('requiresCollapse', requiresCollapse, 'requiresExpansions', requiresExpansions, 'requiresExplore', requiresExplore);
+
         // if (seenUnKnownObject === false) {
         //     // we have searched the full graph and there is nothing more to explore !
         //     // we have found maximum of data!\
@@ -1251,7 +1328,7 @@ export default class GraphVis {
                 this.performCollapse(needToCollapseLevel);
             }
             if (requiresExplore) {
-                // this.performExplorations(needToExploreLevel, internalDepth);
+                this.performExplorations(needToExploreLevel, internalDepth);
             }
             if (requiresExpansions) {
                 await this.performExpansion(needToExpandLevel);
@@ -1270,7 +1347,7 @@ export default class GraphVis {
         }
         await this.performCollapse(collapseGroup);
         await this.performExpansion(expandGroup);
-        // await this.performExplorations(exploreGroup, internalDepth);
+        await this.performExplorations(exploreGroup, internalDepth);
         if (this.layout.layoutType() === 'force') {
             this.layout.resumeForce();
         }
@@ -1542,6 +1619,7 @@ export default class GraphVis {
 
     /** Exploration Tasks**/
     async performExplorations(needToExploreLevels, internalDepth) {
+        console.log('explorationTask', needToExploreLevels);
         const that = this;
         const lastKnownLevel = needToExploreLevels[needToExploreLevels.length - 1];
         if (lastKnownLevel < internalDepth) {
@@ -1576,14 +1654,24 @@ export default class GraphVis {
     }
 
     async exploreCurrentDept(nodesToExplore) {
-        await this.exploreMultipleNodes(nodesToExplore);
+        console.log('nodes to explore', nodesToExplore);
+
+        nodesToExplore.forEach(n => {
+            console.log(n.contributionOriginId(), n._resourceId);
+        });
+
+        await this.exploreMultipleNodesNew(nodesToExplore);
         this.buildDictionary();
     }
 
     async singleNodeExploration(node, redrawWhenFinished = true) {
         node.nodeHasBeenExplored = true;
         node.setExploreAnimation(true);
+
+        console.log('This node is expanding', node._resourceId);
+        this.nodesThatAreFetchedFromBackend.push(node._resourceId);
         this.getDataFromApi(node.contributionOriginId(), node._resourceId);
+
         // reducing the call (the graph will be re-rendered anyway
 
         // // const incrementalData = await this.getDataFromApi(idToFetch);

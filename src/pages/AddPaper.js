@@ -213,15 +213,16 @@ class AddPaper extends Component {
                         </DropdownMenu>
                     </Dropdown>*/}
 
-                    <Button
-                        color="darkblue"
-                        size="sm"
-                        className="flex-shrink-0"
-                        style={{ marginLeft: 'auto' }}
-                        onClick={() => this.toggle('showGraphModal')}
-                    >
-                        <Icon icon={faProjectDiagram} className="mr-1" /> View graph
-                    </Button>
+                    {/** -- REMOVED THE VIEW GRAPH BUTTON HERE -- **/}
+                    {/*<Button*/}
+                    {/*    color="darkblue"*/}
+                    {/*    size="sm"*/}
+                    {/*    className="flex-shrink-0"*/}
+                    {/*    style={{ marginLeft: 'auto' }}*/}
+                    {/*    onClick={() => this.toggle('showGraphModal')}*/}
+                    {/*>*/}
+                    {/*    <Icon icon={faProjectDiagram} className="mr-1" /> View graph*/}
+                    {/*</Button>*/}
 
                     <div className="clearfix" />
                 </Container>

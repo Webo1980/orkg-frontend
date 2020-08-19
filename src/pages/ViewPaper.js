@@ -31,7 +31,7 @@ import styled from 'styled-components';
 import SharePaper from '../components/ViewPaper/SharePaper';
 import { getPaperData_ViewPaper } from 'utils';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
-import { updateMetaInformationStore, updateMetaInformationAuthors } from 'actions/statementBrowserStoreActions';
+import { updateMetaInformationStore, updateMetaInformationAuthors, resetStatementBrowserStore } from 'actions/statementBrowserStoreActions';
 
 export const EditModeHeader = styled(Container)`
     background-color: #80869b !important;
@@ -65,6 +65,7 @@ class ViewPaper extends Component {
     };
 
     componentDidMount() {
+        console.log('View Paper Mounts', this.props);
         this.loadPaperData();
     }
 
@@ -87,6 +88,7 @@ class ViewPaper extends Component {
         const resourceId = this.props.match.params.resourceId;
 
         this.props.resetStatementBrowser();
+        this.props.resetStatementBrowserStore();
         getResource(resourceId)
             .then(paperResource => {
                 this.processObservatoryInformation(paperResource, resourceId);
@@ -401,15 +403,20 @@ ViewPaper.propTypes = {
     loadPaper: PropTypes.func.isRequired,
     setPaperAuthors: PropTypes.func.isRequired,
     updateMetaInformationStore: PropTypes.func.isRequired,
-    updateMetaInformationAuthors: PropTypes.func.isRequired
+    updateMetaInformationAuthors: PropTypes.func.isRequired,
+    resetStatementBrowserStore: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-    viewPaper: state.viewPaper
+    viewPaper: state.viewPaper,
+    statementBrowserStore: state.statementBrowserStore,
+    statementBrowser: state.statementBrowser,
+    contributionStatementStore: state.statementBrowserStore.contributionStatementStore
 });
 
 const mapDispatchToProps = dispatch => ({
     resetStatementBrowser: () => dispatch(resetStatementBrowser()),
+    resetStatementBrowserStore: () => dispatch(resetStatementBrowserStore()),
     loadPaper: payload => dispatch(loadPaper(payload)),
     selectContribution: payload => dispatch(selectContribution(payload)),
     updateMetaInformationStore: payload => dispatch(updateMetaInformationStore(payload)),

@@ -27,6 +27,13 @@ export const updateStatementStore = data => dispatch => {
         }
     });
 };
+export const resetStatementBrowserStore = () => dispatch => {
+    dispatch({
+        type: type.SB_RESET_STATEMENT_BROWSER_STORE,
+        payload: {}
+    });
+};
+
 export const updateMetaInformationStore = data => dispatch => {
     dispatch({
         type: type.SB_SAVE_META_INFORMATION,
@@ -57,31 +64,33 @@ export const loadResourceDataForContribution = data => dispatch => {
     const { contributionOriginId, resourceId } = data;
     console.log('we want to load data for contribution id ', contributionOriginId);
     console.log('In the resource  ', resourceId);
-
+    // save the current statementBrowserStore and the contributions store in temp
     const temp = {};
     dispatch(currentState(temp));
+    const contributionsStore = temp.contributionStore;
 
-    const contributonsStore = temp.contributionStore;
-
-    if (contributonsStore.hasOwnProperty(contributionOriginId)) {
-        // cool lets go
+    if (contributionsStore.hasOwnProperty(contributionOriginId)) {
+        // block the graph updates
         dispatch(blockGraphUpdatesWhileLoading(true));
-        const storeToLoad = contributonsStore[contributionOriginId];
-        console.log(storeToLoad);
 
+        // get the current store, and set it as the current statementBrowser
+        const storeToLoad = contributionsStore[contributionOriginId];
         dispatch(loadCachedVersion(storeToLoad));
-        const oldSelectedResource = storeToLoad.selectedResource;
 
+        // request data for this resource id;
         getDataPromisedForResource(resourceId, dispatch).then(() => {
-            console.log('cool we have done it ');
-
+            // save the current statementBrowserStore and the contributions store in newState
+            // it holds the updated values
             const newState = {};
-            dispatch(currentState(temp));
-            console.log(newState);
+            dispatch(currentState(newState));
 
-            // TODO : dispatch event that overwrites the selected resource value
-            //dispatch(selectResource())//<< this is where we need to attack
-            // dispatch(loadCachedVersion(temp.statementBrowser));
+            // update the statementStore
+            dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: contributionOriginId }));
+
+            // reload the prevStore in the UI
+            dispatch(loadCachedVersion(temp.statementBrowser));
+
+            // allow graph update again
             dispatch(blockGraphUpdatesWhileLoading(false));
         });
 
@@ -89,10 +98,67 @@ export const loadResourceDataForContribution = data => dispatch => {
     }
 };
 
+const executePromisedItemLoad = async (item, dispatch) => {
+    dispatch(resetStatementBrowser());
+
+    if (!item.contributionOriginId) {
+        console.log('We want to create a new Contribution ', item.resourceId);
+        await dispatch({
+            type: type.CREATE_CONTRIBUTION,
+            payload: {
+                id: item.resourceId,
+                resourceId: item.resourceId
+            }
+        });
+
+        await dispatch(
+            createResource({
+                //only needed for connecting properties, label is not shown
+                resourceId: item.resourceId,
+                label: '',
+                existingResourceId: item.resourceId
+            })
+        );
+        console.log('\t creating an await ');
+        await getDataPromised(item.resourceId, dispatch);
+
+        console.log('\t done');
+        const newState = {};
+        // // in the current statement browser, we select the contributionId as initial value;
+        await dispatch(selectResource({ increaseLevel: false, resourceId: item.resourceId, label: 'Main' }));
+        await dispatch(currentState(newState));
+        await dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: item.resourceId }));
+        console.log('<<< FINISHED WITH THIS CONTRIBUTION : ', item.resourceId);
+    } else {
+        console.log('We want to load data for an existing  Contribution ', item, 'TODO ');
+    }
+};
+
+export const loadMultipleResource = items => async dispatch => {
+    console.log('We have Items', items);
+    const temp = {};
+    dispatch(blockGraphUpdatesWhileLoading(true));
+    dispatch(currentState(temp));
+
+    for (let i = 0; i < items.length; i++) {
+        console.log('executing item ', items[i]);
+        await executePromisedItemLoad(items[i], dispatch);
+    }
+
+    console.log('resetting the statement browser to the way it was');
+    dispatch(loadCachedVersion(temp.statementBrowser));
+    dispatch(blockGraphUpdatesWhileLoading(false));
+
+    // make it a promized dispath thing;
+};
+
 export const loadContributionData = contributionId => dispatch => {
     // read the statementBrowser for this contribution Id;
     // can we request a new statemenentBrowser from exsisint ones;
     console.log('Wants to load that ', contributionId);
+    //TODO:  we have currently a hack when exploring more data from meta nodes e.g. research fields;
+    //TODO:  this are added to the statementBrowserStore as 'contribution', however it works fine
+
     const temp = {};
     dispatch(blockGraphUpdatesWhileLoading(true));
     dispatch(currentState(temp));
