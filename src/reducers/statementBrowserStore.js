@@ -25,6 +25,20 @@ export default (state = initialState, action) => {
             // fallback when no id is given
             return state;
         }
+
+        case type.SB_RESTORE_SELECTED_STORE_ID: {
+            const propertyName = action.payload.storeId;
+            console.log('RESTORING ID', propertyName);
+            if (propertyName) {
+                return {
+                    ...state,
+                    selectedStore: propertyName
+                };
+            }
+            // fallback when no id is given
+            return state;
+        }
+
         case type.SB_SAVE_META_INFORMATION: {
             return { ...state, metaInformationStore: { statements: [...action.payload.statements] } };
         }

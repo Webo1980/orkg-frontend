@@ -12,7 +12,9 @@ import {
 } from 'actions/statementBrowser';
 import Statements from './Statements';
 
-const mapStateToProps = state => {
+const mapStateToProps = (state, ownProps) => {
+    // console.log(ownProps);
+
     return {
         level: state.statementBrowser.level,
         resources: state.statementBrowser.resources,

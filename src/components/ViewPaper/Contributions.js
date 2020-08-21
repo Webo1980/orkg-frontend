@@ -329,6 +329,8 @@ class Contributions extends Component {
                                             )}
                                             {!this.state.loading && (
                                                 <StatementBrowser
+                                                    graphBlocksUpdates={this.props.statementBrowserStore.blockUpdates}
+                                                    selectedContributionId={this.props.selectedContribution}
                                                     enableEdit={this.props.enableEdit}
                                                     syncBackend={this.props.enableEdit}
                                                     openExistingResourcesInDialog={false}
@@ -437,14 +439,21 @@ const mapStateToProps = (state, ownProps) => {
         ...(researchProblems.length > 0 ? researchProblems.map(c => c.id) : [])
     ];
 
+    // console.log('MAPPING STATE TO PROPS IN CONTRIBUTIONS:');
+    // console.log(ownProps.selectedContribution, 'GRAPH UPDATE BLOCKED? ', state.statementBrowserStore.blockUpdates);
+
+    let loadedStatementBrowse = state.statementBrowser;
+    //
+    if (state.statementBrowserStore.blockUpdates) {
+        loadedStatementBrowse = state.statementBrowserStore.contributionStatementStore[ownProps.selectedContribution];
+    }
     return {
         researchProblemsIds: researchProblemsIds,
         researchProblems: researchProblems,
         selectedResource: state.statementBrowser.selectedResource,
         resources: state.statementBrowser.resources,
         researchField: state.viewPaper.researchField,
-        // statementBrowser: state.statementBrowserStore.readOnlyStore,
-        statementBrowser: state.statementBrowser,
+        statementBrowser: loadedStatementBrowse,
         statementBrowserStore: state.statementBrowserStore
     };
 };

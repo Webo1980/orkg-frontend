@@ -69,6 +69,9 @@ export const loadResourceDataForContribution = data => async dispatch => {
 
     if (contributionsStore.hasOwnProperty(contributionOriginId)) {
         // block the graph updates
+
+        console.log('loadResourceDataForContribution', contributionOriginId);
+
         await dispatch(blockGraphUpdatesWhileLoading(true));
 
         const storeToLoad = contributionsStore[contributionOriginId];
@@ -91,14 +94,33 @@ export const loadResourceDataForContribution = data => async dispatch => {
             await dispatch(loadCachedVersion(temp.statementBrowser));
         }
 
+        console.log('THIS SHOOULD RESTORE THE STUFF');
+        dispatch({
+            type: type.SB_RESTORE_SELECTED_STORE_ID,
+            payload: {
+                storeId: temp.selectedStore
+            }
+        });
         // allow graph update again
         await dispatch(blockGraphUpdatesWhileLoading(false));
     }
 };
 
+export const restoreSelectedStoreId = storeId => dispatch => {
+    console.log('Restoring ID ', storeId);
+    console.log('THIS SHOOULD RESTORE THE STUFF');
+    dispatch({
+        type: type.SB_RESTORE_SELECTED_STORE_ID,
+        payload: {
+            storeId: storeId
+        }
+    });
+};
+
 const executePromisedItemLoad = async (item, dispatch) => {
     dispatch(resetStatementBrowser());
     if (!item.contributionOriginId) {
+        console.log('FETCHING CONTRIBUTION!_', item.resourceId);
         await dispatch({
             type: type.CREATE_CONTRIBUTION,
             payload: {
@@ -152,16 +174,19 @@ const executePromisedItemLoad = async (item, dispatch) => {
 export const loadMultipleResource = (items, keepBlocked = false) => async dispatch => {
     const temp = {};
     dispatch(currentState(temp));
+    console.log('CURRENTLY SELECTED STORE +++', temp.selectedStore);
 
     await dispatch(blockGraphUpdatesWhileLoading(true));
-
+    console.log('loadMultipleResource', items);
     for (let i = 0; i < items.length; i++) {
+        console.log('EXECUTING PROMISED CALL ', i);
         await executePromisedItemLoad(items[i], dispatch);
     }
 
     const newState = {};
     await dispatch(currentState(newState));
     await dispatch(loadCachedVersion(newState.contributionStore[temp.selectedStore]));
+    await dispatch(restoreSelectedStoreId(temp.selectedStore));
     await dispatch(blockGraphUpdatesWhileLoading(false));
 };
 
@@ -170,6 +195,8 @@ export const loadContributionData = contributionId => dispatch => {
     // can we request a new statemenentBrowser from exsisint ones;
     //TODO:  we have currently a hack when exploring more data from meta nodes e.g. research fields;
     //TODO:  this are added to the statementBrowserStore as 'contribution', however it works fine
+
+    console.log('loadContributionData', contributionId);
 
     const temp = {};
     dispatch(blockGraphUpdatesWhileLoading(true));

@@ -43,7 +43,9 @@ class GraphView extends Component {
     }
 
     propagateDictionary = () => {
-        this.searchComponent.current.updateDictionary();
+        if (this.searchComponent.current) {
+            this.searchComponent.current.updateDictionary();
+        }
     };
 
     centerGraph = () => {
