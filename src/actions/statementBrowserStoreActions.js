@@ -7,8 +7,7 @@ import {
     updateResourceClasses,
     createRequiredPropertiesInResource,
     createValue,
-    createResource,
-    selectResource
+    createResource
 } from 'actions/statementBrowser';
 import { resetStatementBrowser, loadCachedVersion } from 'actions/statementBrowser';
 import * as network from 'network';
@@ -60,10 +59,9 @@ export const blockGraphUpdatesWhileLoading = val => dispatch => {
     });
 };
 
-export const loadResourceDataForContribution = data => dispatch => {
+export const loadResourceDataForContribution = data => async dispatch => {
     const { contributionOriginId, resourceId } = data;
-    console.log('we want to load data for contribution id ', contributionOriginId);
-    console.log('In the resource  ', resourceId);
+
     // save the current statementBrowserStore and the contributions store in temp
     const temp = {};
     dispatch(currentState(temp));
@@ -71,38 +69,36 @@ export const loadResourceDataForContribution = data => dispatch => {
 
     if (contributionsStore.hasOwnProperty(contributionOriginId)) {
         // block the graph updates
-        dispatch(blockGraphUpdatesWhileLoading(true));
+        await dispatch(blockGraphUpdatesWhileLoading(true));
 
-        // get the current store, and set it as the current statementBrowser
         const storeToLoad = contributionsStore[contributionOriginId];
-        dispatch(loadCachedVersion(storeToLoad));
+        await dispatch(loadCachedVersion(storeToLoad));
 
         // request data for this resource id;
-        getDataPromisedForResource(resourceId, dispatch).then(() => {
-            // save the current statementBrowserStore and the contributions store in newState
-            // it holds the updated values
-            const newState = {};
-            dispatch(currentState(newState));
+        await getDataPromisedForResource(resourceId, dispatch);
 
-            // update the statementStore
-            dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: contributionOriginId }));
+        // fetch new data
+        const newState = {};
+        await dispatch(currentState(newState));
+        await dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: contributionOriginId }));
 
-            // reload the prevStore in the UI
-            dispatch(loadCachedVersion(temp.statementBrowser));
+        // ensure the correct updates
+        if (temp.selectedStore === contributionOriginId) {
+            //UPDATING THE SELECTED STORE
+            await dispatch(loadCachedVersion(newState.statementBrowser));
+        } else {
+            // RESTORING THE SELECTED STORE
+            await dispatch(loadCachedVersion(temp.statementBrowser));
+        }
 
-            // allow graph update again
-            dispatch(blockGraphUpdatesWhileLoading(false));
-        });
-
-        // now we should be able to access other functions like selecting a resource
+        // allow graph update again
+        await dispatch(blockGraphUpdatesWhileLoading(false));
     }
 };
 
 const executePromisedItemLoad = async (item, dispatch) => {
     dispatch(resetStatementBrowser());
-
     if (!item.contributionOriginId) {
-        console.log('We want to create a new Contribution ', item.resourceId);
         await dispatch({
             type: type.CREATE_CONTRIBUTION,
             payload: {
@@ -119,43 +115,59 @@ const executePromisedItemLoad = async (item, dispatch) => {
                 existingResourceId: item.resourceId
             })
         );
-        console.log('\t creating an await ');
         await getDataPromised(item.resourceId, dispatch);
+        //await dispatch(selectResource({ increaseLevel: false, resourceId: item.resourceId, label: 'Main' }));
 
-        console.log('\t done');
         const newState = {};
-        // // in the current statement browser, we select the contributionId as initial value;
-        await dispatch(selectResource({ increaseLevel: false, resourceId: item.resourceId, label: 'Main' }));
         await dispatch(currentState(newState));
+
+        // manual overwrite the selected resource id ;
+        // because we have a new contribution we have added, we select the thing directly!
+        newState.statementBrowser.selectedResource = item.resourceId;
         await dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: item.resourceId }));
-        console.log('<<< FINISHED WITH THIS CONTRIBUTION : ', item.resourceId);
     } else {
-        console.log('We want to load data for an existing  Contribution ', item, 'TODO ');
+        const currState = {};
+        await dispatch(currentState(currState));
+        const contributionsStore = { ...currState.contributionStore };
+        const selectedStore = currState.selectedStore;
+
+        if (contributionsStore.hasOwnProperty(item.contributionOriginId)) {
+            const storeToLoad = contributionsStore[item.contributionOriginId];
+            await dispatch(loadCachedVersion(storeToLoad));
+            await getDataPromisedForResource(item.resourceId, dispatch);
+
+            if (currState.selectedStore !== item.contributionOriginId) {
+                // rollBack the contributionStore for the thing;
+                await dispatch(updateStatementStore({ store: contributionsStore[selectedStore], contributionId: selectedStore }));
+            }
+            // save the current statementBrowserStore and the contributions store in newState
+            // it holds the updated values
+            const newState = {};
+            await dispatch(currentState(newState));
+            await dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: item.contributionOriginId }));
+        }
     }
 };
 
 export const loadMultipleResource = items => async dispatch => {
-    console.log('We have Items', items);
     const temp = {};
-    dispatch(blockGraphUpdatesWhileLoading(true));
     dispatch(currentState(temp));
 
+    await dispatch(blockGraphUpdatesWhileLoading(true));
+
     for (let i = 0; i < items.length; i++) {
-        console.log('executing item ', items[i]);
         await executePromisedItemLoad(items[i], dispatch);
     }
 
-    console.log('resetting the statement browser to the way it was');
-    dispatch(loadCachedVersion(temp.statementBrowser));
+    const newState = {};
+    dispatch(currentState(newState));
+    dispatch(loadCachedVersion(newState.contributionStore[temp.selectedStore]));
     dispatch(blockGraphUpdatesWhileLoading(false));
-
-    // make it a promized dispath thing;
 };
 
 export const loadContributionData = contributionId => dispatch => {
     // read the statementBrowser for this contribution Id;
     // can we request a new statemenentBrowser from exsisint ones;
-    console.log('Wants to load that ', contributionId);
     //TODO:  we have currently a hack when exploring more data from meta nodes e.g. research fields;
     //TODO:  this are added to the statementBrowserStore as 'contribution', however it works fine
 
@@ -182,18 +194,15 @@ export const loadContributionData = contributionId => dispatch => {
 
     getDataPromised(contributionId, dispatch).then(() => {
         const newState = {};
-
-        // in the current statement browser, we select the contributionId as initial value;
-        dispatch(selectResource({ increaseLevel: false, resourceId: contributionId, label: 'Main' })).then(() => {
-            // we save it in the object newState
-            dispatch(currentState(newState));
-            // then we push this into out statementBrowser store
-            dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: contributionId }));
-            // and reload the cached version for the viewPaperPage so it shows the old state
-            /* note : this is for the non hybrid view, in hybrid view we will update the selection based on the click event */
-            dispatch(loadCachedVersion(temp.statementBrowser));
-            dispatch(blockGraphUpdatesWhileLoading(false));
-        });
+        dispatch(currentState(newState));
+        // manual overwrite the selected resource id ;
+        newState.statementBrowser.selectedResource = contributionId;
+        // then we push this into out statementBrowser store
+        dispatch(updateStatementStore({ store: newState.statementBrowser, contributionId: contributionId }));
+        // and reload the cached version for the viewPaperPage so it shows the old state
+        /* note : this is for the non hybrid view, in hybrid view we will update the selection based on the click event */
+        dispatch(loadCachedVersion(temp.statementBrowser));
+        dispatch(blockGraphUpdatesWhileLoading(false));
     });
 };
 
@@ -223,17 +232,14 @@ const getDataPromised = async (id, dispatch) => {
 
 export const promisedFetchStatementsForResource = async (data, dispatch) => {
     // we make this serialized not recursive;
+    // this function is mostly copied from statementBrowser
+    // modified to create serialized calls
+    /** Ensure UPDATES when statement Browser code changes **/
 
     const queryPromise = new Promise(function(resolve) {
-        let { isContribution, depth, rootNodeType } = data;
+        let { isContribution, rootNodeType } = data;
         const { resourceId, existingResourceId } = data;
         isContribution = isContribution ? isContribution : false;
-
-        if (typeof depth == 'number') {
-            depth = depth - 1;
-        } else {
-            depth = 0;
-        }
 
         rootNodeType = rootNodeType ?? 'resource';
         const resourceStatements = [];
@@ -409,3 +415,22 @@ export const serializedCall = (resourceStatements, existingResourceId, resourceI
         }
     };
 };
+
+/** HELPER FOR DEBUGGING **/
+
+// const showResourcesInContributionStore = store => {
+//   const CS = { ...store };
+//   for (const name in CS) {
+//     if (CS.hasOwnProperty(name)) {
+//       console.log('THIS IS THE RESOURCES FOR CONTRIBUTION ', name);
+//       console.log(CS[name].resources.allIds);
+//       console.log('**********************');
+//     }
+//   }
+// };
+//
+// const showResourcesInStatementBrowser = store => {
+//   console.log('THIS IS THE RESOURCES FOR STATEMENT BROWSER ');
+//   console.log(store.resources.allIds);
+//   console.log('-------------**********************');
+// };

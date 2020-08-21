@@ -397,7 +397,6 @@ ViewPaper.propTypes = {
         }).isRequired
     }).isRequired,
     resetStatementBrowser: PropTypes.func.isRequired,
-    selectContribution: PropTypes.func.isRequired,
     location: PropTypes.object.isRequired,
     viewPaper: PropTypes.object.isRequired,
     loadPaper: PropTypes.func.isRequired,
@@ -408,17 +407,16 @@ ViewPaper.propTypes = {
 };
 
 const mapStateToProps = state => ({
-    viewPaper: state.viewPaper,
-    statementBrowserStore: state.statementBrowserStore,
-    statementBrowser: state.statementBrowser,
-    contributionStatementStore: state.statementBrowserStore.contributionStatementStore
+    viewPaper: state.viewPaper
+    // statementBrowserStore: state.statementBrowserStore
+    //statementBrowser: state.statementBrowser,
+    //contributionStatementStore: state.statementBrowserStore.contributionStatementStore
 });
 
 const mapDispatchToProps = dispatch => ({
     resetStatementBrowser: () => dispatch(resetStatementBrowser()),
     resetStatementBrowserStore: () => dispatch(resetStatementBrowserStore()),
     loadPaper: payload => dispatch(loadPaper(payload)),
-    selectContribution: payload => dispatch(selectContribution(payload)),
     updateMetaInformationStore: payload => dispatch(updateMetaInformationStore(payload)),
     updateMetaInformationAuthors: payload => dispatch(updateMetaInformationAuthors(payload)),
     setPaperAuthors: payload => dispatch(setPaperAuthors(payload))

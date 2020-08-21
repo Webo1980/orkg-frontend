@@ -2,6 +2,7 @@ import * as type from '../actions/types';
 
 const initialState = {
     contributionStatementStore: {},
+    selectedStore: undefined,
     metaInformationStore: {},
     authorsOrcidStore: {},
     blockUpdates: false
@@ -16,7 +17,8 @@ export default (state = initialState, action) => {
                 contributionStore[propertyName] = action.payload.store;
                 return {
                     ...state,
-                    contributionStatementStore: contributionStore
+                    contributionStatementStore: contributionStore,
+                    selectedStore: propertyName
                 };
             }
             // fallback when no id is given
@@ -33,7 +35,15 @@ export default (state = initialState, action) => {
             return { ...state, blockUpdates: action.payload.blocked };
         }
         case type.SB_RESET_STATEMENT_BROWSER_STORE: {
-            return { ...initialState, contributionStatementStore: {}, metaInformationStore: {}, authorsOrcidStore: {}, blockUpdates: false };
+            // requires manual overwrite of the store
+            return {
+                ...initialState,
+                contributionStatementStore: {},
+                selectedStore: undefined,
+                metaInformationStore: {},
+                authorsOrcidStore: {},
+                blockUpdates: false
+            };
         }
 
         default: {

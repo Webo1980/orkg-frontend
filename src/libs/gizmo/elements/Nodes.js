@@ -32,6 +32,7 @@ export default class Node extends BaseElement {
         this.defaultDuration = 400;
         this.percentModifier = 1.0;
         this.isLiteralItem = false;
+        this.exploreAnimationIsRunning = false;
         this.type('resource');
 
         this.filterCollapsedLinks = this.filterCollapsedLinks.bind(this);
@@ -268,7 +269,9 @@ export default class Node extends BaseElement {
     }
 
     setExploreAnimation(val) {
+        this.exploreAnimationIsRunning = val;
         if (val === true) {
+            console.log('SETTING EXPLORE ANIMATION FOR NODE', this.label);
             const renderingGroup = this.svgRoot;
             this.renderingAnimationGroup = renderingGroup.append('rect');
             const radius = 43;
@@ -282,6 +285,7 @@ export default class Node extends BaseElement {
             this.renderingAnimationGroup.style('stroke-width', '7px');
             this.renderingAnimationGroup.classed('loadingAnimation', true);
         } else {
+            console.log('REMOVED ANIMATION ', this.label);
             if (this.renderingAnimationGroup) {
                 this.renderingAnimationGroup.remove();
             }
@@ -460,6 +464,10 @@ export default class Node extends BaseElement {
         if (this.incommingLink.length > 0) {
             // make sure the root not can not be single collapsed;
             this.addSingleCollapseHoverButton();
+        }
+
+        if (this.exploreAnimationIsRunning) {
+            this.setExploreAnimation(true);
         }
     }
 

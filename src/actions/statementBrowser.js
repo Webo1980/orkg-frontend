@@ -124,6 +124,7 @@ export function currentState(currState) {
     return (dispatch, getState) => {
         currState.statementBrowser = getState().statementBrowser;
         currState.contributionStore = getState().statementBrowserStore.contributionStatementStore;
+        currState.selectedStore = getState().statementBrowserStore.selectedStore;
     };
 }
 

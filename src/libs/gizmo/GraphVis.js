@@ -335,14 +335,24 @@ export default class GraphVis {
 
     async exploreMultipleNodesNew(nodesToExplore) {
         const itemsToExplore = nodesToExplore.map(o => {
+            console.log(o);
+
+            if (o.isResearchFieldRelated === true) {
+                return null;
+            }
             o.setExploreAnimation(true);
+            console.log('>>>> NODE SHALL BE ANIMATED !!!!');
+
             this.nodesThatAreFetchedFromBackend.push(o._resourceId);
             return { contributionOriginId: o.contributionOriginId(), resourceId: o._resourceId };
         });
 
-        console.log(itemsToExplore);
-
-        this.fetchMultipleResourcesFromAPI(itemsToExplore);
+        // this prevents researchFieldRelated notes to be automatically expanded;
+        // // TODO: check behavior with depth updates;
+        const filtered = itemsToExplore.filter(p => p);
+        if (filtered.length > 0) {
+            this.fetchMultipleResourcesFromAPI(filtered);
+        }
     }
 
     async exploreMultipleNodes(nodesToExplore) {
@@ -1165,8 +1175,6 @@ export default class GraphVis {
             this.computeDepth();
         }
 
-        // try the otherway roound;
-
         const incrementalNodes = [];
 
         for (const name in this.nodeMap) {
@@ -1254,7 +1262,11 @@ export default class GraphVis {
                 nodesToExpand.push(expandingNode);
             }
         });
-        this.singleGroupExpand(nodesToExpand);
+        this.singleGroupExpand(nodesToExpand).then(() => {
+            if (this.layout.layoutType() === 'force') {
+                this.layout.resumeForce();
+            }
+        });
         this.nodesThatAreFetchedFromBackend = [];
     };
 
@@ -1654,12 +1666,6 @@ export default class GraphVis {
     }
 
     async exploreCurrentDept(nodesToExplore) {
-        console.log('nodes to explore', nodesToExplore);
-
-        nodesToExplore.forEach(n => {
-            console.log(n.contributionOriginId(), n._resourceId);
-        });
-
         await this.exploreMultipleNodesNew(nodesToExplore);
         this.buildDictionary();
     }

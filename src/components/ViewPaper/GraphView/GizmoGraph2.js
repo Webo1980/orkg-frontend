@@ -37,20 +37,20 @@ class GizMOGraph extends Component {
     }
 
     componentDidUpdate = prevProps => {
+        console.log('GizMOGraph2 Updates');
         if (this.props.layout !== prevProps.layout) {
+            console.log('GizMOGraph2 Updates -- LAYOUT');
             this.graphVis.updateLayout(this.props.layout);
         } else if (this.props.depth !== prevProps.depth) {
-            // ignore the update event will take care
+            console.log('GizMOGraph2 Updates -- DEPTH');
+            this.graphVis.blackOpsRedraw();
         } else if (!this.props.statementBrowserStore.blockUpdates) {
+            console.log('GizMOGraph2 Updates -- STATMENT STORE ');
             const graph = this.createGraphDataFromStatementStore();
             if (this.graphVis.graphInitialized()) {
                 this.graphVis.integrateNewData({ graphBgColor: '#ecf0f1', graph: graph });
                 // this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
             }
-        }
-
-        if (this.props.layout !== prevProps.layout) {
-            this.graphVis.updateLayout(this.props.layout);
         }
     };
 
@@ -104,7 +104,7 @@ class GizMOGraph extends Component {
         allLinks.push(...authrosOrcidStatements.edges);
 
         // now extract the graph structure from the statement store;
-        const contribStore = this.props.contributionStatementStore;
+        const contribStore = this.props.statementBrowserStore.contributionStatementStore;
         console.log(contribStore);
         console.log('>>>>>>>>>>>>>>>>>>>>>>');
         const allContributionStatements = [];
@@ -348,7 +348,7 @@ GizMOGraph.propTypes = {
     // object
     metaInformationStore: PropTypes.object.isRequired,
     authorsOrcidStore: PropTypes.object.isRequired,
-    contributionStatementStore: PropTypes.object.isRequired,
+    // contributionStatementStore: PropTypes.object.isRequired,
     statementBrowserStore: PropTypes.object.isRequired,
 
     // function
@@ -360,8 +360,7 @@ GizMOGraph.propTypes = {
 const mapStateToProps = state => {
     return {
         statementBrowserStore: state.statementBrowserStore,
-        statementBrowser: state.statementBrowser,
-        contributionStatementStore: state.statementBrowserStore.contributionStatementStore,
+        // contributionStatementStore: state.statementBrowserStore.contributionStatementStore,
         metaInformationStore: state.statementBrowserStore.metaInformationStore,
         authorsOrcidStore: state.statementBrowserStore.authorsOrcidStore
     };
