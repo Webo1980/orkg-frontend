@@ -115,6 +115,7 @@ class Contributions extends Component {
         }
 
         if (this.props.selectedContribution !== '' && this.props.selectedContribution !== this.state.selectedContribution) {
+            console.log('UPDATING CONTRIBUTION');
             this.setState({ selectedContribution: this.props.selectedContribution }, () => {
                 this.handleSelectContribution(this.state.selectedContribution);
             });
@@ -442,6 +443,7 @@ const mapStateToProps = (state, ownProps) => {
         selectedResource: state.statementBrowser.selectedResource,
         resources: state.statementBrowser.resources,
         researchField: state.viewPaper.researchField,
+        // statementBrowser: state.statementBrowserStore.readOnlyStore,
         statementBrowser: state.statementBrowser,
         statementBrowserStore: state.statementBrowserStore
     };

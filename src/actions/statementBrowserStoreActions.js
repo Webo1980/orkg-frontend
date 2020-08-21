@@ -149,7 +149,7 @@ const executePromisedItemLoad = async (item, dispatch) => {
     }
 };
 
-export const loadMultipleResource = items => async dispatch => {
+export const loadMultipleResource = (items, keepBlocked = false) => async dispatch => {
     const temp = {};
     dispatch(currentState(temp));
 
@@ -160,9 +160,9 @@ export const loadMultipleResource = items => async dispatch => {
     }
 
     const newState = {};
-    dispatch(currentState(newState));
-    dispatch(loadCachedVersion(newState.contributionStore[temp.selectedStore]));
-    dispatch(blockGraphUpdatesWhileLoading(false));
+    await dispatch(currentState(newState));
+    await dispatch(loadCachedVersion(newState.contributionStore[temp.selectedStore]));
+    await dispatch(blockGraphUpdatesWhileLoading(false));
 };
 
 export const loadContributionData = contributionId => dispatch => {

@@ -271,7 +271,6 @@ export default class Node extends BaseElement {
     setExploreAnimation(val) {
         this.exploreAnimationIsRunning = val;
         if (val === true) {
-            console.log('SETTING EXPLORE ANIMATION FOR NODE', this.label);
             const renderingGroup = this.svgRoot;
             this.renderingAnimationGroup = renderingGroup.append('rect');
             const radius = 43;
@@ -285,7 +284,6 @@ export default class Node extends BaseElement {
             this.renderingAnimationGroup.style('stroke-width', '7px');
             this.renderingAnimationGroup.classed('loadingAnimation', true);
         } else {
-            console.log('REMOVED ANIMATION ', this.label);
             if (this.renderingAnimationGroup) {
                 this.renderingAnimationGroup.remove();
             }

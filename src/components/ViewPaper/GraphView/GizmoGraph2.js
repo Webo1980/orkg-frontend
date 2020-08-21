@@ -3,6 +3,7 @@ import * as PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import uniqBy from 'lodash/uniqBy';
+import omit from 'lodash/omit';
 
 import { PREDICATES } from 'constants/graphSettings';
 import { loadContributionData, loadResourceDataForContribution, loadMultipleResource } from 'actions/statementBrowserStoreActions';
@@ -16,11 +17,14 @@ class GizMOGraph extends Component {
         this.graphVis.fetchMultipleResourcesFromAPI = this.fetchMultipleResourcesFromAPI;
 
         // parent functions called by child
+        this.prevGraph = {};
         this.updateDepthRange = props.updateDepthRange;
     }
 
     componentDidMount() {
         const graph = this.createGraphDataFromStatementStore();
+        console.log(graph);
+        this.prevGraph = graph;
         if (!this.graphVis.graphInitialized()) {
             this.graphVis.bindComponentValues({
                 graph: graph,
@@ -37,16 +41,26 @@ class GizMOGraph extends Component {
     }
 
     componentDidUpdate = prevProps => {
-        console.log('GizMOGraph2 Updates');
         if (this.props.layout !== prevProps.layout) {
             console.log('GizMOGraph2 Updates -- LAYOUT');
             this.graphVis.updateLayout(this.props.layout);
         } else if (this.props.depth !== prevProps.depth) {
             console.log('GizMOGraph2 Updates -- DEPTH');
-            this.graphVis.blackOpsRedraw();
         } else if (!this.props.statementBrowserStore.blockUpdates) {
-            console.log('GizMOGraph2 Updates -- STATMENT STORE ');
+            console.log('GizMOGraph2 Updates -- STATMENT STORE ', this.props.statementBrowserStore.blockUpdates);
             const graph = this.createGraphDataFromStatementStore();
+            //
+            console.log(this.prevGraph);
+            console.log(graph);
+
+            if (this.prevGraph === this.graph) {
+                console.log('BOTH GRAPHS ARE EQUAL ');
+            } else {
+                console.log('BOTH GRAPHS ARE DIFFERENT');
+            }
+            //
+            this.prevGraph = graph;
+
             if (this.graphVis.graphInitialized()) {
                 this.graphVis.integrateNewData({ graphBgColor: '#ecf0f1', graph: graph });
                 // this.graphVis.redrawGraphPreviousState({ graphBgColor: '#ecf0f1', graph: graph });
@@ -61,6 +75,11 @@ class GizMOGraph extends Component {
         }
     }
 
+    showDiffInContributionStatementStore = (input, output) => {
+        console.log({ ...input });
+        console.log({ ...output });
+    };
+
     getDataFromApi = (contributionOriginId, resourceId) => {
         console.log('reqeusting data', contributionOriginId, resourceId);
 
@@ -74,8 +93,9 @@ class GizMOGraph extends Component {
         }
     };
 
-    fetchMultipleResourcesFromAPI = arrayOfItemes => {
-        this.props.loadMultipleResource(arrayOfItemes);
+    fetchMultipleResourcesFromAPI = async arrayOfItems => {
+        await this.props.loadMultipleResource(arrayOfItems);
+        console.log('>>> DONE FETCHING ONE LEVEL OF ITEMS >>>> ');
 
         //
         // if (contributionOriginId === undefined) {

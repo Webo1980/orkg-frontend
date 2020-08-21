@@ -5,7 +5,8 @@ const initialState = {
     selectedStore: undefined,
     metaInformationStore: {},
     authorsOrcidStore: {},
-    blockUpdates: false
+    blockUpdates: false,
+    readOnlyStore: {}
 };
 
 export default (state = initialState, action) => {
@@ -37,7 +38,6 @@ export default (state = initialState, action) => {
         case type.SB_RESET_STATEMENT_BROWSER_STORE: {
             // requires manual overwrite of the store
             return {
-                ...initialState,
                 contributionStatementStore: {},
                 selectedStore: undefined,
                 metaInformationStore: {},

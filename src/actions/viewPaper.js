@@ -1,5 +1,6 @@
 import * as type from './types.js';
 import { createResource, fetchStatementsForResource, selectResource } from './statementBrowser';
+import { blockGraphUpdatesWhileLoading } from 'actions/statementBrowserStoreActions';
 
 export const selectContribution = ({ contributionId: id, contributionIsLoaded }) => dispatch => {
     if (!contributionIsLoaded) {
