@@ -40,7 +40,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { faClipboard } from '@fortawesome/free-regular-svg-icons';
 import styled from 'styled-components';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
-import { MISC } from 'constants/graphSettings';
+import AutoComplete from 'components/Autocomplete/Autocomplete';
 
 const StyledCustomInput = styled(CustomInput)`
     margin-right: 0;
@@ -82,6 +82,8 @@ class Publish extends Component {
     constructor(props) {
         super(props);
 
+        this.resourceInputRef = React.createRef();
+
         this.state = {
             title: props.title,
             description: props.description,
@@ -93,13 +95,8 @@ class Publish extends Component {
             isCreatingDOI: false,
             isLoading: false,
             comparisonCreators: props.authors,
-            assignDOI: false,
-            researchField: []
+            assignDOI: false
         };
-    }
-
-    componentDidMount() {
-        this.getFields(MISC.RESEARCH_FIELD_MAIN);
     }
 
     componentDidUpdate = prevProps => {
@@ -131,24 +128,6 @@ class Publish extends Component {
             comparisonCreators: creators
         });
     };
-
-    getFields(fieldId) {
-        const researchFields = [];
-        getStatementsBySubject({ id: fieldId }).then(res => {
-            res.forEach(elm => {
-                getStatementsBySubject({ id: elm.object.id }).then(result1 => {
-                    result1.forEach(r => {
-                        getStatementsBySubject({ id: r.object.id }).then(result2 => {
-                            result2.forEach(value => {
-                                researchFields.push(value.object.label);
-                            });
-                        });
-                    });
-                });
-            });
-        });
-        this.setState({ researchField: researchFields });
-    }
 
     publishDOI = async (comparisonId, comparisonLink) => {
         try {
@@ -412,11 +391,19 @@ class Publish extends Component {
                                 <Label for="subject">
                                     <Tooltip message="Enter a subject of the comparison">Research Field</Tooltip>
                                 </Label>
-                                <Input disabled={Boolean(this.state.doi)} type="select" name="subject" id="subject" onChange={this.handleChange}>
-                                    {this.state.researchField.map(rf => {
-                                        return <option value={rf}>{rf}</option>;
-                                    })}
-                                </Input>
+
+                                <AutoComplete
+                                    requestUrl=""
+                                    optionsClass="ResearchField"
+                                    placeholder="Enter a research field"
+                                    onChange={async i => {
+                                        this.setState({ subject: i.label });
+                                    }}
+                                    cssClasses="form-control-sm"
+                                    eventListener={true}
+                                    innerRef={this.resourceInputRef}
+                                    openMenuOnFocus={true}
+                                />
                             </FormGroup>
                             <FormGroup>
                                 <Label for="Creator">
