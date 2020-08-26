@@ -95,7 +95,8 @@ class Publish extends Component {
             isCreatingDOI: false,
             isLoading: false,
             comparisonCreators: props.authors,
-            assignDOI: false
+            assignDOI: false,
+            value: ''
         };
     }
 
@@ -127,6 +128,9 @@ class Publish extends Component {
         this.setState({
             comparisonCreators: creators
         });
+    };
+    handleInputChange = value => {
+        this.setState({ value: value });
     };
 
     publishDOI = async (comparisonId, comparisonLink) => {
@@ -391,19 +395,19 @@ class Publish extends Component {
                                 <Label for="subject">
                                     <Tooltip message="Enter a subject of the comparison">Research Field</Tooltip>
                                 </Label>
-
-                                <AutoComplete
-                                    requestUrl=""
-                                    optionsClass="ResearchField"
-                                    placeholder="Enter a research field"
-                                    onChange={async i => {
-                                        this.setState({ subject: i.label });
-                                    }}
-                                    cssClasses="form-control-sm"
-                                    eventListener={true}
-                                    innerRef={this.resourceInputRef}
-                                    openMenuOnFocus={true}
-                                />
+                                <InputGroup size="sm">
+                                    <AutoComplete
+                                        requestUrl=""
+                                        optionsClass="ResearchField"
+                                        placeholder="Enter a research field"
+                                        onChange={async i => {
+                                            this.setState({ subject: i.label });
+                                        }}
+                                        cssClasses="form-control-sm"
+                                        eventListener={true}
+                                        innerRef={this.resourceInputRef}
+                                    />
+                                </InputGroup>
                             </FormGroup>
                             <FormGroup>
                                 <Label for="Creator">
