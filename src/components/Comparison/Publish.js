@@ -95,8 +95,7 @@ class Publish extends Component {
             isCreatingDOI: false,
             isLoading: false,
             comparisonCreators: props.authors,
-            assignDOI: false,
-            value: ''
+            assignDOI: false
         };
     }
 
@@ -128,9 +127,6 @@ class Publish extends Component {
         this.setState({
             comparisonCreators: creators
         });
-    };
-    handleInputChange = value => {
-        this.setState({ value: value });
     };
 
     publishDOI = async (comparisonId, comparisonLink) => {
