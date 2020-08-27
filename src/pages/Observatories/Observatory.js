@@ -250,7 +250,7 @@ class Observatory extends Component {
                                                                         <Link to={reverse(ROUTES.ORGANIZATION, { id: organization.id })}>
                                                                             <img
                                                                                 style={{ marginTop: 12 }}
-                                                                                height="70"
+                                                                                height="50"
                                                                                 src={organization.logo}
                                                                                 alt={`${organization.name} logo`}
                                                                             />
