@@ -8,11 +8,12 @@ import defaultDatatypes from 'components/ContributionTemplates/helpers/defaultDa
 import Tippy from '@tippy.js/react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPlus, faBars, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import AutoComplete from 'components/StatementBrowser/AutoComplete';
+import AutoComplete from 'components/Autocomplete/Autocomplete';
 import useTogggle from './helpers/useToggle';
 import validationSchema from './helpers/validationSchema';
 import InputField from 'components/StatementBrowser/InputField/InputField';
 import PropTypes from 'prop-types';
+import { CLASSES, MISC } from 'constants/graphSettings';
 
 export default function AddValueTemplate(props) {
     const literalInputRef = useRef(null);
@@ -30,6 +31,33 @@ export default function AddValueTemplate(props) {
     const [formFeedback, setFormFeedback] = useState(null);
     const [templateIsLoading, setTemplateIsLoading] = useState(false); // to show loading indicator of the template if the value class has a template
 
+    // uniqueLabel is set to true when it's a research problem
+    const [uniqueLabel, setuniqueLabel] = useState(props.valueClass && props.valueClass.id === CLASSES.PROBLEM ? true : false);
+    const [disabledCreate, setDisabledCreate] = useState(false);
+
+    const handleCreateExistingLabel = (inputValue, selectOptions) => {
+        //check if label exists
+        if (
+            uniqueLabel &&
+            inputValue &&
+            selectOptions
+                .map(s =>
+                    String(s.label)
+                        .trim()
+                        .toLowerCase()
+                )
+                .includes(
+                    String(inputValue)
+                        .trim()
+                        .toLowerCase()
+                )
+        ) {
+            setDisabledCreate(true);
+        } else {
+            setDisabledCreate(false);
+        }
+    };
+
     useEffect(() => {
         if (valueType === 'literal' && literalInputRef.current) {
             literalInputRef.current.focus();
@@ -43,6 +71,10 @@ export default function AddValueTemplate(props) {
     }, [props.isLiteral]);
 
     useEffect(() => {
+        setuniqueLabel(props.valueClass && props.valueClass.id === CLASSES.PROBLEM ? true : false);
+    }, [props.valueClass]);
+
+    useEffect(() => {
         if (!showAddValue) {
             setInputValue('');
         }
@@ -50,7 +82,7 @@ export default function AddValueTemplate(props) {
 
     /* Select component reference can be used to check if menu is opened */
     const isMenuOpen = () => {
-        return resourceInputRef.current.select.state.menuIsOpen && resourceInputRef.current.state.loadedOptions.length > 0;
+        return resourceInputRef.current.state.menuIsOpen && resourceInputRef.current.props.options.length > 0;
     };
 
     const validateValue = () => {
@@ -87,16 +119,16 @@ export default function AddValueTemplate(props) {
         if (props.valueClass && valueType === 'literal') {
             switch (props.valueClass.id) {
                 case 'String':
-                    return process.env.REACT_APP_DEFAULT_LITERAL_DATATYPE;
+                    return MISC.DEFAULT_LITERAL_DATATYPE;
                 case 'Number':
                     return 'xsd:decimal';
                 case 'Date':
                     return 'xsd:date';
                 default:
-                    return process.env.REACT_APP_DEFAULT_LITERAL_DATATYPE;
+                    return MISC.DEFAULT_LITERAL_DATATYPE;
             }
         } else {
-            return process.env.REACT_APP_DEFAULT_LITERAL_DATATYPE;
+            return MISC.DEFAULT_LITERAL_DATATYPE;
         }
     };
 
@@ -139,6 +171,14 @@ export default function AddValueTemplate(props) {
         }
     }, [props]);
 
+    const resourceTooltip = (
+        <>
+            Choose resource to link this to a resource which can contain values on its own. <br /> To fetch an existing resource by ID type “#”
+            without quotes following with the resource ID (e.g: #R12).
+        </>
+    );
+    const literalTooltip = 'Choose literal for values like numbers, plain text or mathematical expressions using TeX delimiters $$...$$';
+
     return (
         <ValueItemStyle className={showAddValue ? 'editingLabel' : ''}>
             {modal ? (
@@ -175,7 +215,8 @@ export default function AddValueTemplate(props) {
                                         props.selectResource({
                                             increaseLevel: true,
                                             resourceId: resourceId,
-                                            label: isInlineResource
+                                            label: isInlineResource,
+                                            propertyLabel: props.predicate.label
                                         });
                                     }
                                 });
@@ -194,18 +235,20 @@ export default function AddValueTemplate(props) {
                     <InputGroup size="sm">
                         {!props.valueClass && (
                             <InputGroupButtonDropdown addonType="prepend" isOpen={dropdownValueTypeOpen} toggle={setDropdownValueTypeOpen}>
-                                <StyledDropdownToggle>
-                                    <small>{valueType.charAt(0).toUpperCase() + valueType.slice(1) + ' '}</small>
+                                <StyledDropdownToggle disableBorderRadiusRight={true}>
+                                    <Tippy content={valueType === 'object' ? resourceTooltip : literalTooltip}>
+                                        <small>{valueType === 'object' ? 'Resource' : 'Literal'} </small>
+                                    </Tippy>
                                     <Icon size="xs" icon={faBars} />
                                 </StyledDropdownToggle>
                                 <DropdownMenu>
                                     <StyledDropdownItem onClick={() => setValueType('object')}>
-                                        <Tippy content="Choose object to link this to an object, which can contain values on its own">
-                                            <span>Object</span>
+                                        <Tippy content={resourceTooltip}>
+                                            <span>Resource</span>
                                         </Tippy>
                                     </StyledDropdownItem>
                                     <StyledDropdownItem onClick={() => setValueType('literal')}>
-                                        <Tippy content="Choose literal for values like numbers or plain text">
+                                        <Tippy content={literalTooltip}>
                                             <span>Literal</span>
                                         </Tippy>
                                     </StyledDropdownItem>
@@ -215,7 +258,7 @@ export default function AddValueTemplate(props) {
                         {valueType === 'object' ? (
                             <AutoComplete
                                 requestUrl={resourcesUrl}
-                                excludeClasses={`${process.env.REACT_APP_CLASSES_CONTRIBUTION},${process.env.REACT_APP_CLASSES_PROBLEM},${process.env.REACT_APP_CLASSES_CONTRIBUTION_TEMPLATE}`}
+                                excludeClasses={`${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.CONTRIBUTION_TEMPLATE}`}
                                 optionsClass={props.valueClass ? props.valueClass.id : undefined}
                                 placeholder="Enter a resource"
                                 onItemSelected={i => {
@@ -225,6 +268,8 @@ export default function AddValueTemplate(props) {
                                 onInput={(e, value) => setInputValue(e ? e.target.value : value)}
                                 value={inputValue}
                                 additionalData={props.newResources}
+                                autoLoadOption={props.valueClass ? true : false}
+                                openMenuOnFocus={true}
                                 disableBorderRadiusRight
                                 disableBorderRadiusLeft={!props.valueClass}
                                 cssClasses="form-control-sm"
@@ -238,6 +283,7 @@ export default function AddValueTemplate(props) {
                                     }
                                 }}
                                 innerRef={ref => (resourceInputRef.current = ref)}
+                                handleCreateExistingLabel={handleCreateExistingLabel}
                             />
                         ) : (
                             <InputField
@@ -272,11 +318,18 @@ export default function AddValueTemplate(props) {
                             </StyledButton>
                             <StyledButton
                                 outline
+                                disabled={!inputValue || disabledCreate}
                                 onClick={() => {
                                     onSubmit();
                                 }}
                             >
-                                Create
+                                {disabledCreate ? (
+                                    <Tippy content="Please use the existing research problem that has this label." arrow={true}>
+                                        <span>Create</span>
+                                    </Tippy>
+                                ) : (
+                                    'Create'
+                                )}
                             </StyledButton>
                         </InputGroupAddon>
                     </InputGroup>

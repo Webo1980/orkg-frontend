@@ -10,6 +10,7 @@ export default {
     ADD_RESOURCE: '/addResource',
     PREDICATES: '/predicates',
     PREDICATE: '/predicate/:id',
+    CLASSES: '/classes',
     CLASS: '/class/:id',
     CONTRIBUTION_TEMPLATES: '/templates',
     CONTRIBUTION_TEMPLATE: '/template/:id?',
@@ -17,9 +18,9 @@ export default {
     OBSERVATORIES: '/observatories',
     ADD_ORGANIZATION: '/addOrganization',
     ORGANIZATION: '/organizations/:id',
-    ADD_OBSERVATORY: '/organizations/:id/addObsevatory',
+    ADD_OBSERVATORY: '/organizations/:id/addObservatory',
     ORGANIZATION_OBSERVATORIES: '/organizations/:id/observatories',
-    OBSERVATORY: '/obsevatory/:id',
+    OBSERVATORY: '/observatory/:id',
     ADD_PAPER: {
         GENERAL_DATA: '/add-paper'
     },
@@ -38,5 +39,6 @@ export default {
     TPDL: '/tpdl',
     STATS: '/stats',
     CHANGELOG: '/changelog',
-    FEATURED_COMPARISONS: '/featured-comparisons'
+    FEATURED_COMPARISONS: '/featured-comparisons',
+    PDF_ANNOTATION: '/pdf-annotation'
 };

@@ -2,14 +2,32 @@ import capitalize from 'capitalize';
 import queryString from 'query-string';
 import { flattenDepth, uniq } from 'lodash';
 import rdf from 'rdf';
-
-export const popupDelay = process.env.REACT_APP_POPUP_DELAY;
+import { PREDICATES } from 'constants/graphSettings';
 
 export function hashCode(s) {
     return s.split('').reduce((a, b) => {
         a = (a << 5) - a + b.charCodeAt(0);
         return a & a;
     }, 0);
+}
+
+/**
+ * Parse comma separated values from the query string
+ *
+ * @param {String} locationSearch this.props.location.search
+ * @param {String} param parameter name
+ * @return {Array} the list of values
+ */
+
+export function getArrayParamFromQueryString(locationSearch, param) {
+    const values = queryString.parse(locationSearch, { arrayFormat: 'comma' })[param];
+    if (!values) {
+        return [];
+    }
+    if (typeof values === 'string' || values instanceof String) {
+        return [values];
+    }
+    return values;
 }
 
 export function groupBy(array, group) {
@@ -190,13 +208,13 @@ export const getPaperData = (id, label, paperStatements) => {
  */
 export const getComparisonData = (id, label, comparisonStatements) => {
     // description
-    const description = comparisonStatements.find(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_DESCRIPTION);
+    const description = comparisonStatements.find(statement => statement.predicate.id === PREDICATES.DESCRIPTION);
 
     // reference
-    const reference = comparisonStatements.find(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_REFERENCE);
+    const reference = comparisonStatements.find(statement => statement.predicate.id === PREDICATES.REFERENCE);
 
     // url
-    const url = comparisonStatements.find(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_URL);
+    const url = comparisonStatements.find(statement => statement.predicate.id === PREDICATES.URL);
 
     return {
         id,
@@ -478,15 +496,26 @@ export const similarPropertiesByLabel = (propertyLabel, propertyData) => {
     return uniq(result);
 };
 
+/**
+ * Compare input value to select options
+ * Builtins https://github.com/JedWatson/react-select/blob/d2a820efc70835adf864169eebc76947783a15e2/packages/react-select/src/Creatable.js
+ * @param {String} propertyLabel property label
+ * @param {Array} propertyData property comparison data
+ */
+export const compareOption = (inputValue = '', option) => {
+    const candidate = String(inputValue).toLowerCase();
+    const optionValue = String(option.value).toLowerCase();
+    const optionLabel = String(option.label).toLowerCase();
+    return optionValue === candidate || optionLabel === candidate;
+};
+
 /** Helper Functions to increase structure, readability and reuse **/
 /** ------------------------------------------------------------- **/
 // HERE THE INPUT IS 'paperStatements'  and output is based on some filtering
 
 export function getPublicationMonth(paperStatements) {
     // publication month
-    const publicationMonthStatements = paperStatements.filter(
-        statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_MONTH
-    );
+    const publicationMonthStatements = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_PUBLICATION_MONTH);
     let publicationMonthResourceId = 0;
     let publicationMonth = 0;
 
@@ -499,7 +528,7 @@ export function getPublicationMonth(paperStatements) {
 }
 
 export function getPublicationYear(paperStatements) {
-    let publicationYear = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_PUBLICATION_YEAR);
+    let publicationYear = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_PUBLICATION_YEAR);
     let publicationYearResourceId = 0;
     if (publicationYear.length > 0) {
         publicationYearResourceId = publicationYear[0].object.id;
@@ -512,7 +541,7 @@ export function getPublicationYear(paperStatements) {
 }
 
 function getURL(paperStatements) {
-    let url = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_URL);
+    let url = paperStatements.filter(statement => statement.predicate.id === PREDICATES.URL);
     let urlResourceId = 0;
 
     if (url.length > 0) {
@@ -526,7 +555,7 @@ function getURL(paperStatements) {
 
 function getPublishedIn(paperStatements) {
     // venue
-    let publishedIn = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_VENUE);
+    let publishedIn = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_VENUE);
 
     if (publishedIn.length > 0) {
         publishedIn = { ...publishedIn[0].object, statementId: publishedIn[0].id };
@@ -537,7 +566,7 @@ function getPublishedIn(paperStatements) {
 }
 
 function getResearchField(paperStatements) {
-    let researchField = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD);
+    let researchField = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_RESEARCH_FIELD);
     if (researchField.length > 0) {
         researchField = { ...researchField[0].object, statementId: researchField[0].id };
     }
@@ -545,7 +574,7 @@ function getResearchField(paperStatements) {
 }
 
 export function getAuthors(paperStatements) {
-    const authors = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_AUTHOR);
+    const authors = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_AUTHOR);
     const authorNamesArray = [];
     if (authors.length > 0) {
         for (const author of authors) {
@@ -563,7 +592,7 @@ export function getAuthors(paperStatements) {
 }
 
 function getDOI(paperStatements) {
-    let doi = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_DOI);
+    let doi = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_DOI);
     let doiResourceId = 0;
     if (doi.length > 0) {
         doiResourceId = doi[0].object.id;
@@ -579,7 +608,7 @@ function getDOI(paperStatements) {
 }
 
 function getContributions(paperStatements) {
-    const contributions = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_CONTRIBUTION);
+    const contributions = paperStatements.filter(statement => statement.predicate.id === PREDICATES.HAS_CONTRIBUTION);
     const contributionArray = [];
     if (contributions.length > 0) {
         for (const contribution of contributions) {
@@ -590,7 +619,7 @@ function getContributions(paperStatements) {
 }
 
 function getOrder(paperStatements) {
-    let order = paperStatements.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_ORDER);
+    let order = paperStatements.filter(statement => statement.predicate.id === PREDICATES.ORDER);
     if (order.length > 0) {
         order = order[0].object.label;
     } else {

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { PREDICATES, MISC } from 'constants/graphSettings';
 
 /* Bootstrap card column is not working correctly working with vertical alignment,
 thus used custom styling here */
@@ -92,7 +93,7 @@ class ResearchFieldCards extends Component {
     };
 
     componentDidMount() {
-        this.getFields(process.env.REACT_APP_RESEARCH_FIELD_MAIN, 'Main');
+        this.getFields(MISC.RESEARCH_FIELD_MAIN, 'Main');
         this.fetchResearchFieldsStats();
     }
 
@@ -137,7 +138,7 @@ class ResearchFieldCards extends Component {
                         });
                     }
 
-                    if (fieldId !== process.env.REACT_APP_RESEARCH_FIELD_MAIN) {
+                    if (fieldId !== MISC.RESEARCH_FIELD_MAIN) {
                         this.setState({
                             papers: null // to show loading indicator
                         });
@@ -150,7 +151,7 @@ class ResearchFieldCards extends Component {
                             desc: true
                         });
 
-                        papers = papers.filter(statement => statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_FIELD);
+                        papers = papers.filter(statement => statement.predicate.id === PREDICATES.HAS_RESEARCH_FIELD);
 
                         this.setState({
                             papers
@@ -188,14 +189,14 @@ class ResearchFieldCards extends Component {
         const showPapers = this.state.breadcrumb.length > 1;
 
         return (
-            <div className="mt-5">
+            <div className="mt-3">
                 {this.state.breadcrumb.map((field, index) => (
                     <BreadcrumbLink key={field.id} onClick={() => this.handleClickBreadcrumb(field.id, field.label)}>
                         {field.label} {index !== this.state.breadcrumb.length - 1 && <Icon icon={faAngleDoubleRight} />}
                     </BreadcrumbLink>
                 ))}
 
-                <hr className="mt-3 mb-5" />
+                <hr className="mt-3 mb-3" />
                 <div>
                     <TransitionGroup id="research-field-cards" className="mt-2 justify-content-center d-flex flex-wrap" exit={false}>
                         {this.state.researchFields.map(field => {

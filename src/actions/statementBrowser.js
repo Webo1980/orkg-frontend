@@ -1,7 +1,9 @@
 import * as type from './types.js';
 import { guid } from 'utils';
 import * as network from 'network';
-import { orderBy, uniq } from 'lodash';
+import { prefillStatements } from './addPaper';
+import { orderBy, uniq, isEqual } from 'lodash';
+import { PREDICATES, MISC, CLASSES } from 'constants/graphSettings';
 
 export const updateSettings = data => dispatch => {
     dispatch({
@@ -32,7 +34,7 @@ export const initializeWithoutContribution = data => dispatch => {
             label: label,
             existingResourceId: resourceId,
             resourceId: resourceId,
-            ...(rootNodeType === 'predicate' ? { classes: ['Predicate'] } : {})
+            ...(rootNodeType === 'predicate' ? { classes: [CLASSES.PREDICATE] } : {})
         })
     );
 
@@ -165,7 +167,7 @@ export function getReseachProblemsOfContribution(state, resourceId) {
     }
     if (resource && resource.propertyIds) {
         const researchProblemProperty = resource.propertyIds.find(
-            p => state.statementBrowser.properties.byId[p].existingPredicateId === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM
+            p => state.statementBrowser.properties.byId[p].existingPredicateId === PREDICATES.HAS_RESEARCH_PROBLEM
         );
         if (researchProblemProperty) {
             const resourcesId = state.statementBrowser.properties.byId[researchProblemProperty].valueIds
@@ -313,9 +315,18 @@ export function createProperty(data) {
             const resource = getState().statementBrowser.resources.byId[data.resourceId];
 
             if (resource && resource.propertyIds) {
-                const isExstingProperty = resource.propertyIds.find(
-                    p => getState().statementBrowser.properties.byId[p].existingPredicateId === data.existingPredicateId
-                );
+                const isExstingProperty = resource.propertyIds.find(p => {
+                    if (getState().statementBrowser.properties.byId[p].existingPredicateId === data.existingPredicateId) {
+                        if (data.range) {
+                            // if the range is set check the equality also
+                            return isEqual(data.range, getState().statementBrowser.properties.byId[p].range) ? true : false;
+                        } else {
+                            return true;
+                        }
+                    } else {
+                        return false;
+                    }
+                });
                 if (isExstingProperty) {
                     // Property already exists
                     return null;
@@ -642,6 +653,87 @@ export function fetchTemplateIfNeeded(templateID) {
 }
 
 /**
+ * fill a resource with a template
+ *
+ * @param {String} templateID - Template ID
+ * @param {String} selectedResource - The resource to fill with the template
+ * @param {Boolean} syncBackend - syncBackend
+ * @return {Promise} Promise object
+ */
+export function fillResourceWithTemplate({ templateID, selectedResource, syncBackend = false }) {
+    return async (dispatch, getState) => {
+        return dispatch(fetchTemplateIfNeeded(templateID)).then(async templateDate => {
+            const template = templateDate;
+            // Check if it's a contribution template
+            if (template && template.predicate) {
+                // TODO : handle the case where the template isFetching
+                if (template.predicate.id === PREDICATES.HAS_CONTRIBUTION) {
+                    // Add properties
+                    if (template.components && template.components.length > 0) {
+                        const statements = { properties: [], values: [] };
+                        for (const component of template.components) {
+                            statements['properties'].push({
+                                existingPredicateId: component.property.id,
+                                label: component.property.label,
+                                range: component.value ? component.value : null,
+                                validationRules: component.validationRules
+                            });
+                        }
+                        dispatch(prefillStatements({ statements, resourceId: selectedResource, syncBackend: syncBackend }));
+                    }
+                } else {
+                    // Add template to the statement browser
+                    const statements = { properties: [], values: [] };
+                    const pID = guid();
+                    const vID = guid();
+                    const rID = guid();
+                    let newObject = null;
+                    statements['properties'].push({
+                        propertyId: pID,
+                        existingPredicateId: template.predicate.id,
+                        label: template.predicate.label,
+                        isTemplate: true,
+                        isAnimated: false,
+                        canDuplicate: true
+                    });
+                    if (syncBackend) {
+                        newObject = await network.createResource(template.label, template.class ? [template.class.id] : []);
+                    }
+                    statements['values'].push({
+                        valueId: vID,
+                        label: template.label,
+                        existingResourceId: newObject ? newObject.id : rID,
+                        type: 'object',
+                        propertyId: pID,
+                        classes: template.class ? [template.class.id] : []
+                    });
+                    await dispatch(prefillStatements({ statements, resourceId: selectedResource, syncBackend: syncBackend }));
+                    // Add properties
+                    if (template.components && template.components.length > 0) {
+                        const statements = { properties: [], values: [] };
+                        for (const component of template.components) {
+                            statements['properties'].push({
+                                existingPredicateId: component.property.id,
+                                label: component.property.label,
+                                validationRules: component.validationRules
+                            });
+                        }
+                        await dispatch(
+                            prefillStatements({
+                                statements,
+                                resourceId: newObject ? newObject.id : rID,
+                                syncBackend: syncBackend
+                            })
+                        );
+                    }
+                }
+            }
+            return Promise.resolve();
+        });
+    };
+}
+
+/**
  * Check if the class template should be fetched
  *
  * @param {Object} state - Current state of the Store
@@ -710,7 +802,8 @@ export function selectResource(data) {
             type: type.ADD_RESOURCE_HISTORY,
             payload: {
                 resourceId: data.resourceId,
-                label: data.label
+                label: data.label,
+                propertyLabel: data.propertyLabel
             }
         });
 
@@ -788,7 +881,7 @@ export const fetchStatementsForResource = data => {
                 });
                 if (rootNodeType === 'predicate') {
                     // get templates of classes
-                    const predicateClass = dispatch(fetchTemplatesofClassIfNeeded(process.env.REACT_APP_CLASSES_PREDICATE));
+                    const predicateClass = dispatch(fetchTemplatesofClassIfNeeded(CLASSES.PREDICATE));
                     promises = Promise.all([predicateClass, resourceStatementsPromise]);
                 } else {
                     let resourceClasses = response.classes ?? [];
@@ -828,7 +921,7 @@ export const fetchStatementsForResource = data => {
                             let propertyId = guid();
                             const valueId = guid();
                             // filter out research problem to show differently
-                            if (isContribution && statement.predicate.id === process.env.REACT_APP_PREDICATES_HAS_RESEARCH_PROBLEM) {
+                            if (isContribution && statement.predicate.id === PREDICATES.HAS_RESEARCH_PROBLEM) {
                                 researchProblems.push({
                                     label: statement.object.label,
                                     id: statement.object.id,
@@ -866,7 +959,7 @@ export const fetchStatementsForResource = data => {
                                         type: statement.object._class === 'resource' ? 'object' : statement.object._class, // TODO: change 'object' to 'resource' (wrong term used here, since it is always an object)
                                         classes: statement.object.classes ? statement.object.classes : [],
                                         ...(statement.object._class === 'literal' && {
-                                            datatype: statement.object.datatype ?? process.env.REACT_APP_DEFAULT_LITERAL_DATATYPE
+                                            datatype: statement.object.datatype ?? MISC.DEFAULT_LITERAL_DATATYPE
                                         }),
                                         isExistingValue: true,
                                         existingStatement: true,

@@ -16,6 +16,7 @@ import { uniq } from 'lodash';
 import format from 'string-format';
 import ValueItemTemplate from './ValueItemTemplate';
 import PropTypes from 'prop-types';
+import { CLASSES, PREDICATES } from 'constants/graphSettings';
 
 export default function ValueItem(props) {
     const [modal, setModal] = useState(false);
@@ -129,7 +130,8 @@ export default function ValueItem(props) {
         props.selectResource({
             increaseLevel: true,
             resourceId: props.value.resourceId,
-            label: props.value.label
+            label: props.value.label,
+            propertyLabel: props.properties.byId[props.propertyId].label
         });
     };
 
@@ -143,7 +145,8 @@ export default function ValueItem(props) {
         props.selectResource({
             increaseLevel: true,
             resourceId: ressource.id,
-            label: ressource.rlabel ? ressource.rlabel : ressource.label
+            label: ressource.rlabel ? ressource.rlabel : ressource.label,
+            propertyLabel: props.properties.byId[props.propertyId].label
         });
 
         props.fetchStatementsForResource({
@@ -208,7 +211,7 @@ export default function ValueItem(props) {
                     '?q=' +
                     encodeURIComponent(value) +
                     queryParams +
-                    `&exclude=${encodeURIComponent(process.env.REACT_APP_CLASSES_CONTRIBUTION + ',' + process.env.REACT_APP_CLASSES_PROBLEM)}`
+                    `&exclude=${encodeURIComponent(CLASSES.CONTRIBUTION + ',' + CLASSES.PROBLEM)}`
             );
             responseJson = await IdMatch(value, responseJson);
 
@@ -252,13 +255,13 @@ export default function ValueItem(props) {
         handleOnClick = handleResourceClick;
     }
 
-    const generatdFormatedlabel = labelFormat => {
+    const generatedFormattedLabel = labelFormat => {
         const resource = props.resources.byId[props.value.resourceId];
         const valueObject = {};
         for (const propertyId of resource.propertyIds) {
             const property = props.properties.byId[propertyId];
             valueObject[property.existingPredicateId] =
-                property.valueIds && property.valueIds.length > 0 ? props.values.byId[property.valueIds[0]].label : '';
+                property.valueIds && property.valueIds.length > 0 ? props.values.byId[property.valueIds[0]].label : property.label;
         }
         if (Object.keys(valueObject).length > 0) {
             return format(labelFormat, valueObject);
@@ -277,7 +280,7 @@ export default function ValueItem(props) {
                 }
             }
             templateIds = uniq(templateIds);
-            // check if it formated label
+            // check if it formatted label
             let hasLabelFormat = false;
             let labelFormat = '';
             for (const templateId of templateIds) {
@@ -298,10 +301,10 @@ export default function ValueItem(props) {
                         existingResourceId
                     })
                     .then(() => {
-                        return generatdFormatedlabel(labelFormat);
+                        return generatedFormattedLabel(labelFormat);
                     });
             } else {
-                return generatdFormatedlabel(labelFormat);
+                return generatedFormattedLabel(labelFormat);
             }
         } else {
             return props.value.label;
@@ -311,7 +314,7 @@ export default function ValueItem(props) {
     return (
         <>
             <ValueItemTemplate
-                isProperty={[process.env.REACT_APP_TEMPLATE_COMPONENT_PROPERTY, process.env.REACT_APP_TEMPLATE_OF_PREDICATE].includes(
+                isProperty={[PREDICATES.TEMPLATE_COMPONENT_PROPERTY, PREDICATES.TEMPLATE_OF_PREDICATE].includes(
                     props.properties.byId[props.propertyId].existingPredicateId
                 )}
                 id={props.id}

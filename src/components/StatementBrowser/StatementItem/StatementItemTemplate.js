@@ -9,7 +9,7 @@ import StatementOptionButton from 'components/StatementBrowser/StatementOptionBu
 import { StatementsGroupStyle, PropertyStyle, ValuesStyle } from 'components/StatementBrowser/styled';
 import { predicatesUrl } from 'network';
 import defaultProperties from 'components/StatementBrowser/AddProperty/helpers/defaultProperties';
-import AutoComplete from 'components/StatementBrowser/AutoComplete';
+import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
@@ -115,6 +115,7 @@ export default function StatementItemTemplate(props) {
                                 components={props.components}
                                 contextStyle="Template"
                                 propertyId={props.id}
+                                resourceId={props.resourceId}
                                 syncBackend={props.syncBackend}
                             />
                         )}
@@ -143,5 +144,6 @@ StatementItemTemplate.propTypes = {
     propertiesAsLinks: PropTypes.bool.isRequired,
     components: PropTypes.array.isRequired,
     canAddValue: PropTypes.bool.isRequired,
-    canDeleteProperty: PropTypes.bool.isRequired
+    canDeleteProperty: PropTypes.bool.isRequired,
+    resourceId: PropTypes.string
 };
