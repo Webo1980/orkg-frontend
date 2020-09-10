@@ -1,7 +1,7 @@
 import { Cookies } from 'react-cookie';
 import queryString from 'query-string';
 import { orderBy } from 'lodash';
-import { sortMethod } from 'utils';
+import { sortMethod, updateQueryStringParameter } from 'utils';
 import { PREDICATES, MISC, CLASSES } from 'constants/graphSettings';
 export const url = `${process.env.REACT_APP_SERVER_URL}api/`;
 export const similaireServiceUrl = process.env.REACT_APP_SIMILARITY_SERVICE_URL;
@@ -30,7 +30,7 @@ export const submitGetRequest = (url, headers, send_token = false) => {
         throw new Error('Cannot submit GET request. URL is null or undefined.');
     }
 
-    const myHeaders = headers ? new Headers(headers) : {};
+    const myHeaders = headers ? new Headers(headers) : new Headers();
 
     if (send_token) {
         const cookies = new Cookies();
@@ -40,8 +40,12 @@ export const submitGetRequest = (url, headers, send_token = false) => {
         }
     }
 
+    // Add timestamp to prevent the browser from using a cached version
+    const timestamp = new Date().getTime();
+    const urlNoCache = updateQueryStringParameter(url, 'timestamp', timestamp);
+
     return new Promise((resolve, reject) => {
-        fetch(url, {
+        fetch(urlNoCache, {
             method: 'GET',
             headers: myHeaders
         })
