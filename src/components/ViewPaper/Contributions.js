@@ -171,7 +171,7 @@ class Contributions extends Component {
                             )}
                             {!this.state.loading && (
                                 <StyledHorizontalContributionsList className={!this.props.enableEdit && 'noEdit'}>
-                                    {this.props.contributions.map(contribution => {
+                                    {this.props.contributions && this.props.contributions.length > 0 && (this.props.enableEdit || this.props.contributions[0].label!=='Contribution 1' || this.props.contributions.length > 1) && this.props.contributions.map(contribution => {
                                         return (
                                             <ContributionItemList
                                                 paperId={this.props.paperId}
