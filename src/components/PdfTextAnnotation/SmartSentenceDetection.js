@@ -9,8 +9,10 @@ import { createGlobalStyle } from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
 import { setShowHighlights as setShowHighlightsAction, setSummaryFetched as setSummaryFetchedAction } from 'actions/pdfTextAnnotation';
 import { toast } from 'react-toastify';
-import { isString } from 'lodash';
+import { isString, merge, union } from 'lodash';
+import XRegExp from 'xregexp';
 
+merge(XRegExp, require('xregexp-lookbehind'));
 const ANNOTATION_RATIO = 0.08;
 const PROCESSING_SECONDS_PER_PAGE = 10;
 
@@ -173,10 +175,26 @@ const SmartSentenceDetection = props => {
          */
         const tokenizeSentence = text => {
             try {
-                const tokens = text.match(
+                /*
+                let tokens = text.match(
                     // eslint-disable-next-line no-useless-escape
                     /(?<=\s+|^)[\"\'\‘\“\'\"\[\(\{\⟨](.*?[.?!])(\s[.?!])*[\"\'\’\”\'\"\]\)\}\⟩](?=\s+|$)|(?<=\s+|^)\S(.*?[.?!])(\s[.?!])*(?=\s+|$)/g
                 );
+                */
+                // Regex part 1
+                // eslint-disable-next-line no-useless-escape
+                const part1lb = /(?<=\s+|^)/g;
+                // eslint-disable-next-line no-useless-escape
+                const part1regex = /[\"\'\‘\“\'\"\[\(\{\⟨](.*?[.?!])(\s[.?!])*[\"\'\’\”\'\"\]\)\}\⟩](?=\s+|$)/g;
+                const tokensPart1 = XRegExp.matchAllLb(text, part1lb, part1regex);
+                // Regex part 2
+                // eslint-disable-next-line no-useless-escape
+                const part2lb = /(?<=\s+|^)/g;
+                // eslint-disable-next-line no-useless-escape
+                const part2regex = /\S(.*?[.?!])(\s[.?!])*(?=\s+|$)/g;
+                const tokensPart2 = XRegExp.matchAllLb(text, part2lb, part2regex);
+                // concatenate
+                const tokens = union(tokensPart1, tokensPart2);
 
                 if (!tokens) {
                     return [text];
