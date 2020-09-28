@@ -23,6 +23,9 @@ class AddOrganization extends Component {
             previewSrc: '',
             editorState: 'edit'
         };
+        // eslint-disable-next-line no-useless-escape
+        const expression = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?/gi;
+        this.URLRegex = new RegExp(expression);
     }
 
     createNewOrganization = async () => {
@@ -31,7 +34,7 @@ class AddOrganization extends Component {
         const image = this.state.previewSrc;
         const url = this.state.url;
         if (value && value.length !== 0) {
-            if (url && url.match(/[-a-zA-Z0-9@:%_+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&//=]*)?/gi)) {
+            if (url && url.match(this.URLRegex)) {
                 if (image.length !== 0) {
                     try {
                         const responseJson = await createOrganization(value, image[0], this.props.user.id, url);
