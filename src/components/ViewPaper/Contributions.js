@@ -99,26 +99,34 @@ class Contributions extends Component {
                 contributionLabel: contributionResource.label
             });
         }
-        getSimilaireContribution(this.state.selectedContribution)
-            .then(similaireContributions => {
-                const similaireContributionsData = similaireContributions.map(paper => {
-                    // Fetch the data of each paper
-                    return getResource(paper.paperId).then(paperResource => {
-                        paper.title = paperResource.label;
-                        return paper;
+        // TODO: THIS IS DEVELOPMENT >>> REMOVE WHEN DONE
+        const showSimilar = false;
+        if (showSimilar) {
+            getSimilaireContribution(this.state.selectedContribution)
+                .then(similaireContributions => {
+                    const similaireContributionsData = similaireContributions.map(paper => {
+                        // Fetch the data of each paper
+                        return getResource(paper.paperId).then(paperResource => {
+                            paper.title = paperResource.label;
+                            return paper;
+                        });
                     });
-                });
-                Promise.all(similaireContributionsData).then(results => {
+                    Promise.all(similaireContributionsData).then(results => {
+                        this.setState({
+                            similaireContributions: results,
+                            isSimilaireContributionsLoading: false,
+                            isSimilaireContributionsFailedLoading: false
+                        });
+                    });
+                })
+                .catch(error => {
                     this.setState({
-                        similaireContributions: results,
+                        similaireContributions: [],
                         isSimilaireContributionsLoading: false,
-                        isSimilaireContributionsFailedLoading: false
+                        isSimilaireContributionsFailedLoading: true
                     });
                 });
-            })
-            .catch(error => {
-                this.setState({ similaireContributions: [], isSimilaireContributionsLoading: false, isSimilaireContributionsFailedLoading: true });
-            });
+        }
         this.setState({ loading: false });
     };
 
@@ -155,6 +163,7 @@ class Contributions extends Component {
 
     render() {
         const selectedContributionId = this.state.selectedContribution;
+        const showSimilar = false;
 
         let shared = 1;
         if (Object.keys(this.props.resources.byId).length !== 0 && (this.props.selectedResource || selectedContributionId)) {
@@ -305,51 +314,59 @@ class Contributions extends Component {
                                                 />
                                             )}
                                         </FormGroup>
-
-                                        <div>
-                                            <Title>Similar contributions</Title>
-                                            {this.state.isSimilaireContributionsLoading && (
-                                                <div>
-                                                    <ContentLoader height={10} width={100} speed={2} primaryColor="#f3f3f3" secondaryColor="#ecebeb">
-                                                        <rect x="0" y="0" rx="2" ry="2" width="32" height="10" />
-                                                        <rect x="33" y="0" rx="2" ry="2" width="32" height="10" />
-                                                        <rect x="66" y="0" rx="2" ry="2" width="32" height="10" />
-                                                    </ContentLoader>
-                                                </div>
-                                            )}
-                                            {!this.state.isSimilaireContributionsLoading && (
-                                                <>
-                                                    {!this.state.isSimilaireContributionsFailedLoading ? (
-                                                        <SimilarContributions
-                                                            similaireContributions={this.state.similaireContributions.slice(0, 3)}
-                                                        />
-                                                    ) : (
-                                                        <Alert color="light">
-                                                            Failed to connect to the similarity service, please try again later
-                                                        </Alert>
-                                                    )}
-                                                </>
-                                            )}
-                                            {this.state.similaireContributions.length > 0 && (
-                                                <Link
-                                                    className="clearfix"
-                                                    to={`${reverse(
-                                                        ROUTES.COMPARISON
-                                                    )}?contributions=${selectedContributionId},${this.state.similaireContributions
-                                                        .slice(0, 3)
-                                                        .map(s => s.contributionId)
-                                                        .join(',')}`}
-                                                >
-                                                    {/* TODO: use constants for URL */}
-                                                    <span
-                                                        style={{ margin: '7px 5px 0 0', fontSize: '95%' }}
-                                                        className="float-right btn btn-link p-0 border-0 align-baseline"
+                                        {/*TODO: THIS IS DEVELOPMENT >>> REMOVE WHEN DONE */}
+                                        {showSimilar && (
+                                            <div>
+                                                <Title>Similar contributions</Title>
+                                                {this.state.isSimilaireContributionsLoading && (
+                                                    <div>
+                                                        <ContentLoader
+                                                            height={10}
+                                                            width={100}
+                                                            speed={2}
+                                                            primaryColor="#f3f3f3"
+                                                            secondaryColor="#ecebeb"
+                                                        >
+                                                            <rect x="0" y="0" rx="2" ry="2" width="32" height="10" />
+                                                            <rect x="33" y="0" rx="2" ry="2" width="32" height="10" />
+                                                            <rect x="66" y="0" rx="2" ry="2" width="32" height="10" />
+                                                        </ContentLoader>
+                                                    </div>
+                                                )}
+                                                {!this.state.isSimilaireContributionsLoading && (
+                                                    <>
+                                                        {!this.state.isSimilaireContributionsFailedLoading ? (
+                                                            <SimilarContributions
+                                                                similaireContributions={this.state.similaireContributions.slice(0, 3)}
+                                                            />
+                                                        ) : (
+                                                            <Alert color="light">
+                                                                Failed to connect to the similarity service, please try again later
+                                                            </Alert>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {this.state.similaireContributions.length > 0 && (
+                                                    <Link
+                                                        className="clearfix"
+                                                        to={`${reverse(
+                                                            ROUTES.COMPARISON
+                                                        )}?contributions=${selectedContributionId},${this.state.similaireContributions
+                                                            .slice(0, 3)
+                                                            .map(s => s.contributionId)
+                                                            .join(',')}`}
                                                     >
-                                                        Compare these contributions
-                                                    </span>
-                                                </Link>
-                                            )}
-                                        </div>
+                                                        {/* TODO: use constants for URL */}
+                                                        <span
+                                                            style={{ margin: '7px 5px 0 0', fontSize: '95%' }}
+                                                            className="float-right btn btn-link p-0 border-0 align-baseline"
+                                                        >
+                                                            Compare these contributions
+                                                        </span>
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {selectedContributionId && <ContributionComparisons contributionId={selectedContributionId} />}
                                     </Form>

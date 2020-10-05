@@ -20,6 +20,7 @@ import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import PaperHeader from '../components/ViewPaper/PaperHeader';
 import { resetStatementBrowser, updateContributionLabel } from 'actions/statementBrowser';
 import { loadPaper, selectContribution, setPaperAuthors } from 'actions/viewPaper';
+import { updateMetaInformationStore, updateMetaInformationAuthors, resetMetaInformationStore } from 'actions/metaInformationActions';
 import GizmoGraphViewModal from '../components/ViewPaper/GraphView/GizmoGraphViewModal';
 import queryString from 'query-string';
 import { toast } from 'react-toastify';
@@ -94,6 +95,7 @@ class ViewPaper extends Component {
         const resourceId = this.props.match.params.resourceId;
 
         this.props.resetStatementBrowser();
+        this.props.resetMetaInformationStore();
         getResource(resourceId)
             .then(paperResource => {
                 this.processObservatoryInformation(paperResource, resourceId);
@@ -219,6 +221,10 @@ class ViewPaper extends Component {
     }
 
     processPaperStatements = (paperResource, paperStatements) => {
+        // save meta information statements
+        this.props.updateMetaInformationStore(paperStatements);
+
+        // create paperData
         const paperData = getPaperData_ViewPaper(paperResource.id, paperResource.label, paperStatements);
 
         // Set document title
@@ -266,6 +272,7 @@ class ViewPaper extends Component {
                 });
         }
         return Promise.all(authors).then(authorsORCID => {
+            this.props.updateMetaInformationAuthors(authorsORCID);
             const authorsArray = [];
             for (const author of this.props.viewPaper.authors) {
                 const orcid = authorsORCID.find(a => a.subject.id === author.id);
@@ -406,7 +413,11 @@ ViewPaper.propTypes = {
     location: PropTypes.object.isRequired,
     viewPaper: PropTypes.object.isRequired,
     loadPaper: PropTypes.func.isRequired,
-    setPaperAuthors: PropTypes.func.isRequired
+    setPaperAuthors: PropTypes.func.isRequired,
+    // extensions
+    updateMetaInformationStore: PropTypes.func.isRequired,
+    updateMetaInformationAuthors: PropTypes.func.isRequired,
+    resetMetaInformationStore: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -418,7 +429,11 @@ const mapDispatchToProps = dispatch => ({
     loadPaper: payload => dispatch(loadPaper(payload)),
     selectContribution: payload => dispatch(selectContribution(payload)),
     setPaperAuthors: payload => dispatch(setPaperAuthors(payload)),
-    updateContributionLabel: payload => dispatch(updateContributionLabel(payload))
+    updateContributionLabel: payload => dispatch(updateContributionLabel(payload)),
+    // extensions
+    updateMetaInformationStore: payload => dispatch(updateMetaInformationStore(payload)),
+    updateMetaInformationAuthors: payload => dispatch(updateMetaInformationAuthors(payload)),
+    resetMetaInformationStore: () => dispatch(resetMetaInformationStore())
 });
 
 export default connect(

@@ -7,6 +7,7 @@ import pdfTextAnnotation from './pdfTextAnnotation';
 import viewPaper from './viewPaper';
 import pdfAnnotation from './pdfAnnotation';
 import addTemplate from './addTemplate';
+import metaInformationStore from './metaInformationStore';
 
 export default history =>
     combineReducers({
@@ -14,6 +15,7 @@ export default history =>
         addPaper,
         viewPaper,
         statementBrowser,
+        metaInformationStore,
         pdfAnnotation,
         auth,
         addTemplate,
