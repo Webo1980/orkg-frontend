@@ -9,7 +9,7 @@ import useResearchProblemResearchFields from 'components/ResearchProblem/hooks/u
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { reverse } from 'named-urls';
-//import LeaderBoard from 'components/ResearchProblem/LeaderBoard';
+import LeaderBoard from 'components/ResearchProblem/LeaderBoard';
 import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import PaperCard from 'components/PaperCard/PaperCard';
 import ExternalDescription from 'components/ResearchProblem/ExternalDescription';
@@ -70,7 +70,7 @@ function ResearchProblem(props) {
                             )}
                         </div>
                         <Row className="mt-3">
-                            <Col md="4" className="d-flex">
+                            <Col md="6" className="d-flex">
                                 <div className="box rounded-lg p-4 flex-grow-1">
                                     <h5>Sub-problems</h5>
                                     {researchProblemData.subProblems && researchProblemData.subProblems.length > 0 && (
@@ -87,7 +87,29 @@ function ResearchProblem(props) {
                                     )}
                                 </div>
                             </Col>
-                            <Col md="4" className="d-flex">
+                            <Col md="6" className="d-flex">
+                                <div className="box rounded-lg p-4 flex-grow-1">
+                                    <h5>Super-problems</h5>
+                                    {researchProblemData.superProblems && researchProblemData.superProblems.length > 0 && (
+                                        <>
+                                            {researchProblemData.superProblems.map(supP => (
+                                                <div key={`suprp${supP.id}`}>
+                                                    <Link to={reverse(ROUTES.RESEARCH_PROBLEM, { researchProblemId: supP.id })}>{supP.label}</Link>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
+                                    {researchProblemData.superProblems && researchProblemData.superProblems.length === 0 && (
+                                        <>No super research problems.</>
+                                    )}
+                                </div>
+                            </Col>
+                        </Row>
+                        <Row className="mt-3">
+                            <Col md="6" className="d-flex">
+                                <LeaderBoard />
+                            </Col>
+                            <Col md="6" className="d-flex">
                                 <div className="box rounded-lg p-4 flex-grow-1">
                                     <h5>Research fields</h5>
                                     <div>
@@ -127,37 +149,7 @@ function ResearchProblem(props) {
                                     )}
                                 </div>
                             </Col>
-                            <Col md="4" className="d-flex">
-                                <div className="box rounded-lg p-4 flex-grow-1">
-                                    <h5>Super-problems</h5>
-                                    {researchProblemData.superProblems && researchProblemData.superProblems.length > 0 && (
-                                        <>
-                                            {researchProblemData.superProblems.map(supP => (
-                                                <div key={`suprp${supP.id}`}>
-                                                    <Link to={reverse(ROUTES.RESEARCH_PROBLEM, { researchProblemId: supP.id })}>{supP.label}</Link>
-                                                </div>
-                                            ))}
-                                        </>
-                                    )}
-                                    {researchProblemData.superProblems && researchProblemData.superProblems.length === 0 && (
-                                        <>No super research problems.</>
-                                    )}
-                                </div>
-                            </Col>
                         </Row>
-                        {/* 
-                        <Row className="mt-3">
-                            <Col md="4" className="d-flex">
-                                <LeaderBoard />
-                            </Col>
-                            <Col md="4" className="d-flex">
-                                <div className="box rounded-lg p-4 flex-grow-1">
-                                    <h5>Managed by</h5>
-                                    Coming soon
-                                </div>
-                            </Col>
-                        </Row>
-                        */}
                     </Container>
 
                     <Container className="p-0">

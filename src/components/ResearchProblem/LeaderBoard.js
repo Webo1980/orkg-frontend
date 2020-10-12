@@ -48,8 +48,9 @@ function LeaderBoard() {
                                                         subTitle: `${user.contributions} contributions`
                                                     }}
                                                 />
-
-                                                <hr style={{ width: '90%', margin: '10px auto' }} />
+                                                {index !== contributors.slice(0, 3).length - 1 && (
+                                                    <hr style={{ width: '90%', margin: '10px auto' }} />
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -70,6 +71,13 @@ function LeaderBoard() {
                         {isLoadingContributors && currentPageContributors === 1 && (
                             <div className="text-center mt-4 mb-4">Loading contributors ...</div>
                         )}
+                        {contributors.length === 0 && (
+                            <div className="text-center mt-4 mb-4">
+                                No contributors yet!
+                                <br />
+                                <small>Be the first by adding a research paper that addresses this research problem</small>
+                            </div>
+                        )}
                         {contributors.length > 3 && (
                             <Modal isOpen={isContributorsModalOpen} toggle={() => setIsContributorsModalOpen(v => !v)} size="lg">
                                 <ModalHeader toggle={() => setIsContributorsModalOpen(v => !v)}>Contributors Leaderboard</ModalHeader>
@@ -84,8 +92,7 @@ function LeaderBoard() {
                                                             subTitle: `${user.contributions} contributions`
                                                         }}
                                                     />
-
-                                                    <hr style={{ width: '90%', margin: '10px auto' }} />
+                                                    {index !== contributors.length - 1 && <hr style={{ width: '90%', margin: '10px auto' }} />}
                                                 </div>
                                             );
                                         })}
@@ -120,7 +127,7 @@ function LeaderBoard() {
                                         return (
                                             <div key={`oc${index}`}>
                                                 <AuthorCard author={user.author} subTitle={`${user.papers} paper`} />
-                                                <hr style={{ width: '90%', margin: '10px auto' }} />
+                                                {index !== authors.slice(0, 3).length - 1 && <hr style={{ width: '90%', margin: '10px auto' }} />}
                                             </div>
                                         );
                                     })}
@@ -149,7 +156,7 @@ function LeaderBoard() {
                                                 <div key={`moc${index}`}>
                                                     <AuthorCard author={user.author} subTitle={`${user.papers} paper`} />
 
-                                                    <hr style={{ width: '90%', margin: '10px auto' }} />
+                                                    {index !== authors.length - 1 && <hr style={{ width: '90%', margin: '10px auto' }} />}
                                                 </div>
                                             );
                                         })}
