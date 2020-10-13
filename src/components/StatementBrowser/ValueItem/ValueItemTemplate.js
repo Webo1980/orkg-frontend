@@ -14,6 +14,7 @@ import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 import { CLASSES } from 'constants/graphSettings';
+import { faWikipediaW } from '@fortawesome/free-brands-svg-icons';
 
 export default function ValueItemTemplate(props) {
     const [disableHover, setDisableHover] = useState(false);
@@ -64,7 +65,6 @@ export default function ValueItemTemplate(props) {
             props.toggleEditValue({ id: props.id });
         }
     };
-
     return (
         <ValueItemStyle>
             {!props.value.isEditing ? (
@@ -89,11 +89,9 @@ export default function ValueItemTemplate(props) {
                             )}
                         </Button>
                     )}
-
                     {props.resource && props.value.type === 'object' && !props.resource.isFetching && props.resourcesAsLinks && (
                         <Link to={reverse(ROUTES.RESOURCE, { id: props.value.resourceId })}>{props.value.label}</Link>
                     )}
-
                     {!props.resource && props.value.type === 'class' && props.resourcesAsLinks && (
                         <Link to={reverse(ROUTES.CLASS, { id: props.value.resourceId })}>{props.value.label}</Link>
                     )}
@@ -106,7 +104,9 @@ export default function ValueItemTemplate(props) {
 
                     {props.value.type === 'literal' && (
                         <div className="literalLabel">
-                            <ValuePlugins type="literal">{props.value.label}</ValuePlugins>
+                            <ValuePlugins type="literal" hasWikiDesc={props.hasWikipediaDescription}>
+                                {props.value.label}
+                            </ValuePlugins>
                         </div>
                     )}
 
@@ -194,5 +194,6 @@ ValueItemTemplate.propTypes = {
     openExistingResourcesInDialog: PropTypes.bool,
     handleDatasetClick: PropTypes.func.isRequired,
     handleDeleteValue: PropTypes.func.isRequired,
-    resourcesAsLinks: PropTypes.bool.isRequired
+    resourcesAsLinks: PropTypes.bool.isRequired,
+    hasWikipediaDescription: PropTypes.bool.isRequired
 };

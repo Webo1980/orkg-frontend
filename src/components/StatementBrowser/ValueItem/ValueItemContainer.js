@@ -18,7 +18,10 @@ const mapStateToProps = (state, props) => {
     let valueClass = getValueClass(props.components);
 
     valueClass = valueClass ? valueClass : predicate.range ? predicate.range : null;
-
+    let hasWikiDesc = false;
+    if (predicate.existingPredicateId === 'P28007') {
+        hasWikiDesc = true;
+    }
     return {
         resources: state.statementBrowser.resources,
         values: state.statementBrowser.values,
@@ -29,6 +32,7 @@ const mapStateToProps = (state, props) => {
         classes: state.statementBrowser.classes,
         templates: state.statementBrowser.templates,
         valueClass: valueClass,
+        hasWikipediaDescription: hasWikiDesc,
         isInlineResource: isInlineResource(state, valueClass)
     };
 };

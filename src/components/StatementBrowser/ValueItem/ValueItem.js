@@ -309,7 +309,6 @@ export default function ValueItem(props) {
             return props.value.label;
         }
     };
-
     return (
         <>
             <ValueItemTemplate
@@ -335,6 +334,7 @@ export default function ValueItem(props) {
                 getLabel={getLabel}
                 components={props.components}
                 valueClass={props.valueClass}
+                hasWikipediaDescription={props.hasWikipediaDescription}
                 isInlineResource={props.isInlineResource}
             />
 
@@ -390,6 +390,7 @@ ValueItem.propTypes = {
     contextStyle: PropTypes.string.isRequired,
     showHelp: PropTypes.bool,
     resourcesAsLinks: PropTypes.bool.isRequired,
+    hasWikipediaDescription: PropTypes.bool.isRequired,
 
     components: PropTypes.array.isRequired,
     valueClass: PropTypes.object,
