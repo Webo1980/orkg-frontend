@@ -5,8 +5,6 @@ import Tippy from '@tippy.js/react';
 import styled from 'styled-components';
 import { renderToString } from 'react-dom/server';
 import { faWikipediaW } from '@fortawesome/free-brands-svg-icons';
-import Tooltip from '../../Utils/Tooltip';
-import { Tooltip as ReactstrapTooltip } from 'reactstrap';
 
 const WikiLogo = styled.span`
     color: #000000;
@@ -21,16 +19,22 @@ export default class WikiPediaLogo extends Component {
     constructor(props) {
         super(props);
 
+        this.componentMounted = false;
         this.state = {
             message: 'Loading...'
         };
     }
 
     componentDidMount() {
+        this.componentMounted = true;
         const providedURL = this.props.children;
         const wikipediaTitle = providedURL.substr(providedURL.indexOf('/wiki/')).replace('/wiki/', '');
         const urlToFetch = `https://en.wikipedia.org/api/rest_v1/page/summary/${wikipediaTitle}?origin=*`;
         this.executeLookup(urlToFetch);
+    }
+
+    componentWillUnmount() {
+        this.componentMounted = false;
     }
 
     executeLookup = lookupURL => {
@@ -41,15 +45,21 @@ export default class WikiPediaLogo extends Component {
             })
             .then(function(data) {
                 if (data.extract) {
-                    that.setState({
-                        message: data.extract
-                    });
+                    if (that.componentMounted) {
+                        that.setState({
+                            message: data.extract
+                        });
+                    }
                 } else {
-                    that.setState({ message: 'Failed loading summary from Wikipedia' });
+                    if (that.componentMounted) {
+                        that.setState({ message: 'Failed loading summary from Wikipedia' });
+                    }
                 }
             })
             .catch(error => {
-                this.setState({ message: 'Failed loading summary from Wikipedia' });
+                if (that.componentMounted) {
+                    this.setState({ message: 'Failed loading summary from Wikipedia' });
+                }
             });
     };
 

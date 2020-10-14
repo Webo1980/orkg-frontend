@@ -24,10 +24,8 @@ const mapStateToProps = (state, props) => {
             hasWikiDesc = true;
         }
     } else {
-        console.log('>>>> PUT THE HIGHER ORDER ELEMENT TO IT ');
         hasWikiDesc = true;
         isHigherOrderResource = true;
-        console.log(props.hasWikipediaDescription.wikiPediaLink);
     }
 
     valueClass = valueClass ? valueClass : predicate.range ? predicate.range : null;

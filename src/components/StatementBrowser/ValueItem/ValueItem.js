@@ -392,7 +392,7 @@ ValueItem.propTypes = {
     showHelp: PropTypes.bool,
     resourcesAsLinks: PropTypes.bool.isRequired,
     hasWikipediaDescription: PropTypes.bool.isRequired,
-    wikipediaLink: PropTypes.bool.isRequired,
+    wikipediaLink: PropTypes.string,
 
     components: PropTypes.array.isRequired,
     valueClass: PropTypes.object,

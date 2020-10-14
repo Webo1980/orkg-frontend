@@ -14,7 +14,6 @@ import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 import { CLASSES } from 'constants/graphSettings';
-import { faWikipediaW } from '@fortawesome/free-brands-svg-icons';
 
 export default function ValueItemTemplate(props) {
     const [disableHover, setDisableHover] = useState(false);

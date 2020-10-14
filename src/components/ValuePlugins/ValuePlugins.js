@@ -9,7 +9,6 @@ import WikiPediaLogo from './WikiPediaLookup/WikiPediaLookup';
 
 class ValuePlugins extends Component {
     render() {
-        console.log(this.props);
         if (this.props.hasWikiDesc) {
             // TODO: we know this is a link, we should be able to render it without Video
             return (
