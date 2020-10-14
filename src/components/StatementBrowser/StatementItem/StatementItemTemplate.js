@@ -92,6 +92,9 @@ export default function StatementItemTemplate(props) {
                                 const value = props.values.byId[valueId];
                                 let isHigherOrderResourceForWikiPediaDescription = false;
                                 let wikiPediaLink = '';
+
+                                /** ------------ Check for optimization ------------------------------------**/
+                                // logic for identifying wikipedia description to get the link and set it to the resource
                                 if (value.type === 'object' && value.resourceId && props.resources) {
                                     const rId = value.resourceId;
                                     const thatResource = props.resources.byId[rId];
@@ -99,6 +102,7 @@ export default function StatementItemTemplate(props) {
                                     if (thatResource.existingResourceId) {
                                         const propIds = thatResource.propertyIds;
                                         if (propIds.length > 0) {
+                                            /** this might be costly **/
                                             propIds.forEach(propId => {
                                                 // get the property by Id;
                                                 const testProp = props.allProperties.byId[propId];
@@ -106,6 +110,7 @@ export default function StatementItemTemplate(props) {
                                                     isHigherOrderResourceForWikiPediaDescription = true;
                                                     // fetching the link :
                                                     // go through all values of the testProp;
+                                                    /** this might be costly   << assuming there is only one val **/
                                                     testProp.valueIds.forEach(vId => {
                                                         const val = props.values.byId[vId];
                                                         // TODO : add regex ?
