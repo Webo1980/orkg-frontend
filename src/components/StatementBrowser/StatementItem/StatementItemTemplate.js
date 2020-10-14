@@ -90,6 +90,33 @@ export default function StatementItemTemplate(props) {
                         {props.property.valueIds.length > 0 &&
                             props.property.valueIds.map((valueId, index) => {
                                 const value = props.values.byId[valueId];
+                                let isHigherOrderResourceForWikiPediaDescription = false;
+                                let wikiPediaLink = '';
+                                if (value.type === 'object' && value.resourceId && props.resources) {
+                                    const rId = value.resourceId;
+                                    const thatResource = props.resources.byId[rId];
+
+                                    if (thatResource.existingResourceId) {
+                                        const propIds = thatResource.propertyIds;
+                                        if (propIds.length > 0) {
+                                            propIds.forEach(propId => {
+                                                // get the property by Id;
+                                                const testProp = props.allProperties.byId[propId];
+                                                if (testProp.existingPredicateId === 'P28007') {
+                                                    isHigherOrderResourceForWikiPediaDescription = true;
+                                                    // fetching the link :
+                                                    // go through all values of the testProp;
+                                                    testProp.valueIds.forEach(vId => {
+                                                        const val = props.values.byId[vId];
+                                                        // TODO : add regex ?
+                                                        wikiPediaLink = val.label;
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+
                                 return (
                                     <ValueItem
                                         value={value}
@@ -101,6 +128,7 @@ export default function StatementItemTemplate(props) {
                                         contextStyle="Template"
                                         showHelp={props.showValueHelp && index === 0 ? true : false}
                                         components={props.components}
+                                        hasWikipediaDescription={{ isHigherOrderResourceForWikiPediaDescription, wikiPediaLink }}
                                     />
                                 );
                             })}
@@ -145,5 +173,7 @@ StatementItemTemplate.propTypes = {
     components: PropTypes.array.isRequired,
     canAddValue: PropTypes.bool.isRequired,
     canDeleteProperty: PropTypes.bool.isRequired,
-    resourceId: PropTypes.string
+    resourceId: PropTypes.string,
+    resources: PropTypes.object,
+    allProperties: PropTypes.object
 };

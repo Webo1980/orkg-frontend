@@ -9,6 +9,7 @@ import WikiPediaLogo from './WikiPediaLookup/WikiPediaLookup';
 
 class ValuePlugins extends Component {
     render() {
+        console.log(this.props);
         if (this.props.hasWikiDesc) {
             // TODO: we know this is a link, we should be able to render it without Video
             return (
@@ -17,8 +18,10 @@ class ValuePlugins extends Component {
                         <Video type={this.props.type} options={this.props.options}>
                             {this.props.children}
                         </Video>
-                    </Link>{' '}
-                    <WikiPediaLogo>{this.props.children}</WikiPediaLogo>
+                    </Link>
+                    {/*// check if this is an object and higherOrder*/}
+                    {this.props.wikipediaLink && this.props.type === 'resource' && <WikiPediaLogo>{this.props.wikipediaLink}</WikiPediaLogo>}
+                    {this.props.type === 'literal' && <WikiPediaLogo>{this.props.children}</WikiPediaLogo>}
                 </>
             );
         } else {
@@ -43,7 +46,8 @@ class ValuePlugins extends Component {
 ValuePlugins.propTypes = {
     children: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
     type: PropTypes.oneOf(['resource', 'literal']),
-    hasWikiDesc: PropTypes.bool.isRequired,
+    hasWikiDesc: PropTypes.bool,
+    wikipediaLink: PropTypes.string,
     options: PropTypes.object.isRequired
 };
 

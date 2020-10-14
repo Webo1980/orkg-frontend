@@ -158,6 +158,8 @@ export default function StatementItem(props) {
             canAddValue={props.canAddValue}
             canDeleteProperty={props.canDeleteProperty}
             resourceId={props.resourceId}
+            resources={props.resources}
+            allProperties={props.properties}
         />
     );
 }

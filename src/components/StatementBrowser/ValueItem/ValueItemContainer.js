@@ -17,11 +17,21 @@ const mapStateToProps = (state, props) => {
     const predicate = state.statementBrowser.properties.byId[props.propertyId ? props.propertyId : props.selectedProperty];
     let valueClass = getValueClass(props.components);
 
-    valueClass = valueClass ? valueClass : predicate.range ? predicate.range : null;
     let hasWikiDesc = false;
-    if (predicate.existingPredicateId === 'P28007') {
+    let isHigherOrderResource = false;
+    if (!props.hasWikipediaDescription.isHigherOrderResourceForWikiPediaDescription) {
+        if (predicate.existingPredicateId === 'P28007') {
+            hasWikiDesc = true;
+        }
+    } else {
+        console.log('>>>> PUT THE HIGHER ORDER ELEMENT TO IT ');
         hasWikiDesc = true;
+        isHigherOrderResource = true;
+        console.log(props.hasWikipediaDescription.wikiPediaLink);
     }
+
+    valueClass = valueClass ? valueClass : predicate.range ? predicate.range : null;
+
     return {
         resources: state.statementBrowser.resources,
         values: state.statementBrowser.values,
@@ -33,6 +43,8 @@ const mapStateToProps = (state, props) => {
         templates: state.statementBrowser.templates,
         valueClass: valueClass,
         hasWikipediaDescription: hasWikiDesc,
+        wikipediaLink: props.hasWikipediaDescription.wikiPediaLink,
+        isHigherOrderResource: isHigherOrderResource,
         isInlineResource: isInlineResource(state, valueClass)
     };
 };

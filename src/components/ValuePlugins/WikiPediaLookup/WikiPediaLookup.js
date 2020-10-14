@@ -13,6 +13,7 @@ const WikiLogo = styled.span`
     border: 1px solid gray;
     border-radius: 5px;
     padding: 2px;
+    margin-left: 5px;
     font-size: 18px;
 `;
 

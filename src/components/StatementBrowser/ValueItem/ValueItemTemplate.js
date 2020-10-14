@@ -65,6 +65,7 @@ export default function ValueItemTemplate(props) {
             props.toggleEditValue({ id: props.id });
         }
     };
+
     return (
         <ValueItemStyle>
             {!props.value.isEditing ? (
@@ -73,10 +74,14 @@ export default function ValueItemTemplate(props) {
                         <Button className="p-0 text-left" color="link" onClick={props.handleOnClick} style={{ userSelect: 'text' }}>
                             {props.showHelp && props.value.type === 'object' ? (
                                 <Pulse content="Click on the resource to browse it">
-                                    <ValuePlugins type="resource">{props.getLabel() || ''}</ValuePlugins>
+                                    <ValuePlugins type="resource" hasWikiDesc={props.hasWikipediaDescription} wikipediaLink={props.wikipediaLink}>
+                                        {props.getLabel() || ''}
+                                    </ValuePlugins>
                                 </Pulse>
                             ) : (
-                                <ValuePlugins type="resource">{props.getLabel() || ''}</ValuePlugins>
+                                <ValuePlugins type="resource" hasWikiDesc={props.hasWikipediaDescription} wikipediaLink={props.wikipediaLink}>
+                                    {props.getLabel() || ''}
+                                </ValuePlugins>
                             )}
 
                             {props.resource && props.resource.existingResourceId && props.openExistingResourcesInDialog ? (
@@ -195,5 +200,6 @@ ValueItemTemplate.propTypes = {
     handleDatasetClick: PropTypes.func.isRequired,
     handleDeleteValue: PropTypes.func.isRequired,
     resourcesAsLinks: PropTypes.bool.isRequired,
-    hasWikipediaDescription: PropTypes.bool.isRequired
+    hasWikipediaDescription: PropTypes.bool.isRequired,
+    wikipediaLink: PropTypes.string
 };

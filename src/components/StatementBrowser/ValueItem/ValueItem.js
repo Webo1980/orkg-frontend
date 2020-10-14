@@ -336,6 +336,7 @@ export default function ValueItem(props) {
                 valueClass={props.valueClass}
                 hasWikipediaDescription={props.hasWikipediaDescription}
                 isInlineResource={props.isInlineResource}
+                wikipediaLink={props.wikipediaLink}
             />
 
             {modal ? (
@@ -391,6 +392,7 @@ ValueItem.propTypes = {
     showHelp: PropTypes.bool,
     resourcesAsLinks: PropTypes.bool.isRequired,
     hasWikipediaDescription: PropTypes.bool.isRequired,
+    wikipediaLink: PropTypes.bool.isRequired,
 
     components: PropTypes.array.isRequired,
     valueClass: PropTypes.object,
