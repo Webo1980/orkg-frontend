@@ -592,6 +592,25 @@ export default (state = initialState, action) => {
             return { ...state };
         }
 
+        /** -- Handling for creation of contribution objects**/
+        case type.STATEMENT_BROWSER_ADD_CONTRIBUTION_OBJECT: {
+            if (!state.contributions.hasOwnProperty(action.payload.id)) {
+                const initData = {
+                    selectedResource: '',
+                    selectedProperty: '',
+                    isFetchingStatements: false,
+                    level: 0,
+                    resourceHistory: {
+                        byId: {},
+                        allIds: []
+                    }
+                };
+                const updatedState = dotProp.set(state, `contributions.${action.payload.id}`, initData);
+                return { ...updatedState };
+            }
+            return { ...state };
+        }
+
         case type.STATEMENT_BROWSER_LOAD_CONTRIBUTION_HISTORY: {
             const contribObj = state.contributions[action.payload.id];
             if (contribObj) {

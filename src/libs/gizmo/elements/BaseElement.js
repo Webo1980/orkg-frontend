@@ -5,6 +5,7 @@ export default class BaseElement {
     constructor(props) {
         // variables;
         this.idValue = 'base_';
+        this.edgeIdValue = '';
         this.svgRoot = undefined;
         this.renderingElement = undefined;
         this.label = 'empty_label';
@@ -243,6 +244,13 @@ export default class BaseElement {
             return this.idValue;
         } else {
             this.idValue = val;
+        }
+    }
+    edgeId(val) {
+        if (!arguments.length) {
+            return this.edgeIdValue;
+        } else {
+            this.edgeIdValue = val;
         }
     }
 

@@ -105,10 +105,9 @@ export default class Navigation {
         return this.zoom;
     }
 
-    initializeRendering() {
+    initializeRendering(useExistingParams) {
         const graph = this.graph;
         const that = this;
-
         this.dragBehaviour = d3.behavior
             .drag()
             .origin(function(d) {
@@ -155,7 +154,14 @@ export default class Navigation {
                 that.graphTranslation[1] = t.translate[1];
                 that.zoomFactor = t.scale[0];
             });
+
+        if (useExistingParams) {
+            this.zoom.translate(that.graphTranslation);
+            this.zoom.scale(that.zoomFactor);
+        }
+
         graph.svgRoot.call(that.zoom);
+
         that.zoom = that.zoom.scaleExtent([0.02, 5]);
         if (graph.graphRoot) {
             that.zoom.event(graph.graphRoot);

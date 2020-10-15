@@ -22,6 +22,8 @@ export default class Node extends BaseElement {
         this.status = 'unknown';
         this.multicoloring = true;
         this._resourceId = 'unknown';
+        this._contributionOriginId = undefined; // this is used for exploration in statementBrowser
+        this._isContributionResource = false; // this is used for exploration in statementBrowser
         this.nodeHasBeenExplored = false;
         this.graph = undefined;
         this.renderingAnimationGroup = undefined;
@@ -31,6 +33,7 @@ export default class Node extends BaseElement {
         this.defaultDuration = 400;
         this.percentModifier = 1.0;
         this.isLiteralItem = false;
+        this.exploreAnimationIsRunning = false;
         this.type('resource');
 
         this.filterCollapsedLinks = this.filterCollapsedLinks.bind(this);
@@ -67,11 +70,25 @@ export default class Node extends BaseElement {
         this.percentModifier = val;
     }
 
+    isContributionResource(val) {
+        if (!arguments.length) {
+            return this._isContributionResource;
+        }
+        this._isContributionResource = val;
+    }
+
     setToParentNodePosition() {
         if (this._parentNodeForPosition) {
             this.x = this._parentNodeForPosition.x;
             this.y = this._parentNodeForPosition.y;
         }
+    }
+
+    contributionOriginId(id) {
+        if (!arguments.length) {
+            return this._contributionOriginId;
+        }
+        this._contributionOriginId = id;
     }
 
     parentNodeForPosition(node) {
@@ -260,6 +277,7 @@ export default class Node extends BaseElement {
     }
 
     setExploreAnimation(val) {
+        this.exploreAnimationIsRunning = val;
         if (val === true) {
             const renderingGroup = this.svgRoot;
             this.renderingAnimationGroup = renderingGroup.append('rect');
@@ -452,6 +470,10 @@ export default class Node extends BaseElement {
         if (this.incommingLink.length > 0) {
             // make sure the root not can not be single collapsed;
             this.addSingleCollapseHoverButton();
+        }
+
+        if (this.exploreAnimationIsRunning) {
+            this.setExploreAnimation(true);
         }
     }
 
