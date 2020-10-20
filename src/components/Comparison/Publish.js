@@ -16,16 +16,11 @@ import {
 import { toast } from 'react-toastify';
 import ROUTES from 'constants/routes.js';
 import PropTypes from 'prop-types';
-import {
-    createResource,
-    createLiteralStatement,
-    createLiteral,
-    getComparison,
-    createResourceStatement,
-    generateDOIForComparison,
-    getStatementsByPredicateAndLiteral,
-    resourcesUrl
-} from 'network';
+import { createLiteralStatement, createResourceStatement, getStatementsByPredicateAndLiteral } from 'services/backend/statements';
+import { generateDOIForComparison } from 'services/backend/misc';
+import { createLiteral } from 'services/backend/literals';
+import { createResource, resourcesUrl } from 'services/backend/resources';
+import { getComparison } from 'services/similarity/index';
 import Tooltip from 'components/Utils/Tooltip';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
 import AuthorsInput from 'components/Utils/AuthorsInput';
@@ -38,6 +33,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
+import env from '@beam-australia/react-env';
 
 const StyledCustomInput = styled(CustomInput)`
     margin-right: 0;
@@ -324,7 +320,9 @@ function Publish(props) {
                     <FormGroup>
                         <div>
                             <Tooltip
-                                message={`A DOI ${process.env.REACT_APP_DATACITE_DOI_PREFIX}/${props.comparisonId} will be assigned to published comparison and it cannot be changed in future.`}
+                                message={`A DOI ${env('DATACITE_DOI_PREFIX')}/${
+                                    props.comparisonId
+                                } will be assigned to published comparison and it cannot be changed in future.`}
                             >
                                 <StyledCustomInput
                                     onChange={e => {

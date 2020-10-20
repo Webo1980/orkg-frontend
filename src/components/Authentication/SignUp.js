@@ -4,11 +4,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toggleAuthDialog, updateAuth } from 'actions/auth';
-import { registerWithEmailAndPassword, signInWithEmailAndPassword, getUserInformation } from 'network';
+import { registerWithEmailAndPassword, signInWithEmailAndPassword, getUserInformation } from 'services/backend/users';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { get_error_message } from 'utils';
 import { Cookies } from 'react-cookie';
+import env from '@beam-australia/react-env';
+
 const cookies = new Cookies();
 
 class SignUp extends Component {
@@ -47,9 +49,9 @@ class SignUp extends Component {
                 signInWithEmailAndPassword(email, password)
                     .then(token => {
                         userToken = token.access_token;
-                        cookies.set('token', token.access_token, { path: process.env.PUBLIC_URL, maxAge: token.expires_in });
+                        cookies.set('token', token.access_token, { path: env('PUBLIC_URL'), maxAge: token.expires_in });
                         token_expires_in = new Date(Date.now() + token.expires_in * 1000);
-                        cookies.set('token_expires_in', token_expires_in.toUTCString(), { path: process.env.PUBLIC_URL, maxAge: token.expires_in });
+                        cookies.set('token_expires_in', token_expires_in.toUTCString(), { path: env('PUBLIC_URL'), maxAge: token.expires_in });
                         return getUserInformation();
                         //window.location.reload();
                     })
