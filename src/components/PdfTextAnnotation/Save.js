@@ -31,6 +31,7 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const Save = props => {
     const annotations = useSelector(state => state.pdfTextAnnotation.annotations);
+    const documentHash = useSelector(state => state.pdfTextAnnotation.documentHash);
     const [title, setTitle] = useState('');
     const [doi, setDoi] = useState('');
     const [paperId, setPaperId] = useState(null);
@@ -60,7 +61,13 @@ const Save = props => {
         }
         setIsLoading(true);
 
-        const contributionStatements = {};
+        const contributionStatements = {
+            [PREDICATES.DOCUMENT_HASH]: [
+                {
+                    text: documentHash
+                }
+            ]
+        };
 
         for (const annotation of annotations) {
             const resource = await createResource(annotation.type, [annotation.type, CLASSES.SENTENCE]); // ,'http://purl.org/dc/terms/' +
@@ -79,6 +86,8 @@ const Save = props => {
                 });
             }
         }
+
+        console.log('contributionStatements', contributionStatements);
 
         const paper = {
             title: _title,

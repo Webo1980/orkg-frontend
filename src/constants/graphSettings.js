@@ -41,7 +41,19 @@ export const PREDICATES = {
     COMPARE_CONTRIBUTION: 'compareContribution',
     HAS_PROPERTY: 'hasProperty',
     HAS_PREVIOUS_VERSION: 'hasPreviousVersion',
-    HAS_SUBJECT: 'hasSubject'
+    HAS_SUBJECT: 'hasSubject',
+    // for saving annotation locations
+    DOCUMENT_HASH: 'DocumentHash',
+    POSITION: 'Position',
+    BOUNDING_RECT: 'BoundingRect',
+    RECTS: 'Rects',
+    PAGE_NUMBER: 'PageNumber',
+    X_1: 'X1',
+    Y_1: 'Y1',
+    X_2: 'X2',
+    Y_2: 'Y2',
+    WIDTH: 'Width',
+    HEIGHT: 'Height'
 };
 
 export const CLASSES = {

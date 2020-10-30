@@ -7,7 +7,8 @@ const initialState = {
     zoom: 1.2,
     showHighlights: false,
     summaryFetched: false,
-    pdfViewer: null
+    pdfViewer: null,
+    documentHash: null
 };
 
 export default (state = initialState, action) => {
@@ -52,12 +53,13 @@ export default (state = initialState, action) => {
         }
 
         case type.PDF_TEXT_ANNOTATION_SET_PDF: {
-            const { payload } = action;
+            const { pdf, encodedPdf, documentHash } = action.payload;
 
             return {
                 ...state,
-                pdf: payload.pdf,
-                encodedPdf: payload.encodedPdf
+                pdf,
+                encodedPdf,
+                documentHash
             };
         }
 

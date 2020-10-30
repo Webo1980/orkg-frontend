@@ -1,5 +1,6 @@
 import * as type from './types.js';
 import { guid } from '../utils';
+import md5 from 'md5';
 
 export const createAnnotation = annotation => dispatch => {
     dispatch({
@@ -76,12 +77,14 @@ export const uploadPdf = files => async dispatch => {
 
     const pdf = files[0];
     const encodedPdf = await toBase64(files[0]);
+    const documentHash = md5(pdf);
 
     dispatch({
         type: type.PDF_TEXT_ANNOTATION_SET_PDF,
         payload: {
-            pdf: pdf,
-            encodedPdf: encodedPdf
+            pdf,
+            encodedPdf,
+            documentHash
         }
     });
 };
