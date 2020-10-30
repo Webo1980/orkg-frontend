@@ -14,10 +14,7 @@ import {
     InputGroupAddon,
     InputGroup
 } from 'reactstrap';
-import { createLiteralStatement } from 'services/backend/statements';
 import { saveFullPaper } from 'services/backend/misc';
-import { createLiteral } from 'services/backend/literals';
-import { createResource } from 'services/backend/resources';
 import { CLASSES, PREDICATES, MISC } from 'constants/graphSettings';
 import ROUTES from 'constants/routes.js';
 import { Link } from 'react-router-dom';
@@ -47,6 +44,89 @@ const Save = props => {
         publishedIn: null
     });
 
+    const createBoundingRect = ({ height, width, x1, x2, y1, y2 }) => {
+        return {
+            [PREDICATES.HEIGHT]: [
+                {
+                    text: height
+                }
+            ],
+            [PREDICATES.WIDTH]: [
+                {
+                    text: width
+                }
+            ],
+            [PREDICATES.X_1]: [
+                {
+                    text: x1
+                }
+            ],
+            [PREDICATES.X_2]: [
+                {
+                    text: x2
+                }
+            ],
+            [PREDICATES.Y_1]: [
+                {
+                    text: y1
+                }
+            ],
+            [PREDICATES.Y_2]: [
+                {
+                    text: y2
+                }
+            ]
+        };
+    };
+
+    const createAnnotation = annotation => ({
+        label: annotation.type,
+        classes: [annotation.type, CLASSES.SENTENCE],
+        values: {
+            [PREDICATES.HAS_CONTENT]: [
+                {
+                    text: annotation.content.text
+                }
+            ],
+            [PREDICATES.POSITION]: [
+                {
+                    label: 'Position',
+                    values: {
+                        [PREDICATES.PAGE_NUMBER]: [
+                            {
+                                text: annotation.position.pageNumber
+                            }
+                        ],
+                        [PREDICATES.BOUNDING_RECT]: [
+                            {
+                                label: 'Bounding rect',
+                                values: createBoundingRect({
+                                    height: annotation.position.boundingRect.height,
+                                    width: annotation.position.boundingRect.width,
+                                    x1: annotation.position.boundingRect.x1,
+                                    x2: annotation.position.boundingRect.x2,
+                                    y1: annotation.position.boundingRect.y1,
+                                    y2: annotation.position.boundingRect.y2
+                                })
+                            }
+                        ],
+                        [PREDICATES.RECTS]: annotation.position.rects.map(rect => ({
+                            label: 'Rect',
+                            values: createBoundingRect({
+                                height: rect.height,
+                                width: rect.width,
+                                x1: rect.x1,
+                                x2: rect.x2,
+                                y1: rect.y1,
+                                y2: rect.y2
+                            })
+                        }))
+                    }
+                }
+            ]
+        }
+    });
+
     const handleSave = async () => {
         const { paperTitle, paperAuthors, paperPublicationMonth, paperPublicationYear, doi, publishedIn } = paperData;
         const _title = saveBy === 'doi' ? paperTitle : title;
@@ -70,24 +150,13 @@ const Save = props => {
         };
 
         for (const annotation of annotations) {
-            const resource = await createResource(annotation.type, [annotation.type, CLASSES.SENTENCE]); // ,'http://purl.org/dc/terms/' +
-            const annotationLiteral = await createLiteral(annotation.content.text); // ,'http://purl.org/dc/terms/' +
-            createLiteralStatement(resource.id, PREDICATES.HAS_CONTENT, annotationLiteral.id);
-
             if (!(PREDICATES.CONTAINS in contributionStatements)) {
-                contributionStatements[PREDICATES.CONTAINS] = [
-                    {
-                        '@id': resource.id
-                    }
-                ];
-            } else {
-                contributionStatements[PREDICATES.CONTAINS].push({
-                    '@id': resource.id
-                });
+                contributionStatements[PREDICATES.CONTAINS] = [];
             }
+            contributionStatements[PREDICATES.CONTAINS].push({
+                ...createAnnotation(annotation)
+            });
         }
-
-        console.log('contributionStatements', contributionStatements);
 
         const paper = {
             title: _title,
