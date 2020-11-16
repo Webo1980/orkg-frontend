@@ -19,7 +19,7 @@ import { Prompt } from 'react-router';
 import GizmoGraphViewModal from '../components/ViewPaper/GraphView/GizmoGraphViewModal';
 import env from '@beam-australia/react-env';
 
-const Help = styled.div`
+export const FloatButton = styled.div`
     box-sizing: border-box;
     margin: 25px;
     position: fixed;
@@ -46,7 +46,7 @@ const Help = styled.div`
     }
 `;
 
-const HelpIcon = styled(Icon)`
+export const FloatButtonIcon = styled(Icon)`
     vertical-align: middle;
     height: 48px;
     width: 48px !important;
@@ -240,7 +240,7 @@ class AddPaper extends Component {
                     toggle={() => this.toggle('showGraphModal')}
                 />
                 {/*the style display node will hide the help button when the graph view is activated*/}
-                <Help
+                <FloatButton
                     style={this.state.showGraphModal ? { display: 'none' } : {}}
                     onClick={() => {
                         this.toggleTour();
@@ -248,8 +248,8 @@ class AddPaper extends Component {
                     id="helpIcon"
                     woochat={env('CHATWOOT_WEBSITE_TOKEN')}
                 >
-                    <HelpIcon icon={faQuestion} />
-                </Help>
+                    <FloatButtonIcon icon={faQuestion} />
+                </FloatButton>
             </div>
         );
     }

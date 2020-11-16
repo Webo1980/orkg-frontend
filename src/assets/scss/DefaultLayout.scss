@@ -1,4 +1,4 @@
-@import "../../assets/scss/ThemeVariables.scss";
+@import '../../assets/scss/ThemeVariables.scss';
 
 body {
     color: #646464;
@@ -130,4 +130,10 @@ body {
 // ensure all images in the lightbox have a white background (in case they are transparent)
 .ril__image.ril-image-current:not(.ril-not-loaded) {
     background: #fff;
+}
+
+/* react-contextify styles */
+.react-contexify__item__content {
+    display: flex;
+    align-items: center;
 }

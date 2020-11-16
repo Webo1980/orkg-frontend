@@ -49,7 +49,7 @@ const GlobalStyle = createGlobalStyle`
         #main-navbar, #paperHeaderBar {
             right: ${props => props.scrollbarWidth}px
         }
-        #helpIcon {
+        #helpIcon, #addTemplateButton, #templateEditorButtons {
             padding-right: ${props => props.scrollbarWidth}px
         }
         .woot-widget-bubble, .woot-widget-holder {

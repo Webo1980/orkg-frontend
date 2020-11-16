@@ -23,6 +23,8 @@ const StyledBody = styled.div`
 
 const StyledAppContent = styled.div`
     flex: 1 0 auto;
+    flex-direction: column;
+    display: flex;
 `;
 
 const StyledFooter = styled.div`
@@ -75,7 +77,8 @@ CloseToastButton.propTypes = {
 
 export default function DefaultLayout(props) {
     const location = useLocation();
-    const showFooter = location.pathname !== ROUTES.PDF_TEXT_ANNOTATION && location.pathname !== ROUTES.PDF_ANNOTATION;
+    const showFooter =
+        location.pathname !== ROUTES.PDF_TEXT_ANNOTATION && location.pathname !== ROUTES.PDF_ANNOTATION && location.pathname !== ROUTES.TEMPLATE;
     const [cookies, setCookie] = useCookies(['cookieInfoDismissed']);
     const [visible, setVisible] = useState(!Boolean(cookies.cookieInfoDismissed));
 

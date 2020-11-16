@@ -40,6 +40,7 @@ import UserProfile from 'pages/UserProfile';
 import FeaturedComparisons from 'pages/FeaturedComparisons';
 import PdfTextAnnotation from 'pages/PdfTextAnnotation';
 import PdfAnnotation from 'pages/PdfAnnotation';
+import TemplateEditor from 'pages/TemplateEditor';
 import ExportData from 'pages/ExportData';
 import Contribution from 'pages/Contribution';
 import CsvImport from 'pages/CsvImport';
@@ -242,6 +243,10 @@ const routes = [
     {
         path: ROUTES.PDF_ANNOTATION,
         component: requireAuthentication(PdfAnnotation)
+    },
+    {
+        path: ROUTES.TEMPLATE,
+        component: TemplateEditor
     },
     {
         path: ROUTES.CONTRIBUTION,
