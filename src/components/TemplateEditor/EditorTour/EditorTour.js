@@ -45,7 +45,7 @@ function EditorTour(props) {
             content: <p>Here&apos;s where you are going to structure your template</p>
         },
         {
-            selector: '#addTemplateButton',
+            selector: '#addShapeButton',
             content: (
                 <span>
                     <p>And you&apos;ll start by adding a template.</p>

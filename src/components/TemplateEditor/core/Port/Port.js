@@ -3,8 +3,8 @@ import { PortWidget } from '@projectstorm/react-diagrams';
 import styled from 'styled-components';
 
 const Circle = styled.div`
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     text-align: center;
     color: ${props => props.port.getTextColor()};
     border: var(--port-width) solid ${props => (props.link ? 'var(--port-connected-border)' : 'var(--port-unconnected-border)')};

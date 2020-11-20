@@ -1,79 +1,17 @@
 import React from 'react';
 import { Port } from 'components/TemplateEditor/core';
+import ConditionalWrapper from 'components/Utils/ConditionalWrapper';
 import { Button, ButtonGroup } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
-import styled from 'styled-components';
+import { faPen, faCog, faLock, faLockOpen, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Shape, Title, StyledAddProperty, PropertyItem } from 'components/TemplateEditor/styled';
+import { truncate } from 'lodash';
 import PropTypes from 'prop-types';
 import Tippy from '@tippy.js/react';
 
-const PositionedPort = styled(Port)``;
-
-export const Shape = styled.div`
-    position: relative;
-    background: ${props => (props.selected ? 'var(--body-selected)' : 'var(--body-unselected)')};
-    border: 2px solid ${props => (props.selected ? 'var(--border-selected)' : 'var(--border-unselected)')};
-    transition: 100ms linear;
-    border-radius: 4px;
-    font-size: 11px;
-    min-width: 200px;
-`;
-
-const Title = styled.div`
-    background: ${props => props.theme.darkblue};
-    display: flex;
-    white-space: nowrap;
-    justify-items: center;
-    padding: 5px 5px;
-    flex-grow: 1;
-    font-size: 12px;
-    color: white;
-    .option {
-        visibility: hidden;
-        cursor: pointer;
-    }
-    :hover {
-        .option {
-            visibility: visible;
-        }
-    }
-`;
-
-export const StyledAddProperty = styled(Button)`
-    border-radius: 0 !important;
-    border-width: 1px 0 0 0 !important;
-    &:first-child,
-    &:first-child:hover {
-        border-width: 1px 0 0 0 !important;
-        border-radius: 0 !important;
-    }
-    &:last-child,
-    &:last-child:hover {
-        border-width: 1px 0 0 1px !important;
-        border-radius: 0 !important;
-    }
-    font-size: 11px;
-    flex-grow: 1;
-`;
-
-const PropertyItem = styled.div`
-    padding: 4px;
-    display: flex;
-    .option {
-        visibility: hidden;
-        cursor: pointer;
-    }
-    :hover {
-        background: #fff;
-        .option {
-            visibility: visible;
-        }
-    }
-`;
-
 const NodeShapeWidget = props => {
     const { model, engine } = props;
-    const outputPorts = Object.values(model.getOutputPorts());
+    const outputPorts = Object.values(model.getOutputPorts()); // Properties
     const {
         options: { selected },
         closed
@@ -83,14 +21,39 @@ const NodeShapeWidget = props => {
         <Shape selected={selected}>
             <div>
                 <Title>
-                    <div className="flex-grow-1">{model.label} </div>
+                    <div className="flex-grow-1">
+                        <ConditionalWrapper
+                            condition={model.label.length > 40}
+                            wrapper={children => (
+                                <Tippy content={model.label}>
+                                    <span>{children}</span>
+                                </Tippy>
+                            )}
+                        >
+                            {truncate(model.label, {
+                                length: 40
+                            })}
+                        </ConditionalWrapper>
+                    </div>
                     <div className="option justify-content-end">
-                        <div onClick={() => alert('Edit Shape')}>
-                            <Icon icon={faPen} />
-                        </div>
+                        <Tippy content="Template settings">
+                            <span>
+                                <Button
+                                    className="p-0"
+                                    size="sm"
+                                    color="link"
+                                    style={{ color: '#fff' }}
+                                    onClick={e => {
+                                        props.engine.showComponentModal(props.model, 'editShape');
+                                    }}
+                                >
+                                    <Icon icon={faCog} />
+                                </Button>
+                            </span>
+                        </Tippy>
                     </div>
                     <div className="ml-2 justify-content-end">
-                        <PositionedPort name="TargetClass" model={model} port={model.getPort('TargetClass')} engine={engine}>
+                        <Port name="TargetClass" model={model} port={model.getPort('TargetClass')} engine={engine}>
                             {model.targetClass && (
                                 <Tippy content={`Target class: ${model.targetClass.label}`}>
                                     <span>C</span>
@@ -101,21 +64,54 @@ const NodeShapeWidget = props => {
                                     <span>C</span>
                                 </Tippy>
                             )}
-                        </PositionedPort>
+                        </Port>
                     </div>
                 </Title>
                 {outputPorts.map((port, i) => (
                     <PropertyItem key={port.getName()}>
-                        <div className="flex-grow-1">{port.getName()}</div>
-                        <div className="justify-content-end ml-2 mr-2">1..*</div>
-                        <div className="option mr-2">
-                            <div onClick={() => alert('Edit property')}>
-                                <Icon icon={faPen} />
-                            </div>
+                        <div className="flex-grow-1">
+                            <ConditionalWrapper
+                                condition={port.configurations.label.length > 40}
+                                wrapper={children => (
+                                    <Tippy content={port.configurations.label}>
+                                        <span>{children}</span>
+                                    </Tippy>
+                                )}
+                            >
+                                {truncate(port.configurations.label, {
+                                    length: 40
+                                })}
+                            </ConditionalWrapper>
                         </div>
-                        <PositionedPort key={port.getName()} name={port.getName()} model={model} port={port} engine={engine}>
-                            <div className="justify-content-end">S</div>
-                        </PositionedPort>
+                        <div className="justify-content-end ml-2 mr-2">{port.getCardinalityLabel()}</div>
+                        <div className="option mr-2">
+                            <Button
+                                className="p-0"
+                                size="sm"
+                                color="link"
+                                onClick={() => {
+                                    props.engine.showComponentModal(port);
+                                }}
+                            >
+                                <Icon icon={faPen} />
+                            </Button>
+                        </div>
+                        <div className="option mr-2">
+                            <Button
+                                className="p-0"
+                                size="sm"
+                                color="link"
+                                onClick={() => {
+                                    model.removePort(port);
+                                    engine.clearSelectionAndRepaint(model);
+                                }}
+                            >
+                                <Icon icon={faTrash} />
+                            </Button>
+                        </div>
+                        <Port key={port.getName()} name={port.getName()} model={model} port={port} engine={engine}>
+                            <div className="justify-content-end">{port.getPortLabel()}</div>
+                        </Port>
                     </PropertyItem>
                 ))}
                 <div className="d-flex">
@@ -126,12 +122,12 @@ const NodeShapeWidget = props => {
                             outline
                             color="danger"
                             onClick={e => {
-                                props.engine.showAddProperty(props.model);
+                                props.engine.showComponentModal(props.model, 'addPort');
                             }}
                         >
                             Add property
                         </StyledAddProperty>
-                        <Tippy content={closed ? 'Mark this shape as open' : 'Mark this shape as closed'} placement="bottom">
+                        <Tippy content={closed ? 'Mark this template as open' : 'Mark this template as closed'} placement="bottom">
                             <span>
                                 <StyledAddProperty
                                     style={{ width: '70px' }}

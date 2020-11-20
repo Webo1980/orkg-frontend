@@ -1,8 +1,9 @@
 import { PortModel as RDPortModel } from '@projectstorm/react-diagrams';
+import { CLASSES } from 'constants/graphSettings';
 import LinkModel from '../Link/LinkModel';
 
 export default class PortModel extends RDPortModel {
-    constructor(options = {}) {
+    constructor(options = {}, configurations) {
         super({
             type: 'Port',
             maximumLinks: 1,
@@ -10,18 +11,50 @@ export default class PortModel extends RDPortModel {
         });
 
         this.input = null;
+        this.configurations = configurations;
     }
 
     serialize() {
         return {
             ...super.serialize(),
+            configurations: this.configurations,
             input: this.input
         };
     }
 
     deserialize(event, engine) {
         super.deserialize(event, engine);
+        this.configurations = event.data.configurations;
         this.input = event.data.input;
+    }
+
+    updateConfiguration(configurations) {
+        this.configurations = configurations;
+    }
+
+    getPortLabel() {
+        if (this.configurations.valueType) {
+            switch (this.configurations.valueType.id) {
+                case 'String':
+                    return 'S';
+                case 'Date':
+                    return 'D';
+                case 'Number':
+                    return 'I';
+                default:
+                    return 'C';
+            }
+        } else {
+            return '';
+        }
+    }
+
+    getCardinalityLabel() {
+        if (this.configurations.cardinality !== 'range') {
+            return this.configurations.cardinality;
+        } else {
+            return `${this.configurations.minOccurs}..${this.configurations.maxOccurs}`;
+        }
     }
 
     setAsInput() {

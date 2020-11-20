@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import components from 'components/TemplateEditor/components';
 import { DiagramEngine, Diagram } from 'components/TemplateEditor/core';
 import Toolbar from 'components/TemplateEditor/Toolbar/Toolbar';
-import AddNodeShape from 'components/TemplateEditor/AddNodeShape/AddNodeShape';
-import AddProperty from 'components/TemplateEditor/AddProperty/AddProperty';
-import AddTemplateButton from 'components/TemplateEditor/AddTemplateButton';
+import ComponentModalFactory from 'components/TemplateEditor/ComponentModalFactory/ComponentModalFactory';
+import AddShapeButton from 'components/TemplateEditor/AddShapeButton';
 import ContextMenus from 'components/TemplateEditor/ContextMenus/ContextMenus';
 import { StyledWorkSpace } from 'components/TemplateEditor/styled';
 
@@ -15,16 +14,15 @@ export default class TemplateEditor extends Component {
         super(props);
 
         this.state = {
-            isComponentSelectOpen: false,
             isComponentEditOpen: false,
-            modelAdd: null,
             componentEdit: null,
+            componentEditAction: null,
             isTourAvailable: false,
             isTourRunning: !JSON.parse(localStorage.getItem('tour-done')),
             templateCreatedAt: null
         };
 
-        this.diagram = new DiagramEngine(components, this.areShortcutsAllowed, this.showAddProperty);
+        this.diagram = new DiagramEngine(components, this.areShortcutsAllowed, this.showComponentModal);
     }
 
     componentDidMount() {
@@ -44,9 +42,9 @@ export default class TemplateEditor extends Component {
     }
 
     areShortcutsAllowed = () => {
-        const { isComponentSelectOpen, isComponentEditOpen, isTourRunning } = this.state;
+        const { isComponentEditOpen, isTourRunning } = this.state;
 
-        return !(isComponentSelectOpen || isComponentEditOpen || isTourRunning);
+        return !(isComponentEditOpen || isTourRunning);
     };
 
     shortcutHandler = event => {
@@ -70,7 +68,7 @@ export default class TemplateEditor extends Component {
                 return;
             }
             const node = selectedNodes[0];
-            this.showEditComponent(node);
+            this.showComponentModal(node);
         }
 
         // Save diagram
@@ -203,41 +201,26 @@ export default class TemplateEditor extends Component {
         fr.readAsText(files.item(0));
     };
 
-    showAddComponent = () =>
-        this.setState({
-            isComponentSelectOpen: true
-        });
-
-    hideAddComponent = () =>
-        this.setState({
-            isComponentSelectOpen: false
-        });
-
-    showEditComponent = componentEdit => {
+    showComponentModal = (model, action) => {
         this.diagram.clearSelection();
 
         this.setState({
             isComponentEditOpen: true,
-            componentEdit
+            componentEdit: model,
+            componentEditAction: action
         });
     };
 
     hideEditComponent = () =>
         this.setState({
             isComponentEditOpen: false,
-            componentEdit: null
+            componentEdit: null,
+            componentEditAction: null
         });
 
     setTourRunning = isTourRunning => this.setState({ isTourRunning });
 
     showHelpTour = () => this.setTourRunning(true);
-
-    showAddProperty = model => {
-        this.setState({
-            isComponentEditOpen: true,
-            modelAdd: model
-        });
-    };
 
     handleUnloadTourTemplate = () => {
         if (!this.templateBeforeTour) {
@@ -255,7 +238,7 @@ export default class TemplateEditor extends Component {
     };
 
     render() {
-        const { isComponentSelectOpen, isComponentEditOpen, isTourRunning } = this.state;
+        const { isComponentEditOpen, isTourRunning, componentEditAction } = this.state;
 
         return (
             <>
@@ -274,12 +257,13 @@ export default class TemplateEditor extends Component {
                         this.diagram.autoDistribute();
                     }}
                 />
-                <AddTemplateButton isOpen={this.state.isComponentSelectOpen} handleClick={this.showAddComponent} />
 
-                <AddNodeShape
-                    isOpen={isComponentSelectOpen}
-                    handleClose={this.hideAddComponent}
-                    handleComponentDrop={this.diagram.handleComponentDrop}
+                <AddShapeButton
+                    isOpen={isComponentEditOpen}
+                    onClose={this.hideEditComponent}
+                    handleClick={() => {
+                        this.showComponentModal(null);
+                    }}
                 />
 
                 <StyledWorkSpace id="templateWorkspace">
@@ -296,17 +280,15 @@ export default class TemplateEditor extends Component {
                     redo={this.diagram.redo}
                     zoomIn={this.diagram.zoomIn}
                     zoomOut={this.diagram.zoomOut}
-                    configureComponent={this.showEditComponent}
+                    configureComponent={this.showComponentModal}
                 />
 
-                <AddProperty
-                    handleClick={() =>
-                        this.setState(s => ({
-                            isComponentEditOpen: !s.isComponentEditOpen
-                        }))
-                    }
+                <ComponentModalFactory
+                    onClose={this.hideEditComponent}
                     isOpen={isComponentEditOpen}
-                    modelAdd={this.state.modelAdd}
+                    model={this.state.componentEdit}
+                    action={componentEditAction}
+                    handleComponentDrop={this.diagram.handleComponentDrop}
                 />
 
                 <div

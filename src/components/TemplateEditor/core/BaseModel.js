@@ -2,11 +2,11 @@ import { Point } from '@projectstorm/geometry';
 import { NodeModel } from '@projectstorm/react-diagrams';
 import PortModel from './Port/PortModel';
 
-const getPort = port => {
+const getPort = (port, configurations = null) => {
     if (port instanceof PortModel) {
         return port;
     }
-    return new PortModel({ name: port });
+    return new PortModel({ name: port }, configurations);
 };
 
 export default class BaseModel extends NodeModel {
@@ -21,18 +21,19 @@ export default class BaseModel extends NodeModel {
     serialize() {
         return {
             ...super.serialize(),
+            label: this.label,
             configurations: this.configurations
         };
     }
 
-    addInputPort(arg) {
-        const port = getPort(arg);
+    addInputPort(arg, configurations) {
+        const port = getPort(arg, configurations);
         port.setAsInput();
         super.addPort(port);
     }
 
-    addOutputPort(arg) {
-        const port = getPort(arg);
+    addOutputPort(arg, configurations) {
+        const port = getPort(arg, configurations);
         port.setAsOutput();
         super.addPort(port);
     }

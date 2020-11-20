@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { FormGroup, Label, FormText, Input, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import Confirm from 'reactstrap-confirm';
 import { classesUrl } from 'services/backend/classes';
@@ -10,19 +10,44 @@ import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
 import PropTypes from 'prop-types';
 import { CLASSES } from 'constants/graphSettings';
+import { toast } from 'react-toastify';
 
-const AddNodeShape = props => {
-    const inputRef = useRef(null);
+const NodeShapeForm = props => {
     const classAutocompleteRef = useRef(null);
     const predicateAutocompleteRef = useRef(null);
+
     const [label, setLabel] = useState('');
+    const [description, setDescription] = useState('');
     const [targetClass, setTargetClass] = useState(null);
     const [predicate, setPredicate] = useState(null);
     const [researchFields, setResearchFields] = useState([]);
     const [researchProblems, setResearchProblems] = useState([]);
 
-    const handleChangeLabel = event => {
-        setLabel(event.target.value);
+    useEffect(() => {
+        if (props.model) {
+            setLabel(props.model.label);
+            setDescription(props.model.description);
+            setTargetClass(props.model.targetClass);
+            setPredicate(props.model.predicate);
+            setResearchFields(props.model.researchFields);
+            setResearchProblems(props.model.researchProblems);
+        } else {
+            setLabel('');
+            setDescription('');
+            setTargetClass(null);
+            setPredicate(null);
+            setResearchFields([]);
+            setResearchProblems([]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isOpen]);
+
+    const validateData = () => {
+        if (!label) {
+            toast.error('Please enter the name of the template');
+            return false;
+        }
+        return true;
     };
 
     const handlePropertySelect = async (selected, { action }) => {
@@ -73,18 +98,37 @@ const AddNodeShape = props => {
     };
 
     return (
-        <Modal isOpen={props.isOpen} toggle={props.handleClose} size="lg">
-            <ModalHeader toggle={props.handleClose}>Add template</ModalHeader>
+        <Modal isOpen={props.isOpen} toggle={props.onClose} size="lg">
+            <ModalHeader toggle={props.onClose}>{props.model ? 'Edit ' : 'Add '} template</ModalHeader>
 
             <ModalBody className="p-4">
                 <FormGroup className="mb-4">
-                    <Label>Name of template</Label>
-                    <Input name="templateName" innerRef={inputRef} value={label} onChange={handleChangeLabel} />
+                    <Label for="templateName">Name</Label>
+                    <Input
+                        placeholder="Template name"
+                        id="templateName"
+                        name="templateName"
+                        value={label}
+                        onChange={event => setLabel(event.target.value)}
+                    />
                 </FormGroup>
 
                 <FormGroup className="mb-4">
-                    <Label>Target class</Label>
+                    <Label for="templateDescription">Description</Label>
+                    <Input
+                        placeholder="Template description"
+                        id="templateDescription"
+                        name="templateDescription"
+                        type="textarea"
+                        value={description}
+                        onChange={event => setDescription(event.target.value)}
+                    />
+                </FormGroup>
+
+                <FormGroup className="mb-4">
+                    <Label for="templateTarget">Target class</Label>
                     <AutoComplete
+                        inputId="templateTarget"
                         requestUrl={classesUrl}
                         placeholder="Select or type to enter a class"
                         onChange={handleClassSelect}
@@ -105,14 +149,12 @@ const AddNodeShape = props => {
                     <fieldset className="scheduler-border">
                         <legend className="scheduler-border">Template use cases</legend>
                         <p>
-                            <small className="text-muted">
-                                These fields are optional, the property is used to link the contribution resource to the template instance. The
-                                research fields/problems are used to suggest this template in the relevant papers.
-                            </small>
+                            <small className="text-muted">These fields are optional.</small>
                         </p>
                         <FormGroup className="mb-4">
-                            <Label>Property</Label>
+                            <Label for="templatePredicate">Property</Label>
                             <AutoComplete
+                                inputId="templatePredicate"
                                 requestUrl={predicatesUrl}
                                 placeholder="Select or type to enter a property"
                                 onChange={handlePropertySelect}
@@ -129,8 +171,9 @@ const AddNodeShape = props => {
                             </FormText>
                         </FormGroup>
                         <FormGroup className="mb-4">
-                            <Label>Research fields</Label>
+                            <Label for="templateResearchField">Research fields</Label>
                             <AutoComplete
+                                inputId="templateResearchField"
                                 requestUrl={resourcesUrl}
                                 optionsClass={CLASSES.RESEARCH_FIELD}
                                 placeholder="Select or type to enter a research field"
@@ -146,8 +189,9 @@ const AddNodeShape = props => {
                             <FormText>Specify the research fields that uses this template.</FormText>
                         </FormGroup>
                         <FormGroup className="mb-4">
-                            <Label>Research problems</Label>
+                            <Label for="templateResearchProblems">Research problems</Label>
                             <AutoComplete
+                                inputId="templateResearchProblems"
                                 requestUrl={resourcesUrl}
                                 optionsClass={CLASSES.PROBLEM}
                                 placeholder="Select or type to enter a research problem"
@@ -169,21 +213,30 @@ const AddNodeShape = props => {
                 <Button
                     color="primary"
                     onClick={() => {
-                        props.handleComponentDrop(null, {
-                            type: 'NodeShape',
-                            configurations: { id: null, label: label, targetClass: targetClass, researchFields, researchProblems, predicate }
-                        });
-                        setLabel('');
-                        setTargetClass(null);
-                        setPredicate(null);
-                        setResearchFields([]);
-                        setResearchProblems([]);
-                        props.handleClose();
+                        if (validateData()) {
+                            if (props.model) {
+                                // Edit a template
+                                props.model.updateConfiguration({
+                                    label: label,
+                                    targetClass: targetClass,
+                                    researchFields,
+                                    researchProblems,
+                                    predicate
+                                });
+                            } else {
+                                //Create a new template
+                                props.handleComponentDrop(null, {
+                                    type: 'NodeShape',
+                                    configurations: { label: label, targetClass: targetClass, researchFields, researchProblems, predicate }
+                                });
+                            }
+                            props.onClose();
+                        }
                     }}
                 >
-                    Add to workspace
+                    {props.model ? 'Save' : 'Add to workspace'}
                 </Button>{' '}
-                <Button color="secondary" onClick={props.handleClose}>
+                <Button color="secondary" onClick={props.onClose}>
                     Cancel
                 </Button>
             </ModalFooter>
@@ -191,10 +244,11 @@ const AddNodeShape = props => {
     );
 };
 
-AddNodeShape.propTypes = {
+NodeShapeForm.propTypes = {
     isOpen: PropTypes.bool.isRequired,
-    handleClose: PropTypes.func.isRequired,
-    handleComponentDrop: PropTypes.func.isRequired
+    onClose: PropTypes.func.isRequired,
+    handleComponentDrop: PropTypes.func,
+    model: PropTypes.object
 };
 
-export default AddNodeShape;
+export default NodeShapeForm;

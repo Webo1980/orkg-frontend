@@ -17,10 +17,10 @@ import CommandManager from './Command/CommandManager';
 import States from './states/States';
 
 export default class DiagramEngine {
-    constructor(components, areShortcutsAllowed, showAddProperty) {
+    constructor(components, areShortcutsAllowed, showComponentModal) {
         this.components = components;
         this.areShortcutsAllowed = areShortcutsAllowed;
-        this.showAddProperty = showAddProperty;
+        this.showComponentModal = showComponentModal;
         this.locked = false;
 
         this.initializeEngine();
@@ -55,7 +55,7 @@ export default class DiagramEngine {
 
         this.engine.getStateMachine().pushState(new States());
 
-        this.engine.showAddProperty = this.showAddProperty;
+        this.engine.showComponentModal = this.showComponentModal;
 
         this.engine.clearSelectionAndRepaint = this.clearSelectionAndRepaint;
 
@@ -125,8 +125,10 @@ export default class DiagramEngine {
     };
 
     clearSelectionAndRepaint = model => {
-        this.clearSelection();
-        this.engine.repaintCanvas();
+        //this.clearSelection();
+        this.engine.getModel().clearSelection();
+        console.log('clearSelectionAndRepaint');
+        this.engine.repaintCanvas(true);
     };
 
     realignGrid = () => {
