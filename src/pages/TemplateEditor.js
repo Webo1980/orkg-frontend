@@ -6,6 +6,7 @@ import ComponentModalFactory from 'components/TemplateEditor/ComponentModalFacto
 import AddShapeButton from 'components/TemplateEditor/AddShapeButton';
 import ContextMenus from 'components/TemplateEditor/ContextMenus/ContextMenus';
 import { StyledWorkSpace } from 'components/TemplateEditor/styled';
+import FileSaver from 'file-saver';
 
 const DIMENSIONS = { width: 180, height: 135 };
 
@@ -168,11 +169,13 @@ export default class TemplateEditor extends Component {
         }
 
         const file = JSON.stringify(this.generateFile(), null, 2);
-
+        const blob = new Blob([file], {
+            type: 'application/json'
+        });
+        const filename = 'Template';
         localStorage.setItem('last-saved-template', file);
 
-        console.log(file);
-        //FileSaver.saveAs(blob, `${filename}.lgsim`);
+        FileSaver.saveAs(blob, `${filename}.orkgt`);
     };
 
     handleClickLoad = () => document.getElementById('file-input').click();
@@ -256,6 +259,7 @@ export default class TemplateEditor extends Component {
                     autoDistribute={() => {
                         this.diagram.autoDistribute();
                     }}
+                    handleFileLoad={this.handleFileLoad}
                 />
 
                 <AddShapeButton

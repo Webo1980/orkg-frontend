@@ -48,7 +48,7 @@ export default class NodeShapeModel extends BaseModel {
         this.predicate = event.data.predicate;
         this.researchFields = event.data.researchFields;
         this.researchProblems = event.data.researchProblems;
-        this.closed = event.closed;
+        this.closed = event.data.closed;
     }
 
     toggleClosed() {

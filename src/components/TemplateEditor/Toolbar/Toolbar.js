@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button, ButtonGroup } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faQuestionCircle, faEye, faSave, faExpandArrowsAlt, faSitemap } from '@fortawesome/free-solid-svg-icons';
+import { faQuestionCircle, faEye, faSave, faExpandArrowsAlt, faSitemap, faFileUpload } from '@fortawesome/free-solid-svg-icons';
 import EditorTour from 'components/TemplateEditor/EditorTour/EditorTour';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -19,7 +19,20 @@ const ToolbarStyled = styled.div`
     align-items: center;
 `;
 
+const FileInput = styled.input`
+    display: none;
+`;
+
 const Toolbar = props => {
+    const fileInputRef = useRef();
+
+    const handleClickLoad = () => {
+        if (!fileInputRef.current) {
+            return;
+        }
+        fileInputRef.current.click();
+    };
+
     return (
         <ToolbarStyled>
             <h1 className="h5 mb-0 ml-2" style={{ color: '#fff', height: 'auto' }}>
@@ -60,10 +73,15 @@ const Toolbar = props => {
                     <Button disabled id="previewButton" color="darkblueDarker" size="sm" onClick={() => null}>
                         <Icon icon={faEye} /> Preview
                     </Button>
+                    <Button color="darkblueDarker" size="sm" onClick={handleClickLoad}>
+                        <Icon icon={faFileUpload} /> Load
+                    </Button>
                     <Button id="saveButton" color="primary" size="sm" onClick={() => props.handleClickSave()}>
                         <Icon icon={faSave} /> Save
                     </Button>
                 </ButtonGroup>
+
+                <FileInput id="template-file-input" ref={fileInputRef} type="file" accept=".orkgt" onChange={props.handleFileLoad} />
             </div>
 
             <EditorTour isOpen={props.isTourOpen} setIsTourOpen={props.toggleTourOpen} />
@@ -76,7 +94,8 @@ Toolbar.propTypes = {
     toggleTourOpen: PropTypes.func.isRequired,
     zoomToFitNodes: PropTypes.func.isRequired,
     handleClickSave: PropTypes.func.isRequired,
-    autoDistribute: PropTypes.func.isRequired
+    autoDistribute: PropTypes.func.isRequired,
+    handleFileLoad: PropTypes.func.isRequired
 };
 
 export default Toolbar;

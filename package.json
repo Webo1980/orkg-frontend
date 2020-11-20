@@ -33,6 +33,7 @@
         "detect-browser": "^4.7.0",
         "dot-prop-immutable": "^1.5.0",
         "fast-text-encoding": "^1.0.2",
+        "file-saver": "^2.0.5",
         "flow-bin": "^0.95.1",
         "greeting-time": "^1.0.0",
         "handsontable": "^7.4.2",
