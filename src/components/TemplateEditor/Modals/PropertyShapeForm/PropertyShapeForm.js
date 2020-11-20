@@ -57,6 +57,14 @@ function PropertyShapeForm(props) {
                 .required()
                 .error(new Error('Please select a property')),
             cardinality: Joi.string().label('Cardinality'),
+            minOccurs: Joi.number()
+                .integer()
+                .allow('')
+                .label('Minimum occurrence'),
+            maxOccurs: Joi.number()
+                .integer()
+                .allow('')
+                .label('Maximum occurrence'),
             validationRules: Joi.object({
                 pattern: Joi.string().label('Pattern'),
                 min: Joi.number()
@@ -181,7 +189,18 @@ function PropertyShapeForm(props) {
                                 <Col sm={9}>
                                     <Input
                                         inputid="cardinalityConstraint"
-                                        onChange={event => setCardinality(event.target.value)}
+                                        onChange={event => {
+                                            if (event.target.value === 'range') {
+                                                setCardinality(event.target.value);
+                                                setMinOccurs('0');
+                                                setMaxOccurs('');
+                                            } else {
+                                                const card = event.target.value.split('..');
+                                                setCardinality(event.target.value);
+                                                setMinOccurs(card[0]);
+                                                setMaxOccurs(card[1] !== '*' ? card[1] : '');
+                                            }
+                                        }}
                                         value={cardinality}
                                         type="select"
                                     >
@@ -202,14 +221,14 @@ function PropertyShapeForm(props) {
                                 <div className="mt-2">
                                     <FormGroup row>
                                         <Label className="text-right text-muted" for="minOccursValueInput" sm={3}>
-                                            <small>Minimum Occurrence</small>
+                                            <small>Minimum occurrence</small>
                                         </Label>
                                         <Col sm={9}>
                                             <Input
                                                 onChange={e => setMinOccurs(e.target.value)}
                                                 bsSize="sm"
                                                 value={minOccurs}
-                                                type="number"
+                                                type="text"
                                                 min="0"
                                                 step="1"
                                                 name="minOccurs"
@@ -220,14 +239,14 @@ function PropertyShapeForm(props) {
                                     </FormGroup>
                                     <FormGroup row>
                                         <Label className="text-right text-muted" for="maxOccursValueInput" sm={3}>
-                                            <small>Maximum Occurrence</small>
+                                            <small>Maximum occurrence</small>
                                         </Label>
                                         <Col sm={9}>
                                             <Input
                                                 onChange={e => setMaxOccurs(e.target.value)}
                                                 bsSize="sm"
                                                 value={maxOccurs !== null ? maxOccurs : ''}
-                                                type="number"
+                                                type="text"
                                                 min="0"
                                                 step="1"
                                                 name="maxOccurs"
@@ -255,7 +274,7 @@ function PropertyShapeForm(props) {
                             valueType: valueType,
                             cardinality: cardinality,
                             minOccurs: minOccurs,
-                            maxOccurs: minOccurs,
+                            maxOccurs: maxOccurs,
                             validationRules: validationRules
                         };
                         if (validateData(data)) {

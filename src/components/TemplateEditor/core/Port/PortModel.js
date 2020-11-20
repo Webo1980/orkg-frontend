@@ -1,5 +1,4 @@
 import { PortModel as RDPortModel } from '@projectstorm/react-diagrams';
-import { CLASSES } from 'constants/graphSettings';
 import LinkModel from '../Link/LinkModel';
 
 export default class PortModel extends RDPortModel {
