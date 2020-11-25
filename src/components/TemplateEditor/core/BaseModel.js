@@ -11,18 +11,19 @@ const getPort = (port, configurations = null) => {
 
 export default class BaseModel extends NodeModel {
     constructor(configurations = {}, type = 'generic') {
-        super({ type });
+        // If no id is specified the NodeModel will generate one
+        super({ ...(configurations.id ? { id: configurations.id } : {}), type });
 
         this.initialize(configurations);
 
-        this.configurations = configurations;
+        //this.configurations = configurations;
     }
 
     serialize() {
         return {
             ...super.serialize(),
-            label: this.label,
-            configurations: this.configurations
+            label: this.label
+            //configurations: this.configurations
         };
     }
 

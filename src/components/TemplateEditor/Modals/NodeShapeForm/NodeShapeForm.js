@@ -227,7 +227,7 @@ const NodeShapeForm = props => {
                                 //Create a new template
                                 props.handleComponentDrop(null, {
                                     type: 'NodeShape',
-                                    configurations: { label: label, targetClass: targetClass, researchFields, researchProblems, predicate }
+                                    configurations: { id: null, label: label, targetClass: targetClass, researchFields, researchProblems, predicate }
                                 });
                             }
                             props.onClose();

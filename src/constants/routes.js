@@ -47,5 +47,5 @@ export default {
     PDF_TEXT_ANNOTATION: '/pdf-text-annotation',
     PDF_ANNOTATION: '/pdf-annotation',
     CSV_IMPORT: '/csv-import',
-    TEMPLATE: '/templateE'
+    TEMPLATE: '/templateE/:id?'
 };

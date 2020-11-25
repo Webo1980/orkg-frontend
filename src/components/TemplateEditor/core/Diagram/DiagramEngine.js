@@ -12,6 +12,8 @@ import DeleteAction from './actions/DeleteAction';
 import DuplicateAction from './actions/DuplicateAction';
 import UndoRedoAction from './actions/UndoRedoAction';
 import ZoomAction from './actions/ZoomAction';
+import { getTemplateById } from 'services/backend/statements';
+import { convertToRange } from 'utils';
 import commandHandlers from './Command/commandHandlers';
 import CommandManager from './Command/CommandManager';
 import States from './states/States';
@@ -105,6 +107,45 @@ export default class DiagramEngine {
         this.model.deserializeModel(template, this.engine);
         this.realignGrid();
         this.engine.repaintCanvas();
+    };
+
+    /**
+     * Load template from the database
+     */
+    loadTemplate = id => {
+        // load template
+        return getTemplateById(id).then(template => {
+            this.engine.commands.clear();
+            // Clear shape
+            this.handleComponentDrop(null, {
+                type: 'NodeShape',
+                configurations: {
+                    id: template.id,
+                    label: template.label,
+                    targetClass: template.class,
+                    researchFields: template.researchFields,
+                    researchProblems: template.researchProblems,
+                    predicate: template.predicate
+                }
+            });
+
+            const node = this.engine.getModel().getNode(template.id);
+            // add properties (components)
+            for (const component of template.components) {
+                node.addOutputPort(component.property.id, {
+                    id: component.property.id,
+                    label: component.property.label,
+                    property: component.property,
+                    valueType: component.value,
+                    cardinality: component.cardinality ?? convertToRange(component.minOccurs, component.maxOccurs),
+                    minOccurs: component.minOccurs,
+                    maxOccurs: component.maxOccurs,
+                    validationRules: component.validationRules
+                });
+            }
+            this.realignGrid();
+            this.engine.repaintCanvas();
+        });
     };
 
     /**

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Modal, ModalHeader, ModalBody } from 'reactstrap';
 import components from 'components/TemplateEditor/components';
 import { DiagramEngine, Diagram } from 'components/TemplateEditor/core';
 import Toolbar from 'components/TemplateEditor/Toolbar/Toolbar';
@@ -6,11 +7,13 @@ import ComponentModalFactory from 'components/TemplateEditor/ComponentModalFacto
 import AddShapeButton from 'components/TemplateEditor/AddShapeButton';
 import ContextMenus from 'components/TemplateEditor/ContextMenus/ContextMenus';
 import { StyledWorkSpace } from 'components/TemplateEditor/styled';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import FileSaver from 'file-saver';
 
 const DIMENSIONS = { width: 180, height: 135 };
 
-export default class TemplateEditor extends Component {
+class TemplateEditor extends Component {
     constructor(props) {
         super(props);
 
@@ -19,8 +22,9 @@ export default class TemplateEditor extends Component {
             componentEdit: null,
             componentEditAction: null,
             isTourAvailable: false,
-            isTourRunning: !JSON.parse(localStorage.getItem('tour-done')),
-            templateCreatedAt: null
+            isTourRunning: false,
+            templateCreatedAt: null,
+            isLoading: false
         };
 
         this.diagram = new DiagramEngine(components, this.areShortcutsAllowed, this.showComponentModal);
@@ -28,8 +32,20 @@ export default class TemplateEditor extends Component {
 
     componentDidMount() {
         window.addEventListener('keydown', this.shortcutHandler);
-        window.addEventListener('load', this.loadHandler);
-        window.addEventListener('beforeunload', this.unloadHandler);
+
+        if (this.props.match.params.id) {
+            this.setState({ isLoading: true });
+            // load template
+            console.log('Load template');
+            this.diagram.loadTemplate(this.props.match.params.id).then(() => {
+                this.setState({ isLoading: false });
+            });
+        } else {
+            //create template
+            console.log('Create template');
+            window.addEventListener('load', this.loadHandler);
+            window.addEventListener('beforeunload', this.unloadHandler);
+        }
 
         this.autoSaveInterval = setInterval(this.autoSave, 15000);
     }
@@ -43,9 +59,9 @@ export default class TemplateEditor extends Component {
     }
 
     areShortcutsAllowed = () => {
-        const { isComponentEditOpen, isTourRunning } = this.state;
+        const { isLoading, isComponentEditOpen, isTourRunning } = this.state;
 
-        return !(isComponentEditOpen || isTourRunning);
+        return !(isLoading || isComponentEditOpen || isTourRunning);
     };
 
     shortcutHandler = event => {
@@ -241,7 +257,7 @@ export default class TemplateEditor extends Component {
     };
 
     render() {
-        const { isComponentEditOpen, isTourRunning, componentEditAction } = this.state;
+        const { isLoading, isComponentEditOpen, isTourRunning, componentEditAction } = this.state;
 
         return (
             <>
@@ -295,9 +311,29 @@ export default class TemplateEditor extends Component {
                     handleComponentDrop={this.diagram.handleComponentDrop}
                 />
 
+                <Modal
+                    isOpen={this.state.isLoading}
+                    toggle={() =>
+                        this.setState(state => ({
+                            isLoading: !state.isLoading
+                        }))
+                    }
+                >
+                    <ModalHeader
+                        toggle={() =>
+                            this.setState(state => ({
+                                isLoading: !state.isLoading
+                            }))
+                        }
+                    >
+                        Loading
+                    </ModalHeader>
+                    <ModalBody>Loading template</ModalBody>
+                </Modal>
+
                 <div
                     style={{
-                        display: isTourRunning ? 'block' : 'none',
+                        display: !isLoading && isTourRunning ? 'block' : 'none',
                         position: 'absolute',
                         width: window.innerWidth * 0.7,
                         height: window.innerHeight * 0.5,
@@ -311,3 +347,24 @@ export default class TemplateEditor extends Component {
         );
     }
 }
+
+TemplateEditor.propTypes = {
+    location: PropTypes.object.isRequired,
+    match: PropTypes.shape({
+        params: PropTypes.shape({
+            id: PropTypes.string
+        })
+    }),
+    user: PropTypes.oneOfType([PropTypes.object, PropTypes.number])
+};
+
+const mapStateToProps = state => {
+    return {
+        user: state.auth.user
+    };
+};
+
+export default connect(
+    mapStateToProps,
+    null
+)(TemplateEditor);

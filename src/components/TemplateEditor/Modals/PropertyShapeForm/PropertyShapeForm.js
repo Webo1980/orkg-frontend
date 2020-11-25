@@ -20,7 +20,7 @@ function PropertyShapeForm(props) {
     const propertyAutocompleteRef = useRef(null);
     const classAutocompleteRef = useRef(null);
     const [property, setProperty] = useState(null);
-    const [valueType, setValueType] = useState('');
+    const [valueType, setValueType] = useState(null);
     const [cardinality, setCardinality] = useState('0..*');
     const [minOccurs, setMinOccurs] = useState(null);
     const [maxOccurs, setMaxOccurs] = useState(null);
@@ -38,7 +38,7 @@ function PropertyShapeForm(props) {
         } else {
             // Add Property
             setProperty(null);
-            setValueType('');
+            setValueType(null);
             setCardinality('0..*');
             setMinOccurs(null);
             setMaxOccurs(null);

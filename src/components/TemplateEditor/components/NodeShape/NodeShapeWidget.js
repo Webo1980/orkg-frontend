@@ -83,8 +83,7 @@ const NodeShapeWidget = props => {
                                 })}
                             </ConditionalWrapper>
                         </div>
-                        <div className="justify-content-end ml-2 mr-2">{port.getCardinalityLabel()}</div>
-                        <div className="option mr-2">
+                        <div className="option ml-2 mr-2">
                             <Button
                                 className="p-0"
                                 size="sm"
@@ -109,6 +108,7 @@ const NodeShapeWidget = props => {
                                 <Icon icon={faTrash} />
                             </Button>
                         </div>
+                        <div className="justify-content-end mr-2">{port.getCardinalityLabel()}</div>
                         <Port key={port.getName()} name={port.getName()} model={model} port={port} engine={engine}>
                             <div className="justify-content-end">{port.getPortLabel()}</div>
                         </Port>

@@ -49,10 +49,14 @@ export default class PortModel extends RDPortModel {
     }
 
     getCardinalityLabel() {
-        if (this.configurations.cardinality !== 'range') {
-            return this.configurations.cardinality;
+        if (this.configurations.cardinality) {
+            if (this.configurations.cardinality !== 'range') {
+                return this.configurations.cardinality;
+            } else {
+                return `${this.configurations.minOccurs}..${this.configurations.maxOccurs ?? '*'}`;
+            }
         } else {
-            return `${this.configurations.minOccurs}..${this.configurations.maxOccurs}`;
+            return `${this.configurations.minOccurs}..${this.configurations.maxOccurs ?? '*'}`;
         }
     }
 

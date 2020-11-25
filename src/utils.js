@@ -718,3 +718,24 @@ export function truncStringPortion(str, firstCharCount = str.length, endCharCoun
         return str.slice(0, firstCharCount) + '.'.repeat(dotCount) + str.slice(str.length - endCharCount);
     }
 }
+
+/**
+ * Convert Minimum and Maximum occurrence to range for the input field
+ *
+ * @param {String} minOccurs Minimum occurrence
+ * @param {String} maxOccurs Maximum occurrence
+ * @return {String} range or 0..1, 0..*, 1..1, 1..*
+ */
+export function convertToRange(minOccurs, maxOccurs) {
+    if (!minOccurs) {
+        minOccurs = '0';
+    }
+    if (!maxOccurs) {
+        maxOccurs = '*';
+    }
+    if (!['1', '0'].includes(minOccurs) || !['1', '0', '*'].includes(maxOccurs)) {
+        return 'range';
+    } else {
+        return `${minOccurs}..${maxOccurs}`;
+    }
+}
