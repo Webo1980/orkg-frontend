@@ -110,7 +110,12 @@ const NodeShapeWidget = props => {
                         </div>
                         <div className="justify-content-end mr-2">{port.getCardinalityLabel()}</div>
                         <Port key={port.getName()} name={port.getName()} model={model} port={port} engine={engine}>
-                            <div className="justify-content-end">{port.getPortLabel()}</div>
+                            {port.configurations.valueType && (
+                                <Tippy content={`Value type: ${port.configurations.valueType.label}`}>
+                                    <div className="justify-content-end">{port.getPortLabel()}</div>
+                                </Tippy>
+                            )}
+                            {!port.configurations.valueType && <div className="justify-content-end">{port.getPortLabel()}</div>}
                         </Port>
                     </PropertyItem>
                 ))}

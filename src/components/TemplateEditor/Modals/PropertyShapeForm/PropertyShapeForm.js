@@ -59,10 +59,12 @@ function PropertyShapeForm(props) {
             cardinality: Joi.string().label('Cardinality'),
             minOccurs: Joi.number()
                 .integer()
+                .allow(null)
                 .allow('')
                 .label('Minimum occurrence'),
             maxOccurs: Joi.number()
                 .integer()
+                .allow(null)
                 .allow('')
                 .label('Maximum occurrence'),
             validationRules: Joi.object({
