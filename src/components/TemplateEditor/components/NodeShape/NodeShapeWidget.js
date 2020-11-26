@@ -3,7 +3,7 @@ import { Port } from 'components/TemplateEditor/core';
 import ConditionalWrapper from 'components/Utils/ConditionalWrapper';
 import { Button, ButtonGroup } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen, faCog, faLock, faLockOpen, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faCog, faLock, faLockOpen, faTrash, faFont } from '@fortawesome/free-solid-svg-icons';
 import { Shape, Title, StyledAddProperty, PropertyItem } from 'components/TemplateEditor/styled';
 import { truncate } from 'lodash';
 import PropTypes from 'prop-types';
@@ -48,6 +48,23 @@ const NodeShapeWidget = props => {
                                     }}
                                 >
                                     <Icon icon={faCog} />
+                                </Button>
+                            </span>
+                        </Tippy>
+                    </div>
+                    <div className="ml-2">
+                        <Tippy content="Formatted label settings">
+                            <span>
+                                <Button
+                                    className="p-0"
+                                    size="sm"
+                                    color="link"
+                                    style={{ color: '#fff' }}
+                                    onClick={e => {
+                                        props.engine.showComponentModal(props.model, 'formattedLabel');
+                                    }}
+                                >
+                                    <Icon icon={faFont} />
                                 </Button>
                             </span>
                         </Tippy>

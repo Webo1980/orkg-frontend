@@ -302,9 +302,7 @@ function PropertyShapeForm(props) {
 PropertyShapeForm.propTypes = {
     onClose: PropTypes.func.isRequired,
     isOpen: PropTypes.bool.isRequired,
-    model: PropTypes.object,
-    engine: PropTypes.object,
-    repaint: PropTypes.func
+    model: PropTypes.object
 };
 
 export default PropertyShapeForm;

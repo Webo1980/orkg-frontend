@@ -125,7 +125,10 @@ export default class DiagramEngine {
                     targetClass: template.class,
                     researchFields: template.researchFields,
                     researchProblems: template.researchProblems,
-                    predicate: template.predicate
+                    predicate: template.predicate,
+                    closed: template.isStrict,
+                    hasLabelFormat: template.hasLabelFormat,
+                    labelFormat: template.labelFormat
                 }
             });
 

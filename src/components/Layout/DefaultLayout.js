@@ -78,7 +78,9 @@ CloseToastButton.propTypes = {
 export default function DefaultLayout(props) {
     const location = useLocation();
     const showFooter =
-        location.pathname !== ROUTES.PDF_TEXT_ANNOTATION && location.pathname !== ROUTES.PDF_ANNOTATION && location.pathname !== ROUTES.TEMPLATE;
+        location.pathname !== ROUTES.PDF_TEXT_ANNOTATION &&
+        location.pathname !== ROUTES.PDF_ANNOTATION &&
+        location.pathname.startsWith(ROUTES.TEMPLATE);
     const [cookies, setCookie] = useCookies(['cookieInfoDismissed']);
     const [visible, setVisible] = useState(!Boolean(cookies.cookieInfoDismissed));
 

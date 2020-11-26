@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Button, ButtonGroup } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faQuestionCircle, faEye, faSave, faExpandArrowsAlt, faSitemap, faFileUpload } from '@fortawesome/free-solid-svg-icons';
+import { faQuestionCircle, faEye, faSave, faCrosshairs, faSitemap, faFileUpload } from '@fortawesome/free-solid-svg-icons';
 import EditorTour from 'components/TemplateEditor/EditorTour/EditorTour';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -57,7 +57,7 @@ const Toolbar = props => {
                     <Tippy content="Zoom to fit">
                         <span className="ml-3">
                             <Button id="templateEditorFitZoom" color="darkblueDarker" size="sm" onClick={() => props.zoomToFitNodes()}>
-                                <Icon icon={faExpandArrowsAlt} />
+                                <Icon icon={faCrosshairs} />
                             </Button>
                         </span>
                     </Tippy>

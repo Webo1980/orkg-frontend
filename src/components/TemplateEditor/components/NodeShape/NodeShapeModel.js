@@ -12,6 +12,8 @@ export default class NodeShapeModel extends BaseModel {
         this.researchFields = configurations.researchFields;
         this.researchProblems = configurations.researchProblems;
         this.closed = configurations.closed ?? false;
+        this.hasLabelFormat = configurations.hasLabelFormat ?? false;
+        this.labelFormat = configurations.labelFormat ?? '';
         this.addInputPort('TargetClass');
     }
 
@@ -36,7 +38,9 @@ export default class NodeShapeModel extends BaseModel {
             predicate: this.predicate,
             researchFields: this.researchFields,
             researchProblems: this.researchProblems,
-            closed: this.closed
+            closed: this.closed,
+            hasLabelFormat: this.hasLabelFormat,
+            labelFormat: this.labelFormat
         };
     }
 
@@ -49,6 +53,13 @@ export default class NodeShapeModel extends BaseModel {
         this.researchFields = event.data.researchFields;
         this.researchProblems = event.data.researchProblems;
         this.closed = event.data.closed;
+        this.hasLabelFormat = event.data.hasLabelFormat;
+        this.labelFormat = event.data.labelFormat;
+    }
+
+    updateFormattedLabel(hasLabelFormat, labelFormat) {
+        this.hasLabelFormat = hasLabelFormat;
+        this.labelFormat = hasLabelFormat ? labelFormat : '';
     }
 
     toggleClosed() {
