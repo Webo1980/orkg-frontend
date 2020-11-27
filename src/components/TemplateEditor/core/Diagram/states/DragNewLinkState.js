@@ -71,6 +71,19 @@ export default class DragNewLinkState extends AbstractDisplacementState {
                         }
 
                         this.link.setTargetPort(model);
+
+                        // update the range of property
+                        if (!model.input) {
+                            // start from class and end with property
+                            model.updateConfiguration({ ...model.configurations, valueType: this.link.getSourcePort().parent.targetClass });
+                        } else {
+                            // start from a property and end with a class
+                            this.link.getSourcePort().updateConfiguration({
+                                ...this.link.getSourcePort().configurations,
+                                valueType: model.getParent().targetClass
+                            });
+                        }
+
                         model.reportPosition();
                         this.engine.repaintCanvas();
                         this.fireEvent();

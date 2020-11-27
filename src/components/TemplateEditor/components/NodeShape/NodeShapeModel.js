@@ -29,6 +29,10 @@ export default class NodeShapeModel extends BaseModel {
         this.researchProblems = configurations.researchProblems;
     }
 
+    updateTargetClass(targetClass) {
+        this.targetClass = targetClass;
+    }
+
     serialize() {
         return {
             ...super.serialize(),
