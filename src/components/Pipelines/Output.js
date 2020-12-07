@@ -2,10 +2,12 @@ import StepContainer from 'components/StepContainer';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { CSVLink } from 'react-csv';
-import { Alert, Table } from 'reactstrap';
+import { Alert, Table, Badge } from 'reactstrap';
+import { isString } from 'lodash';
 
 const Output = props => {
     const { latestStep, triples } = props;
+    const isActive = latestStep > 2;
 
     const csvData = triples.map(({ subject, predicate, object }) => ({
         subject: subject.label,
@@ -13,22 +15,28 @@ const Output = props => {
         object: object.label
     }));
 
-    const showLabel = item => {
-        if (item.uri) {
+    const showLabel = ({ uri, label }) => {
+        if (uri) {
+            const id = isString(uri) ? uri.substr(uri.lastIndexOf('/') + 1) : null;
             return (
                 <u>
-                    <a href={item.uri} target="_blank" rel="noopener noreferrer">
-                        {item.label}
+                    <a href={uri} target="_blank" rel="noopener noreferrer">
+                        {label}
+                        {id && (
+                            <Badge color="lightblue" className="ml-2">
+                                {id}
+                            </Badge>
+                        )}
                     </a>
                 </u>
             );
         } else {
-            return item.label;
+            return label;
         }
     };
 
     return (
-        <StepContainer step="3" title="Output" topLine active={latestStep > 2}>
+        <StepContainer step="3" title="Output" topLine bottomLine={isActive} active={isActive}>
             <div className="d-flex mb-3 justify-content-between">
                 <h2 className="h5 m-0">Extracted triples</h2>
                 {triples.length > 0 && (

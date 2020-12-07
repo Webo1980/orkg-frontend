@@ -1,13 +1,14 @@
 import StepContainer from 'components/StepContainer';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { Alert, Form, FormGroup, Input, Label } from 'reactstrap';
 
 const SpecifyText = ({ text, setText }) => {
+    const [selectedFile, setSelectedFile] = useState('');
+
     const handleFileUpload = e => {
         const file = e.target.files.length !== 0 ? e.target.files[0] : null;
-        console.log('handleFileUpload');
 
         if (!file.type || file.type.indexOf('text/plain') === -1) {
             toast.error('Only .txt files are accepted');
@@ -19,6 +20,8 @@ const SpecifyText = ({ text, setText }) => {
             setText(e.target.result);
         };
         reader.readAsText(e.target.files[0]);
+        // reset the file value after reading, so uploading the same file is supported
+        setSelectedFile('');
     };
 
     return (
@@ -32,7 +35,7 @@ const SpecifyText = ({ text, setText }) => {
                         <Label htmlFor="input-text">Input text</Label>
                         <label className="btn btn-darkblue btn-sm">
                             Upload text file
-                            <input type="file" hidden onChange={handleFileUpload} accept="text/plain" />
+                            <input type="file" hidden onChange={handleFileUpload} value={selectedFile} accept="text/plain" />
                         </label>
                     </div>
                     <Input
