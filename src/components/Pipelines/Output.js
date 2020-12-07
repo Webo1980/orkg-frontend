@@ -23,7 +23,7 @@ const Output = props => {
                     <a href={uri} target="_blank" rel="noopener noreferrer">
                         {label}
                         {id && (
-                            <Badge color="lightblue" className="ml-2">
+                            <Badge color="lightblue" className="ml-2 text-truncate" style={{ maxWidth: 150 }}>
                                 {id}
                             </Badge>
                         )}
