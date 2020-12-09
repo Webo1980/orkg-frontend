@@ -210,25 +210,8 @@ export default class MoveItemsState extends AbstractDisplacementState {
     }
 
     adjustLinkPoints = link => {
-        const first = link.getFirstPosition();
-        const last = link.getLastPosition();
-
-        if (!link.hasMiddlePoint() && first.x !== last.x && first.y !== last.y) {
-            link.addPoint(link.generatePoint(first.x, last.y), 1);
-        } else if (link.hasMiddlePoint()) {
-            const linkDirection = this.linkDirections[link.getID()];
-
-            if (linkDirection === 'horizontal') {
-                link.getMiddlePoint().setPosition(last.x, first.y);
-            } else {
-                link.getMiddlePoint().setPosition(first.x, last.y);
-            }
-
-            const middle = link.getMiddlePosition();
-
-            if (samePosition(first, middle) || samePosition(middle, last)) {
-                link.removePoint(link.getMiddlePoint());
-            }
-        }
+        const first = link.getFirstPoint();
+        const last = link.getLastPoint();
+        link.setPoints([first, last]);
     };
 }

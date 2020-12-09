@@ -12,10 +12,11 @@ import DeleteAction from './actions/DeleteAction';
 import DuplicateAction from './actions/DuplicateAction';
 import UndoRedoAction from './actions/UndoRedoAction';
 import ZoomAction from './actions/ZoomAction';
-import { getTemplateById } from 'services/backend/statements';
+import { getTemplateById, getTemplatesByClass } from 'services/backend/statements';
 import { convertToRange } from 'utils';
 import commandHandlers from './Command/commandHandlers';
 import CommandManager from './Command/CommandManager';
+import uniqBy from 'lodash/uniqBy';
 import States from './states/States';
 
 export default class DiagramEngine {
@@ -44,8 +45,8 @@ export default class DiagramEngine {
 
         this.dagreEngine = new DagreEngine({
             graph: {
-                rankdir: 'TB',
-                ranker: 'network-simplex',
+                rankdir: 'LR',
+                ranker: 'longest-path',
                 marginx: 25,
                 marginy: 25
             },
@@ -110,44 +111,120 @@ export default class DiagramEngine {
     };
 
     /**
+     * Adding the link of a node
+     *
+     * @param {Array} links List of links {fromNode: Node, fromPort: Port, to: Class}
+     * @param {Object} node Focus node
+     */
+    addLinksLinksOfNode = (links, node) => {
+        links
+            .filter(link => link.to.id === node.targetClass.id)
+            .forEach(link => {
+                // get class port
+                const classPort = node.getPort('TargetClass');
+                //get port
+                const port = link.fromNode.getPort(link.fromPort);
+                // check if the link is already created
+                const existingLinks = Object.values(port.getLinks()).filter(link => {
+                    return link.getTargetPort().getID() === classPort.getID();
+                });
+                if (existingLinks.length === 0) {
+                    const newLink = port.createLinkModel();
+                    newLink.setSourcePort(port);
+                    newLink.setTargetPort(classPort);
+                    port.reportPosition();
+                    classPort.reportPosition();
+                    this.engine.getModel().addLink(newLink);
+                    this.engine.repaintCanvas();
+                }
+            });
+    };
+
+    /**
+     * Load template by ID
+     *
+     * @param {String} templateID template ID
+     * @param {Array} links List of links {fromNode: Node, fromPort: Port, to: Class}
+     */
+    loadTemplateByID = (templateID, links = []) => {
+        return getTemplateById(templateID).then(t => {
+            let node = this.engine.getModel().getNode(t.id);
+            // Check if the template already loaded
+            if (!node) {
+                this.handleComponentDrop(null, {
+                    type: 'NodeShape',
+                    configurations: {
+                        id: t.id,
+                        label: t.label,
+                        targetClass: t.class,
+                        researchFields: t.researchFields,
+                        researchProblems: t.researchProblems,
+                        predicate: t.predicate,
+                        closed: t.isStrict,
+                        hasLabelFormat: t.hasLabelFormat,
+                        labelFormat: t.labelFormat
+                    }
+                });
+                node = this.engine.getModel().getNode(t.id);
+                // add properties (components)
+                const classes2load = [];
+                for (const component of t.components) {
+                    // If there is a range add the class to load and the link to add
+                    if (component.value) {
+                        classes2load.push(component.value);
+                        links.push({ fromNode: node, fromPort: component.property.id, to: component.value });
+                    }
+                    node.addOutputPort(component.property.id, {
+                        id: component.property.id,
+                        label: component.property.label,
+                        property: component.property,
+                        valueType: component.value,
+                        cardinality: component.cardinality ?? convertToRange(component.minOccurs, component.maxOccurs),
+                        minOccurs: component.minOccurs,
+                        maxOccurs: component.maxOccurs,
+                        validationRules: component.validationRules
+                    });
+                }
+                this.addLinksLinksOfNode(links, node);
+                return Promise.all(
+                    uniqBy(classes2load, 'id')
+                        .filter(c => c.id)
+                        .map(class2load => this.loadTemplateByClassID(class2load.id, links))
+                );
+            }
+            // Add the links
+            this.addLinksLinksOfNode(links, node);
+
+            return Promise.resolve();
+        });
+    };
+
+    /**
+     * Load template by Class
+     *
+     * @param {String} classID string
+     * @param {Array} links end Char count
+     */
+    loadTemplateByClassID = (classID, links) => {
+        this.engine.repaintCanvas();
+        return getTemplatesByClass(classID).then(templateIds => {
+            if (templateIds[0]) {
+                return this.loadTemplateByID(templateIds[0], links);
+            } else {
+                return Promise.resolve();
+            }
+        });
+    };
+
+    /**
      * Load template from the database
      */
     loadTemplate = id => {
         // load template
-        return getTemplateById(id).then(template => {
-            this.engine.commands.clear();
-            // Clear shape
-            this.handleComponentDrop(null, {
-                type: 'NodeShape',
-                configurations: {
-                    id: template.id,
-                    label: template.label,
-                    targetClass: template.class,
-                    researchFields: template.researchFields,
-                    researchProblems: template.researchProblems,
-                    predicate: template.predicate,
-                    closed: template.isStrict,
-                    hasLabelFormat: template.hasLabelFormat,
-                    labelFormat: template.labelFormat
-                }
-            });
-
-            const node = this.engine.getModel().getNode(template.id);
-            // add properties (components)
-            for (const component of template.components) {
-                node.addOutputPort(component.property.id, {
-                    id: component.property.id,
-                    label: component.property.label,
-                    property: component.property,
-                    valueType: component.value,
-                    cardinality: component.cardinality ?? convertToRange(component.minOccurs, component.maxOccurs),
-                    minOccurs: component.minOccurs,
-                    maxOccurs: component.maxOccurs,
-                    validationRules: component.validationRules
-                });
-            }
-            this.realignGrid();
+        this.engine.commands.clear();
+        return this.loadTemplateByID(id).then(e => {
             this.engine.repaintCanvas();
+            this.autoDistribute();
         });
     };
 

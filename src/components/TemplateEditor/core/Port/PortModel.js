@@ -5,7 +5,7 @@ export default class PortModel extends RDPortModel {
     constructor(options = {}, configurations) {
         super({
             type: 'Port',
-            maximumLinks: 1,
+            maximumLinks: 20,
             ...options
         });
 
@@ -40,6 +40,8 @@ export default class PortModel extends RDPortModel {
                     return 'D';
                 case 'Number':
                     return 'I';
+                case undefined:
+                    return '';
                 default:
                     return 'C';
             }
@@ -99,6 +101,15 @@ export default class PortModel extends RDPortModel {
 
     getColor() {
         const link = this.getMainLink();
+
+        const links = Object.values(this.getLinks());
+
+        links.forEach(function(link, i) {
+            if (link.getSourcePort() && link.getTargetPort()) {
+                return 'var(--port-connected)';
+            }
+        });
+
         if (link) {
             return link.getColor();
         }
@@ -107,6 +118,10 @@ export default class PortModel extends RDPortModel {
 
     getTextColor() {
         const link = this.getMainLink();
+        const links = Object.values(this.getLinks());
+        links.forEach(function(link, i) {
+            return link.isSelected() ? 'var(--port-unconnected-text)' : 'var(--port-connected-unselected-text)';
+        });
         if (link) {
             return link.isSelected() ? 'var(--port-unconnected-text)' : 'var(--port-connected-unselected-text)';
         }
