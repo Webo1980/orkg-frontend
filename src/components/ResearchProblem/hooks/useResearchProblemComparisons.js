@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getStatementsByObjectAndPredicate, getStatementsBySubjects } from 'services/backend/statements';
 import { useParams } from 'react-router-dom';
-import { getPaperData } from 'utils';
-import { uniq } from 'lodash';
+import { getComparisonData } from 'utils';
+import { uniqBy } from 'lodash';
 import { CLASSES, PREDICATES } from 'constants/graphSettings';
 
-function useResearchProblemPapers() {
-    const pageSize = 10;
+function useResearchProblemComparisons() {
+    const pageSize = 50;
     const { researchProblemId } = useParams();
     const [isLoading, setIsLoading] = useState(false);
     const [hasNextPage, setHasNextPage] = useState(false);
     const [isLastPageReached, setIsLastPageReached] = useState(false);
     const [page, setPage] = useState(1);
-    const [papers, setPapers] = useState([]);
+    const [comparisons, setComparisons] = useState([]);
 
-    const loadPapers = useCallback(
+    const loadComparisons = useCallback(
         page => {
             setIsLoading(true);
 
@@ -33,43 +33,45 @@ function useResearchProblemPapers() {
                         .filter(contribution => contribution.subject.classes.includes(CLASSES.CONTRIBUTION))
                         .map(contribution => contribution.subject);
 
-                    // get papers
-                    const papersResourcesCalls = contributions.map(
+                    // get comparisons
+                    const comparisonsResourcesCalls = contributions.map(
                         contribution =>
                             getStatementsByObjectAndPredicate({
                                 objectId: contribution.id,
-                                predicateId: PREDICATES.HAS_CONTRIBUTION,
+                                predicateId: PREDICATES.COMPARE_CONTRIBUTION,
                                 order: 'desc'
                             })
                                 .then(pItems =>
                                     pItems
-                                        .filter(pItem => pItem.subject.classes.includes(CLASSES.PAPER))
+                                        .filter(pItem => pItem.subject.classes.includes(CLASSES.COMPARISON))
                                         .map(pItem => ({ contribution: contribution, ...pItem.subject }))
                                 )
-                                .then(pItems => (pItems.length ? pItems[0] : null)) // if there is no paper set null
+                                .then(pItems => (pItems.length ? pItems[0] : null)) // if there is no comparison set null
                     );
 
-                    // Get the data of each paper
-                    Promise.all(papersResourcesCalls)
-                        .then(items => items.filter(Boolean)) // to remove contribution that are not related to a paper
-                        .then(papersResources => {
+                    // Get the data of each comparison
+                    Promise.all(comparisonsResourcesCalls)
+                        .then(items => items.filter(Boolean)) // to remove contribution that are not related to a comparison
+                        .then(comparisonsResources => {
                             return getStatementsBySubjects({
-                                ids: uniq(papersResources.map(paperResource => paperResource.id)) // use bulk fetch to reduce and optimize the number of calls
-                            }).then(papersStatements => {
+                                ids: uniqBy(comparisonsResources, 'id').map(comparisonResource => comparisonResource.id) // use bulk fetch to reduce and optimize the number of calls
+                            }).then(comparisonsStatements => {
                                 const data = [];
-                                for (const papersResource of papersResources) {
-                                    const statements = papersStatements.filter(paperStatements => paperStatements.id === papersResource.id)[0]
-                                        .statements;
+                                for (const comparisonResource of comparisonsResources) {
+                                    const statements = comparisonsStatements.filter(
+                                        comparisonStatements => comparisonStatements.id === comparisonResource.id
+                                    )[0].statements;
                                     data.push({
-                                        ...papersResource,
-                                        data: getPaperData(papersResource.id, papersResource.label, statements)
+                                        ...comparisonResource,
+                                        data: getComparisonData(comparisonResource.id, comparisonResource.label, statements)
                                     });
                                 }
+
                                 return data;
                             });
                         })
-                        .then(papersData => {
-                            setPapers(prevResources => [...prevResources, ...papersData]);
+                        .then(comparisonsData => {
+                            setComparisons(prevResources => [...prevResources, ...comparisonsData]);
                             setIsLoading(false);
                             // use result instead of results because filtering by contribution class might reduce the number of items
                             setHasNextPage(result.length < pageSize || result.length === 0 ? false : true);
@@ -88,22 +90,22 @@ function useResearchProblemPapers() {
 
     // reset resources when the researchProblemId has changed
     useEffect(() => {
-        setPapers([]);
+        setComparisons([]);
         setHasNextPage(false);
         setIsLastPageReached(false);
         setPage(1);
     }, [researchProblemId]);
 
     useEffect(() => {
-        loadPapers(1);
-    }, [loadPapers]);
+        loadComparisons(1);
+    }, [loadComparisons]);
 
     const handleLoadMore = () => {
         if (!isLoading) {
-            loadPapers(page);
+            loadComparisons(page);
         }
     };
 
-    return [papers, isLoading, hasNextPage, isLastPageReached, handleLoadMore];
+    return [comparisons, isLoading, hasNextPage, isLastPageReached, handleLoadMore];
 }
-export default useResearchProblemPapers;
+export default useResearchProblemComparisons;

@@ -5,6 +5,7 @@ import { faSpinner, faAngleDoubleDown, faAngleDoubleRight } from '@fortawesome/f
 import ResearchProblemHeaderBar from 'components/ResearchProblem/ResearchProblemHeaderBar';
 import useResearchProblem from 'components/ResearchProblem/hooks/useResearchProblem';
 import useResearchProblemPapers from 'components/ResearchProblem/hooks/useResearchProblemPapers';
+import useResearchProblemComparisons from 'components/ResearchProblem/hooks/useResearchProblemComparisons';
 import useResearchProblemResearchFields from 'components/ResearchProblem/hooks/useResearchProblemResearchFields';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
@@ -12,6 +13,7 @@ import { reverse } from 'named-urls';
 //import LeaderBoard from 'components/ResearchProblem/LeaderBoard';
 import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import PaperCard from 'components/PaperCard/PaperCard';
+import ComparisonCard from 'components/ComparisonCard/ComparisonCard';
 import ExternalDescription from 'components/ResearchProblem/ExternalDescription';
 import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
 import ROUTES from 'constants/routes';
@@ -28,7 +30,14 @@ function ResearchProblem(props) {
     const [researchProblemData, parentResearchProblems, isLoading, isFailedLoading, loadResearchProblemData] = useResearchProblem();
     const [editMode, setEditMode] = useState(false);
     const prevEditMode = usePrevious({ editMode });
-    const [contributions, isLoadingPapers, hasNextPage, isLastPageReached, loadMorePapers] = useResearchProblemPapers();
+    const [papers, isLoadingPapers, hasNextPage, isLastPageReached, loadMorePapers] = useResearchProblemPapers();
+    const [
+        comparisons,
+        isLoadingComparisons,
+        hasNextPageComparisons,
+        isLastPageReachedComparisons,
+        loadMoreComparisons
+    ] = useResearchProblemComparisons();
     const [researchFields, isLoadingResearchFields] = useResearchProblemResearchFields();
     const { researchProblemId } = props.match.params;
 
@@ -179,31 +188,67 @@ function ResearchProblem(props) {
                         */}
                     </Container>
 
+                    <Container className="p-0">
+                        <h1 className="h4 mt-4 mb-4 flex-grow-1">Comparisons</h1>
+                    </Container>
+                    <Container className="p-0">
+                        {comparisons.length > 0 && (
+                            <div>
+                                {comparisons.map(comparison => {
+                                    return comparison && <ComparisonCard comparison={{ ...comparison }} key={`pc${comparison.id}`} />;
+                                })}
+                            </div>
+                        )}
+                        {comparisons.length === 0 && !isLoadingComparisons && (
+                            <div className="box rounded-lg p-5 text-center mt-4 mb-4">
+                                There are no published comparisons for this research problem, yet.
+                                <br />
+                            </div>
+                        )}
+                        {isLoadingComparisons && (
+                            <div className="text-center mt-4 mb-4">
+                                <Icon icon={faSpinner} spin /> Loading
+                            </div>
+                        )}
+                        {!isLoadingComparisons && hasNextPageComparisons && (
+                            <div
+                                style={{ cursor: 'pointer' }}
+                                className="list-group-item list-group-item-action text-center mt-2"
+                                onClick={!isLoadingComparisons ? loadMoreComparisons : undefined}
+                            >
+                                Load more comparisons
+                            </div>
+                        )}
+                        {!hasNextPageComparisons && isLastPageReachedComparisons && (
+                            <div className="text-center mt-3">You have reached the last page.</div>
+                        )}
+                    </Container>
+
                     <Container>
                         <h1 className="h4 mt-4 mb-4 flex-grow-1">Papers</h1>
                     </Container>
                     <Container className="p-0">
                         <ListGroup flush className="box rounded" style={{ overflow: 'hidden' }}>
-                            {contributions.length > 0 && (
+                            {papers.length > 0 && (
                                 <div>
-                                    {contributions.map(contribution => {
+                                    {papers.map(paper => {
                                         return (
-                                            contribution && (
+                                            paper && (
                                                 <PaperCard
                                                     paper={{
-                                                        id: contribution.papers[0].subject.id,
-                                                        title: contribution.papers[0].subject.label,
-                                                        ...contribution.papers[0].data
+                                                        id: paper.id,
+                                                        title: paper.label,
+                                                        ...paper.data
                                                     }}
-                                                    contribution={{ id: contribution.subject.id, title: contribution.subject.label }}
-                                                    key={`pc${contribution.id}`}
+                                                    contribution={{ id: paper.contribution.id, title: paper.contribution.label }}
+                                                    key={`pc${paper.contribution.id}`}
                                                 />
                                             )
                                         );
                                     })}
                                 </div>
                             )}
-                            {contributions.length === 0 && !isLoadingPapers && (
+                            {papers.length === 0 && !isLoadingPapers && (
                                 <div className="text-center mt-4 mb-4">
                                     There are no papers for this research problem, yet.
                                     <br />
