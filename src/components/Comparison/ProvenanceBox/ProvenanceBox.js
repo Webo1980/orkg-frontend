@@ -13,7 +13,7 @@ import { Button } from 'reactstrap';
 import { useSelector } from 'react-redux';
 
 const StyledOrganizationCard = styled.div`
-    border: 0;
+    border: 0 !important;
     .logoContainer {
         padding: 1rem;
         position: relative;
@@ -46,7 +46,7 @@ function ProvenanceBox(props) {
     const [showAssignObservatory, setShowAssignObservatory] = useState(false);
     const user = useSelector(state => state.auth.user);
     return (
-        <div className="container box rounded-lg mt-4">
+        <div className="container box rounded-lg mb-4">
             <Row>
                 <div className="col-8 d-flex align-items-center ">
                     <div className="pt-4 pb-4 pl-4 pr-4">
@@ -55,7 +55,7 @@ function ProvenanceBox(props) {
                                 <p>
                                     Observatory:{' '}
                                     {!!user && user.isCurationAllowed && (
-                                        <Button size="sm" onClick={() => setShowAssignObservatory(true)} color="link">
+                                        <Button size="sm" onClick={() => setShowAssignObservatory(true)} color="link" className="p-0">
                                             <Icon icon={faPen} /> Edit
                                         </Button>
                                     )}

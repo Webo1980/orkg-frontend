@@ -273,6 +273,10 @@ function Comparison(props) {
                 )}
             </ContainerAnimated>
 
+            {metaData.id && ((isObject(createdBy) && createdBy.id) || provenance) && (
+                <ProvenanceBox creator={createdBy} provenance={provenance} changeObservatory={getObservatoryInfo} resourceId={metaData.id} />
+            )}
+
             <ContainerAnimated className="box rounded pt-4 pb-4 pl-5 pr-5 clearfix" style={containerStyle}>
                 {!isLoadingMetaData && (isFailedLoadingComparisonResult || isFailedLoadingMetaData) && (
                     <div>
@@ -394,10 +398,6 @@ function Comparison(props) {
                     )}
                 </div>
             </ContainerAnimated>
-
-            {metaData.id && ((isObject(createdBy) && createdBy.id) || provenance) && (
-                <ProvenanceBox creator={createdBy} provenance={provenance} changeObservatory={getObservatoryInfo} resourceId={metaData.id} />
-            )}
 
             <SelectProperties
                 properties={properties}
