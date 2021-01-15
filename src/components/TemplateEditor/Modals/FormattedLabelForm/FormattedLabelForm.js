@@ -43,7 +43,7 @@ function FormattedLabelForm(props) {
                         <div className="mt-3">
                             <FormGroup className="mb-4">
                                 <Label>Formatted label</Label>
-                                <Input placeholder={'{P123} to {P456}'} value={labelFormat} onChange={handleChangeLabelFormat} />
+                                <Input placeholder="{P123} to {P456}" value={labelFormat} onChange={handleChangeLabelFormat} />
                                 <FormText>
                                     Use the reference of property IDs bellow to get each property placeholder.
                                     <br />
