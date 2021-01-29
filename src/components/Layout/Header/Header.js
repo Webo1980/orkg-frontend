@@ -287,13 +287,13 @@ class Header extends Component {
                                             Comparisons
                                         </DropdownItem>
                                         <DropdownItem divider />
-                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.OBSERVATORIES}>
+                                        <DropdownItem alt="Observatories" tag={RouterNavLink} exact to={ROUTES.OBSERVATORIES}>
                                             Observatories{' '}
                                             <small>
                                                 <Badge color="info">Beta</Badge>
                                             </small>
                                         </DropdownItem>
-                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.ORGANIZATIONS}>
+                                        <DropdownItem alt="Organizations" tag={RouterNavLink} exact to={ROUTES.ORGANIZATIONS}>
                                             Organizations{' '}
                                             <small>
                                                 <Badge color="info">Beta</Badge>
