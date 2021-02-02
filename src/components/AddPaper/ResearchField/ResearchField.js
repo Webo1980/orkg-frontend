@@ -10,6 +10,39 @@ const ResearchField = () => {
     const researchFields = useSelector(state => state.addPaper.researchFields);
     const dispatch = useDispatch();
 
+    // could be easier handled with "has parentid Rxx" than just lining up the child ids
+    const BioassayFieldList = [
+        'R13', // Biochemistry, Biophysics, and Structural Biology
+        'R14',
+        'R15',
+        'R16',
+        'R17',
+        'R18',
+        'R19', // Cell and Developmental Biology
+        'R20',
+        'R21',
+        'R22',
+        'R23',
+        'R35', // Genetics and Genomics
+        'R36',
+        'R37',
+        'R38',
+        'R39',
+        'R40', // Immunology and Infectious Desease
+        'R41',
+        'R42',
+        'R43',
+        'R44',
+        'R45',
+        'R48', // Biomechanics
+        'R52', // Microbiology
+        'R53',
+        'R54',
+        'R55',
+        'R56',
+        'R57'
+    ];
+
     const handleNextClick = () => {
         if (!selectedResearchField) {
             setShowError(true);
@@ -62,6 +95,12 @@ const ResearchField = () => {
             <Button color="light" className="float-right mb-4 mr-2" onClick={() => dispatch(previousStep())}>
                 Previous step
             </Button>
+
+            {BioassayFieldList.includes(selectedResearchField) && (
+                <Button color="secondary" className="float-right mb-4 mr-2">
+                    Add Bioassay
+                </Button>
+            )}
         </div>
     );
 };
