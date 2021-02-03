@@ -5,7 +5,7 @@ import { faQuestionCircle, faEye, faSave, faCrosshairs, faSitemap, faFileUpload 
 import EditorTour from 'components/TemplateEditor/EditorTour/EditorTour';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import Tippy from '@tippy.js/react';
+import Tippy from '@tippyjs/react';
 
 const ToolbarStyled = styled.div`
     background: ${props => props.theme.darkblue};

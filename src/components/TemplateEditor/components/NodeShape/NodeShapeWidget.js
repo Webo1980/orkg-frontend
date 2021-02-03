@@ -7,7 +7,7 @@ import { faPen, faCog, faLock, faLockOpen, faTrash, faFont } from '@fortawesome/
 import { Shape, Title, StyledAddProperty, PropertyItem } from 'components/TemplateEditor/styled';
 import { truncate } from 'lodash';
 import PropTypes from 'prop-types';
-import Tippy from '@tippy.js/react';
+import Tippy from '@tippyjs/react';
 
 const NodeShapeWidget = props => {
     const { model, engine } = props;

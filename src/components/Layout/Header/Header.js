@@ -286,6 +286,12 @@ class Header extends Component {
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.COMPARISONS}>
                                             Comparisons
                                         </DropdownItem>
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.VISUALIZATIONS}>
+                                            Visualizations
+                                        </DropdownItem>
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.RESEARCH_FIELDS}>
+                                            Research fields
+                                        </DropdownItem>
                                         <DropdownItem divider />
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.OBSERVATORIES}>
                                             Observatories{' '}
@@ -306,7 +312,7 @@ class Header extends Component {
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.RESOURCES}>
                                             Resources
                                         </DropdownItem>
-                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.PREDICATES}>
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.PROPERTIES}>
                                             Properties
                                         </DropdownItem>
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.CLASSES}>
