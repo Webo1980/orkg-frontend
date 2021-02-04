@@ -23,7 +23,7 @@ const PropertyValue = ({ id, label, similar }) => {
                     </Tippy>
                 )}
             >
-                <Button onClick={handleOpenStatementBrowser} color="link" className="text-light m-0 p-0">
+                <Button onClick={handleOpenStatementBrowser} color="link" className="text-left text-light m-0 p-0">
                     {upperFirst(label)}
                 </Button>
             </ConditionalWrapper>
