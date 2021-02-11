@@ -14,9 +14,12 @@ function EditorTour(props) {
                     <p>
                         This is <strong>ORKG</strong> template editor. <br />
                         <br />
-                        Templates define a structure for research contributions addressing the same research problem.
+                        <i>
+                            <b>Definition:</b> A template is a model or a pattern used to create new resource in ORKG, it is adjusted for a specific
+                            research field or a research problem .
+                        </i>
                     </p>
-                    <p className="d-flex mt-5">Would you like to take a quick tour?</p>
+                    <p className="d-flex mt-3">Would you like to take a quick tour?</p>
                     <div className="d-flex mt-2">
                         <div className="flex-grow-1">
                             <Button color="primary" size="sm" onClick={() => goTo(1)}>
@@ -60,13 +63,17 @@ function EditorTour(props) {
             content: <p>Reset zoom</p>
         },
         {
+            selector: '#templateEditReorganize',
+            content: <p>Automatically arrange the diagram elements.</p>
+        } /*
+        {
             selector: '#previewButton',
             content: (
                 <div>
                     <p>After that check a preview of the template, if works as you expected</p>
                 </div>
             )
-        },
+        },*/,
         {
             selector: '#saveButton',
             content: (

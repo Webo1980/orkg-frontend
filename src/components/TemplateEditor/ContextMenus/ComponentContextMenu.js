@@ -15,6 +15,7 @@ const ComponentContextMenu = ({
     configureComponent
 }) => (
     <Menu id="component">
+        {/*
         <Item onClick={duplicateSelected}>Duplicate</Item>
 
         <Item onClick={cutSelected}>Cut</Item>
@@ -22,7 +23,7 @@ const ComponentContextMenu = ({
         <Item onClick={copySelected}>Copy</Item>
 
         <Item onClick={pasteSelected}>Paste</Item>
-
+        */}
         <Item onClick={deleteSelected}>Delete</Item>
 
         <Separator />
@@ -32,13 +33,13 @@ const ComponentContextMenu = ({
         <Item onClick={zoomOut}>Zoom out</Item>
 
         <Separator />
-
+        {/*
         <Item onClick={undo}>Undo</Item>
 
         <Item onClick={redo}>Redo</Item>
 
         <Separator />
-
+        */}
         <Item onClick={({ props: component }) => configureComponent(component)}>Edit configurations...</Item>
     </Menu>
 );

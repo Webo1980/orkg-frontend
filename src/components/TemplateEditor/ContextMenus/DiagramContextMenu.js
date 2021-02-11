@@ -1,21 +1,23 @@
 import React from 'react';
-import { Menu, Item, Separator } from 'react-contexify';
+import { Menu, Item /*Separator */ } from 'react-contexify';
 import PropTypes from 'prop-types';
 
 const DiagramContextMenu = ({ pasteSelected, undo, redo, zoomIn, zoomOut }) => (
     <Menu id="diagram">
-        <Item onClick={pasteSelected}>Paste</Item>
-
+        {/*
+        <Item onClick={pasteSelected}>Paste</Item>  
         <Separator />
+        */}
 
         <Item onClick={zoomIn}>Zoom in</Item>
         <Item onClick={zoomOut}>Zoom out</Item>
 
+        {/*
         <Separator />
-
         <Item onClick={undo}>Undo</Item>
 
         <Item onClick={redo}>Redo</Item>
+        */}
     </Menu>
 );
 

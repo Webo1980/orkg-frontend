@@ -70,9 +70,13 @@ const Toolbar = props => {
                     </Tippy>
                 </ButtonGroup>
                 <ButtonGroup className="mr-2">
-                    <Button disabled id="previewButton" color="darkblueDarker" size="sm" onClick={() => null}>
-                        <Icon icon={faEye} /> Preview
-                    </Button>
+                    <Tippy content="Coming soon!">
+                        <span>
+                            <Button disabled id="previewButton" color="darkblueDarker" size="sm" onClick={() => null}>
+                                <Icon icon={faEye} /> Preview
+                            </Button>
+                        </span>
+                    </Tippy>
                     {/* <Button color="darkblueDarker" size="sm" onClick={handleClickLoad}>
                         <Icon icon={faFileUpload} /> Load
                     </Button> */}
