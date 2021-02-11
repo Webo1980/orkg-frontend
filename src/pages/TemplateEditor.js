@@ -7,9 +7,11 @@ import ComponentModalFactory from 'components/TemplateEditor/ComponentModalFacto
 import AddShapeButton from 'components/TemplateEditor/AddShapeButton';
 import ContextMenus from 'components/TemplateEditor/ContextMenus/ContextMenus';
 import { StyledWorkSpace } from 'components/TemplateEditor/styled';
+import { saveTemplate } from 'components/TemplateEditor/core/Diagram/LoadSaveUtils';
+import NotFound from 'pages/NotFound';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import FileSaver from 'file-saver';
+//import FileSaver from 'file-saver';
 
 const DIMENSIONS = { width: 180, height: 135 };
 
@@ -24,7 +26,10 @@ class TemplateEditor extends Component {
             isTourAvailable: false,
             isTourRunning: false,
             templateCreatedAt: null,
-            isLoading: false
+            isLoading: false,
+            isSaving: false,
+            isFailedLoading: false,
+            isFailedSaving: false
         };
 
         this.diagram = new DiagramEngine(components, this.areShortcutsAllowed, this.showComponentModal);
@@ -36,13 +41,16 @@ class TemplateEditor extends Component {
         if (this.props.match.params.id) {
             this.setState({ isLoading: true });
             // load template
-            console.log('Load template');
-            this.diagram.loadTemplate(this.props.match.params.id).then(() => {
-                this.setState({ isLoading: false });
-            });
+            this.diagram
+                .loadTemplate(this.props.match.params.id)
+                .then(() => {
+                    this.setState({ isLoading: false });
+                })
+                .catch(e => {
+                    this.setState({ isLoading: false, isFailedLoading: true });
+                });
         } else {
             //create template
-            console.log('Create template');
             window.addEventListener('load', this.loadHandler);
             window.addEventListener('beforeunload', this.unloadHandler);
         }
@@ -153,10 +161,12 @@ class TemplateEditor extends Component {
         }
     };
 
-    generateFile = () => {
+    generateFile = async (saveBackend = false) => {
         const { templateCreatedAt } = this.state;
         const template = this.diagram.serialize();
-
+        if (saveBackend) {
+            saveTemplate(this.diagram).then(() => this.setState({ isSaving: false }));
+        }
         return {
             id: template.id,
             diagramCreatedAt: templateCreatedAt || new Date(),
@@ -165,8 +175,8 @@ class TemplateEditor extends Component {
         };
     };
 
-    autoSave = () => {
-        const file = this.generateFile();
+    autoSave = async () => {
+        const file = await this.generateFile();
 
         if (file.template.id === 'tour-template') {
             return;
@@ -181,17 +191,19 @@ class TemplateEditor extends Component {
     handleClickSave = () => {
         const { templateCreatedAt } = this.state;
         if (!templateCreatedAt) {
-            this.setState({ templateCreatedAt: new Date() });
+            this.setState({ templateCreatedAt: new Date(), isSaving: true });
         }
 
-        const file = JSON.stringify(this.generateFile(), null, 2);
+        const file = JSON.stringify(this.generateFile(true), null, 2);
+
+        localStorage.setItem('last-saved-template', file);
+        /*
         const blob = new Blob([file], {
             type: 'application/json'
         });
         const filename = 'Template';
-        localStorage.setItem('last-saved-template', file);
-
         FileSaver.saveAs(blob, `${filename}.orkgt`);
+        */
     };
 
     handleClickLoad = () => document.getElementById('file-input').click();
@@ -257,92 +269,98 @@ class TemplateEditor extends Component {
     };
 
     render() {
-        const { isLoading, isComponentEditOpen, isTourRunning, componentEditAction } = this.state;
+        const { isLoading, isFailedLoading, isSaving, isComponentEditOpen, isTourRunning, componentEditAction } = this.state;
 
         return (
             <>
-                <Toolbar
-                    isTourOpen={isTourRunning}
-                    toggleTourOpen={() =>
-                        this.setState(state => ({
-                            isTourRunning: !state.isTourRunning
-                        }))
-                    }
-                    handleClickSave={this.handleClickSave}
-                    zoomToFitNodes={() => {
-                        this.diagram.zoomToFitNodes(140);
-                    }}
-                    autoDistribute={() => {
-                        this.diagram.autoDistribute();
-                    }}
-                    handleFileLoad={this.handleFileLoad}
-                />
+                {!isFailedLoading && (
+                    <>
+                        <Toolbar
+                            isTourOpen={isTourRunning}
+                            toggleTourOpen={() =>
+                                this.setState(state => ({
+                                    isTourRunning: !state.isTourRunning
+                                }))
+                            }
+                            handleClickSave={this.handleClickSave}
+                            isSaving={isSaving}
+                            zoomToFitNodes={() => {
+                                this.diagram.zoomToFitNodes(140);
+                            }}
+                            autoDistribute={() => {
+                                this.diagram.autoDistribute();
+                            }}
+                            handleFileLoad={this.handleFileLoad}
+                        />
 
-                <AddShapeButton
-                    isOpen={isComponentEditOpen}
-                    onClose={this.hideEditComponent}
-                    handleClick={() => {
-                        this.showComponentModal(null);
-                    }}
-                />
+                        <AddShapeButton
+                            isOpen={isComponentEditOpen}
+                            onClose={this.hideEditComponent}
+                            handleClick={() => {
+                                this.showComponentModal(null);
+                            }}
+                        />
 
-                <StyledWorkSpace id="templateWorkspace">
-                    <Diagram engine={this.diagram} />
-                </StyledWorkSpace>
+                        <StyledWorkSpace id="templateWorkspace">
+                            <Diagram engine={this.diagram} />
+                        </StyledWorkSpace>
 
-                <ContextMenus
-                    duplicateSelected={this.diagram.duplicateSelected}
-                    cutSelected={this.diagram.cutSelected}
-                    copySelected={this.diagram.copySelected}
-                    pasteSelected={this.diagram.pasteSelected}
-                    deleteSelected={this.diagram.deleteSelected}
-                    undo={this.diagram.undo}
-                    redo={this.diagram.redo}
-                    zoomIn={this.diagram.zoomIn}
-                    zoomOut={this.diagram.zoomOut}
-                    configureComponent={this.showComponentModal}
-                />
+                        <ContextMenus
+                            duplicateSelected={this.diagram.duplicateSelected}
+                            cutSelected={this.diagram.cutSelected}
+                            copySelected={this.diagram.copySelected}
+                            pasteSelected={this.diagram.pasteSelected}
+                            deleteSelected={this.diagram.deleteSelected}
+                            undo={this.diagram.undo}
+                            redo={this.diagram.redo}
+                            zoomIn={this.diagram.zoomIn}
+                            zoomOut={this.diagram.zoomOut}
+                            configureComponent={this.showComponentModal}
+                        />
 
-                <ComponentModalFactory
-                    onClose={this.hideEditComponent}
-                    isOpen={isComponentEditOpen}
-                    model={this.state.componentEdit}
-                    action={componentEditAction}
-                    handleComponentDrop={this.diagram.handleComponentDrop}
-                />
+                        <ComponentModalFactory
+                            onClose={this.hideEditComponent}
+                            isOpen={isComponentEditOpen}
+                            model={this.state.componentEdit}
+                            action={componentEditAction}
+                            handleComponentDrop={this.diagram.handleComponentDrop}
+                        />
 
-                <Modal
-                    isOpen={this.state.isLoading}
-                    toggle={() =>
-                        this.setState(state => ({
-                            isLoading: !state.isLoading
-                        }))
-                    }
-                >
-                    <ModalHeader
-                        toggle={() =>
-                            this.setState(state => ({
-                                isLoading: !state.isLoading
-                            }))
-                        }
-                    >
-                        Loading
-                    </ModalHeader>
-                    <ModalBody>Loading template</ModalBody>
-                </Modal>
+                        <Modal
+                            isOpen={this.state.isLoading}
+                            toggle={() =>
+                                this.setState(state => ({
+                                    isLoading: !state.isLoading
+                                }))
+                            }
+                        >
+                            <ModalHeader
+                                toggle={() =>
+                                    this.setState(state => ({
+                                        isLoading: !state.isLoading
+                                    }))
+                                }
+                            >
+                                Loading
+                            </ModalHeader>
+                            <ModalBody>Loading template</ModalBody>
+                        </Modal>
 
-                <div
-                    style={{
-                        display: !isLoading && isTourRunning ? 'block' : 'none',
-                        position: 'absolute',
-                        width: window.innerWidth * 0.7,
-                        height: window.innerHeight * 0.5,
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)'
-                    }}
-                    id="templateWorkspaceArea"
-                />
+                        <div
+                            style={{
+                                display: !isLoading && isTourRunning ? 'block' : 'none',
+                                position: 'absolute',
+                                width: window.innerWidth * 0.7,
+                                height: window.innerHeight * 0.5,
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)'
+                            }}
+                            id="templateWorkspaceArea"
+                        />
+                    </>
+                )}
+                {isFailedLoading && !isLoading && <NotFound />}
             </>
         );
     }

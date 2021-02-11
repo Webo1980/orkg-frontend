@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Button, ButtonGroup } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faQuestionCircle, faEye, faSave, faCrosshairs, faSitemap, faFileUpload } from '@fortawesome/free-solid-svg-icons';
+import { faQuestionCircle, faEye, faSave, faCrosshairs, faSitemap, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import EditorTour from 'components/TemplateEditor/EditorTour/EditorTour';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -25,14 +25,14 @@ const FileInput = styled.input`
 
 const Toolbar = props => {
     const fileInputRef = useRef();
-
+    /*
     const handleClickLoad = () => {
         if (!fileInputRef.current) {
             return;
         }
         fileInputRef.current.click();
     };
-
+    */
     return (
         <ToolbarStyled>
             <h1 className="h5 mb-0 ml-2" style={{ color: '#fff', height: 'auto' }}>
@@ -73,11 +73,12 @@ const Toolbar = props => {
                     <Button disabled id="previewButton" color="darkblueDarker" size="sm" onClick={() => null}>
                         <Icon icon={faEye} /> Preview
                     </Button>
-                    <Button color="darkblueDarker" size="sm" onClick={handleClickLoad}>
+                    {/* <Button color="darkblueDarker" size="sm" onClick={handleClickLoad}>
                         <Icon icon={faFileUpload} /> Load
-                    </Button>
-                    <Button id="saveButton" color="primary" size="sm" onClick={() => props.handleClickSave()}>
-                        <Icon icon={faSave} /> Save
+                    </Button> */}
+                    <Button disabled={props.isSaving} id="saveButton" color="primary" size="sm" onClick={() => props.handleClickSave()}>
+                        {!props.isSaving ? <Icon icon={faSave} className="mr-1" /> : <Icon icon={faSpinner} spin className="mr-1" />}
+                        {!props.isSaving ? 'Save' : 'Saving'}
                     </Button>
                 </ButtonGroup>
 
@@ -94,6 +95,7 @@ Toolbar.propTypes = {
     toggleTourOpen: PropTypes.func.isRequired,
     zoomToFitNodes: PropTypes.func.isRequired,
     handleClickSave: PropTypes.func.isRequired,
+    isSaving: PropTypes.bool.isRequired,
     autoDistribute: PropTypes.func.isRequired,
     handleFileLoad: PropTypes.func.isRequired
 };

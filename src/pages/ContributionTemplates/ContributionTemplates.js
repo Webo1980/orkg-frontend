@@ -153,9 +153,15 @@ export default class ContributionTemplates extends Component {
             <>
                 <Container className="d-flex align-items-center">
                     <h1 className="h4 mt-4 mb-4 flex-grow-1">View all contribution templates</h1>
-                    <Link color="darkblue" size="sm" className="btn btn-darkblue btn-sm flex-shrink-0" to={reverse(ROUTES.TEMPLATE)}>
+                    <RequireAuthentication
+                        component={Link}
+                        color="darkblue"
+                        size="sm"
+                        className="btn btn-darkblue btn-sm flex-shrink-0"
+                        to={reverse(ROUTES.TEMPLATE)}
+                    >
                         <Icon icon={faPlus} /> Create template
-                    </Link>
+                    </RequireAuthentication>
                 </Container>
                 <Container className="box rounded pt-4 pb-2 pl-5 pr-5 clearfix">
                     <Alert color="info" fade={false}>
