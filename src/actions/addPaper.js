@@ -73,6 +73,13 @@ export const openTour = step => dispatch => {
     });
 };
 
+export const isBioassay = data => dispatch => {
+    dispatch({
+        type: type.IS_BIOASSAY,
+        payload: data
+    });
+};
+
 export const updateAbstract = data => dispatch => {
     dispatch({
         type: type.UPDATE_ABSTRACT,

@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import { Row, Col, Button } from 'reactstrap';
+import ContributionBioassay from './ContributionBioassay';
 import ContributionItemList from './ContributionItemList';
 import ContributionsHelpTour from './ContributionsHelpTour';
 import Tooltip from 'components/Utils/Tooltip';
@@ -200,9 +201,7 @@ class Contributions extends Component {
 
                     <TransitionGroup className="col-md-9" exit={false}>
                         <AnimationContainer classNames="fadeIn" timeout={{ enter: 700, exit: 0 }} key={selectedResourceId}>
-                            <div>
-                                <Contribution id={selectedResourceId} />
-                            </div>
+                            <div>{this.props.isBioassay ? <ContributionBioassay /> : <Contribution id={selectedResourceId} />}</div>
                         </AnimationContainer>
                     </TransitionGroup>
                 </Row>
@@ -233,6 +232,7 @@ Contributions.propTypes = {
     publishedIn: PropTypes.string,
     url: PropTypes.string,
     selectedResearchField: PropTypes.string.isRequired,
+    isBioassay: PropTypes.bool,
     contributions: PropTypes.object.isRequired,
     resources: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,
@@ -250,6 +250,10 @@ Contributions.propTypes = {
     toggleAbstractDialog: PropTypes.func.isRequired
 };
 
+Contributions.defaultProps = {
+    isBioassay: false
+};
+
 const mapStateToProps = state => {
     return {
         title: state.addPaper.title,
@@ -262,6 +266,7 @@ const mapStateToProps = state => {
         selectedResearchField: state.addPaper.selectedResearchField,
         contributions: state.addPaper.contributions,
         selectedContribution: state.addPaper.selectedContribution,
+        isBioassay: state.addPaper.isBioassay,
         resources: state.statementBrowser.resources,
         properties: state.statementBrowser.properties,
         values: state.statementBrowser.values

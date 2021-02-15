@@ -1,4 +1,4 @@
-import { nextStep, previousStep, updateResearchField } from 'actions/addPaper';
+import { nextStep, previousStep, updateResearchField, isBioassay } from 'actions/addPaper';
 import ResearchFieldSelector from 'components/ResearchFieldSelector/ResearchFieldSelector';
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -48,7 +48,15 @@ const ResearchField = () => {
             setShowError(true);
             return;
         }
+        if (!BioassayFieldList.includes(selectedResearchField)) {
+            dispatch(isBioassay(false));
+        }
         dispatch(nextStep());
+    };
+
+    const handleBioassay = () => {
+        dispatch(isBioassay(true));
+        handleNextClick();
     };
 
     let researchFieldLabel;
@@ -97,7 +105,7 @@ const ResearchField = () => {
             </Button>
 
             {BioassayFieldList.includes(selectedResearchField) && (
-                <Button color="secondary" className="float-right mb-4 mr-2">
+                <Button color="secondary" className="float-right mb-4 mr-2" onClick={handleBioassay}>
                     Add Bioassay
                 </Button>
             )}

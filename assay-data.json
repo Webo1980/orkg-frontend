@@ -1,0 +1,11 @@
+{
+  "Assay measurement type" : "endpoint assay",
+  "Has assay footprint" : "96 well plate",
+  "Has assay format" : ["biochemical format", "cell-based format"],
+  "Has assay method" : ["colorimetric cell staining method", "MTT reduction assay"],
+  "Has assay phase characteristic" : "homogenous phase",
+  "Has assay title" : "Cytotoxicity of compound against Vero E6 cells by MTT assay",
+  "Has confirmatory assay" : "confirmatory assay",
+  "Has endpoint" : ["percent activity", "percent cell viability"],
+  "Has incubation time value" : ["24h in DMEM 5% CO2", "48h in DMEM 2% FBS"]
+}
