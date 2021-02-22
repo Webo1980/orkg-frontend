@@ -44,7 +44,7 @@ import UserSettings from 'pages/UserSettings';
 import UserProfile from 'pages/UserProfile';
 import FeaturedComparisons from 'pages/FeaturedComparisons';
 import TemplateEditor from 'pages/TemplateEditor';
-import ExportData from 'pages/ExportData';
+import Data from 'pages/Data';
 import Contribution from 'pages/Contribution';
 import CsvImport from 'pages/CsvImport';
 import requireAuthentication from 'requireAuthentication';
@@ -298,7 +298,11 @@ const routes = [
     },
     {
         path: ROUTES.EXPORT_DATA,
-        component: ExportData
+        component: () => <Redirect to={{ pathname: reverse(ROUTES.DATA), state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.DATA,
+        component: Data
     },
     {
         path: ROUTES.CSV_IMPORT,
