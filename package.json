@@ -5,6 +5,8 @@
     "homepage": ".",
     "dependencies": {
         "@datapunt/matomo-tracker-react": "^0.3.1",
+        "@emotion/react": "^11.1.5",
+        "@emotion/styled": "^11.1.5",
         "@fortawesome/fontawesome-svg-core": "^1.2.34",
         "@fortawesome/free-brands-svg-icons": "^5.15.2",
         "@fortawesome/free-regular-svg-icons": "^5.15.2",
@@ -13,7 +15,7 @@
         "@handsontable/react": "^4.0.0",
         "@hapi/joi": "^17.1.1",
         "@projectstorm/geometry": "^6.2.0",
-        "@projectstorm/react-diagrams": "^6.0.1-beta.7",
+        "@projectstorm/react-diagrams": "^6.3.0",
         "@tippyjs/react": "^4.2.0",
         "@trainiac/html2canvas": "^1.0.0",
         "@xobotyi/scrollbar-width": "^1.9.5",
