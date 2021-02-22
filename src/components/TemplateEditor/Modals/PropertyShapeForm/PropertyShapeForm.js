@@ -283,7 +283,7 @@ function PropertyShapeForm(props) {
                             if (props.model instanceof PortModel) {
                                 props.model.updateConfiguration(data);
                             } else {
-                                props.model.addOutputPort(property.id, data);
+                                props.model.addOutputPort(property.id, data, true);
                             }
                             props.onClose();
                         }
