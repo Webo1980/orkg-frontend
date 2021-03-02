@@ -1,21 +1,23 @@
 # Plan
 
-- first update Add Bioassay state and perform next step
-- create new Sub-Component Part in contributions
+-   first update Add Bioassay state and perform next step x
+-   create new Sub-Component Part in contributions x
+-   create Input field with submit Button x
+-   create middlelayer to select correct statements x
 
-- create Input field with submit Button
-- create middlelayer to select correct statements
-    - pass filtered js object to StatementBrowser
+*   button for textinput
+*   make input editable x
+*   new styling for the delete button (mülltonne) -> StatementOptionButton x
 
+*   add info to statement browser automatically
+*   add research problem to page
 
 ## Questions
 
-- Button Styles
-    - where do I find Button Stylings?
-    - how do I align the last Button with Box? 
+-   Should there be a BioAssay Property/Attribute saved in the PaperInfo
 
-- LoadTextFile
-    - is it okay to use 3rd party hooks ? https://reactjsexample.com/simple-react-hook-to-open-browser-file-selector/
-    - or do i have to do it vanilla ? https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
-    
-- Should there be a a BioAssay Property/Attribute saved in the PaperInfo
+-   how do i add keys/ids to components?
+
+-   componentWillUnmount how does it work?
+
+-   where do i find the colors?

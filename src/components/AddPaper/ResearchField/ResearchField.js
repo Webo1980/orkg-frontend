@@ -48,15 +48,13 @@ const ResearchField = () => {
             setShowError(true);
             return;
         }
-        if (!BioassayFieldList.includes(selectedResearchField)) {
-            dispatch(isBioassay(false));
-        }
+        dispatch(isBioassay(false));
         dispatch(nextStep());
     };
 
-    const handleBioassay = () => {
+    const handleBioassayClick = () => {
         dispatch(isBioassay(true));
-        handleNextClick();
+        dispatch(nextStep());
     };
 
     let researchFieldLabel;
@@ -105,7 +103,7 @@ const ResearchField = () => {
             </Button>
 
             {BioassayFieldList.includes(selectedResearchField) && (
-                <Button color="secondary" className="float-right mb-4 mr-2" onClick={handleBioassay}>
+                <Button color="secondary" className="float-right mb-4 mr-2" onClick={handleBioassayClick}>
                     Add Bioassay
                 </Button>
             )}
