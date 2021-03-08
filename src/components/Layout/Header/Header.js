@@ -40,6 +40,7 @@ import { compose } from 'redux';
 import { toast } from 'react-toastify';
 import HomeBannerBg from 'assets/img/graph-background.svg';
 import { scrollbarWidth } from '@xobotyi/scrollbar-width';
+import UserObservatories from 'components/Home/UserObservatories';
 
 const cookies = new Cookies();
 
@@ -216,7 +217,8 @@ class Header extends Component {
                             token: token,
                             tokenExpire: token_expires_in,
                             email: userData.email,
-                            isCurationAllowed: userData.is_curation_allowed
+                            isCurationAllowed: userData.is_curation_allowed,
+                            observatoryInfo: { observatories_id: userData.observatory_id, organizations_id: userData.organization_id }
                         }
                     });
                 })
@@ -458,6 +460,13 @@ class Header extends Component {
                                                 </ButtonGroup>
                                             </div>
                                         </Row>
+                                        <hr />
+                                        {this.props.user && this.props.user.observatoryInfo && (
+                                            <>
+                                                <div className="text-left">Observatories</div>
+                                                <UserObservatories observatories={this.props.user.observatoryInfo} />
+                                            </>
+                                        )}
                                     </StyledAuthTooltip>
                                 </div>
                             )}
