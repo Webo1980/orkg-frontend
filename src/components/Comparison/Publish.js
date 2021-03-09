@@ -234,15 +234,15 @@ function Publish(props) {
                 await saveCreators(comparisonCreators, props.comparisonId);
             }
             if (title && title.trim() !== '' && description && description.trim() !== '') {
-                const response = await generateDOIForComparison(
+                const response = await generateDOIForComparison({
                     comparisonId,
                     title,
-                    subject ? subject.label : '',
+                    subject: subject ? subject.label : '',
                     description,
-                    props.contributionsList,
-                    comparisonCreators.map(c => ({ creator: c.label, orcid: c.orcid })),
-                    `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
-                );
+                    relatedResources: props.contributionsList,
+                    authors: comparisonCreators.map(c => ({ creator: c.label, orcid: c.orcid })),
+                    url: `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
+                });
                 props.setMetaData(prevMetaData => ({
                     ...prevMetaData,
                     doi: response.data.attributes.doi

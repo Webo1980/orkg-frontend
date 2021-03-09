@@ -8,7 +8,7 @@ import { getResource } from 'services/backend/resources';
 import { getPredicate } from 'services/backend/predicates';
 import { getStatementsBySubject, getTemplateById, getTemplatesByClass } from 'services/backend/statements';
 import { createResource as createResourceApi } from 'services/backend/resources';
-import { getClassById } from 'services/backend/classes.js';
+import { getClassById } from 'services/backend/classes';
 
 export const updateSettings = data => dispatch => {
     dispatch({
