@@ -45,7 +45,8 @@ class Contributions extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            editing: {}
+            editing: {},
+            editBioassay: true
         };
         this.inputRefs = {};
     }
@@ -201,7 +202,9 @@ class Contributions extends Component {
 
                     <TransitionGroup className="col-md-9" exit={false}>
                         <AnimationContainer classNames="fadeIn" timeout={{ enter: 700, exit: 0 }} key={selectedResourceId}>
-                            <div>{this.props.isBioassay ? <ContributionBioassay /> : <Contribution id={selectedResourceId} />}</div>
+                            <div>
+                                {this.props.isBioassay ? <ContributionBioassay id={selectedResourceId} /> : <Contribution id={selectedResourceId} />}
+                            </div>
                         </AnimationContainer>
                     </TransitionGroup>
                 </Row>

@@ -5,23 +5,21 @@ import { StatementsGroupStyle, PropertyStyle, ValuesStyle, ValueItemStyle } from
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
-
-//  - dispatch(prefillStatements({ statements, resourceId: contributionID, syncBackend: false }));
-//  - use key to delete statements -> key={`value${value.id}`}
+import { getAllPredicates, createPredicate } from 'services/backend/predicates';
+import { getAllResources, createResource } from 'services/backend/resources';
+import Tippy from '@tippyjs/react';
+import { prefillStatements } from 'actions/addPaper';
+import { useDispatch } from 'react-redux';
 
 const HoverButton = styled(Button)`
     margin: 0 2px !important;
-    color: light;
     border-radius: 100% !important;
     height: 24px;
     width: 24px;
-    :hover {
-        color: secondary;
-        cursor: pointer;
-    }
 `;
 
 export default function BioassaySelectItem(props) {
+    const dispatch = useDispatch();
     const [statementData, setStatementData] = useState(props.data);
 
     const handleDeleteValue = (property, valueKey) => {
@@ -30,14 +28,9 @@ export default function BioassaySelectItem(props) {
             state[property].splice(valueKey, 1);
             setStatementData(state);
         } else {
-            console.log(statementData[property]);
             const { [property]: tmp, ...rest } = statementData;
-            console.log(rest);
             setStatementData(rest);
         }
-
-        console.log(statementData);
-        console.log(property, valueKey);
     };
 
     const statementGenerator = (property, values) => {
@@ -60,11 +53,20 @@ export default function BioassaySelectItem(props) {
                         <ListGroup flush className="px-3">
                             {values_array.map((value, index) => {
                                 return (
-                                    <ValueItemStyle key={index}>
+                                    <ValueItemStyle key={value}>
                                         <div>
                                             <Label>{value}</Label>
-                                            <HoverButton className="float-right p-0" size="sm" onClick={() => handleDeleteValue(property, index)}>
-                                                <Icon icon={faTrash} style={{ color: 'light' }} />
+                                            <HoverButton
+                                                color="lightblue"
+                                                className="float-right p-0"
+                                                size="sm"
+                                                onClick={() => handleDeleteValue(property, index)}
+                                            >
+                                                <Tippy content="Delete value">
+                                                    <span>
+                                                        <Icon icon={faTrash} color="#fff" />
+                                                    </span>
+                                                </Tippy>
                                             </HoverButton>
                                         </div>
                                     </ValueItemStyle>
@@ -90,22 +92,116 @@ export default function BioassaySelectItem(props) {
         return statements;
     };
 
-    const handleConfirmInput = () => {
+    const handleConfirmInput = async () => {
         // confirm selection and input the data to StatementBrowser
+        props.loadingData();
+        const statements = await createStatementIdObject();
+
+        console.log(statements);
+        // insert into statement Browser
+        await dispatch(
+            prefillStatements({
+                statements,
+                resourceId: props.id
+            })
+        );
+        props.selectionFinished();
+    };
+
+    const createStatementIdObject = async () => {
+        // append list values as strings
+        const statements = { properties: [], values: [] };
+
+        const predicate_requests = await send_requests(Object.keys(statementData), true);
+        const resource_requests = await send_requests(Object.values(statementData).flat(), false);
+
+        const lookup = { ...predicate_requests, ...resource_requests };
+
+        for (const [key, values] of Object.entries(statementData)) {
+            statements['properties'].push({
+                propertyId: lookup[key],
+                label: key
+            });
+
+            if (values.constructor !== Array) {
+                statements['values'].push({
+                    label: values,
+                    type: 'object',
+                    valueId: lookup[values],
+                    propertyId: lookup[key]
+                });
+            } else {
+                if (values.length === 1) {
+                    statements['values'].push({
+                        label: values[0],
+                        type: 'object',
+                        valueId: lookup[values.join()],
+                        propertyId: lookup[key]
+                    });
+                } else {
+                    for (const value of values) {
+                        statements['values'].push({
+                            label: value,
+                            type: 'object',
+                            valueId: lookup[value],
+                            propertyId: lookup[key]
+                        });
+                    }
+                }
+            }
+        }
+        console.log(statements);
+        return statements;
+    };
+
+    const send_requests = async (query_values, predicate) => {
+        const lookup = {};
+        let getAll;
+
+        if (predicate) {
+            getAll = getAllPredicates;
+        } else {
+            getAll = getAllResources;
+        }
+        for (const value of query_values) {
+            const response = getAll({
+                page: 1,
+                sortBy: 'id',
+                desc: true,
+                q: value
+            });
+            if (response.length > 0) {
+                lookup[response[0].label] = response[0].id;
+            } else {
+                if (predicate) {
+                    const newPredicate = await createPredicate(value, []);
+                    lookup[value] = newPredicate.id;
+                } else {
+                    const newResource = await createResource(value, []);
+                    lookup[value] = newResource.id;
+                }
+            }
+        }
+        return lookup;
     };
 
     return (
         <ListGroup className="listGroupEnlarge">
-            {handleLoadStatements()}
-            <div className="text-right" style={{ paddingTop: '4px' }}>
-                <Button color="primary" className="mt-4" size="sm" onClick={handleConfirmInput}>
-                    Confirm
-                </Button>
+            <div>
+                {handleLoadStatements()}
+                <div className="text-right" style={{ paddingTop: '4px' }}>
+                    <Button color="primary" className="mt-4" size="sm" onClick={handleConfirmInput}>
+                        Confirm
+                    </Button>
+                </div>
             </div>
         </ListGroup>
     );
 }
 
 BioassaySelectItem.propTypes = {
-    data: PropTypes.object.isRequired
+    data: PropTypes.object.isRequired,
+    id: PropTypes.string.isRequired,
+    selectionFinished: PropTypes.func.isRequired,
+    loadingData: PropTypes.func.isRequired
 };

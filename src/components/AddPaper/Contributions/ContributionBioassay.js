@@ -6,10 +6,10 @@ import BioassaySelectItem from './BioassaySelectItem';
 import { isBioassay } from 'actions/addPaper';
 import { connect } from 'react-redux';
 import CsvReader from 'react-csv-reader';
-
-// TODOS:
-//  - Add check if submit text is empty
-//  - add filepicker for .txt files
+import Contribution from './Contribution';
+import PropTypes from 'prop-types';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const Title = styled.div`
     font-size: 18px;
@@ -33,16 +33,14 @@ class ContributionBioassay extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            submitAlert: false,
             submitText: '',
             isSubmitted: false,
-            assayData: []
+            assayData: [],
+            selectionFinished: false,
+            loadingData: false
         };
         this.handleChangeEvent = this.handleChangeEvent.bind(this);
-    }
-
-    componentWillUnmount() {
-        // why doesnt this work?
-        // this.props.isBioassay(false);
     }
 
     handleJsonToObject = () => {
@@ -60,17 +58,22 @@ class ContributionBioassay extends Component {
         };
         // get json from API when its ready
         const obj = JSON.parse(JSON.stringify(json_data));
-        console.log(obj);
         this.setState({ assayData: obj });
     };
 
     handleSubmitText = () => {
-        // check if text field is empty
-        this.setState({ isSubmitted: true });
-        this.handleJsonToObject();
+        // console.log(this.state.submitText);
+        if (this.state.submitText === '') {
+            this.setState({ submitAlert: true });
+        } else {
+            this.setState({ submitAlert: false });
+            this.setState({ isSubmitted: true });
+            this.handleJsonToObject();
+        }
     };
 
     handleOnFileLoaded = (data, fileInfo) => {
+        console.log(data);
         this.setState({ submitText: data.join('\n') });
     };
 
@@ -78,53 +81,93 @@ class ContributionBioassay extends Component {
         this.setState({ submitText: event.target.value });
     }
 
+    handleFinishedSelection = () => {
+        this.setState({ selectionFinished: true });
+    };
+
+    handleLoadingData = () => {
+        this.setState({ loadingData: true });
+    };
+
     render() {
         return (
-            <StyledHorizontalContribution>
-                <Form>
-                    <Title style={{ marginTop: 0 }}>Contribution data</Title>
+            <div>
+                {this.state.selectionFinished ? (
+                    <Contribution id={this.props.id} />
+                ) : (
                     <div>
-                        <FormGroup>
-                            <div className="custom-file">
-                                <CsvReader
-                                    cssClass="btn"
-                                    cssInputClass="custom-file-input "
-                                    accept=".txt"
-                                    onFileLoaded={this.handleOnFileLoaded}
-                                    parserOptions={PARSER_OPTIONS}
-                                    inputStyle={{ marginLeft: '5px' }}
-                                />
-                                <label className="custom-file-label" htmlFor="exampleCustomFileBrowser">
-                                    Select a .txt file
-                                </label>
+                        {this.state.loadingData ? (
+                            <div className="text-center text-primary">
+                                <span style={{ fontSize: 80 }}>
+                                    <Icon icon={faSpinner} spin />
+                                </span>
+                                <br />
+                                <h2 className="h5">Loading...</h2> <br />
                             </div>
-                            <Label className="mt-2" for="exampleText">
-                                Description
-                            </Label>
-                            <Input
-                                type="textarea"
-                                name="textInput"
-                                placeholder="copy a text into this form or use the upload button"
-                                rows="10"
-                                onChange={this.handleChangeEvent}
-                                value={this.state.submitText}
-                            />
-                        </FormGroup>
-                        <div className="text-right">
-                            <Button color="primary" className="mb-4" size="sm" onClick={this.handleSubmitText}>
-                                Submit
-                            </Button>
-                        </div>
+                        ) : (
+                            <StyledHorizontalContribution>
+                                <Form>
+                                    <Title style={{ marginTop: 0 }}>Contribution data</Title>
+                                    <div>
+                                        <FormGroup>
+                                            <div className="custom-file">
+                                                <CsvReader
+                                                    cssClass="csv-reader-input"
+                                                    cssInputClass="custom-file-input "
+                                                    accept=".txt"
+                                                    onFileLoaded={this.handleOnFileLoaded}
+                                                    parserOptions={PARSER_OPTIONS}
+                                                    inputStyle={{ cursor: 'pointer' }}
+                                                />
+                                                <label className="custom-file-label" htmlFor="exampleCustomFileBrowser">
+                                                    Click to upload bioassay .txt file
+                                                </label>
+                                            </div>
+                                            <Label className="mt-2" for="exampleText">
+                                                Description
+                                            </Label>
+                                            <Input
+                                                type="textarea"
+                                                name="textInput"
+                                                id="textInput"
+                                                placeholder="copy a text into this form or use the upload button"
+                                                rows="10"
+                                                onChange={this.handleChangeEvent}
+                                                value={this.state.submitText}
+                                            />
+                                        </FormGroup>
+                                        {this.state.submitAlert && <Label>Nothing to submit. Please provide text in the input field</Label>}
+                                        <div className="text-right">
+                                            <Button color="primary" className="mb-4" size="sm" onClick={this.handleSubmitText}>
+                                                Submit
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    {this.state.isSubmitted && !this.state.submitAlert && (
+                                        <BioassaySelectItem
+                                            data={this.state.assayData}
+                                            id={this.props.id}
+                                            selectionFinished={this.handleFinishedSelection}
+                                            loadingData={this.handleLoadingData}
+                                        />
+                                    )}
+                                </Form>
+                            </StyledHorizontalContribution>
+                        )}
                     </div>
-                    {this.state.isSubmitted && <BioassaySelectItem data={this.state.assayData} />}
-                </Form>
-            </StyledHorizontalContribution>
+                )}
+            </div>
         );
     }
 }
 
-const mapStateToProps = state => {
+ContributionBioassay.propTypes = {
+    id: PropTypes.string.isRequired
+};
+
+const mapStateToProps = (state, ownProps) => {
     return {
+        id: ownProps.id,
         isBioassay: state.addPaper.isBioassay
     };
 };
