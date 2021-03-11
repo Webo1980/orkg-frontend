@@ -146,7 +146,7 @@ class ContributionBioassay extends Component {
                                     {this.state.isSubmitted && !this.state.submitAlert && (
                                         <BioassaySelectItem
                                             data={this.state.assayData}
-                                            id={this.props.id}
+                                            id={this.props.selectedResource}
                                             selectionFinished={this.handleFinishedSelection}
                                             loadingData={this.handleLoadingData}
                                         />
@@ -162,12 +162,13 @@ class ContributionBioassay extends Component {
 }
 
 ContributionBioassay.propTypes = {
-    id: PropTypes.string.isRequired
+    id: PropTypes.string.isRequired,
+    selectedResource: PropTypes.string.isRequired
 };
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = state => {
     return {
-        id: ownProps.id,
+        selectedResource: state.statementBrowser.selectedResource,
         isBioassay: state.addPaper.isBioassay
     };
 };

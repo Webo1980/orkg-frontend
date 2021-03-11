@@ -8,17 +8,13 @@
 -   create middlelayer to select correct statements x
 -   make input editable x
 -   change color for delete button x
+-   add info to statement browser automatically x
 
 ##### TODO´s
 
--   button for textinput (hide or stay)
+-   button for textinput (hide or stay) x
 
--   add info to statement browser automatically
-    1. for each statement convert names to ressources
-    2. pass js object statements to createContribution() in addPaper
-    3. show Contribution with statement Browser
-        - open in edit mode?
-        - call statement Browser seperately or change redux.state for isBioAssay?
+-   reset input in statementBrowser that it doesnt add up
 
 ## Questions
 

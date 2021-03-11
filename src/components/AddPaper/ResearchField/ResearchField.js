@@ -48,12 +48,12 @@ const ResearchField = () => {
             setShowError(true);
             return;
         }
-        dispatch(isBioassay(false));
+        dispatch(isBioassay({ bioassay: false, finished: {} }));
         dispatch(nextStep());
     };
 
     const handleBioassayClick = () => {
-        dispatch(isBioassay(true));
+        dispatch(isBioassay({ bioassay: true, finished: {} }));
         dispatch(nextStep());
     };
 

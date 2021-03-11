@@ -9,7 +9,8 @@ import { getAllPredicates, createPredicate } from 'services/backend/predicates';
 import { getAllResources, createResource } from 'services/backend/resources';
 import Tippy from '@tippyjs/react';
 import { prefillStatements } from 'actions/addPaper';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { isBioassay } from 'actions/addPaper';
 
 const HoverButton = styled(Button)`
     margin: 0 2px !important;
@@ -21,6 +22,7 @@ const HoverButton = styled(Button)`
 export default function BioassaySelectItem(props) {
     const dispatch = useDispatch();
     const [statementData, setStatementData] = useState(props.data);
+    const thisBioassay = useSelector(state => state.addPaper.isBioassay);
 
     const handleDeleteValue = (property, valueKey) => {
         if (statementData[property].constructor === Array && statementData[property].length > 1) {
@@ -106,6 +108,10 @@ export default function BioassaySelectItem(props) {
             })
         );
         props.selectionFinished();
+
+        const finishedBioIds = thisBioassay.finished;
+        finishedBioIds[props.id] = true;
+        dispatch(isBioassay({ bioassay: true, finished: finishedBioIds }));
     };
 
     const createStatementIdObject = async () => {

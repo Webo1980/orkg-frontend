@@ -203,7 +203,11 @@ class Contributions extends Component {
                     <TransitionGroup className="col-md-9" exit={false}>
                         <AnimationContainer classNames="fadeIn" timeout={{ enter: 700, exit: 0 }} key={selectedResourceId}>
                             <div>
-                                {this.props.isBioassay ? <ContributionBioassay id={selectedResourceId} /> : <Contribution id={selectedResourceId} />}
+                                {this.props.isBioassay.bioassay && !this.props.isBioassay.finished[this.props.selectedResource] ? (
+                                    <ContributionBioassay id={selectedResourceId} />
+                                ) : (
+                                    <Contribution id={selectedResourceId} />
+                                )}
                             </div>
                         </AnimationContainer>
                     </TransitionGroup>
@@ -235,7 +239,8 @@ Contributions.propTypes = {
     publishedIn: PropTypes.string,
     url: PropTypes.string,
     selectedResearchField: PropTypes.string.isRequired,
-    isBioassay: PropTypes.bool,
+    selectedResource: PropTypes.string.isRequired,
+    isBioassay: PropTypes.object,
     contributions: PropTypes.object.isRequired,
     resources: PropTypes.object.isRequired,
     properties: PropTypes.object.isRequired,
@@ -254,7 +259,7 @@ Contributions.propTypes = {
 };
 
 Contributions.defaultProps = {
-    isBioassay: false
+    isBioassay: { bioassay: false, finished: {} }
 };
 
 const mapStateToProps = state => {
@@ -269,6 +274,7 @@ const mapStateToProps = state => {
         selectedResearchField: state.addPaper.selectedResearchField,
         contributions: state.addPaper.contributions,
         selectedContribution: state.addPaper.selectedContribution,
+        selectedResource: state.statementBrowser.selectedResource,
         isBioassay: state.addPaper.isBioassay,
         resources: state.statementBrowser.resources,
         properties: state.statementBrowser.properties,
