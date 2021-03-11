@@ -68,10 +68,12 @@ function UserObservatories(props) {
                         }}
                         onClick={() => updateObservatory(userObservatories)}
                     >
-                        {userObservatories.name}
+                        <p className="mt-2" style={{ minWidth: '200px' }}>
+                            {userObservatories.name}
+                        </p>
                         {userObservatories.organization && (
                             <>
-                                <ResourceItem key="1" style={{ marginLeft: '168px' }}>
+                                <ResourceItem style={{ marginLeft: 'auto' }}>
                                     <img
                                         height="50px"
                                         src={userObservatories.organization.logo}

@@ -429,7 +429,7 @@ class Header extends Component {
                                     {this.props.user.selected_observatory && this.props.user.selected_observatory.id && (
                                         <>
                                             <div
-                                                className="pl-2 pr-1 pb-32"
+                                                className="pl-2 pt-1 pb-1 text-center"
                                                 style={{
                                                     color: 'black',
                                                     borderRadius: '10px',
@@ -440,12 +440,14 @@ class Header extends Component {
                                                     backgroundColor: '#EBEBEB',
                                                     borderColor: 'lightgray',
                                                     borderStyle: 'solid',
-                                                    marginTop: '-5px',
                                                     maxHeight: '50px',
-                                                    marginRight: '-22px'
+                                                    marginRight: '-15px',
+                                                    minHeight: '40px',
+                                                    paddingRight: '17px'
                                                 }}
                                             >
-                                                {this.props.user.selected_observatory.name}
+                                                {this.props.user.selected_observatory.name.substr(0, 15)}
+                                                {this.props.user.selected_observatory.name.length > 15 ? '...' : ''}
                                             </div>
                                         </>
                                     )}
