@@ -218,7 +218,18 @@ class Header extends Component {
                             tokenExpire: token_expires_in,
                             email: userData.email,
                             isCurationAllowed: userData.is_curation_allowed,
-                            observatoryInfo: { observatories_id: userData.observatory_id, organizations_id: userData.organization_id }
+                            observatoryInfo: userData.observatory_id
+                                ? {
+                                      observatories_id: userData.observatory_id,
+                                      organizations_id: userData.organization_id
+                                  }
+                                : null,
+                            selected_observatory: cookies.get('selected_observatory')
+                                ? {
+                                      id: cookies.get('selected_observatory'),
+                                      name: cookies.get('observatory_name')
+                                  }
+                                : null
                         }
                     });
                 })
@@ -414,6 +425,30 @@ class Header extends Component {
 
                             {!!this.props.user && (
                                 <div>
+                                    {console.log(this.props.user.selected_observatory)}
+                                    {this.props.user.selected_observatory && this.props.user.selected_observatory.id && (
+                                        <>
+                                            <div
+                                                className="pl-2 pr-1 pb-32"
+                                                style={{
+                                                    color: 'black',
+                                                    borderRadius: '10px',
+                                                    wordWrap: 'break-word',
+                                                    float: 'left',
+                                                    maxWidth: '200px',
+                                                    border: 'solid 1px',
+                                                    backgroundColor: '#EBEBEB',
+                                                    borderColor: 'lightgray',
+                                                    borderStyle: 'solid',
+                                                    marginTop: '-5px',
+                                                    maxHeight: '50px',
+                                                    marginRight: '-22px'
+                                                }}
+                                            >
+                                                {this.props.user.selected_observatory.name}
+                                            </div>
+                                        </>
+                                    )}
                                     <StyledGravatar className="rounded-circle" email={email} size={40} id="TooltipExample" />
                                     <StyledAuthTooltip
                                         fade={false}
@@ -460,9 +495,9 @@ class Header extends Component {
                                                 </ButtonGroup>
                                             </div>
                                         </Row>
-                                        <hr />
                                         {this.props.user && this.props.user.observatoryInfo && (
                                             <>
+                                                <hr />
                                                 <div className="text-left">Observatories</div>
                                                 <UserObservatories observatories={this.props.user.observatoryInfo} />
                                             </>

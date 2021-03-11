@@ -1,47 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Row, Card, CardBody, CardTitle } from 'reactstrap';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
-import ObservatoryModal from 'components/ObservatoryModal/ObservatoryModal';
-import { Link } from 'react-router-dom';
-import { reverse } from 'named-urls';
-import ROUTES from 'constants/routes';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { isEmpty } from 'lodash';
-import { Button } from 'reactstrap';
 import { useSelector } from 'react-redux';
 import { getObservatoryAndOrganizationInformation } from 'services/backend/observatories';
-
-const StyledOrganizationCard = styled.div`
-    border: 0;
-    .logoContainer {
-        padding: 1rem;
-        position: relative;
-        display: block;
-
-        &::before {
-            // for aspect ratio
-            content: '';
-            display: block;
-            padding-bottom: 150px;
-        }
-        img {
-            position: absolute;
-            max-width: 100%;
-            max-height: 150px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        &:active,
-        &:focus {
-            outline: 0;
-            border: none;
-            -moz-outline-style: none;
-        }
-    }
-`;
+import { connect } from 'react-redux';
+import { updateAuth } from 'actions/auth';
+import { Cookies } from 'react-cookie';
 
 const ResourceItem = styled.div`
     overflow: hidden;
@@ -49,16 +13,13 @@ const ResourceItem = styled.div`
     margin-left: 4px;
 `;
 
-const Img = styled.img`
-    height: 50px;
-`;
-
 function UserObservatories(props) {
-    const [userObservatories, setUserObservatories] = useState([]);
-
     const user = useSelector(state => state.auth.user);
+    const [userObservatories, setUserObservatories] = useState([]);
+    const [selectedObservatory, setSelectedObservatory] = useState(user.selected_observatory ? true : false);
 
     useEffect(() => {
+        console.log(user);
         const findObservatoriesByUserId = async observatories => {
             await getObservatoryAndOrganizationInformation(observatories.observatories_id, observatories.organizations_id).then(response => {
                 setUserObservatories(response);
@@ -67,11 +28,46 @@ function UserObservatories(props) {
         findObservatoriesByUserId(props.observatories);
     }, [props.observatories]);
 
+    const updateObservatory = async observatory => {
+        console.log(selectedObservatory);
+        const cookies = new Cookies();
+        const token = cookies.get('token') ? cookies.get('token') : null;
+
+        if (selectedObservatory) {
+            setSelectedObservatory(false);
+            await props.updateAuth({
+                user: {
+                    ...user,
+                    selected_observatory: null
+                }
+            });
+            cookies.remove('selected_observatory');
+            cookies.remove('observatory_name');
+        } else {
+            setSelectedObservatory(true);
+            await props.updateAuth({
+                user: {
+                    ...user,
+                    selected_observatory: { id: observatory.id, name: observatory.name }
+                }
+            });
+            cookies.set('selected_observatory', observatory.id);
+            cookies.set('observatory_name', observatory.name);
+        }
+    };
+
     return (
         <>
             {userObservatories && (
                 <>
-                    <div className="rounded-lg mt-2 col-12 d-flex align-items-center pt-2 pb-2 pr-2" style={{ backgroundColor: '#5B6176' }}>
+                    <div
+                        className="rounded-lg mt-2 col-12 d-flex align-items-center pt-2 pb-2 pr-2"
+                        style={{
+                            cursor: 'pointer',
+                            backgroundColor: user.selected_observatory && user.selected_observatory.id ? '#424758' : '#5B6176'
+                        }}
+                        onClick={() => updateObservatory(userObservatories)}
+                    >
                         {userObservatories.name}
                         {userObservatories.organization && (
                             <>
@@ -91,8 +87,16 @@ function UserObservatories(props) {
     );
 }
 
+const mapDispatchToProps = dispatch => ({
+    updateAuth: data => dispatch(updateAuth(data))
+});
+
 UserObservatories.propTypes = {
-    observatories: PropTypes.object
+    observatories: PropTypes.object,
+    updateAuth: PropTypes.func.isRequired
 };
 
-export default UserObservatories;
+export default connect(
+    null,
+    mapDispatchToProps
+)(UserObservatories);

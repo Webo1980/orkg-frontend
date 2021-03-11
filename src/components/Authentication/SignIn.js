@@ -56,7 +56,13 @@ class SignIn extends Component {
                         token: userToken,
                         email: userData.email,
                         tokenExpire: token_expires_in,
-                        isCurationAllowed: userData.is_curation_allowed
+                        isCurationAllowed: userData.is_curation_allowed,
+                        observatoryInfo: userData.observatory_id
+                            ? {
+                                  observatories_id: userData.observatory_id,
+                                  organizations_id: userData.organization_id
+                              }
+                            : null
                     },
                     redirectRoute: null
                 });
