@@ -35,7 +35,7 @@ export default function BioassaySelectItem(props) {
         }
     };
 
-    const statementGenerator = (property, values) => {
+    const statementGenerator = (property, values, count) => {
         let values_array = [];
         if (values.constructor !== Array) {
             values_array.push(values);
@@ -44,7 +44,7 @@ export default function BioassaySelectItem(props) {
         }
 
         return (
-            <StatementsGroupStyle className="noTemplate">
+            <StatementsGroupStyle key={count} className="noTemplate">
                 <div className="row no-gutters">
                     <PropertyStyle key={property} className="col-4" tabIndex="0">
                         <div className="propertyLabel">
@@ -55,7 +55,7 @@ export default function BioassaySelectItem(props) {
                         <ListGroup flush className="px-3">
                             {values_array.map((value, index) => {
                                 return (
-                                    <ValueItemStyle key={value}>
+                                    <ValueItemStyle key={count + index}>
                                         <div>
                                             <Label>{value}</Label>
                                             <HoverButton
@@ -84,12 +84,14 @@ export default function BioassaySelectItem(props) {
     const handleLoadStatements = () => {
         const statements = [];
         let statement;
+        let count = 100;
         for (const [key, value] of Object.entries(statementData)) {
             if (!value) {
                 continue;
             }
-            statement = statementGenerator(key, value);
+            statement = statementGenerator(key, value, count);
             statements.push(statement);
+            count += 100;
         }
         return statements;
     };

@@ -16,9 +16,9 @@
 
 -   reset input in statementBrowser that it doesnt add up
 
-## Questions
+-   eliminate errors (action on unmounted component)
 
--   Should there be a BioAssay Property/Attribute saved in the PaperInfo
+## Questions
 
 -   how do I wait for state to change?
 

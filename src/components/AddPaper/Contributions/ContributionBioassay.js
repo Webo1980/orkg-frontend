@@ -62,7 +62,6 @@ class ContributionBioassay extends Component {
     };
 
     handleSubmitText = () => {
-        // console.log(this.state.submitText);
         if (this.state.submitText === '') {
             this.setState({ submitAlert: true });
         } else {
@@ -73,7 +72,6 @@ class ContributionBioassay extends Component {
     };
 
     handleOnFileLoaded = (data, fileInfo) => {
-        console.log(data);
         this.setState({ submitText: data.join('\n') });
     };
 

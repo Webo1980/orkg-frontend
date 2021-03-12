@@ -258,10 +258,6 @@ Contributions.propTypes = {
     toggleAbstractDialog: PropTypes.func.isRequired
 };
 
-Contributions.defaultProps = {
-    isBioassay: { bioassay: false, finished: {} }
-};
-
 const mapStateToProps = state => {
     return {
         title: state.addPaper.title,
