@@ -41,18 +41,21 @@ function UserObservatories(props) {
                     selected_observatory: null
                 }
             });
+            //cookies.remove('selected_observatory');
+            //cookies.remove('observatory_name');
             cookies.remove('selected_observatory');
-            cookies.remove('observatory_name');
         } else {
             setSelectedObservatory(true);
             await props.updateAuth({
                 user: {
                     ...user,
-                    selected_observatory: { id: observatory.id, name: observatory.name }
+                    selected_observatory: { id: observatory.id, name: observatory.name, organization: observatory.organization.id }
                 }
             });
-            cookies.set('selected_observatory', observatory.id);
-            cookies.set('observatory_name', observatory.name);
+
+            cookies.set('selected_observatory', { id: observatory.id, name: observatory.name, organization: observatory.organization.id });
+            //cookies.set('selected_observatory', observatory.id);
+            //cookies.set('observatory_name', observatory.name);
         }
     };
 

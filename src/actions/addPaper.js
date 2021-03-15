@@ -16,6 +16,7 @@ import { createLiteral } from 'services/backend/literals';
 import { createPredicate } from 'services/backend/predicates';
 import { toast } from 'react-toastify';
 import { PREDICATES, MISC } from 'constants/graphSettings';
+import { Cookies } from 'react-cookie';
 
 export const updateGeneralData = data => dispatch => {
     dispatch({
@@ -380,6 +381,8 @@ export const getResourceObject = (data, resourceId, newProperties) => {
 // Middleware function to transform frontend data to backend format
 export const saveAddPaper = data => {
     return async dispatch => {
+        const cookies = new Cookies();
+        const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
         const researchProblemPredicate = PREDICATES.HAS_RESEARCH_PROBLEM;
         // Get new properties (ensure that  no duplicate labels are in the new properties)
         let newProperties = data.properties.allIds.filter(propertyId => !data.properties.byId[propertyId].existingPredicateId);
@@ -426,7 +429,10 @@ export const saveAddPaper = data => {
                         name: contribution.label,
                         values: Object.assign({}, researhProblem, getResourceObject(data, contribution.resourceId, newProperties))
                     };
-                })
+                }),
+                observatory: observatory
+                    ? { id: observatory.id, organizationId: observatory.organization }
+                    : { id: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID }
             }
         };
 

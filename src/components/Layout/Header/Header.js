@@ -207,6 +207,8 @@ class Header extends Component {
         const cookies = new Cookies();
         const token = cookies.get('token') ? cookies.get('token') : null;
         const token_expires_in = cookies.get('token_expires_in') ? cookies.get('token_expires_in') : null;
+        const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
+        console.log(observatory);
         if (token && !this.props.user) {
             getUserInformation()
                 .then(userData => {
@@ -224,10 +226,11 @@ class Header extends Component {
                                       organizations_id: userData.organization_id
                                   }
                                 : null,
-                            selected_observatory: cookies.get('selected_observatory')
+                            selected_observatory: observatory
                                 ? {
-                                      id: cookies.get('selected_observatory'),
-                                      name: cookies.get('observatory_name')
+                                      id: observatory.id,
+                                      name: observatory.name,
+                                      organizationId: observatory.organization
                                   }
                                 : null
                         }
@@ -429,7 +432,7 @@ class Header extends Component {
                                     {this.props.user.selected_observatory && this.props.user.selected_observatory.id && (
                                         <>
                                             <div
-                                                className="pl-2 pt-1 pb-1 text-center"
+                                                className="pl-2 pt-1 text-center"
                                                 style={{
                                                     color: 'black',
                                                     borderRadius: '10px',
@@ -443,7 +446,8 @@ class Header extends Component {
                                                     maxHeight: '50px',
                                                     marginRight: '-15px',
                                                     minHeight: '40px',
-                                                    paddingRight: '17px'
+                                                    paddingRight: '17px',
+                                                    verticalAlign: 'middle'
                                                 }}
                                             >
                                                 {this.props.user.selected_observatory.name.substr(0, 15)}
