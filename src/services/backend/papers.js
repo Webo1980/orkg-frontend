@@ -8,7 +8,6 @@ export const papersUrl = `${url}papers/`;
 
 // Save full paper and index contributions in the similarity service
 export const saveFullPaper = (data, mergeIfExists = false) => {
-    console.log(data);
     return submitPostRequest(`${papersUrl}?mergeIfExists=${mergeIfExists}`, { 'Content-Type': 'application/json' }, data).then(paper => {
         indexContributionsByPaperId(paper.id);
         return paper;

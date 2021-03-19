@@ -430,9 +430,9 @@ export const saveAddPaper = data => {
                         values: Object.assign({}, researhProblem, getResourceObject(data, contribution.resourceId, newProperties))
                     };
                 }),
-                observatory: observatory
-                    ? { id: observatory.id, organizationId: observatory.organization }
-                    : { id: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID }
+                observatoryInfo: observatory
+                    ? { observatoryId: observatory.id, organizationId: observatory.organization }
+                    : { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID }
             }
         };
 

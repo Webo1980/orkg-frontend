@@ -239,6 +239,7 @@ class Header extends Component {
                 .catch(error => {
                     cookies.remove('token');
                     cookies.remove('token_expires_in');
+                    cookies.remove('selected_observatory');
                     this.props.resetAuth();
                 });
         }
@@ -260,6 +261,7 @@ class Header extends Component {
         this.props.resetAuth();
         const cookies = new Cookies();
         cookies.remove('token');
+        cookies.remove('selected_observatory');
 
         this.toggleUserTooltip();
 

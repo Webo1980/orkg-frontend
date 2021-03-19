@@ -19,7 +19,6 @@ function UserObservatories(props) {
     const [selectedObservatory, setSelectedObservatory] = useState(user.selected_observatory ? true : false);
 
     useEffect(() => {
-        console.log(user);
         const findObservatoriesByUserId = async observatories => {
             await getObservatoryAndOrganizationInformation(observatories.observatories_id, observatories.organizations_id).then(response => {
                 setUserObservatories(response);
@@ -29,9 +28,7 @@ function UserObservatories(props) {
     }, [props.observatories]);
 
     const updateObservatory = async observatory => {
-        console.log(selectedObservatory);
         const cookies = new Cookies();
-        const token = cookies.get('token') ? cookies.get('token') : null;
 
         if (selectedObservatory) {
             setSelectedObservatory(false);
@@ -41,8 +38,6 @@ function UserObservatories(props) {
                     selected_observatory: null
                 }
             });
-            //cookies.remove('selected_observatory');
-            //cookies.remove('observatory_name');
             cookies.remove('selected_observatory');
         } else {
             setSelectedObservatory(true);
@@ -54,8 +49,6 @@ function UserObservatories(props) {
             });
 
             cookies.set('selected_observatory', { id: observatory.id, name: observatory.name, organization: observatory.organization.id });
-            //cookies.set('selected_observatory', observatory.id);
-            //cookies.set('observatory_name', observatory.name);
         }
     };
 
