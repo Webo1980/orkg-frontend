@@ -5,8 +5,8 @@ import { StatementsGroupStyle, PropertyStyle, ValuesStyle, ValueItemStyle } from
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
-import { getAllPredicates, createPredicate } from 'services/backend/predicates';
-import { getAllResources, createResource } from 'services/backend/resources';
+import { getPredicates, createPredicate } from 'services/backend/predicates';
+import { getResources, createResource } from 'services/backend/resources';
 import Tippy from '@tippyjs/react';
 import { prefillStatements } from 'actions/addPaper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -167,16 +167,17 @@ export default function BioassaySelectItem(props) {
         let getAll;
 
         if (predicate) {
-            getAll = getAllPredicates;
+            getAll = getPredicates;
         } else {
-            getAll = getAllResources;
+            getAll = getResources;
         }
         for (const value of query_values) {
             const response = getAll({
                 page: 1,
                 sortBy: 'id',
                 desc: true,
-                q: value
+                q: value,
+                returnContent: true
             });
             if (response.length > 0) {
                 lookup[response[0].label] = response[0].id;
