@@ -208,7 +208,6 @@ class Header extends Component {
         const token = cookies.get('token') ? cookies.get('token') : null;
         const token_expires_in = cookies.get('token_expires_in') ? cookies.get('token_expires_in') : null;
         const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
-        console.log(observatory);
         if (token && !this.props.user) {
             getUserInformation()
                 .then(userData => {
@@ -452,7 +451,6 @@ class Header extends Component {
 
                             {!!this.props.user && (
                                 <div>
-                                    {console.log(this.props.user.selected_observatory)}
                                     {this.props.user.selected_observatory && this.props.user.selected_observatory.id && (
                                         <>
                                             <div
