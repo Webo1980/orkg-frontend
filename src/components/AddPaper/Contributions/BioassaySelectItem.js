@@ -33,52 +33,6 @@ export default function BioassaySelectItem(props) {
         }
     };
 
-    const statementGenerator = (property, values, count) => {
-        let values_array = [];
-        if (values.constructor !== Array) {
-            values_array.push(values);
-        } else {
-            values_array = values;
-        }
-
-        return (
-            <StatementsGroupStyle key={count} className="noTemplate">
-                <div className="row no-gutters">
-                    <PropertyStyle key={property} className="col-4" tabIndex="0">
-                        <div className="propertyLabel">
-                            <Label>{property}</Label>
-                        </div>
-                    </PropertyStyle>
-                    <ValuesStyle className="col-8 valuesList">
-                        <ListGroup flush className="px-3">
-                            {values_array.map((value, index) => {
-                                return (
-                                    <ValueItemStyle key={count + index}>
-                                        <div>
-                                            <Label>{value}</Label>
-                                            <HoverButton
-                                                color="lightblue"
-                                                className="float-right p-0"
-                                                size="sm"
-                                                onClick={() => handleDeleteValue(property, index)}
-                                            >
-                                                <Tippy content="Delete value">
-                                                    <span>
-                                                        <Icon icon={faTrash} color="#fff" />
-                                                    </span>
-                                                </Tippy>
-                                            </HoverButton>
-                                        </div>
-                                    </ValueItemStyle>
-                                );
-                            })}
-                        </ListGroup>
-                    </ValuesStyle>
-                </div>
-            </StatementsGroupStyle>
-        );
-    };
-
     const handleLoadStatements = () => {
         const statements = [];
         let statement;
@@ -87,7 +41,7 @@ export default function BioassaySelectItem(props) {
             if (!value) {
                 continue;
             }
-            statement = statementGenerator(key, value, count);
+            //statement = statementGenerator(key, value, count);
             statements.push(statement);
             count += 100;
         }
@@ -191,12 +145,38 @@ export default function BioassaySelectItem(props) {
     return (
         <ListGroup className="listGroupEnlarge">
             <div>
-                {/*handleLoadStatements()*/}
-                <div className="text-right" style={{ paddingTop: '4px' }}>
-                    <Button color="primary" className="mt-4" size="sm" onClick={handleConfirmInput}>
-                        Confirm
-                    </Button>
-                </div>
+                {Object.keys(statementData.labels).map(labelKey => (
+                    <StatementsGroupStyle className="noTemplate">
+                        <div className="row no-gutters">
+                            <PropertyStyle className="col-4" tabIndex="0">
+                                <div className="propertyLabel">
+                                    <Label>{labelKey}</Label>
+                                </div>
+                            </PropertyStyle>
+                            <ValuesStyle className="col-8 valuesList">
+                                <ListGroup flush className="px-3">
+                                    <ValueItemStyle>
+                                        <div>
+                                            <Label>{JSON.stringify(statementData.labels[labelKey])}</Label>
+                                            <HoverButton
+                                                color="lightblue"
+                                                className="float-right p-0"
+                                                size="sm"
+                                                onClick={() => handleDeleteValue(labelKey, statementData.labels[labelKey])}
+                                            >
+                                                <Tippy content="Delete value">
+                                                    <span>
+                                                        <Icon icon={faTrash} />
+                                                    </span>
+                                                </Tippy>
+                                            </HoverButton>
+                                        </div>
+                                    </ValueItemStyle>
+                                </ListGroup>
+                            </ValuesStyle>
+                        </div>
+                    </StatementsGroupStyle>
+                ))}
             </div>
         </ListGroup>
     );
@@ -206,5 +186,5 @@ BioassaySelectItem.propTypes = {
     data: PropTypes.object.isRequired,
     id: PropTypes.string.isRequired,
     selectionFinished: PropTypes.func.isRequired,
-    loadingData: PropTypes.func.isRequired
+    loadingData: PropTypes.bool.isRequired
 };

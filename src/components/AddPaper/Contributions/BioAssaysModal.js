@@ -63,7 +63,7 @@ const BioAssaysModal = props => {
                         <h2 className="h5">Loading...</h2> <br />
                     </div>
                 )}
-                {!isLoadingData && (
+                {!isSubmitted && !isLoadingData && (
                     <div>
                         <FormGroup>
                             <div className="custom-file">
@@ -96,12 +96,7 @@ const BioAssaysModal = props => {
                     </div>
                 )}
                 {isSubmitted && !isLoadingData && (
-                    <BioassaySelectItem
-                        data={assayData?.labels}
-                        id={props.selectedResource}
-                        selectionFinished={props.toggle}
-                        loadingData={isLoadingData}
-                    />
+                    <BioassaySelectItem data={assayData} id={props.selectedResource} selectionFinished={props.toggle} loadingData={isLoadingData} />
                 )}
             </ModalBody>
             <ModalFooter>
