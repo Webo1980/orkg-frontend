@@ -28,7 +28,7 @@ class AbstractInputView extends Component {
         return (
             <div>
                 {!this.props.isAbstractLoading && this.props.isAbstractFailedLoading && (
-                    <Alert color="light">We couldn't fetch the abstract of the paper, please enter it manually or skip this step.</Alert>
+                    <Alert color="light">We couldn't fetch the abstract of the paper, please enter it manually.</Alert>
                 )}
                 <Alert color="info">
                     The abstract annotator automatically extracts concepts from paper abstracts. This is an <em>experimental feature</em>, which can
@@ -47,7 +47,7 @@ class AbstractInputView extends Component {
                     onChange={this.handleChange}
                     onPaste={this.stripLineBreaks}
                 />
-                {!this.props.validation && <FormFeedback className="order-1">Please enter the abstract or skip this step.</FormFeedback>}
+                {!this.props.validation && <FormFeedback className="order-1">Please enter the abstract.</FormFeedback>}
             </div>
         );
     }

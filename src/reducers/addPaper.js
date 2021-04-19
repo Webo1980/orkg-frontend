@@ -105,15 +105,6 @@ export default (state = initialState, action) => {
             };
         }
 
-        case type.IS_BIOASSAY: {
-            const { payload } = action;
-
-            return {
-                ...state,
-                isBioassay: payload
-            };
-        }
-
         case type.UPDATE_RESEARCH_FIELD: {
             const { payload } = action;
 

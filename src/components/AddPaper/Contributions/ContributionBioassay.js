@@ -121,18 +121,18 @@ class ContributionBioassay extends Component {
                                                     Click to upload bioassay .txt file
                                                 </label>
                                             </div>
-                                            <Label className="mt-2" for="exampleText">
-                                                Description
-                                            </Label>
-                                            <Input
-                                                type="textarea"
-                                                name="textInput"
-                                                id="textInput"
-                                                placeholder="copy a text into this form or use the upload button"
-                                                rows="10"
-                                                onChange={this.handleChangeEvent}
-                                                value={this.state.submitText}
-                                            />
+                                            <div className="mt-3">
+                                                <Label for="exampleText">Description</Label>
+                                                <Input
+                                                    type="textarea"
+                                                    name="textInput"
+                                                    id="textInput"
+                                                    placeholder="Copy a text into this form or use the upload button abpve"
+                                                    rows="10"
+                                                    onChange={this.handleChangeEvent}
+                                                    value={this.state.submitText}
+                                                />
+                                            </div>
                                         </FormGroup>
                                         {this.state.submitAlert && <Label>Nothing to submit. Please provide text in the input field</Label>}
                                         <div className="text-right">

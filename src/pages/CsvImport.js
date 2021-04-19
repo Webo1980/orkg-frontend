@@ -60,7 +60,6 @@ const CsvImport = () => {
             <Tippy content="Open help popup">
                 <span className="ml-3">
                     <Button
-                        cssClass="btn"
                         color="link"
                         outline
                         size="sm"

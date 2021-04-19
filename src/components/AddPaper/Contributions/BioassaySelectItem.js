@@ -197,7 +197,7 @@ export default function BioassaySelectItem(props) {
     return (
         <ListGroup className="listGroupEnlarge">
             <div>
-                {handleLoadStatements()}
+                {/*handleLoadStatements()*/}
                 <div className="text-right" style={{ paddingTop: '4px' }}>
                     <Button color="primary" className="mt-4" size="sm" onClick={handleConfirmInput}>
                         Confirm
