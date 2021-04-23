@@ -1,53 +1,111 @@
 import { useState } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Label, FormGroup } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Label, FormGroup, FormFeedback, Input } from 'reactstrap';
 import { semantifyBioassays } from 'services/bioassays/index';
-import Textarea from 'react-textarea-autosize';
 import CsvReader from 'react-csv-reader';
 import BioassaySelectItem from './BioassaySelectItem';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
+import dotProp from 'dot-prop-immutable';
+import { isArray, isObject, invert } from 'lodash';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { prefillStatements } from 'actions/addPaper';
+import { useDispatch, useSelector } from 'react-redux';
 
 const BioAssaysModal = props => {
-    const stripLineBreaks = event => {
-        event.preventDefault();
-        let text = '';
-        if (event.clipboardData || event.originalEvent.clipboardData) {
-            text = (event.originalEvent || event).clipboardData.getData('text/plain');
-        } else if (window.clipboardData) {
-            text = window.clipboardData.getData('Text');
-        }
-        // strip line breaks
-        text = text.replace(/\r?\n|\r/g, ' ');
-        setBioassaysTest(bioassaysTest + text);
-    };
+    const dispatch = useDispatch();
+    const resourceId = useSelector(state =>
+        state.addPaper.contributions.byId[props.selectedResource] ? state.addPaper.contributions.byId[props.selectedResource].resourceId : null
+    );
 
     const [bioassaysTest, setBioassaysTest] = useState('');
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const [isLoadingDataFailed, setIsLoadingDataFailed] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [submitAlert, setSubmitAlert] = useState(false);
+    const [submitAlert, setSubmitAlert] = useState(null);
     const [assayData, setAssayData] = useState([]);
 
     const handleSubmitText = () => {
         setIsLoadingData(true);
         if (bioassaysTest === '') {
-            setSubmitAlert(true);
+            setSubmitAlert('Nothing to submit. Please provide text in the input field');
             setIsLoadingData(false);
         } else {
-            setSubmitAlert(false);
+            setSubmitAlert(null);
             setIsSubmitted(true);
             semantifyBioassays(bioassaysTest)
                 .then(result => {
-                    console.log(result);
-                    setAssayData(result);
-                    setIsLoadingData(false);
+                    result.resources = invert(result.resources);
+                    result.properties = invert(result.properties);
+                    if (Object.keys(result.labels).length) {
+                        Object.keys(result.labels).forEach(function(key) {
+                            result.labels[key] = isArray(result.labels[key]) ? result.labels[key] : [result.labels[key]];
+                            result.labels[key] = result.labels[key].map(value => (isObject(value) ? Object.keys(value)[0] : value));
+                        });
+                        setAssayData(result);
+                        setIsLoadingData(false);
+                        setIsLoadingDataFailed(false);
+                    } else {
+                        setAssayData(result);
+                        setSubmitAlert('No resources or properties found in this Bioassays');
+                        setIsLoadingData(false);
+                        setIsSubmitted(false);
+                        setIsLoadingDataFailed(false);
+                    }
                 })
                 .catch(e => {
+                    setIsSubmitted(false);
                     setIsLoadingData(false);
+                    setIsLoadingDataFailed(true);
                     toast.error('Error loading data.');
                 });
         }
+    };
+
+    const handleDeleteValue = (labelKey, value) => {
+        if (assayData.labels[labelKey].length === 1) {
+            // if there is one value delete the property
+            setAssayData(prev => ({ ...prev, labels: dotProp.delete(prev.labels, labelKey) }));
+        } else {
+            setAssayData(prev => ({ ...dotProp.set(prev, `labels.${labelKey}`, prev.labels[labelKey].filter(v => v !== value)) }));
+        }
+    };
+
+    const createStatementIdObject = () => {
+        // append list values as strings
+        const statements = { properties: [], values: [] };
+        for (const [key, values] of Object.entries(assayData.labels)) {
+            statements['properties'].push({
+                existingPredicateId: assayData.properties[key],
+                propertyId: assayData.properties[key],
+                label: key
+            });
+
+            for (const value of values) {
+                statements['values'].push({
+                    label: value,
+                    type: 'object',
+                    existingResourceId: assayData.resources[value],
+                    isExistingValue: true,
+                    propertyId: assayData.properties[key]
+                });
+            }
+        }
+        return statements;
+    };
+
+    const handleInsertData = () => {
+        const statements = createStatementIdObject();
+        // insert into statement Browser
+        dispatch(
+            prefillStatements({
+                statements,
+                resourceId: resourceId
+            })
+        );
+        setAssayData([]);
+        setIsSubmitted(false);
+        props.toggle();
     };
 
     return (
@@ -66,7 +124,7 @@ const BioAssaysModal = props => {
                 {!isSubmitted && !isLoadingData && (
                     <div>
                         <FormGroup>
-                            <div className="custom-file">
+                            <div className="custom-file mb-3">
                                 <CsvReader
                                     cssClass="csv-reader-input"
                                     cssInputClass="custom-file-input "
@@ -81,27 +139,45 @@ const BioAssaysModal = props => {
                                     Click to upload bioassay .txt file
                                 </label>
                             </div>
-                            {submitAlert && <Label>Nothing to submit. Please provide text in the input field</Label>}
                             <Label for="bioassaysText">Enter the Bioassays</Label>
-                            <Textarea
+                            <Input
+                                type="textarea"
                                 id="bioassaysText"
-                                className={`form-control pl-2 pr-2 `}
-                                minRows={8}
+                                className="pl-2 pr-2"
+                                rows={8}
                                 value={bioassaysTest}
-                                placeholder="copy a text into this form or use the upload button"
+                                placeholder="Copy a text into this form or use the upload button"
                                 onChange={e => setBioassaysTest(e.target.value)}
-                                onPaste={stripLineBreaks}
+                                invalid={!!submitAlert}
                             />
+                            {!!submitAlert && <FormFeedback className="order-1">{submitAlert}</FormFeedback>}
                         </FormGroup>
                     </div>
                 )}
-                {isSubmitted && !isLoadingData && (
-                    <BioassaySelectItem data={assayData} id={props.selectedResource} selectionFinished={props.toggle} loadingData={isLoadingData} />
+                {!isLoadingDataFailed && isSubmitted && !isLoadingData && (
+                    <BioassaySelectItem
+                        handleDeleteValue={handleDeleteValue}
+                        data={assayData}
+                        id={props.selectedResource}
+                        selectionFinished={props.toggle}
+                        loadingData={isLoadingData}
+                    />
                 )}
             </ModalBody>
             <ModalFooter>
-                <Button color="primary" onClick={handleSubmitText} disabled={isLoadingData}>
-                    Submit
+                <Button
+                    color="light"
+                    onClick={() => {
+                        setAssayData([]);
+                        setIsSubmitted(false);
+                        props.toggle();
+                    }}
+                    disabled={isLoadingData}
+                >
+                    Cancel
+                </Button>
+                <Button color="primary" onClick={isSubmitted ? handleInsertData : handleSubmitText} disabled={isLoadingData}>
+                    {isSubmitted ? 'Insert Data' : 'Submit'}
                 </Button>
             </ModalFooter>
         </Modal>
