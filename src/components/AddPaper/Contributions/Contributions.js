@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Row, Col, Button } from 'reactstrap';
+import { Row, Col, Button, UncontrolledAlert } from 'reactstrap';
 import { useSelector, useDispatch } from 'react-redux';
 import { BioassaysFieldsList } from 'constants/bioassayFieldList';
 import BioAssaysModal from './BioAssaysModal';
@@ -52,11 +52,10 @@ const Contributions = () => {
         url,
         selectedResearchField,
         contributions,
-        selectedContribution,
-        resources,
-        properties,
-        values
+        selectedContribution
     } = useSelector(state => state.addPaper);
+    const { resources, properties, values } = useSelector(state => state.statementBrowser);
+
     const [isOpenBioassays, setIsOpenBioassays] = useState(false);
     const dispatch = useDispatch();
 
@@ -134,7 +133,7 @@ const Contributions = () => {
 
     return (
         <div>
-            <div className="d-flex align-items-center mt-4 mb-5">
+            <div className="d-flex align-items-center mt-4 mb-4">
                 <h2 className="h4 flex-shrink-0">
                     <Tooltip
                         message={
@@ -171,7 +170,13 @@ const Contributions = () => {
                     </Button>
                 </div>
             </div>
-            <Row noGutters={true}>
+            {BioassaysFieldsList.includes(selectedResearchField) && (
+                <UncontrolledAlert color="info">
+                    To add a Bioassay, please click the 'Add Bioassay' button above. This feature lets you insert and curate an automatically
+                    semantified version of your assay text by our machine learning system.
+                </UncontrolledAlert>
+            )}
+            <Row noGutters={true} className="mt-2">
                 <Col md="9">
                     <StyledHorizontalContributionsList id="contributionsList">
                         {contributions.allIds.map((contributionId, index) => {

@@ -71,6 +71,10 @@ const BioAssaysModal = props => {
         }
     };
 
+    const handleDeleteProperty = labelKey => {
+        setAssayData(prev => ({ ...prev, labels: dotProp.delete(prev.labels, labelKey) }));
+    };
+
     const createStatementIdObject = () => {
         // append list values as strings
         const statements = { properties: [], values: [] };
@@ -157,6 +161,7 @@ const BioAssaysModal = props => {
                 {!isLoadingDataFailed && isSubmitted && !isLoadingData && (
                     <BioassaySelectItem
                         handleDeleteValue={handleDeleteValue}
+                        handleDeleteProperty={handleDeleteProperty}
                         data={assayData}
                         id={props.selectedResource}
                         selectionFinished={props.toggle}
