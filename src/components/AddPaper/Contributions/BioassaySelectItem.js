@@ -1,31 +1,17 @@
-import { Label, ListGroup, Button } from 'reactstrap';
+import { Label, ListGroup } from 'reactstrap';
 import PropTypes from 'prop-types';
 import { StatementsGroupStyle, PropertyStyle, ValuesStyle, ValueItemStyle } from 'components/StatementBrowser/styled';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import styled from 'styled-components';
-import Tippy from '@tippyjs/react';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 
-const StatementsGroupStyled = styled(StatementsGroupStyle)`
-    .delete_property {
-        visibility: hidden;
-    }
-    &:hover {
-        .delete_property {
-            visibility: visible;
-        }
-    }
-`;
-
 export default function BioassaySelectItem(props) {
     return (
         <ListGroup className="listGroupEnlarge">
+            <div className="mb-3">Please select correct values that you want to include in the contribution data:</div>
             <div>
                 {Object.keys(props.data.labels).map(labelKey => (
-                    <StatementsGroupStyled key={`p${props.data.properties[labelKey]}`} className="noTemplate">
+                    <StatementsGroupStyle key={`p${props.data.properties[labelKey]}`} className="noTemplate">
                         <div className="row no-gutters">
                             <PropertyStyle className="col-4" tabIndex="0">
                                 <div className="propertyLabel">
@@ -38,24 +24,12 @@ export default function BioassaySelectItem(props) {
                                             {labelKey}
                                         </Link>
                                     </Label>
-                                    <Button
-                                        color="link delete_property"
-                                        className="p-0"
-                                        size="sm"
-                                        onClick={() => props.handleDeleteProperty(labelKey)}
-                                    >
-                                        <Tippy content="Delete property">
-                                            <span>
-                                                <Icon icon={faTrash} color="#80869b" />
-                                            </span>
-                                        </Tippy>
-                                    </Button>
                                 </div>
                             </PropertyStyle>
                             <ValuesStyle className="col-8 valuesList">
                                 <ListGroup flush className="px-3">
                                     {props.data.labels[labelKey].map(value => (
-                                        <ValueItemStyle key={`p${props.data.resources[value]}`} className="d-flex">
+                                        <ValueItemStyle key={`p${props.data.resources[value]}`} className="suggested_value d-flex">
                                             <div className="flex-grow-1">
                                                 <Label>
                                                     <Link target="_blank" to={reverse(ROUTES.RESOURCE, { id: props.data.resources[value] })}>
@@ -63,19 +37,19 @@ export default function BioassaySelectItem(props) {
                                                     </Link>
                                                 </Label>
                                             </div>
-                                            <Button color="link" className="p-0" size="sm" onClick={() => props.handleDeleteValue(labelKey, value)}>
-                                                <Tippy content="Delete value">
-                                                    <span>
-                                                        <Icon icon={faTrash} color="#80869b" />
-                                                    </span>
-                                                </Tippy>
-                                            </Button>
+                                            <div>
+                                                <input
+                                                    type="checkbox"
+                                                    onChange={e => props.handleSelect(labelKey, value)}
+                                                    checked={!!props.selectedItems?.[labelKey]?.includes(value)}
+                                                />
+                                            </div>
                                         </ValueItemStyle>
                                     ))}
                                 </ListGroup>
                             </ValuesStyle>
                         </div>
-                    </StatementsGroupStyled>
+                    </StatementsGroupStyle>
                 ))}
             </div>
         </ListGroup>
@@ -84,6 +58,6 @@ export default function BioassaySelectItem(props) {
 
 BioassaySelectItem.propTypes = {
     data: PropTypes.object.isRequired,
-    handleDeleteValue: PropTypes.func.isRequired,
-    handleDeleteProperty: PropTypes.func.isRequired
+    selectedItems: PropTypes.object.isRequired,
+    handleSelect: PropTypes.func.isRequired
 };

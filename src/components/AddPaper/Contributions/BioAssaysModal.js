@@ -5,7 +5,6 @@ import CsvReader from 'react-csv-reader';
 import BioassaySelectItem from './BioassaySelectItem';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
-import dotProp from 'dot-prop-immutable';
 import { isArray, isObject, invert } from 'lodash';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -24,6 +23,7 @@ const BioAssaysModal = props => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submitAlert, setSubmitAlert] = useState(null);
     const [assayData, setAssayData] = useState([]);
+    const [selectedItems, setSelectedItems] = useState({});
 
     const handleSubmitText = () => {
         setIsLoadingData(true);
@@ -62,37 +62,34 @@ const BioAssaysModal = props => {
         }
     };
 
-    const handleDeleteValue = (labelKey, value) => {
-        if (assayData.labels[labelKey].length === 1) {
-            // if there is one value delete the property
-            setAssayData(prev => ({ ...prev, labels: dotProp.delete(prev.labels, labelKey) }));
+    const handleSelect = (labelKey, value) => {
+        if (selectedItems[labelKey] && selectedItems[labelKey].includes(value)) {
+            setSelectedItems(prev => ({ ...prev, [labelKey]: prev[labelKey].filter(id => id !== value) }));
         } else {
-            setAssayData(prev => ({ ...dotProp.set(prev, `labels.${labelKey}`, prev.labels[labelKey].filter(v => v !== value)) }));
+            setSelectedItems(prev => ({ ...prev, [labelKey]: [...(prev[labelKey] || []), value] }));
         }
-    };
-
-    const handleDeleteProperty = labelKey => {
-        setAssayData(prev => ({ ...prev, labels: dotProp.delete(prev.labels, labelKey) }));
     };
 
     const createStatementIdObject = () => {
         // append list values as strings
         const statements = { properties: [], values: [] };
-        for (const [key, values] of Object.entries(assayData.labels)) {
-            statements['properties'].push({
-                existingPredicateId: assayData.properties[key],
-                propertyId: assayData.properties[key],
-                label: key
-            });
-
-            for (const value of values) {
-                statements['values'].push({
-                    label: value,
-                    type: 'object',
-                    existingResourceId: assayData.resources[value],
-                    isExistingValue: true,
-                    propertyId: assayData.properties[key]
+        for (const key of Object.keys(selectedItems)) {
+            if (selectedItems[key].length > 0) {
+                statements['properties'].push({
+                    existingPredicateId: assayData.properties[key],
+                    propertyId: assayData.properties[key],
+                    label: key
                 });
+
+                for (const value of selectedItems[key]) {
+                    statements['values'].push({
+                        label: value,
+                        type: 'object',
+                        existingResourceId: assayData.resources[value],
+                        isExistingValue: true,
+                        propertyId: assayData.properties[key]
+                    });
+                }
             }
         }
         return statements;
@@ -108,6 +105,7 @@ const BioAssaysModal = props => {
             })
         );
         setAssayData([]);
+        setSelectedItems({});
         setIsSubmitted(false);
         props.toggle();
     };
@@ -160,8 +158,8 @@ const BioAssaysModal = props => {
                 )}
                 {!isLoadingDataFailed && isSubmitted && !isLoadingData && (
                     <BioassaySelectItem
-                        handleDeleteValue={handleDeleteValue}
-                        handleDeleteProperty={handleDeleteProperty}
+                        selectedItems={selectedItems}
+                        handleSelect={handleSelect}
                         data={assayData}
                         id={props.selectedResource}
                         selectionFinished={props.toggle}
