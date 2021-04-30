@@ -1,4 +1,5 @@
 import Providers from 'Providers';
+import { theme } from 'testUtils';
 
 export const parameters = {
     actions: { argTypesRegex: '^on[A-Z].*' },
@@ -12,7 +13,7 @@ export const parameters = {
 
 export const decorators = [
     Story => (
-        <Providers>
+        <Providers theme={theme}>
             <Story />
         </Providers>
     )

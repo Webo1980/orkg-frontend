@@ -1,7 +1,7 @@
 import TableScrollContainer from 'components/Comparison/TableScrollContainer';
 import { PREDICATES } from 'constants/graphSettings';
 import { fireEvent, render, screen, waitFor, within } from 'testUtils';
-import EditTable from '../EditorTable';
+import EditTable from './EditorTable';
 import { contribution, contributionLiteralOnly } from '../__mocks__/ComparisonData';
 
 // mock the ResizeObserver

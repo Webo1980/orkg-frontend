@@ -1,9 +1,7 @@
 import { render as rtlRender } from '@testing-library/react';
-import { ConnectedRouter } from 'connected-react-router';
+import Providers from 'Providers';
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore, { history } from 'store';
-import { ThemeProvider } from 'styled-components';
+import configureStore from 'store';
 
 // https://github.com/adamgruber/sass-extract-js/issues/12
 export const theme = {
@@ -50,13 +48,9 @@ export const theme = {
 // redux part based on: https://redux.js.org/recipes/writing-tests#connected-components
 const render = (ui, { initialState, store = configureStore(initialState), ...renderOptions } = {}) => {
     const wrapper = ({ children }) => (
-        <Provider store={store}>
-            <ThemeProvider theme={theme}>
-                <ConnectedRouter history={history} noInitialPop>
-                    {children}
-                </ConnectedRouter>
-            </ThemeProvider>
-        </Provider>
+        <Providers theme={theme} store={store} routerNoInitialPop>
+            {children}
+        </Providers>
     );
 
     const rendered = rtlRender(ui, { wrapper, ...renderOptions });

@@ -32,28 +32,29 @@ const Providers = ({
     children,
     // eslint-disable-next-line import/no-webpack-loader-syntax
     theme = require('sass-extract-loader?{plugins: ["sass-extract-js"]}!./assets/scss/ThemeVariables.scss'),
-    store = configureStore()
-}) => {
-    console.log(store.getState().contributionEditor.isLoading);
-    return (
-        <DndProvider backend={HTML5Backend}>
-            <CookiesProvider>
-                <Provider store={store}>
-                    <ThemeProvider theme={theme}>
-                        <MatomoProvider value={matomoInstance}>
-                            <ConnectedRouter history={history}>{children}</ConnectedRouter>
-                        </MatomoProvider>
-                    </ThemeProvider>
-                </Provider>
-            </CookiesProvider>
-        </DndProvider>
-    );
-};
+    store = configureStore(),
+    routerNoInitialPop = false
+}) => (
+    <DndProvider backend={HTML5Backend}>
+        <CookiesProvider>
+            <Provider store={store}>
+                <ThemeProvider theme={theme}>
+                    <MatomoProvider value={matomoInstance}>
+                        <ConnectedRouter history={history} noInitialPop={routerNoInitialPop}>
+                            {children}
+                        </ConnectedRouter>
+                    </MatomoProvider>
+                </ThemeProvider>
+            </Provider>
+        </CookiesProvider>
+    </DndProvider>
+);
 
 Providers.propTypes = {
     children: PropTypes.node.isRequired,
     theme: PropTypes.object,
-    store: PropTypes.object
+    store: PropTypes.object,
+    routerNoInitialPop: PropTypes.bool
 };
 
 export default Providers;
