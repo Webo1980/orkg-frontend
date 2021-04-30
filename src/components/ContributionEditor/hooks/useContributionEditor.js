@@ -1,8 +1,8 @@
 import { createProperty } from 'actions/contributionEditor';
-import TableCell from 'components/ContributionEditor/TableCell';
-import TableHeaderColumn from 'components/ContributionEditor/TableHeaderColumn';
-import TableHeaderColumnFirst from 'components/ContributionEditor/TableHeaderColumnFirst';
-import TableHeaderRow from 'components/ContributionEditor/TableHeaderRow';
+import TableCell from 'components/ContributionEditor/TableCell/TableCell';
+import TableHeaderColumn from 'components/ContributionEditor/TableHeaderColumn/TableHeaderColumn';
+import TableHeaderColumnFirst from 'components/ContributionEditor/TableHeaderColumnFirst/TableHeaderColumnFirst';
+import TableHeaderRow from 'components/ContributionEditor/TableHeaderRow/TableHeaderRow';
 import { PREDICATES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
 import { sortBy, uniq, without } from 'lodash';

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from 'testUtils';
-import TableCellValueCreate from '../TableCellValueCreate';
+import TableCellValueCreate from './TableCellValueCreate';
 
 const setup = () => {
     render(<TableCellValueCreate contributionId="R1" propertyId="P1" isEmptyCell isVisible={true} />);

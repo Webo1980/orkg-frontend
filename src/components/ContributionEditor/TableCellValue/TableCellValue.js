@@ -1,7 +1,7 @@
 import { deleteStatement, updateLiteral, updateResource } from 'actions/contributionEditor';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
-import TableCellButtons from 'components/ContributionEditor/TableCellButtons';
-import TableCellValueResource from 'components/ContributionEditor/TableCellValueResource';
+import TableCellButtons from 'components/ContributionEditor/TableCellButtons/TableCellButtons';
+import TableCellValueResource from 'components/ContributionEditor/TableCellValueResource/TableCellValueResource';
 import { ItemInnerSeparator } from 'components/Comparison/TableCell';
 import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
 import { CLASSES, PREDICATES, ENTITIES } from 'constants/graphSettings';

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from 'testUtils';
-import TableHeaderRow from '../TableHeaderRow';
+import TableHeaderRow from './TableHeaderRow';
 
 const setup = () => {
     const property = {

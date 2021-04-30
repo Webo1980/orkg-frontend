@@ -1,252 +1,270 @@
 {
-    "name": "knowledge-graph",
-    "version": "0.1.0",
-    "private": true,
-    "homepage": ".",
-    "dependencies": {
-        "@datapunt/matomo-tracker-react": "^0.4.0",
-        "@fortawesome/fontawesome-svg-core": "^1.2.35",
-        "@fortawesome/free-brands-svg-icons": "^5.15.3",
-        "@fortawesome/free-regular-svg-icons": "^5.15.3",
-        "@fortawesome/free-solid-svg-icons": "^5.15.3",
-        "@fortawesome/react-fontawesome": "^0.1.14",
-        "@handsontable/react": "^5.0.0",
-        "@tippyjs/react": "^4.2.5",
-        "@trainiac/html2canvas": "^1.0.0",
-        "@xobotyi/scrollbar-width": "^1.9.5",
-        "array-move": "^3.0.1",
-        "auto-changelog": "^2.2.1",
-        "body-scroll-lock": "^3.1.5",
-        "bootstrap": "^4.5.3",
-        "capitalize": "^2.0.3",
-        "citation-js": "^0.5.0",
-        "classnames": "^2.3.1",
-        "connected-react-router": "^6.9.1",
-        "d3": "^3.5.6",
-        "detect-browser": "^5.2.0",
-        "dompurify": "^2.2.6",
-        "dot-prop-immutable": "^2.1.0",
-        "fast-text-encoding": "^1.0.2",
-        "greeting-time": "^1.0.0",
-        "handsontable": "^8.3.2",
-        "immutability-helper": "^3.0.2",
-        "joi": "^17.4.0",
-        "jspdf": "^2.3.1",
-        "lodash": "^4.17.21",
-        "make-latex": "^0.1.0",
-        "markdown-into-html": "^1.0.3",
-        "marked": "^2.0.1",
-        "moment": "^2.29.1",
-        "named-urls": "^2.0.0",
-        "node-html-parser": "^2.0.2",
-        "node-sass": "^4.14.1",
-        "olap-cube": "^1.0.0",
-        "path-to-regexp": "^6.2.0",
-        "prop-types": "^15.7.2",
-        "query-string": "^7.0.0",
-        "randomcolor": "^0.6.2",
-        "rangy": "^1.3.0",
-        "rdf": "^4.1.0",
-        "react": "^17.0.2",
-        "react-app-polyfill": "^2.0.0",
-        "react-bootstrap-table-next": "^4.0.3",
-        "react-bootstrap-table2-editor": "^1.4.0",
-        "react-content-loader": "^6.0.2",
-        "react-cookie": "^4.0.3",
-        "react-copy-to-clipboard": "^5.0.3",
-        "react-csv": "^2.0.3",
-        "react-csv-reader": "^3.3.0",
-        "react-csv-to-table": "0.0.4",
-        "react-diff-viewer": "^3.1.1",
-        "react-dnd": "^14.0.2",
-        "react-dnd-html5-backend": "^14.0.0",
-        "react-dom": "^17.0.2",
-        "react-dotdotdot": "^1.3.1",
-        "react-dropzone": "^11.3.2",
-        "react-google-charts": "^3.0.15",
-        "react-graph-vis": "^1.0.7",
-        "react-gravatar": "^2.6.3",
-        "react-id-generator": "^3.0.1",
-        "react-image-lightbox": "^5.1.1",
-        "react-items-carousel": "^2.8.0",
-        "react-loading-overlay": "^1.0.1",
-        "react-mathjax-preview": "^2.2.3",
-        "react-meta-tags": "^1.0.1",
-        "react-native-listener": "^1.1.0",
-        "react-number-format": "^4.5.3",
-        "react-papaparse": "^3.11.1",
-        "react-pdf-highlighter": "git+https://github.com/aoelen/react-pdf-highlighter-dist.git",
-        "react-range": "^1.8.7",
-        "react-redux": "^7.2.3",
-        "react-router": "^5.2.0",
-        "react-router-config": "^5.0.1",
-        "react-router-dom": "^5.2.0",
-        "react-scripts": "4.0.3",
-        "react-scroll-sync": "^0.9.0",
-        "react-select": "^4.3.0",
-        "react-select-async-paginate": "^0.5.3",
-        "react-sortable-hoc": "^2.0.0",
-        "react-split-pane": "^0.1.92",
-        "react-table": "^7.6.3",
-        "react-table-sticky": "^1.1.3",
-        "react-textarea-autosize": "^8.3.2",
-        "react-toastify": "^7.0.3",
-        "react-transition-group": "^4.4.1",
-        "react-use": "^17.2.3",
-        "react-visibility-sensor": "^5.1.1",
-        "reactour": "^1.18.0",
-        "reactstrap": "^8.9.0",
-        "reactstrap-confirm": "^1.2.0",
-        "redux": "^4.0.5",
-        "redux-mock-store": "^1.5.4",
-        "redux-thunk": "^2.3.0",
-        "sbd": "^1.0.18",
-        "showdown": "^1.9.1",
-        "showdown-footnotes": "^2.1.2",
-        "slugify": "^1.5.0",
-        "source-map-explorer": "^2.5.2",
-        "stopwords-en": "^0.3.0",
-        "strict-mode": "^1.1.4",
-        "string-format": "^2.0.0",
-        "styled-components": "^5.2.3",
-        "typed.js": "^2.0.12",
-        "use-resize-observer": "^7.0.0",
-        "wordsninja": "^1.0.0"
-    },
-    "scripts": {
-        "analyze": "source-map-explorer 'build/static/js/*.js'",
-        "prestart": "react-env",
-        "start": "react-scripts start",
-        "build": "react-env && react-scripts build",
-        "test": "react-scripts test --env=jsdom",
-        "test:ci": "react-scripts test --env=jsdom --reporters=default --reporters=jest-junit",
-        "eject": "react-scripts eject",
-        "flow": "flow",
-        "lint": "eslint src/**/*.js",
-        "lint:fix": "eslint src/**/*.js --fix",
-        "version": "auto-changelog && git add CHANGELOG.md"
-    },
-    "devDependencies": {
-        "@babel/preset-env": "^7.12.11",
-        "@beam-australia/react-env": "^3.0.8",
-        "@testing-library/jest-dom": "^5.11.10",
-        "@testing-library/react": "^11.2.6",
-        "eslint-config-prettier": "^8.1.0",
-        "eslint-plugin-jsx-a11y": "^6.4.1",
-        "eslint-plugin-prettier": "^3.3.1",
-        "faker": "^5.5.2",
-        "flow-bin": "^0.148.0",
-        "husky": "^4.3.7",
-        "jest-canvas-mock": "^2.3.0",
-        "jest-junit": "^12.0.0",
-        "lint-staged": "^10.5.4",
-        "msw": "^0.28.1",
-        "prettier": "1.18.2",
-        "sass-extract": "^2.1.0",
-        "sass-extract-js": "^0.4.0",
-        "sass-extract-loader": "^1.1.0"
-    },
-    "auto-changelog": {
-        "template": "./keepachangelog.hbs",
-        "unreleased": false,
-        "commitLimit": 0,
-        "tagPattern": ".+",
-        "tagPrefix": "V"
-    },
-    "lint-staged": {
-        "src/**/*.{js,jsx}": [
-            "npm run --silent lint:fix"
-        ]
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
-    },
-    "browserslist": [
-        ">0.2%",
-        "not dead",
-        "not ie < 9",
-        "not op_mini all"
+  "name": "knowledge-graph",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": ".",
+  "dependencies": {
+    "@datapunt/matomo-tracker-react": "^0.4.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.35",
+    "@fortawesome/free-brands-svg-icons": "^5.15.3",
+    "@fortawesome/free-regular-svg-icons": "^5.15.3",
+    "@fortawesome/free-solid-svg-icons": "^5.15.3",
+    "@fortawesome/react-fontawesome": "^0.1.14",
+    "@handsontable/react": "^5.0.0",
+    "@tippyjs/react": "^4.2.5",
+    "@trainiac/html2canvas": "^1.0.0",
+    "@xobotyi/scrollbar-width": "^1.9.5",
+    "array-move": "^3.0.1",
+    "auto-changelog": "^2.2.1",
+    "body-scroll-lock": "^3.1.5",
+    "bootstrap": "^4.5.3",
+    "capitalize": "^2.0.3",
+    "citation-js": "^0.5.0",
+    "classnames": "^2.3.1",
+    "connected-react-router": "^6.9.1",
+    "d3": "^3.5.6",
+    "detect-browser": "^5.2.0",
+    "dompurify": "^2.2.6",
+    "dot-prop-immutable": "^2.1.0",
+    "fast-text-encoding": "^1.0.2",
+    "greeting-time": "^1.0.0",
+    "handsontable": "^8.3.2",
+    "immutability-helper": "^3.0.2",
+    "joi": "^17.4.0",
+    "jspdf": "^2.3.1",
+    "lodash": "^4.17.21",
+    "make-latex": "^0.1.0",
+    "markdown-into-html": "^1.0.3",
+    "marked": "^2.0.1",
+    "moment": "^2.29.1",
+    "named-urls": "^2.0.0",
+    "node-html-parser": "^2.0.2",
+    "node-sass": "^4.14.1",
+    "olap-cube": "^1.0.0",
+    "path-to-regexp": "^6.2.0",
+    "prop-types": "^15.7.2",
+    "query-string": "^7.0.0",
+    "randomcolor": "^0.6.2",
+    "rangy": "^1.3.0",
+    "rdf": "^4.1.0",
+    "react": "^17.0.2",
+    "react-app-polyfill": "^2.0.0",
+    "react-bootstrap-table-next": "^4.0.3",
+    "react-bootstrap-table2-editor": "^1.4.0",
+    "react-content-loader": "^6.0.2",
+    "react-cookie": "^4.0.3",
+    "react-copy-to-clipboard": "^5.0.3",
+    "react-csv": "^2.0.3",
+    "react-csv-reader": "^3.3.0",
+    "react-csv-to-table": "0.0.4",
+    "react-diff-viewer": "^3.1.1",
+    "react-dnd": "^14.0.2",
+    "react-dnd-html5-backend": "^14.0.0",
+    "react-dom": "^17.0.2",
+    "react-dotdotdot": "^1.3.1",
+    "react-dropzone": "^11.3.2",
+    "react-google-charts": "^3.0.15",
+    "react-graph-vis": "^1.0.7",
+    "react-gravatar": "^2.6.3",
+    "react-id-generator": "^3.0.1",
+    "react-image-lightbox": "^5.1.1",
+    "react-items-carousel": "^2.8.0",
+    "react-loading-overlay": "^1.0.1",
+    "react-mathjax-preview": "^2.2.3",
+    "react-meta-tags": "^1.0.1",
+    "react-native-listener": "^1.1.0",
+    "react-number-format": "^4.5.3",
+    "react-papaparse": "^3.11.1",
+    "react-pdf-highlighter": "git+https://github.com/aoelen/react-pdf-highlighter-dist.git",
+    "react-range": "^1.8.7",
+    "react-redux": "^7.2.3",
+    "react-router": "^5.2.0",
+    "react-router-config": "^5.0.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.3",
+    "react-scroll-sync": "^0.9.0",
+    "react-select": "^4.3.0",
+    "react-select-async-paginate": "^0.5.3",
+    "react-sortable-hoc": "^2.0.0",
+    "react-split-pane": "^0.1.92",
+    "react-table": "^7.6.3",
+    "react-table-sticky": "^1.1.3",
+    "react-textarea-autosize": "^8.3.2",
+    "react-toastify": "^7.0.3",
+    "react-transition-group": "^4.4.1",
+    "react-use": "^17.2.3",
+    "react-visibility-sensor": "^5.1.1",
+    "reactour": "^1.18.0",
+    "reactstrap": "^8.9.0",
+    "reactstrap-confirm": "^1.2.0",
+    "redux": "^4.0.5",
+    "redux-mock-store": "^1.5.4",
+    "redux-thunk": "^2.3.0",
+    "sbd": "^1.0.18",
+    "showdown": "^1.9.1",
+    "showdown-footnotes": "^2.1.2",
+    "slugify": "^1.5.0",
+    "source-map-explorer": "^2.5.2",
+    "stopwords-en": "^0.3.0",
+    "strict-mode": "^1.1.4",
+    "string-format": "^2.0.0",
+    "styled-components": "^5.2.3",
+    "typed.js": "^2.0.12",
+    "use-resize-observer": "^7.0.0",
+    "wordsninja": "^1.0.0"
+  },
+  "scripts": {
+    "analyze": "source-map-explorer 'build/static/js/*.js'",
+    "prestart": "react-env",
+    "start": "react-scripts start",
+    "build": "react-env && react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "test:ci": "react-scripts test --env=jsdom --reporters=default --reporters=jest-junit",
+    "eject": "react-scripts eject",
+    "flow": "flow",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "version": "auto-changelog && git add CHANGELOG.md",
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.12.11",
+    "@beam-australia/react-env": "^3.0.8",
+    "@storybook/addon-actions": "^6.2.9",
+    "@storybook/addon-essentials": "^6.2.9",
+    "@storybook/addon-links": "^6.2.9",
+    "@storybook/node-logger": "^6.2.9",
+    "@storybook/preset-create-react-app": "^3.1.7",
+    "@storybook/react": "^6.2.9",
+    "@testing-library/jest-dom": "^5.11.10",
+    "@testing-library/react": "^11.2.6",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-prettier": "^3.3.1",
+    "faker": "^5.5.2",
+    "flow-bin": "^0.148.0",
+    "husky": "^4.3.7",
+    "jest-canvas-mock": "^2.3.0",
+    "jest-junit": "^12.0.0",
+    "lint-staged": "^10.5.4",
+    "msw": "^0.28.1",
+    "prettier": "1.18.2",
+    "sass-extract": "^2.1.0",
+    "sass-extract-js": "^0.4.0",
+    "sass-extract-loader": "^1.1.0"
+  },
+  "auto-changelog": {
+    "template": "./keepachangelog.hbs",
+    "unreleased": false,
+    "commitLimit": 0,
+    "tagPattern": ".+",
+    "tagPrefix": "V"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx}": [
+      "npm run --silent lint:fix"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie < 9",
+    "not op_mini all"
+  ],
+  "babelMacros": {
+    "styledComponents": {
+      "pure": true
+    }
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "plugin:prettier/recommended"
     ],
-    "babelMacros": {
-        "styledComponents": {
-            "pure": true
+    "plugins": [
+      "prettier",
+      "jsx-a11y"
+    ],
+    "rules": {
+      "prettier/prettier": [
+        "error"
+      ],
+      "react/jsx-closing-bracket-location": [
+        "error"
+      ],
+      "react/jsx-closing-tag-location": [
+        "error"
+      ],
+      "react/sort-comp": [
+        "error"
+      ],
+      "jsx-quotes": [
+        "error"
+      ],
+      "no-multi-spaces": [
+        "error"
+      ],
+      "react/jsx-tag-spacing": [
+        "error"
+      ],
+      "react/jsx-curly-spacing": [
+        "error"
+      ],
+      "curly": [
+        "error"
+      ],
+      "react/jsx-wrap-multilines": [
+        "error"
+      ],
+      "react/self-closing-comp": [
+        "error"
+      ],
+      "react/prop-types": [
+        "error"
+      ],
+      "no-var": [
+        "error"
+      ],
+      "no-const-assign": [
+        "error"
+      ],
+      "prefer-const": [
+        1
+      ],
+      "react/jsx-curly-brace-presence": [
+        "error"
+      ],
+      "jsx-a11y/no-autofocus": [
+        2,
+        {
+          "ignoreNonDOM": true
         }
+      ],
+      "jsx-a11y/click-events-have-key-events": [
+        "warn"
+      ],
+      "jsx-a11y/no-static-element-interactions": [
+        "warn"
+      ],
+      "jsx-a11y/no-noninteractive-element-interactions": [
+        "warn"
+      ]
     },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "plugin:prettier/recommended"
-        ],
-        "plugins": [
-            "prettier",
-            "jsx-a11y"
+    "overrides": [
+      {
+        "files": [
+          "**/*.stories.*"
         ],
         "rules": {
-            "prettier/prettier": [
-                "error"
-            ],
-            "react/jsx-closing-bracket-location": [
-                "error"
-            ],
-            "react/jsx-closing-tag-location": [
-                "error"
-            ],
-            "react/sort-comp": [
-                "error"
-            ],
-            "jsx-quotes": [
-                "error"
-            ],
-            "no-multi-spaces": [
-                "error"
-            ],
-            "react/jsx-tag-spacing": [
-                "error"
-            ],
-            "react/jsx-curly-spacing": [
-                "error"
-            ],
-            "curly": [
-                "error"
-            ],
-            "react/jsx-wrap-multilines": [
-                "error"
-            ],
-            "react/self-closing-comp": [
-                "error"
-            ],
-            "react/prop-types": [
-                "error"
-            ],
-            "no-var": [
-                "error"
-            ],
-            "no-const-assign": [
-                "error"
-            ],
-            "prefer-const": [
-                1
-            ],
-            "react/jsx-curly-brace-presence": [
-                "error"
-            ],
-            "jsx-a11y/no-autofocus": [
-                2,
-                {
-                    "ignoreNonDOM": true
-                }
-            ],
-            "jsx-a11y/click-events-have-key-events": [
-                "warn"
-            ],
-            "jsx-a11y/no-static-element-interactions": [
-                "warn"
-            ],
-            "jsx-a11y/no-noninteractive-element-interactions": [
-                "warn"
-            ]
+          "import/no-anonymous-default-export": "off"
         }
-    }
+      }
+    ]
+  }
 }

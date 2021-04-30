@@ -1,10 +1,10 @@
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { loadContributions, removeContributions } from 'actions/contributionEditor';
-import CreateProperty from 'components/ContributionEditor/CreateProperty';
-import EditorTable from 'components/ContributionEditor/EditorTable';
+import CreateProperty from 'components/ContributionEditor/CreateProperty/CreateProperty';
+import EditorTable from 'components/ContributionEditor/EditorTable/EditorTable';
 import useContributionEditor from 'components/ContributionEditor/hooks/useContributionEditor';
-import TableLoadingIndicator from 'components/ContributionEditor/TableLoadingIndicator';
+import TableLoadingIndicator from 'components/ContributionEditor/TableLoadingIndicator/TableLoadingIndicator';
 import AddContribution from 'components/Comparison/AddContribution/AddContribution';
 import TableScrollContainer from 'components/Comparison/TableScrollContainer';
 import CreateContributionModal from 'components/CreateContributionModal/CreateContributionModal';

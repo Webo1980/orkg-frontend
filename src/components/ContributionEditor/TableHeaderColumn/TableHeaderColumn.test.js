@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from 'testUtils';
-import TableHeaderColumn from '../TableHeaderColumn';
+import TableHeaderColumn from './TableHeaderColumn';
 
 const setup = paperTitle => {
     const paper = {

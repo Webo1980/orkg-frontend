@@ -1,5 +1,5 @@
-import TableCellValue from 'components/ContributionEditor/TableCellValue';
-import TableCellValueCreate from 'components/ContributionEditor/TableCellValueCreate';
+import TableCellValue from 'components/ContributionEditor/TableCellValue/TableCellValue';
+import TableCellValueCreate from 'components/ContributionEditor/TableCellValueCreate/TableCellValueCreate';
 import { Item, ItemInner } from 'components/Comparison/TableCell';
 import { isEqual } from 'lodash';
 import PropTypes from 'prop-types';
@@ -37,6 +37,7 @@ const TableCell = ({ values, contributionId, propertyId }) => {
 };
 
 TableCell.propTypes = {
+    /** values to be listed in the cell */
     values: PropTypes.array,
     contributionId: PropTypes.string.isRequired,
     propertyId: PropTypes.string.isRequired

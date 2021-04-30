@@ -1,5 +1,5 @@
 import { render, screen } from 'testUtils';
-import TableLoadingIndicator from '../TableLoadingIndicator';
+import TableLoadingIndicator from './TableLoadingIndicator';
 
 test('should show the amount of contentLoaders as provided in the props', () => {
     render(<TableLoadingIndicator contributionAmount={5} />);

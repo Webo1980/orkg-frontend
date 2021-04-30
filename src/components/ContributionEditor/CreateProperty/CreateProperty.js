@@ -8,6 +8,9 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Button } from 'reactstrap';
 
+/**
+ * Button to add properties to contribution editor. When clicked, transforms into an autocomplete
+ */
 export const CreateProperty = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [inputValue, setInputValue] = useState('');

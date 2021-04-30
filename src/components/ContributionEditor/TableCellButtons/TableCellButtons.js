@@ -31,9 +31,13 @@ const TableCellButtons = ({ onEdit, onDelete, backgroundColor, style }) => {
 };
 
 TableCellButtons.propTypes = {
+    /** Function called when edit button is clicked. If null, the button is disabled */
     onEdit: PropTypes.func,
+    /** Function called when delete button is clicked. If null, the button is disabled */
     onDelete: PropTypes.func,
+    /** Background color of button container */
     backgroundColor: PropTypes.string.isRequired,
+    /** Styles passed to the button container */
     style: PropTypes.object
 };
 

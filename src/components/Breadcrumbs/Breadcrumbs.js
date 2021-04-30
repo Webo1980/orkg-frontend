@@ -19,6 +19,9 @@ const StyledDropdownItem = styled(DropdownItem)`
     }
 `;
 
+/**
+ * Shows research fields breadcrumbs in a container
+ */
 function Breadcrumbs(props) {
     const [parentResearchFields, setParentResearchFields] = useState([]);
     const [isOpen, setIsOpen] = useState([]);
@@ -170,9 +173,13 @@ function Breadcrumbs(props) {
 }
 
 Breadcrumbs.propTypes = {
+    /** The selected research fields */
     researchFieldId: PropTypes.string,
+    /** Disables the selected research field  */
     disableLastField: PropTypes.bool,
+    /** Function to call when a field is clicked */
     onFieldClick: PropTypes.func,
+    /** Use white container background instead of the default blue container */
     backgroundWhite: PropTypes.bool
 };
 

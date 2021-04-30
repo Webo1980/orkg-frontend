@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from 'testUtils';
-import TableCellValueResource from '../TableCellValueResource';
+import TableCellValueResource from './TableCellValueResource';
 
 const setup = () => {
     const label = 'resource label';

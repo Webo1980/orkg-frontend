@@ -1,5 +1,5 @@
 import { render, screen } from 'testUtils';
-import TableHeaderColumnFirst from '../TableHeaderColumnFirst';
+import TableHeaderColumnFirst from './TableHeaderColumnFirst';
 
 test('should show saved label by default', () => {
     render(<TableHeaderColumnFirst />, {

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from 'testUtils';
-import TableCellButtons from '../TableCellButtons';
+import TableCellButtons from './TableCellButtons';
 
 const setup = () => {
     const onEdit = jest.fn();

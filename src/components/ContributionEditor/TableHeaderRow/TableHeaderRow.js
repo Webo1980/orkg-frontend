@@ -1,5 +1,5 @@
 import Autocomplete from 'components/Autocomplete/Autocomplete';
-import TableCellButtons from 'components/ContributionEditor/TableCellButtons';
+import TableCellButtons from 'components/ContributionEditor/TableCellButtons/TableCellButtons';
 import { Properties, PropertiesInner } from 'components/Comparison/styled';
 import PropTypes from 'prop-types';
 import { memo, useState } from 'react';

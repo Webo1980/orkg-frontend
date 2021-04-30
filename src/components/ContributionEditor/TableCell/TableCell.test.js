@@ -1,5 +1,5 @@
 import { render, screen } from 'testUtils';
-import TableCell from '../TableCell';
+import TableCell from './TableCell';
 
 const setup = () => {
     const label = 'resource label';

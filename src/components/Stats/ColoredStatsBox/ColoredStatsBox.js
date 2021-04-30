@@ -61,6 +61,9 @@ const Label = styled.div`
     font-size: 18px;
 `;
 
+/**
+ * Stats box displays a number and a brief description in a colored container
+ */
 const ColoredStatsBox = props => {
     return (
         <StatsBoxStyled className={`box rounded ${props.className} ${props.color}`}>
@@ -82,11 +85,17 @@ const ColoredStatsBox = props => {
 };
 
 ColoredStatsBox.propTypes = {
+    /** Fontawesome icon */
     icon: PropTypes.object.isRequired,
+    /** Textual label displayed under number */
     label: PropTypes.string.isRequired,
+    /** Container color */
     color: PropTypes.oneOf(['blue', 'green', 'orange', 'black']).isRequired,
+    /** Stats number displayed in container */
     number: PropTypes.number,
+    /** Additional classes added to component */
     className: PropTypes.string,
+    /** Loading state if number is not available yet */
     isLoading: PropTypes.bool
 };
 
