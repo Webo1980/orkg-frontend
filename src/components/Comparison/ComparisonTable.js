@@ -1,4 +1,5 @@
 import { memo, useRef, useMemo } from 'react';
+import { Alert } from 'reactstrap';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import PropertyValue from 'components/Comparison/PropertyValue';
@@ -11,6 +12,7 @@ import { ReactTableWrapper, Contribution, Delete, ItemHeader, ItemHeaderInner, P
 import TableCell from './TableCell';
 import { useTable, useFlexLayout } from 'react-table';
 import { useSticky } from 'react-table-sticky';
+import { getPropertyObjectFromData } from 'utils';
 import PropTypes from 'prop-types';
 
 const compareProps = (prevProps, nextProps) => {
@@ -55,7 +57,7 @@ const ComparisonTable = props => {
                       };
                   }))
         ];
-    }, [props.transpose, props.properties, props.contributions]);
+    }, [props.transpose, props.properties, props.contributions, props.data]);
 
     const defaultColumn = useMemo(
         () => ({
@@ -67,6 +69,9 @@ const ComparisonTable = props => {
     );
 
     const columns = useMemo(() => {
+        if (props.filterControlData.length === 0) {
+            return [];
+        }
         return [
             {
                 Header: (
@@ -83,11 +88,13 @@ const ComparisonTable = props => {
                         <Properties className="columnProperty">
                             <PropertiesInner className="d-flex flex-row align-items-start justify-content-between" cellPadding={cellPadding}>
                                 <PropertyValue
+                                    embeddedMode={props.embeddedMode}
                                     filterControlData={props.filterControlData}
                                     updateRulesOfProperty={props.updateRulesOfProperty}
                                     similar={info.value.similar}
                                     label={info.value.label}
                                     id={info.value.id}
+                                    property={props.comparisonType === 'merge' ? info.value : getPropertyObjectFromData(props.data, info.value)}
                                 />
                             </PropertiesInner>
                         </Properties>
@@ -108,7 +115,7 @@ const ComparisonTable = props => {
                                 </Contribution>
                             </PropertiesInner>
 
-                            {props.contributions.filter(contribution => contribution.active).length > 2 && (
+                            {!props.embeddedMode && props.contributions.filter(contribution => contribution.active).length > 2 && (
                                 <Delete onClick={() => props.removeContribution(info.value.id)}>
                                     <Icon icon={faTimes} />
                                 </Delete>
@@ -142,7 +149,7 @@ const ComparisonTable = props => {
                                                   </Contribution>
                                               </ItemHeaderInner>
 
-                                              {props.contributions.filter(contribution => contribution.active).length > 2 && (
+                                              {!props.embeddedMode && props.contributions.filter(contribution => contribution.active).length > 2 && (
                                                   <Delete onClick={() => props.removeContribution(contribution.id)}>
                                                       <Icon icon={faTimes} />
                                                   </Delete>
@@ -173,11 +180,13 @@ const ComparisonTable = props => {
                                           transpose={props.transpose}
                                       >
                                           <PropertyValue
+                                              embeddedMode={props.embeddedMode}
                                               filterControlData={props.filterControlData}
                                               updateRulesOfProperty={props.updateRulesOfProperty}
                                               similar={property.similar}
                                               label={property.label}
                                               id={property.id}
+                                              property={props.comparisonType === 'merge' ? property : getPropertyObjectFromData(props.data, property)}
                                           />
                                       </ItemHeaderInner>
                                   </ItemHeader>
@@ -190,7 +199,9 @@ const ComparisonTable = props => {
                           };
                       }))
         ];
-    }, [props.transpose, props.properties, props.contributions]);
+        // TODO: remove disable lint rule: useCallback for removeContribution and add used dependencies
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.transpose, props.properties, props.contributions, props.filterControlData, props.viewDensity]);
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
         {
@@ -229,7 +240,7 @@ const ComparisonTable = props => {
                 </ScrollSyncPane>
                 <ScrollSyncPane group="one">
                     <div ref={props.scrollContainerBody} style={{ overflow: 'auto' }}>
-                        <div {...getTableBodyProps()} className="comparisonBody" style={{ width: '100%' }}>
+                        <div {...getTableBodyProps()} className="comparisonBody" style={{ ...getTableProps().style }}>
                             {rows.map((row, i) => {
                                 prepareRow(row);
                                 return (
@@ -248,6 +259,11 @@ const ComparisonTable = props => {
                     </div>
                 </ScrollSyncPane>
             </div>
+            {rows.length === 0 && (
+                <Alert className="mt-3" color="info">
+                    This contributions have no data to compare on!
+                </Alert>
+            )}
         </ReactTableWrapper>
     );
 };
@@ -258,10 +274,16 @@ ComparisonTable.propTypes = {
     properties: PropTypes.array.isRequired,
     removeContribution: PropTypes.func.isRequired,
     transpose: PropTypes.bool.isRequired,
+    comparisonType: PropTypes.string.isRequired,
     viewDensity: PropTypes.oneOf(['spacious', 'normal', 'compact']),
     scrollContainerBody: PropTypes.object.isRequired,
     filterControlData: PropTypes.array.isRequired,
-    updateRulesOfProperty: PropTypes.func.isRequired
+    updateRulesOfProperty: PropTypes.func.isRequired,
+    embeddedMode: PropTypes.bool.isRequired
+};
+
+ComparisonTable.defaultProps = {
+    embeddedMode: false
 };
 
 export default memo(ComparisonTable, compareProps);

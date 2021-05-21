@@ -9,6 +9,7 @@ import { reverse } from 'named-urls';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Button, ButtonDropdown, Col, Container, DropdownItem, DropdownMenu, DropdownToggle, Row } from 'reactstrap';
+import { reverseWithSlug } from 'utils';
 
 const ResearchFields = () => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -48,7 +49,7 @@ const ResearchFields = () => {
                 <h1 className="h4 mt-4 mb-4 flex-grow-1">Research fields taxonomy</h1>
 
                 <ButtonDropdown isOpen={menuOpen} toggle={() => setMenuOpen(v => !v)} nav inNavbar>
-                    <DropdownToggle size="sm" color="darkblue" className="px-3 rounded-right" style={{ marginLeft: 2 }}>
+                    <DropdownToggle size="sm" color="secondary" className="px-3 rounded-right" style={{ marginLeft: 2 }}>
                         <Icon icon={faEllipsisV} />
                     </DropdownToggle>
                     <DropdownMenu right>
@@ -61,7 +62,7 @@ const ResearchFields = () => {
             <Container className="p-0">
                 <div className="box rounded-lg p-4">
                     <Row>
-                        <Col className="mr-2 pr-4 border-right">
+                        <Col md="5" className="border-right">
                             <ResearchFieldSelector
                                 selectedResearchField={selectedResearchField}
                                 researchFields={researchFields}
@@ -70,7 +71,7 @@ const ResearchFields = () => {
                             />
                         </Col>
 
-                        <Col>
+                        <Col md="7">
                             {selectedResearchField && (
                                 <>
                                     <div className="d-flex justify-content-between align-items-start mb-3">
@@ -78,7 +79,10 @@ const ResearchFields = () => {
                                         {selectedResearchField !== MISC.RESEARCH_FIELD_MAIN && (
                                             <Button
                                                 tag={Link}
-                                                to={reverse(ROUTES.RESEARCH_FIELD, { researchFieldId: selectedResearchField })}
+                                                to={reverseWithSlug(ROUTES.RESEARCH_FIELD, {
+                                                    researchFieldId: selectedResearchField,
+                                                    slug: researchFieldLabel
+                                                })}
                                                 color="light"
                                                 size="sm"
                                                 className="flex-shrink-0 ml-2"
@@ -87,7 +91,7 @@ const ResearchFields = () => {
                                             </Button>
                                         )}
                                     </div>
-                                    <Papers researchFieldId={selectedResearchField} />
+                                    <Papers id={selectedResearchField} boxShadow={false} showBreadcrumbs={false} />
                                 </>
                             )}
                         </Col>

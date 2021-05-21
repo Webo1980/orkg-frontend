@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { Container, Alert, UncontrolledAlert } from 'reactstrap';
 import { getStatementsBySubject, createResourceStatement, deleteStatementById } from 'services/backend/statements';
-import { getUserInformationById } from 'services/backend/users';
+import { getContributorInformationById } from 'services/backend/contributors';
 import { getIsVerified } from 'services/backend/papers';
 import { getObservatoryAndOrganizationInformation } from 'services/backend/observatories';
 import { getResource, updateResource, createResource, getContributorsByResourceId } from 'services/backend/resources';
@@ -16,6 +16,7 @@ import Breadcrumbs from 'components/Breadcrumbs/Breadcrumbs';
 import { resetStatementBrowser, updateContributionLabel } from 'actions/statementBrowser';
 import { loadPaper, selectContribution, setPaperAuthors } from 'actions/viewPaper';
 import GizmoGraphViewModal from 'components/ViewPaper/GraphView/GizmoGraphViewModal';
+import ShareLinkMarker from 'components/ShareLinkMarker/ShareLinkMarker';
 import queryString from 'query-string';
 import { toast } from 'react-toastify';
 import Confirm from 'reactstrap-confirm';
@@ -23,9 +24,10 @@ import VisibilitySensor from 'react-visibility-sensor';
 import PaperHeaderBar from 'components/ViewPaper/PaperHeaderBar/PaperHeaderBar';
 import PaperMenuBar from 'components/ViewPaper/PaperHeaderBar/PaperMenuBar';
 import styled from 'styled-components';
-import SharePaper from 'components/ViewPaper/SharePaper';
 import { getPaperData_ViewPaper } from 'utils';
 import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
+import { reverse } from 'named-urls';
+import ROUTES from 'constants/routes.js';
 
 export const EditModeHeader = styled(Container)`
     background-color: #80869b !important;
@@ -40,7 +42,7 @@ export const Title = styled.div`
     flex-grow: 1;
     & span {
         font-size: small;
-        color: ${props => props.theme.ultraLightBlueDarker};
+        color: ${props => props.theme.lightDarker};
     }
 `;
 
@@ -179,6 +181,9 @@ class ViewPaper extends Component {
                     this.setState({
                         contributions: newContributions
                     });
+                    this.props.history.push(
+                        reverse(ROUTES.VIEW_PAPER, { resourceId: this.props.viewPaper.paperResourceId, contributionId: newContributions[0].id })
+                    );
                 }
             );
             await deleteStatementById(statementId);
@@ -203,7 +208,7 @@ class ViewPaper extends Component {
             const observatory = getObservatoryAndOrganizationInformation(paperResource.observatory_id, paperResource.organization_id);
             const creator =
                 paperResource.created_by && paperResource.created_by !== MISC.UNKNOWN_ID
-                    ? getUserInformationById(paperResource.created_by).catch(e => {})
+                    ? getContributorInformationById(paperResource.created_by).catch(e => {})
                     : undefined;
             Promise.all([observatory, creator]).then(data => {
                 this.setState({
@@ -346,9 +351,11 @@ class ViewPaper extends Component {
                             </EditModeHeader>
                         )}
                         <Container
-                            className={`box pt-md-4 pb-md-4 pl-md-5 pr-md-5 pt-sm-2 pb-sm-2 pl-sm-2 pr-sm-2 clearfix
+                            className={`box pt-md-4 pb-md-4 pl-md-5 pr-md-5 pt-sm-2 pb-sm-2 pl-sm-2 pr-sm-2 clearfix position-relative 
                                 ${this.state.editMode ? 'rounded-bottom' : 'rounded'}`}
                         >
+                            <ShareLinkMarker typeOfLink="paper" title={this.props.viewPaper.title} />
+
                             {this.state.loading && (
                                 <ContentLoader
                                     height="100%"
@@ -383,7 +390,6 @@ class ViewPaper extends Component {
                             {!this.state.loadingFailed && !this.state.loadingContributionFailed && (
                                 <>
                                     <hr className="mt-3" />
-                                    <SharePaper title={this.props.viewPaper.title} />
 
                                     <Contributions
                                         selectedContribution={this.state.selectedContribution}
@@ -437,7 +443,8 @@ ViewPaper.propTypes = {
     viewPaper: PropTypes.object.isRequired,
     loadPaper: PropTypes.func.isRequired,
     setPaperAuthors: PropTypes.func.isRequired,
-    user: PropTypes.oneOfType([PropTypes.object, PropTypes.number])
+    user: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
+    history: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({

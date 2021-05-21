@@ -15,12 +15,12 @@ import {
     Badge
 } from 'reactstrap';
 import { Link, NavLink as RouterNavLink, withRouter } from 'react-router-dom';
-import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import Jumbotron from 'components/Home/Jumbotron';
+import AddNew from './AddNew';
 import { ReactComponent as Logo } from 'assets/img/logo.svg';
 import { ReactComponent as LogoWhite } from 'assets/img/logo_white.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faPlus, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import { Cookies } from 'react-cookie';
 import Gravatar from 'react-gravatar';
@@ -37,6 +37,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { reverse } from 'named-urls';
 import { compose } from 'redux';
+import env from '@beam-australia/react-env';
 import { toast } from 'react-toastify';
 import HomeBannerBg from 'assets/img/graph-background.svg';
 import { scrollbarWidth } from '@xobotyi/scrollbar-width';
@@ -80,7 +81,7 @@ const StyledLink = styled(Link)`
 `;
 
 const StyledGravatar = styled(Gravatar)`
-    border: 3px solid ${props => props.theme.avatarBorderColor};
+    border: 3px solid ${props => props.theme.dark};
     cursor: pointer;
 `;
 
@@ -106,22 +107,22 @@ const StyledAuthTooltip = styled(Tooltip)`
     }
     & .tooltip-inner {
         font-size: 16px;
-        background-color: ${props => props.theme.darkblue};
+        background-color: ${props => props.theme.secondary};
         max-width: 410px;
         box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.13);
 
         .btn {
-            border-color: ${props => props.theme.darkblue};
-            background-color: ${props => props.theme.buttonDark};
+            border-color: ${props => props.theme.secondary};
+            background-color: ${props => props.theme.dark};
 
             &:hover {
-                background-color: ${props => props.theme.darkblueDarker};
+                background-color: ${props => props.theme.secondaryDarker};
             }
         }
     }
 
     & .arrow:before {
-        border-bottom-color: ${props => props.theme.darkblue} !important;
+        border-bottom-color: ${props => props.theme.secondary} !important;
     }
 `;
 
@@ -196,8 +197,8 @@ class Header extends Component {
 
     tokenExpired = () => {
         toast.warn('User session expired, please sign in again!');
-        cookies.remove('token');
-        cookies.remove('token_expires_in');
+        cookies.remove('token', { path: env('PUBLIC_URL') });
+        cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
         this.props.resetAuth();
         this.props.openAuthDialog({ action: 'signin' });
         this.logoutTimeoutId = null;
@@ -236,9 +237,9 @@ class Header extends Component {
                     });
                 })
                 .catch(error => {
-                    cookies.remove('token');
-                    cookies.remove('token_expires_in');
-                    cookies.remove('selected_observatory');
+                    cookies.remove('token', { path: env('PUBLIC_URL') });
+                    cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
+                    cookies.remove('selected_observatory', { path: env('PUBLIC_URL') });
                     this.props.resetAuth();
                 });
         }
@@ -259,9 +260,9 @@ class Header extends Component {
     handleSignOut = () => {
         this.props.resetAuth();
         const cookies = new Cookies();
-        cookies.remove('token');
-        cookies.remove('selected_observatory');
-
+        cookies.remove('token', { path: env('PUBLIC_URL') });
+        cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
+        cookies.remove('selected_observatory', { path: env('PUBLIC_URL') });
         this.toggleUserTooltip();
 
         this.setState({
@@ -287,12 +288,19 @@ class Header extends Component {
 
         return (
             <StyledTopBar className={this.state.isHomePageStyle ? 'home-page' : ''}>
-                <Navbar className={this.state.isHomePageStyle ? 'home-page' : ''} expand="md" fixed="top" id="main-navbar">
+                <Navbar
+                    light={!this.state.isHomePageStyle}
+                    dark={this.state.isHomePageStyle}
+                    className={this.state.isHomePageStyle ? 'home-page' : ''}
+                    expand="md"
+                    fixed="top"
+                    id="main-navbar"
+                >
                     <GlobalStyle scrollbarWidth={scrollbarWidth(true)} cookieInfoDismissed={cookieInfoDismissed} />
 
                     <div
                         style={{ display: 'flex', width: '100%', transition: 'width 1s ease-in-out' }}
-                        className={!this.state.isHomePageStyle ? 'p-0 container' : ''}
+                        className={!this.state.isHomePageStyle ? 'p-0 container' : 'container-sm'}
                     >
                         <StyledLink to={ROUTES.HOME} className="mr-4 p-0">
                             {!this.state.isHomePageStyle && <Logo />}
@@ -320,6 +328,9 @@ class Header extends Component {
                                         </DropdownItem>
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.RESEARCH_FIELDS}>
                                             Research fields
+                                        </DropdownItem>
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.SMART_REVIEWS}>
+                                            SmartReviews
                                         </DropdownItem>
                                         <DropdownItem divider />
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.OBSERVATORIES}>
@@ -356,6 +367,19 @@ class Header extends Component {
                                         Tools <FontAwesomeIcon style={{ marginTop: '4px' }} icon={faChevronDown} pull="right" />
                                     </DropdownToggle>
                                     <DropdownMenu>
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.TOOLS}>
+                                            Tools overview
+                                        </DropdownItem>
+                                        <DropdownItem divider />
+                                        <DropdownItem header>Data entry</DropdownItem>
+                                        <DropdownItem
+                                            tag={RouterNavLink}
+                                            exact
+                                            to={ROUTES.CONTRIBUTION_EDITOR}
+                                            onClick={e => this.requireAuthentication(e, ROUTES.CONTRIBUTION_EDITOR)}
+                                        >
+                                            Contribution editor
+                                        </DropdownItem>
                                         <DropdownItem
                                             tag={RouterNavLink}
                                             exact
@@ -372,19 +396,13 @@ class Header extends Component {
                                         >
                                             Survey table import
                                         </DropdownItem>
-                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.DATA}>
-                                            Data Access
-                                        </DropdownItem>
                                         <DropdownItem tag={RouterNavLink} exact to={ROUTES.TEMPLATES}>
                                             Templates
                                         </DropdownItem>
-                                        <DropdownItem
-                                            tag={RouterNavLink}
-                                            exact
-                                            to={ROUTES.CONTRIBUTION_EDITOR}
-                                            onClick={e => this.requireAuthentication(e, ROUTES.CONTRIBUTION_EDITOR)}
-                                        >
-                                            Contribution editor
+                                        <DropdownItem divider />
+                                        <DropdownItem header>Data export</DropdownItem>
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.DATA}>
+                                            Data Access
                                         </DropdownItem>
                                     </DropdownMenu>
                                 </UncontrolledButtonDropdown>
@@ -424,30 +442,7 @@ class Header extends Component {
 
                             <SearchForm placeholder="Search..." />
 
-                            <UncontrolledButtonDropdown className="mr-3 flex-shrink-0">
-                                <RequireAuthentication
-                                    component={Button}
-                                    color={!this.state.isHomePageStyle ? 'primary' : 'light'}
-                                    className="pl-4 pr-4"
-                                    tag={Link}
-                                    to={ROUTES.ADD_PAPER.GENERAL_DATA}
-                                >
-                                    <FontAwesomeIcon className="mr-1" icon={faPlus} />
-                                    Add paper
-                                </RequireAuthentication>
-
-                                <DropdownToggle
-                                    split
-                                    color={!this.state.isHomePageStyle ? 'primary' : 'light'}
-                                    className="px-2"
-                                    style={{ marginLeft: 1 }}
-                                />
-                                <DropdownMenu right>
-                                    <DropdownItem tag={RouterNavLink} exact to={ROUTES.ADD_COMPARISON}>
-                                        Add comparison
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </UncontrolledButtonDropdown>
+                            <AddNew isHomePageStyle={this.state.isHomePageStyle} />
 
                             {!!this.props.user && (
                                 <div>
@@ -536,7 +531,7 @@ class Header extends Component {
 
                             {!this.props.user && (
                                 <Button
-                                    color={!this.state.isHomePageStyle ? 'secondary' : 'darkblue'}
+                                    color="secondary"
                                     className="pl-4 pr-4 flex-shrink-0 sign-in"
                                     outline
                                     onClick={() => this.props.openAuthDialog({ action: 'signin' })}

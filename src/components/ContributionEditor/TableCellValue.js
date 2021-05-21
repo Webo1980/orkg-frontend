@@ -4,12 +4,11 @@ import TableCellButtons from 'components/ContributionEditor/TableCellButtons';
 import TableCellValueResource from 'components/ContributionEditor/TableCellValueResource';
 import { ItemInnerSeparator } from 'components/Comparison/TableCell';
 import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
-import { CLASSES, PREDICATES } from 'constants/graphSettings';
+import { CLASSES, PREDICATES, ENTITIES } from 'constants/graphSettings';
 import PropTypes from 'prop-types';
 import { memo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Input } from 'reactstrap';
-import { resourcesUrl } from 'services/backend/resources';
 import styled from 'styled-components';
 
 const Value = styled.div`
@@ -78,7 +77,11 @@ const TableCellValue = ({ value, index, setDisableCreate, propertyId }) => {
             <Value className="position-relative">
                 <ValuePlugins type={value._class} options={{ inModal: true }}>
                     {value._class === 'resource' && <TableCellValueResource value={value} />}
-                    {value._class === 'literal' && <div onDoubleClick={handleStartEdit}>{value.label}</div>}
+                    {value._class === 'literal' && (
+                        <div role="textbox" tabIndex="0" onDoubleClick={handleStartEdit}>
+                            {value.label}
+                        </div>
+                    )}
                 </ValuePlugins>
                 <TableCellButtons onEdit={handleStartEdit} onDelete={handleDelete} backgroundColor="rgba(240, 242, 247, 0.8)" />
             </Value>
@@ -88,8 +91,8 @@ const TableCellValue = ({ value, index, setDisableCreate, propertyId }) => {
             {value._class === 'resource' && (
                 <Autocomplete
                     optionsClass={propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? CLASSES.PROBLEM : undefined}
-                    requestUrl={resourcesUrl}
-                    excludeClasses={`${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.CONTRIBUTION_TEMPLATE}`}
+                    entityType={ENTITIES.RESOURCE}
+                    excludeClasses={`${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE}`}
                     menuPortalTarget={document.body} // use a portal to ensure the menu isn't blocked by other elements
                     placeholder={propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? 'Enter a research problem' : 'Enter a resource'}
                     onChange={handleChangeAutocomplete}

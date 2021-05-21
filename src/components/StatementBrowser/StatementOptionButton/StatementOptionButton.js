@@ -10,8 +10,8 @@ export const OptionButton = styled(Button)`
     margin: 0 2px !important;
     display: inline-block !important;
     border-radius: 100% !important;
-    background-color: ${props => props.theme.ultraLightBlueDarker}!important;
-    color: ${props => props.theme.buttonDark}!important;
+    background-color: ${props => props.theme.lightDarker}!important;
+    color: ${props => props.theme.dark}!important;
 
     & .icon-wrapper {
         display: flex !important;
@@ -170,7 +170,7 @@ StatementOptionButton.propTypes = {
     icon: PropTypes.object.isRequired,
     iconWrapperSize: PropTypes.string,
     iconSize: PropTypes.string,
-    action: PropTypes.func.isRequired,
+    action: PropTypes.func,
     requireConfirmation: PropTypes.bool,
     confirmationMessage: PropTypes.string,
     onVisibilityChange: PropTypes.func,
@@ -180,7 +180,8 @@ StatementOptionButton.propTypes = {
 
 StatementOptionButton.defaultProps = {
     requireConfirmation: false,
-    appendTo: 'parent'
+    appendTo: 'parent',
+    action: () => {}
 };
 
 export default StatementOptionButton;

@@ -12,6 +12,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Badge, Button } from 'reactstrap';
 import EditPaperDialog from './EditDialog/EditPaperDialog';
+import { reverseWithSlug } from 'utils';
 
 const PaperHeader = props => {
     const [isOpenEditModal, setIsOpenEditModal] = useState(false);
@@ -54,7 +55,7 @@ const PaperHeader = props => {
             <div className="clearfix" />
 
             {viewPaper.publicationMonth || viewPaper.publicationYear ? (
-                <span className="badge badge-lightblue mr-2">
+                <span className="badge badge-light mr-2">
                     <Icon icon={faCalendar} className="text-primary" />{' '}
                     {viewPaper.publicationMonth ? moment(viewPaper.publicationMonth, 'M').format('MMMM') : ''}{' '}
                     {viewPaper.publicationYear ? viewPaper.publicationYear : ''}
@@ -63,8 +64,10 @@ const PaperHeader = props => {
                 ''
             )}
             {viewPaper.researchField && viewPaper.researchField.id && (
-                <Link to={reverse(ROUTES.RESEARCH_FIELD, { researchFieldId: viewPaper.researchField.id })}>
-                    <span className="badge badge-lightblue mr-2 mb-2">
+                <Link
+                    to={reverseWithSlug(ROUTES.RESEARCH_FIELD, { researchFieldId: viewPaper.researchField.id, slug: viewPaper.researchField.label })}
+                >
+                    <span className="badge badge-light mr-2 mb-2">
                         <Icon icon={faBars} className="text-primary" /> {viewPaper.researchField.label}
                     </span>
                 </Link>
@@ -72,13 +75,13 @@ const PaperHeader = props => {
             {viewPaper.authors.map((author, index) =>
                 author.classes && author.classes.includes(CLASSES.AUTHOR) ? (
                     <Link key={index} to={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.id })}>
-                        <Badge color="lightblue" className="mr-2 mb-2" key={index}>
+                        <Badge color="light" className="mr-2 mb-2" key={index}>
                             <Icon icon={faUser} className="text-primary" /> {author.label}
                         </Badge>
                     </Link>
                 ) : (
-                    <Badge color="lightblue" className="mr-2 mb-2" key={index}>
-                        <Icon icon={faUser} className="text-darkblue" /> {author.label}
+                    <Badge color="light" className="mr-2 mb-2" key={index}>
+                        <Icon icon={faUser} className="text-secondary" /> {author.label}
                     </Badge>
                 )
             )}
@@ -111,7 +114,7 @@ const PaperHeader = props => {
             <div className="d-flex">
                 <div className="flex-grow-1">
                     {props.editMode && (
-                        <Button color="darkblue" size="sm" className="mt-2" style={{ marginLeft: 'auto' }} onClick={() => setIsOpenEditModal(true)}>
+                        <Button color="secondary" size="sm" className="mt-2" style={{ marginLeft: 'auto' }} onClick={() => setIsOpenEditModal(true)}>
                             <Icon icon={faPen} /> Edit data
                         </Button>
                     )}{' '}

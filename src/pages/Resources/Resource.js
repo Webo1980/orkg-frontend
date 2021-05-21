@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Button, FormGroup, Label, FormText, ButtonGroup } from 'reactstrap';
+import { Container, Button, FormGroup, Label, FormText, ButtonGroup, Alert } from 'reactstrap';
 import { getClassById } from 'services/backend/classes';
 import { updateResourceClasses as updateResourceClassesNetwork } from 'services/backend/resources';
 import { getResource } from 'services/backend/resources';
@@ -32,6 +32,7 @@ import { getVisualization } from 'services/similarity';
 import GDCVisualizationRenderer from 'libs/selfVisModel/RenderingComponents/GDCVisualizationRenderer';
 import DescriptionTooltip from 'components/DescriptionTooltip/DescriptionTooltip';
 import { CLASS_TYPE_ID } from 'constants/misc';
+import { reverseWithSlug } from 'utils';
 
 const DEDICATED_PAGE_LINKS = {
     [CLASSES.PAPER]: {
@@ -42,7 +43,8 @@ const DEDICATED_PAGE_LINKS = {
     [CLASSES.PROBLEM]: {
         label: 'Research problem',
         route: ROUTES.RESEARCH_PROBLEM,
-        routeParams: 'researchProblemId'
+        routeParams: 'researchProblemId',
+        hasSlug: true
     },
     [CLASSES.COMPARISON]: {
         label: 'Comparison',
@@ -57,7 +59,8 @@ const DEDICATED_PAGE_LINKS = {
     [CLASSES.RESEARCH_FIELD]: {
         label: 'Research field',
         route: ROUTES.RESEARCH_FIELD,
-        routeParams: 'researchFieldId'
+        routeParams: 'researchFieldId',
+        hasSlug: true
     },
     [CLASSES.VENUE]: {
         label: 'Venue',
@@ -72,6 +75,16 @@ const DEDICATED_PAGE_LINKS = {
     [CLASSES.CONTRIBUTION]: {
         label: 'Contribution',
         route: ROUTES.CONTRIBUTION,
+        routeParams: 'id'
+    },
+    [CLASSES.SMART_REVIEW]: {
+        label: 'SmartReview',
+        route: ROUTES.SMART_REVIEW,
+        routeParams: 'id'
+    },
+    [CLASSES.SMART_REVIEW_PUBLISHED]: {
+        label: 'SmartReview',
+        route: ROUTES.SMART_REVIEW,
         routeParams: 'id'
     }
 };
@@ -91,6 +104,7 @@ function Resource(props) {
     const isCurationAllowed = useSelector(state => state.auth.user?.isCurationAllowed);
     const showDeleteButton = editMode && isCurationAllowed;
     const [hasObjectStatement, setHasObjectStatement] = useState(false);
+    const [hasDOI, setHasDOI] = useState(false);
     const { deleteResource } = useDeleteResource({ resourceId, redirect: true });
     const [canEdit, setCanEdit] = useState(false);
     const classesAutocompleteRef = useRef(null);
@@ -125,7 +139,8 @@ function Resource(props) {
                                 getStatementsBySubjectAndPredicate({ subjectId: props.match.params.id, predicateId: PREDICATES.HAS_DOI }).then(st => {
                                     if (st.length > 0) {
                                         setIsLoading(false);
-                                        setCanEdit(false);
+                                        setHasDOI(true);
+                                        setCanEdit(isCurationAllowed);
                                     } else {
                                         setIsLoading(false);
                                         setCanEdit(true);
@@ -145,7 +160,7 @@ function Resource(props) {
                 });
         };
         findResource();
-    }, [location, props.match.params.id, resourceId]);
+    }, [location, props.match.params.id, resourceId, isCurationAllowed]);
 
     useEffect(() => {
         setCanBeDeleted((values.allIds.length === 0 || properties.allIds.length === 0) && !hasObjectStatement);
@@ -202,7 +217,7 @@ function Resource(props) {
                             <RequireAuthentication
                                 size="sm"
                                 component={Button}
-                                color="darkblue"
+                                color="secondary"
                                 style={{ marginRight: 2 }}
                                 tag={Link}
                                 to={ROUTES.ADD_RESOURCE}
@@ -211,10 +226,13 @@ function Resource(props) {
                             </RequireAuthentication>
                             {dedicatedLink && (
                                 <Button
-                                    color="darkblue"
+                                    color="secondary"
                                     size="sm"
                                     tag={Link}
-                                    to={reverse(dedicatedLink.route, { [dedicatedLink.routeParams]: props.match.params.id })}
+                                    to={reverseWithSlug(dedicatedLink.route, {
+                                        [dedicatedLink.routeParams]: props.match.params.id,
+                                        slug: dedicatedLink.hasSlug ? label : undefined
+                                    })}
                                     style={{ marginRight: 2 }}
                                 >
                                     <Icon icon={faExternalLinkAlt} className="mr-1" /> {dedicatedLink.label} view
@@ -225,27 +243,31 @@ function Resource(props) {
                                     <RequireAuthentication
                                         component={Button}
                                         className="float-right"
-                                        color="darkblue"
+                                        color="secondary"
                                         size="sm"
                                         onClick={() => setEditMode(v => !v)}
                                     >
                                         <Icon icon={faPen} /> Edit
                                     </RequireAuthentication>
                                 ) : (
-                                    <Button className="flex-shrink-0" color="darkblueDarker" size="sm" onClick={() => setEditMode(v => !v)}>
+                                    <Button className="flex-shrink-0" color="secondary-darker" size="sm" onClick={() => setEditMode(v => !v)}>
                                         <Icon icon={faTimes} /> Stop editing
                                     </Button>
                                 )
                             ) : (
                                 <Tippy hideOnClick={false} content="This resource can not be edited because it has a published DOI.">
-                                    <span className="btn btn-darkblue btn-sm disabled">
+                                    <span className="btn btn-secondary btn-sm disabled">
                                         <Icon icon={faPen} /> <span>Edit</span>
                                     </span>
                                 </Tippy>
                             )}
                         </ButtonGroup>
                     </Container>
-
+                    {editMode && hasDOI && (
+                        <Alert className="container" color="danger">
+                            This resource should not be edited because it has a published DOI, please make sure that you know what are you doing!
+                        </Alert>
+                    )}
                     {editMode && canEdit && (
                         <EditModeHeader className="box rounded-top">
                             <Title>

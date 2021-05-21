@@ -83,11 +83,11 @@ const HeaderSearchButton = ({ placeholder, type }) => {
     };
 
     const goToResults = () => {
-        history.push(reverse(ROUTES.SEARCH, { searchTerm: value }) + `?types=${type}`);
+        history.push(reverse(ROUTES.SEARCH, { searchTerm: encodeURIComponent(value) }) + `?types=${type}`);
     };
 
     return isSearchOpen ? (
-        <SearchStyled className="btn btn-darkblue btn-sm active" ref={refContainer}>
+        <SearchStyled className="btn btn-secondary btn-sm active" ref={refContainer}>
             <InputStyled
                 type="text"
                 placeholder={placeholder}
@@ -101,7 +101,7 @@ const HeaderSearchButton = ({ placeholder, type }) => {
             </SearchButtonStyled>
         </SearchStyled>
     ) : (
-        <Button size="sm" color="darkblue" style={{ marginLeft: 1 }} className="px-3" onClick={() => setIsSearchOpen(true)}>
+        <Button size="sm" color="secondary" style={{ marginLeft: 1 }} className="px-3" onClick={() => setIsSearchOpen(true)}>
             <Icon icon={faSearch} />
         </Button>
     );

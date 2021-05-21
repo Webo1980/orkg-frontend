@@ -5,7 +5,7 @@ import AddPaper from 'pages/AddPaper';
 import AuthorPage from 'pages/AuthorPage';
 import VenuePage from 'pages/VenuePage';
 import AddResource from 'pages/Resources/AddResource';
-import Comparison from 'pages/Comparison';
+import Comparison from 'pages/Comparisons/Comparison';
 import Home from 'pages/Home';
 import License from 'pages/License';
 import DataProtection from 'pages/DataProtection';
@@ -13,7 +13,7 @@ import TermsOfUse from 'pages/TermsOfUse';
 import Changelog from 'pages/Changelog/Changelog';
 import NotFound from 'pages/NotFound';
 import Papers from 'pages/Papers';
-import Comparisons from 'pages/Comparisons';
+import Comparisons from 'pages/Comparisons/Comparisons';
 import Visualizations from 'pages/Visualizations/Visualizations';
 import Visualization from 'pages/Visualizations/Visualization';
 import ClassDetails from 'pages/Classes/ClassDetails';
@@ -46,10 +46,18 @@ import FeaturedComparisons from 'pages/FeaturedComparisons';
 import Data from 'pages/Data';
 import Contribution from 'pages/Contribution';
 import CsvImport from 'pages/CsvImport';
+import SmartReview from 'pages/SmartReview/SmartReview';
+import SmartReviews from 'pages/SmartReview/SmartReviews';
+import UserUnpublishedArticles from 'pages/SmartReview/UserUnpublishedArticles';
+import SmartReviewNew from 'pages/SmartReview/SmartReviewNew';
+import SmartReviewDiff from 'pages/SmartReview/SmartReviewDiff';
+import Tools from 'pages/Tools';
 import AddComparison from 'pages/AddComparison';
 import requireAuthentication from 'requireAuthentication';
 import { reverse } from 'named-urls';
 import ContributionEditor from 'pages/ContributionEditor';
+import CurationCall from 'pages/CurationCall';
+import WebinarMay11 from 'pages/WebinarMay11';
 
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -306,12 +314,44 @@ const routes = [
         component: requireAuthentication(CsvImport)
     },
     {
+        path: ROUTES.SMART_REVIEW_NEW,
+        component: requireAuthentication(SmartReviewNew)
+    },
+    {
+        path: ROUTES.SMART_REVIEW_DIFF,
+        component: SmartReviewDiff
+    },
+    {
+        path: ROUTES.SMART_REVIEW,
+        component: SmartReview
+    },
+    {
+        path: ROUTES.SMART_REVIEWS,
+        component: SmartReviews
+    },
+    {
+        path: ROUTES.USER_UNPUBLISHED_REVIEWS,
+        component: requireAuthentication(UserUnpublishedArticles)
+    },
+    {
         path: ROUTES.CONTRIBUTION_EDITOR,
         component: requireAuthentication(ContributionEditor)
     },
     {
         path: ROUTES.ADD_COMPARISON,
         component: AddComparison
+    },
+    {
+        path: ROUTES.TOOLS,
+        component: Tools
+    },
+    {
+        path: ROUTES.CURATION_CALL,
+        component: CurationCall
+    },
+    {
+        path: ROUTES.WEBINAR_MAY_11,
+        component: WebinarMay11
     },
     /* Don't add routes below this line */
     {

@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword, getUserInformation } from 'services/backend
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Cookies } from 'react-cookie';
+import { checkCookie } from 'utils';
 import env from '@beam-australia/react-env';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'redux';
@@ -74,12 +75,14 @@ class SignIn extends Component {
             })
             .catch(e => {
                 let error = 'Something went wrong, please try again';
-                cookies.remove('token');
-                cookies.remove('token_expires_in');
+                cookies.remove('token', { path: env('PUBLIC_URL') });
+                cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
                 if (e.error === 'invalid_grant') {
                     error = 'Wrong email address or password';
                 } else if (e.error_description) {
                     error = e.error_description;
+                } else if (!checkCookie()) {
+                    error = 'Cookies must be enabled to sign in';
                 }
 
                 this.setState({ loading: false, errors: error });
