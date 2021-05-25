@@ -54,6 +54,7 @@ export function firstLoad() {
             .catch(() => {
                 cookies.remove('token', { path: env('PUBLIC_URL') });
                 cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
+                cookies.remove('selected_observatory', { path: env('PUBLIC_URL') });
                 dispatch({
                     type: type.RESET_AUTH
                 });
