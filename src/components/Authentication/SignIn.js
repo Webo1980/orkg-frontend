@@ -60,8 +60,8 @@ class SignIn extends Component {
                         isCurationAllowed: userData.is_curation_allowed,
                         observatoryInfo: userData.observatory_id
                             ? {
-                                  observatories_id: userData.observatory_id,
-                                  organizations_id: userData.organization_id
+                                  observatoriesId: userData.observatory_id,
+                                  organizationsId: userData.organization_id
                               }
                             : null
                     },

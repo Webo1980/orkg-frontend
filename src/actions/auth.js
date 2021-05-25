@@ -21,6 +21,7 @@ export function firstLoad() {
         const cookies = new Cookies();
         const token = cookies.get('token') ? cookies.get('token') : null;
         const token_expires_in = cookies.get('token_expires_in') ? cookies.get('token_expires_in') : null;
+        const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
         return getUserInformation()
             .then(userData => {
                 dispatch(
@@ -31,7 +32,20 @@ export function firstLoad() {
                             token: token,
                             tokenExpire: token_expires_in,
                             email: userData.email,
-                            isCurationAllowed: userData.is_curation_allowed
+                            isCurationAllowed: userData.is_curation_allowed,
+                            observatoryInfo: userData.observatory_id
+                                ? {
+                                      observatoriesId: userData.observatory_id,
+                                      organizationsId: userData.organization_id
+                                  }
+                                : null,
+                            selectedObservatory: observatory
+                                ? {
+                                      id: observatory.id,
+                                      name: observatory.name,
+                                      organizationId: observatory.organization
+                                  }
+                                : null
                         }
                     })
                 );

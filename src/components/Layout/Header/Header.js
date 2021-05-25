@@ -126,6 +126,23 @@ const StyledAuthTooltip = styled(Tooltip)`
     }
 `;
 
+const SelectedObservatoryStyle = styled.div`
+    color: black;
+    border-radius: 10px;
+    word-wrap: break-word;
+    float: left;
+    max-width: 200px;
+    border: solid 1px;
+    background-color: ${props => props.theme.lightLighter};
+    border-color: lightgray;
+    border-style: solid;
+    max-height: 50px;
+    margin-right: -15px;
+    min-height: 40px;
+    padding-right: 17px;
+    vertical-align: middle;
+`;
+
 class Header extends Component {
     constructor(props) {
         super(props);
@@ -222,11 +239,11 @@ class Header extends Component {
                             isCurationAllowed: userData.is_curation_allowed,
                             observatoryInfo: userData.observatory_id
                                 ? {
-                                      observatories_id: userData.observatory_id,
-                                      organizations_id: userData.organization_id
+                                      observatoriesId: userData.observatory_id,
+                                      organizationsId: userData.organization_id
                                   }
                                 : null,
-                            selected_observatory: observatory
+                            selectedObservatory: observatory
                                 ? {
                                       id: observatory.id,
                                       name: observatory.name,
@@ -446,30 +463,12 @@ class Header extends Component {
 
                             {!!this.props.user && (
                                 <div>
-                                    {this.props.user.selected_observatory && this.props.user.selected_observatory.id && (
+                                    {this.props.user.selectedObservatory && this.props.user.selectedObservatory.id && (
                                         <>
-                                            <div
-                                                className="pl-2 pt-1 text-center"
-                                                style={{
-                                                    color: 'black',
-                                                    borderRadius: '10px',
-                                                    wordWrap: 'break-word',
-                                                    float: 'left',
-                                                    maxWidth: '200px',
-                                                    border: 'solid 1px',
-                                                    backgroundColor: '#EBEBEB',
-                                                    borderColor: 'lightgray',
-                                                    borderStyle: 'solid',
-                                                    maxHeight: '50px',
-                                                    marginRight: '-15px',
-                                                    minHeight: '40px',
-                                                    paddingRight: '17px',
-                                                    verticalAlign: 'middle'
-                                                }}
-                                            >
-                                                {this.props.user.selected_observatory.name.substr(0, 15)}
-                                                {this.props.user.selected_observatory.name.length > 15 ? '...' : ''}
-                                            </div>
+                                            <SelectedObservatoryStyle className="pl-2 pt-1 text-center">
+                                                {this.props.user.selectedObservatory.name.substr(0, 15)}
+                                                {this.props.user.selectedObservatory.name.length > 15 ? '...' : ''}
+                                            </SelectedObservatoryStyle>
                                         </>
                                     )}
                                     <StyledGravatar className="rounded-circle" email={email} size={40} id="TooltipExample" />
