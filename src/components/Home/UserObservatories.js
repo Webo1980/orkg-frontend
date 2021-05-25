@@ -21,9 +21,6 @@ function UserObservatories(props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        //dispatch({
-        //updateAuth(data)
-        //});
         const findObservatoriesByUserId = async observatories => {
             await getObservatoryAndOrganizationInformation(observatories.observatoriesId, observatories.organizationsId).then(response => {
                 setUserObservatories(response);
@@ -48,12 +45,6 @@ function UserObservatories(props) {
             cookies.remove('selected_observatory', { path: env('PUBLIC_URL') });
         } else {
             setSelectedObservatory(true);
-            //props.updateAuth({
-            //user: {
-            //...user,
-            //selectedObservatory: { id: observatory.id, name: observatory.name, organization: observatory.organization.id }
-            //}
-            //});
             dispatch(
                 updateAuth({
                     user: {
@@ -105,17 +96,9 @@ function UserObservatories(props) {
     );
 }
 
-//const mapDispatchToProps = dispatch => ({
-//updateAuth: data => dispatch(updateAuth(data))
-//});
-
 UserObservatories.propTypes = {
     observatories: PropTypes.object,
-    updateAuth: PropTypes.func.isRequired
+    updateAuth: PropTypes.func
 };
 
 export default UserObservatories;
-//export default connect(
-//null,
-//mapDispatchToProps
-//)(UserObservatories);
