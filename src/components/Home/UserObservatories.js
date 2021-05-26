@@ -75,7 +75,7 @@ function UserObservatories(props) {
                         onClick={() => updateObservatory(userObservatories)}
                         role="button"
                         tabIndex={0}
-                        onKeyPress={0}
+                        onKeyPress={() => updateObservatory(userObservatories)}
                     >
                         <p className="mt-2"> {userObservatories.name}</p>
                         {userObservatories.organization && (

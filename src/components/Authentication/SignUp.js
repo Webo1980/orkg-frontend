@@ -52,7 +52,7 @@ export default function SignUp() {
                                         email: userData.email,
                                         tokenExpire: token_expires_in,
                                         isCurationAllowed: userData.is_curation_allowed,
-                                        observatoryInfo: userData.observatory_id
+                                        observatories: userData.observatory_id
                                             ? {
                                                   observatoriesId: userData.observatory_id,
                                                   organizationsId: userData.organization_id

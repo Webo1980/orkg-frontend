@@ -237,7 +237,7 @@ class Header extends Component {
                             tokenExpire: token_expires_in,
                             email: userData.email,
                             isCurationAllowed: userData.is_curation_allowed,
-                            observatoryInfo: userData.observatory_id
+                            observatories: userData.observatory_id
                                 ? {
                                       observatoriesId: userData.observatory_id,
                                       organizationsId: userData.organization_id
@@ -517,11 +517,11 @@ class Header extends Component {
                                                 </ButtonGroup>
                                             </div>
                                         </Row>
-                                        {this.props.user && this.props.user.observatoryInfo && (
+                                        {this.props.user && this.props.user.observatories && (
                                             <>
                                                 <hr />
                                                 <div className="text-left">Observatories</div>
-                                                <UserObservatories observatories={this.props.user.observatoryInfo} />
+                                                <UserObservatories observatories={this.props.user.observatories} />
                                             </>
                                         )}
                                     </StyledAuthTooltip>
