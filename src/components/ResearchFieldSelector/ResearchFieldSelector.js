@@ -3,9 +3,8 @@ import { Button, Badge } from 'reactstrap';
 import { faMinusSquare, faPlusSquare, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
-import { CLASSES, MISC } from 'constants/graphSettings';
+import { CLASSES, MISC, ENTITIES } from 'constants/graphSettings';
 import { sortBy, find, set } from 'lodash';
-import { resourcesUrl } from 'services/backend/resources';
 import { getParentResearchFields, getStatementsBySubjects } from 'services/backend/statements';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
@@ -25,7 +24,7 @@ const FieldItem = styled(Button)`
         transition: none;
 
         &.active {
-            background: ${props => props.theme.darkblue};
+            background: ${props => props.theme.secondary};
             color: #fff;
         }
     }
@@ -49,7 +48,7 @@ const IndicatorContainer = styled.div`
 
 const CollapseButton = styled(Button)`
     && {
-        color: ${props => props.theme.darkblue};
+        color: ${props => props.theme.secondary};
     }
 `;
 
@@ -181,7 +180,7 @@ const ResearchFieldSelector = ({ selectedResearchField, researchFields, updateRe
                         <div className="flex-grow-1">
                             <IndicatorContainer onClick={e => handleFieldClick(e, field.id, false)}>
                                 {field.hasChildren && (
-                                    <Icon icon={icon} spin={isLoading} className={selectedResearchField !== field.id ? 'text-darkblue' : ''} />
+                                    <Icon icon={icon} spin={isLoading} className={selectedResearchField !== field.id ? 'text-secondary' : ''} />
                                 )}
                             </IndicatorContainer>
                             {find(parents, p => p.id === field.id) ? <b>{field.label}</b> : field.label}
@@ -222,7 +221,7 @@ const ResearchFieldSelector = ({ selectedResearchField, researchFields, updateRe
         <>
             <div className="mb-3">
                 <Autocomplete
-                    requestUrl={resourcesUrl}
+                    entityType={ENTITIES.RESOURCE}
                     optionsClass={CLASSES.RESEARCH_FIELD}
                     placeholder="Search for fields..."
                     onItemSelected={handleFieldSelect}

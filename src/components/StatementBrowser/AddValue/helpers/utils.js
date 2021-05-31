@@ -1,4 +1,4 @@
-import defaultDatatypes from 'components/ContributionTemplates/helpers/defaultDatatypes';
+import defaultDatatypes from 'components/Templates/helpers/defaultDatatypes';
 
 /**
  * Check if the input filed is Literal
@@ -8,7 +8,7 @@ import defaultDatatypes from 'components/ContributionTemplates/helpers/defaultDa
  */
 export const isLiteral = components => {
     let isLiteral = false;
-    for (const typeId of components.map(tc => tc.value.id)) {
+    for (const typeId of components.map(tc => tc.value?.id)) {
         if (defaultDatatypes.map(t => t.id).includes(typeId)) {
             isLiteral = true;
             break;

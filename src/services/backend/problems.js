@@ -8,13 +8,25 @@ export const getResearchFieldsByResearchProblemId = problemId => {
     return submitGetRequest(`${problemsUrl}${encodeURIComponent(problemId)}/fields`);
 };
 
-export const getContributorsByResearchProblemId = ({ id, page = 1, items = 9999 }) => {
-    const params = queryString.stringify({ page: page, items: items });
+export const getContributorsByResearchProblemId = ({ id, page = 0, items = 9999 }) => {
+    const params = queryString.stringify(
+        { page: page, size: items },
+        {
+            skipNull: true,
+            skipEmptyString: true
+        }
+    );
     return submitGetRequest(`${problemsUrl}${encodeURIComponent(id)}/users?${params}`);
 };
 
-export const getAuthorsByResearchProblemId = ({ id, page = 1, items = 9999 }) => {
-    const params = queryString.stringify({ page: page, items: items });
+export const getAuthorsByResearchProblemId = ({ id, page = 0, items = 9999 }) => {
+    const params = queryString.stringify(
+        { page: page, size: items },
+        {
+            skipNull: true,
+            skipEmptyString: true
+        }
+    );
     return submitGetRequest(`${problemsUrl}${encodeURIComponent(id)}/authors?${params}`);
 };
 

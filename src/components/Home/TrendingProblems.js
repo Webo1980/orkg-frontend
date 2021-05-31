@@ -5,8 +5,8 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faFire, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { getTopResearchProblems } from 'services/backend/problems';
 import Tippy from '@tippyjs/react';
-import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes';
+import { reverseWithSlug } from 'utils';
 
 const List = styled.div`
     padding: 0 40px; // have a large horizontal padding to ensure the items are not out of the box on transform
@@ -28,7 +28,7 @@ const List = styled.div`
         font-size: 145%;
         min-height: 40px;
         a {
-            color: ${props => props.theme.darkblueDarker}!important;
+            color: ${props => props.theme.secondaryDarker}!important;
         }
     }
     .item-1,
@@ -37,7 +37,7 @@ const List = styled.div`
         min-height: 40px;
 
         a {
-            color: ${props => props.theme.darkblue}!important;
+            color: ${props => props.theme.secondary}!important;
         }
     }
     .item-3,
@@ -46,7 +46,7 @@ const List = styled.div`
         min-height: 30px;
 
         a {
-            color: ${props => props.theme.darkblue}!important;
+            color: ${props => props.theme.secondary}!important;
             opacity: 0.8;
         }
     }
@@ -95,7 +95,9 @@ const TrendingProblems = props => {
                             {problems.map((problem, index) => (
                                 <div key={`${index}-problem`}>
                                     <div className={`item-${index}`}>
-                                        <Link to={reverse(ROUTES.RESEARCH_PROBLEM, { researchProblemId: problem.id })}>{problem.label}</Link>
+                                        <Link to={reverseWithSlug(ROUTES.RESEARCH_PROBLEM, { researchProblemId: problem.id, slug: problem.label })}>
+                                            {problem.label}
+                                        </Link>
                                     </div>
                                     {index !== problems.length - 1 && <hr className="mx-3 mb-1 mt-0" />}
                                 </div>

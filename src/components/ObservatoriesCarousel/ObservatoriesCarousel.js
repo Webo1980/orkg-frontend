@@ -19,7 +19,7 @@ const CarouselContainer = styled.div`
         width: 10px !important;
         height: 10px !important;
         border-radius: 100% !important;
-        background-color: ${props => props.theme.orkgPrimaryColor} !important;
+        background-color: ${props => props.theme.primary} !important;
     }
 `;
 
@@ -45,11 +45,11 @@ const CarouselIndicatorsStyled = styled(CarouselIndicators)`
         margin: 0;
     }
 
-    background: ${props => props.theme.ultraLightBlue};
+    background: ${props => props.theme.lightLighter};
 `;
 
 const StyledGravatar = styled(Gravatar)`
-    border: 2px solid ${props => props.theme.darkblue};
+    border: 2px solid ${props => props.theme.secondary};
     cursor: pointer;
     &:hover {
         border: 2px solid ${props => props.theme.primaryColor};
@@ -58,7 +58,7 @@ const StyledGravatar = styled(Gravatar)`
 
 const CardFooterStyled = styled(CardFooter)`
     && {
-        background: ${props => props.theme.ultraLightBlue};
+        background: ${props => props.theme.lightLighter};
     }
 `;
 
@@ -106,24 +106,26 @@ function ObservatoriesCarousel(props) {
                                         </CardSubtitle>
                                     </CardBody>
                                 </Link>
-                                <Link
-                                    className="text-center mt-3 mb-3 d-flex"
-                                    to={reverse(ROUTES.OBSERVATORY, { id: observatory.id })}
-                                    style={{ textDecoration: 'none', height: '80px', width: '100%', overflow: 'hidden' }}
-                                >
-                                    {observatory.orgs.slice(0, 2).map((
-                                        o // show only two logos
-                                    ) => (
-                                        <div key={`imageLogo${o.id}`} className="flex-grow-1">
-                                            <img className="orgLogo" height="60px" src={o.logo} alt={`${o.name} logo`} />
-                                        </div>
-                                    ))}
-                                </Link>
+                                <div className="mt-3 mb-3 pl-2 pr-2">
+                                    <Link
+                                        className="text-center d-flex"
+                                        to={reverse(ROUTES.OBSERVATORY, { id: observatory.id })}
+                                        style={{ textDecoration: 'none', height: '80px', width: '100%', overflow: 'hidden' }}
+                                    >
+                                        {observatory.orgs.slice(0, 2).map((
+                                            o // show only two logos
+                                        ) => (
+                                            <div key={`imageLogo${o.id}`} className="flex-grow-1">
+                                                <img className="orgLogo" height="60px" src={o.logo} alt={`${o.name} logo`} />
+                                            </div>
+                                        ))}
+                                    </Link>
+                                </div>
                                 <CardFooterStyled className="text-muted">
                                     <small>
-                                        <Icon icon={faCubes} className="mr-1" /> {observatory.comparisons} comparisons
+                                        <Icon icon={faCubes} className="mr-1" /> {observatory.comparisons ?? 0} comparisons
                                         <Icon icon={faFile} className="mr-1 ml-2" />
-                                        {observatory.resources} papers
+                                        {observatory.resources ?? 0} papers
                                     </small>
                                     <div className="float-right" style={{ height: '25px' }}>
                                         {observatory.contributors.slice(0, 5).map(contributor => (

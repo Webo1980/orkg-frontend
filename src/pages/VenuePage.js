@@ -24,7 +24,7 @@ class VenuePage extends Component {
             loading: true,
             isNextPageLoading: false,
             hasNextPage: false,
-            page: 1,
+            page: 0,
             venue: null,
             papers: [],
             isLastPageReached: false,
@@ -43,7 +43,7 @@ class VenuePage extends Component {
                 loading: true,
                 isNextPageLoading: false,
                 hasNextPage: false,
-                page: 1,
+                page: 0,
                 venue: null,
                 papers: [],
                 isLastPageReached: false
@@ -81,11 +81,7 @@ class VenuePage extends Component {
                     .then(papersStatements => {
                         const papers = papersStatements.map(paperStatements => {
                             const paperSubject = find(result.map(p => p.subject), { id: paperStatements.id });
-                            return getPaperData(
-                                paperStatements.id,
-                                paperSubject && paperSubject.label ? paperSubject.label : 'No Title',
-                                paperStatements.statements
-                            );
+                            return getPaperData(paperSubject, paperStatements.statements);
                         });
                         this.setState({
                             papers: [...this.state.papers, ...papers],
@@ -135,7 +131,7 @@ class VenuePage extends Component {
                                 nav
                                 inNavbar
                             >
-                                <DropdownToggle size="sm" color="darkblue" className="px-3 rounded-right" style={{ marginLeft: 2 }}>
+                                <DropdownToggle size="sm" color="secondary" className="px-3 rounded-right" style={{ marginLeft: 2 }}>
                                     <Icon icon={faEllipsisV} />
                                 </DropdownToggle>
                                 <DropdownMenu right>

@@ -1,9 +1,9 @@
-import { predicatesUrl } from 'services/backend/predicates';
 import { InputGroupAddon, Button, InputGroup } from 'reactstrap';
 import { AddPropertyStyle, AddPropertyContentStyle, AddPropertyFormStyle, StyledButton } from 'components/StatementBrowser/styled';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
+import { ENTITIES } from 'constants/graphSettings';
 import defaultProperties from './helpers/defaultProperties';
 import ConditionalWrapper from 'components/Utils/ConditionalWrapper';
 import Tippy from '@tippyjs/react';
@@ -27,7 +27,7 @@ export default function AddPropertyTemplate(props) {
                     >
                         <Button
                             //className={this.props.inTemplate ? 'p-0' : ''}
-                            color={props.inTemplate ? 'light' : 'darkblue'}
+                            color={props.inTemplate ? 'light' : 'secondary'}
                             disabled={props.isDisabled}
                             onClick={() => (!props.inTemplate ? props.handleShowAddProperty() : undefined)}
                             style={props.inTemplate && props.isDisabled ? { opacity: '1', color: '#21252975' } : undefined}
@@ -43,8 +43,8 @@ export default function AddPropertyTemplate(props) {
                                 <Icon className="icon" icon={faPlus} />
                             </InputGroupAddon>
                             <AutoComplete
+                                entityType={ENTITIES.PREDICATE}
                                 cssClasses="form-control-sm"
-                                requestUrl={predicatesUrl}
                                 placeholder="Select or type to enter a property"
                                 onItemSelected={props.handlePropertySelect}
                                 onNewItemSelected={props.toggleConfirmNewProperty}

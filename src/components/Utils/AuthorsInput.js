@@ -6,8 +6,7 @@ import { faTimes, faSpinner, faSort, faPen, faPlus } from '@fortawesome/free-sol
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import styled, { withTheme } from 'styled-components';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
-import { resourcesUrl } from 'services/backend/resources';
-import { CLASSES } from 'constants/graphSettings';
+import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import { getPersonFullNameByORCID } from 'services/ORCID/index';
 import arrayMove from 'array-move';
 import PropTypes from 'prop-types';
@@ -26,7 +25,7 @@ const AddAuthor = styled(Button)`
     margin: 0 0 2px 0;
     &:hover {
         background-color: #e9ecef;
-        color: ${props => props.theme.darkblueDarker};
+        color: ${props => props.theme.secondaryDarker};
     }
 `;
 
@@ -240,7 +239,7 @@ class AuthorsInput extends Component {
     editAuthor = key => {
         this.setState({
             editIndex: key,
-            authorInput: this.props.value[key].orcid ? this.props.value[key].orcid : this.props.value[key],
+            authorInput: { ...this.props.value[key], label: this.props.value[key].orcid ? this.props.value[key].orcid : this.props.value[key].label },
             editMode: true
         });
         this.toggle('showAuthorForm');
@@ -302,7 +301,7 @@ class AuthorsInput extends Component {
                                 Enter {this.props.itemLabel} name <b>or</b> ORCID <Icon color="#A6CE39" icon={faOrcid} />
                             </Label>
                             <Autocomplete
-                                requestUrl={resourcesUrl}
+                                entityType={ENTITIES.RESOURCE}
                                 optionsClass={CLASSES.AUTHOR}
                                 placeholder="Search for author or enter a new author..."
                                 onChange={this.handleChange}

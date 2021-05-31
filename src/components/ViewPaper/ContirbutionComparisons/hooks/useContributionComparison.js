@@ -9,7 +9,7 @@ function useContributionComparison(contributionId) {
     const [isLoading, setIsLoading] = useState(false);
     const [hasNextPage, setHasNextPage] = useState(false);
     const [isLastPageReached, setIsLastPageReached] = useState(false);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [comparisons, setComparisons] = useState([]);
 
     const loadComparisons = useCallback(
@@ -38,11 +38,7 @@ function useContributionComparison(contributionId) {
                                     id: resourceStatements.id
                                 }
                             );
-                            return getComparisonData(
-                                resourceStatements.id,
-                                resourceStatements && comparisonSubject.label ? comparisonSubject.label : 'No Title',
-                                resourceStatements.statements
-                            );
+                            return getComparisonData(comparisonSubject, resourceStatements.statements);
                         });
                         Promise.all(comparisonsData).then(results => {
                             setComparisons(prevResources => [...prevResources, ...results]);
@@ -68,11 +64,11 @@ function useContributionComparison(contributionId) {
         setComparisons([]);
         setHasNextPage(false);
         setIsLastPageReached(false);
-        setPage(1);
+        setPage(0);
     }, [contributionId]);
 
     useEffect(() => {
-        loadComparisons(1);
+        loadComparisons(0);
     }, [loadComparisons]);
 
     const handleLoadMore = () => {

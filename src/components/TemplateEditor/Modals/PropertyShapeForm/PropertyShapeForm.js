@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, InputGroup, FormGroup, Label, Col, Input, FormText } from 'reactstrap';
-import defaultDatatypes from 'components/ContributionTemplates/helpers/defaultDatatypes';
+import defaultDatatypes from 'components/Templates/helpers/defaultDatatypes';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
-import Joi from '@hapi/joi';
+import Joi from 'joi';
 import Confirm from 'reactstrap-confirm';
 import { classesUrl } from 'services/backend/classes';
 import { createPredicate, predicatesUrl } from 'services/backend/predicates';

@@ -42,7 +42,10 @@ export const PREDICATES = {
     HAS_PROPERTY: 'hasProperty',
     HAS_PREVIOUS_VERSION: 'hasPreviousVersion',
     HAS_SUBJECT: 'hasSubject',
-    HAS_VISUALIZATION: 'hasVisualization'
+    HAS_SECTION: 'HasSection',
+    HAS_LINK: 'HasLink',
+    HAS_VISUALIZATION: 'hasVisualization',
+    HAS_PAPER: 'HasPaper'
 };
 
 export const CLASSES = {
@@ -58,11 +61,21 @@ export const CLASSES = {
     COMPARISON: 'Comparison',
     FEATURED_COMPARISON: 'FeaturedComparison',
     FEATURED_COMPARISON_CATEGORY: 'FeaturedComparisonCategory',
-    CONTRIBUTION_TEMPLATE: 'ContributionTemplate',
+    FEATURED_COMPARISON_HOME_PAGE: 'FeaturedComparisonHomePage',
+    TEMPLATE: 'ContributionTemplate',
     PREDICATE: 'Predicates',
+    CLASS: 'Classes',
     QB_DATASET_CLASS: 'QBDataset',
     LOCATION: 'DCLocation',
     SENTENCE: 'Sentence',
+    SMART_REVIEW: 'SmartReview',
+    SMART_REVIEW_PUBLISHED: 'SmartReviewPublished',
+    SECTION: 'Section',
+    CONTRIBUTION_SMART_REVIEW: 'ContributionSmartReview',
+    RESOURCE_SECTION: 'ResourceSection',
+    PROPERTY_SECTION: 'PropertySection',
+    COMPARISON_SECTION: 'ComparisonSection',
+    VISUALIZATION_SECTION: 'VisualizationSection',
     VISUALIZATION: 'Visualization'
 };
 
@@ -70,4 +83,12 @@ export const MISC = {
     RESEARCH_FIELD_MAIN: 'R11',
     DEFAULT_LITERAL_DATATYPE: 'xsd:string',
     UNKNOWN_ID: '00000000-0000-0000-0000-000000000000'
+};
+
+/* entities usually are returned by the backend (in _class) to specify the type of node  */
+export const ENTITIES = {
+    CLASS: 'class',
+    PREDICATE: 'predicate',
+    RESOURCE: 'resource',
+    LITERAL: 'literal'
 };

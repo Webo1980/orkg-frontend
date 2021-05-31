@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label, ListGroup, ListGroupItem, InputGroup } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, Label, ListGroup, ListGroupItem, InputGroup, Alert } from 'reactstrap';
 import { getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { getResourcesByClass } from 'services/backend/resources';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { faExternalLinkAlt, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import ContentLoader from 'react-content-loader';
-import Tooltip from 'components/Utils/Tooltip';
+import { getPaperByDOI } from 'services/backend/misc';
+import REGEX from 'constants/regex';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
@@ -14,6 +15,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { debounce } from 'lodash';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
+import Tippy from '@tippyjs/react';
 
 const StyledLoadMoreButton = styled.div`
     padding-top: 0;
@@ -45,7 +47,7 @@ const StyledListGroupItem = styled(ListGroupItem)`
 
 export default function AddContribution(props) {
     const [searchPaper, setSearchPaper] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const [hasNextPage, setHasNextPage] = useState(false);
 
@@ -57,53 +59,92 @@ export default function AddContribution(props) {
     const loadMoreResults = (searchQuery, page) => {
         if (searchQuery.length === 0) {
             setPaperResult([]);
-            setCurrentPage(1);
+            setCurrentPage(0);
+            setIsNextPageLoading(false);
             return;
         }
         setIsNextPageLoading(true);
-        getResourcesByClass({
-            page: page || currentPage,
-            items: numberOfPaper,
-            sortBy: 'id',
-            desc: true,
-            q: searchQuery,
-            id: CLASSES.PAPER
-        })
-            .then(results => {
-                if (results.length > 0) {
-                    const paper = results.map(resource =>
-                        getStatementsBySubjectAndPredicate({
-                            subjectId: resource.id,
-                            predicateId: PREDICATES.HAS_CONTRIBUTION
-                        }).then(contributions => {
+        const doi = searchQuery.startsWith('http') ? searchQuery.substring(searchQuery.indexOf('10.')) : searchQuery;
+
+        // The entry is a DOI, check if it exists in the database
+        if (doi.trim().match(new RegExp(REGEX.DOI))) {
+            getPaperByDOI(doi.trim())
+                .then(result =>
+                    getStatementsBySubjectAndPredicate({
+                        subjectId: result.id,
+                        predicateId: PREDICATES.HAS_CONTRIBUTION
+                    })
+                        .then(contributions => {
                             return {
-                                ...resource,
+                                ...result,
                                 contributions: contributions
                                     .sort((a, b) => {
                                         return a.object.label.localeCompare(b.object.label);
                                     })
-                                    .map(contribution => ({ ...contribution.object, checked: false }))
+                                    .map(contribution => ({ ...contribution.object, checked: false })),
+                                label: result.title
                             };
                         })
-                    );
-                    Promise.all(paper).then(paperData => {
-                        setPaperResult([...(page === 1 ? [] : paperResult), ...paperData]);
-                        setIsNextPageLoading(false);
-                        setHasNextPage(results.length < numberOfPaper ? false : true);
-                        setCurrentPage(page);
-                    });
-                } else {
-                    if (page === 1) {
+                        .then(paperData => {
+                            setPaperResult([paperData]);
+                            setIsNextPageLoading(false);
+                            setHasNextPage(false);
+                            setCurrentPage(0);
+                        })
+                )
+                .catch(() => {
+                    if (page === 0) {
                         setPaperResult([]);
                     }
                     setIsNextPageLoading(false);
                     setHasNextPage(false);
-                }
+                });
+        } else {
+            getResourcesByClass({
+                page: page || currentPage,
+                items: numberOfPaper,
+                sortBy: 'id',
+                desc: true,
+                q: searchQuery,
+                id: CLASSES.PAPER,
+                returnContent: true
             })
-            .catch(error => {
-                console.log(error);
-                toast.error('Something went wrong while loading search results.');
-            });
+                .then(results => {
+                    if (results.length > 0) {
+                        const paper = results.map(resource =>
+                            getStatementsBySubjectAndPredicate({
+                                subjectId: resource.id,
+                                predicateId: PREDICATES.HAS_CONTRIBUTION
+                            }).then(contributions => {
+                                return {
+                                    ...resource,
+                                    contributions: contributions
+                                        .sort((a, b) => {
+                                            return a.object.label.localeCompare(b.object.label);
+                                        })
+                                        .map(contribution => ({ ...contribution.object, checked: false }))
+                                };
+                            })
+                        );
+                        Promise.all(paper).then(paperData => {
+                            setPaperResult([...(page === 0 ? [] : paperResult), ...paperData]);
+                            setIsNextPageLoading(false);
+                            setHasNextPage(results.length < numberOfPaper ? false : true);
+                            setCurrentPage(page);
+                        });
+                    } else {
+                        if (page === 0) {
+                            setPaperResult([]);
+                        }
+                        setIsNextPageLoading(false);
+                        setHasNextPage(false);
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    toast.error('Something went wrong while loading search results.');
+                });
+        }
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,9 +176,10 @@ export default function AddContribution(props) {
 
     useEffect(() => {
         setHasNextPage(false);
-        setCurrentPage(1);
+        setCurrentPage(0);
         setSelectedContributions([]);
-        debouncedGetLoadMoreResults(searchPaper, 1);
+        setIsNextPageLoading(true);
+        debouncedGetLoadMoreResults(searchPaper, 0);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchPaper]);
 
@@ -145,17 +187,21 @@ export default function AddContribution(props) {
         <Modal isOpen={props.showDialog} toggle={props.toggle} size="lg">
             <ModalHeader toggle={props.toggle}>Add contribution</ModalHeader>
             <ModalBody>
-                <p>Use the form below to search for a paper and add its contribution to comparison table</p>
                 <FormGroup>
-                    <Label for="title">
-                        <Tooltip message="Enter the title of the paper">Paper title</Tooltip>
-                    </Label>
+                    <Label for="title">Paper title or DOI</Label>
                     <InputGroup>
-                        <Input value={searchPaper} type="text" name="title" id="title" onChange={e => setSearchPaper(e.target.value)} />
+                        <Input
+                            value={searchPaper}
+                            placeholder="Search contributions by paper title or DOI..."
+                            type="text"
+                            name="title"
+                            id="title"
+                            onChange={e => setSearchPaper(e.target.value)}
+                        />
                     </InputGroup>
                 </FormGroup>
                 <div>
-                    {isNextPageLoading && paperResult.length === 0 && (
+                    {isNextPageLoading && searchPaper && paperResult.length === 0 && (
                         <ContentLoader
                             style={{ width: '100% !important' }}
                             width="100%"
@@ -173,27 +219,61 @@ export default function AddContribution(props) {
                     )}
                     {!isNextPageLoading && searchPaper && paperResult.length === 0 && (
                         <div>
-                            <div className="text-center mt-4 mb-4">There are no results, please try a different search term</div>
+                            <div className="text-center mt-4 mb-4">
+                                There are no results, please try a different search term{' '}
+                                {props.allowCreate && (
+                                    <>
+                                        or{' '}
+                                        <Button color="light" size="sm" onClick={() => props.onCreatePaper(searchPaper)}>
+                                            Add new paper
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
                     {paperResult.length > 0 && (
                         <>
-                            <p>
-                                Select contributions from the list then click on the <i>Add to comparison</i> button:
-                            </p>
+                            <Alert color="info">
+                                Select the contributions you want to add{' '}
+                                {props.allowCreate && (
+                                    <>
+                                        or you click on <Icon icon={faPlusCircle} className="text-primary" /> if you want to create a new contribution
+                                        for an existing paper
+                                    </>
+                                )}
+                            </Alert>
                             <ListGroup>
                                 {paperResult.map((paper, index) => {
                                     return (
                                         <StyledListGroupItem action key={`result-${index}`} className="pt-2 pb-2">
                                             <Label check className="pr-2 pl-2">
                                                 <Input type="checkbox" onChange={e => togglePaper(paper, e)} /> {paper.label}{' '}
-                                                <Link
-                                                    title="View the paper page"
-                                                    target="_blank"
-                                                    to={reverse(ROUTES.VIEW_PAPER, { resourceId: paper.id })}
-                                                >
-                                                    <Icon icon={faExternalLinkAlt} />
-                                                </Link>
+                                                <Tippy content="Open paper in new window">
+                                                    <span>
+                                                        <Link
+                                                            title="View the paper page"
+                                                            target="_blank"
+                                                            to={reverse(ROUTES.VIEW_PAPER, { resourceId: paper.id })}
+                                                        >
+                                                            <Icon icon={faExternalLinkAlt} />
+                                                        </Link>
+                                                    </span>
+                                                </Tippy>
+                                                {props.allowCreate && (
+                                                    <Tippy content="Create new contribution for this paper">
+                                                        <span className="ml-2">
+                                                            <Button
+                                                                color="link"
+                                                                className="p-0"
+                                                                size="lg"
+                                                                onClick={() => props.onCreateContribution(paper.id)}
+                                                            >
+                                                                <Icon icon={faPlusCircle} />
+                                                            </Button>
+                                                        </span>
+                                                    </Tippy>
+                                                )}
                                             </Label>
                                             {paper.contributions.length > 1 && (
                                                 <ul style={{ listStyle: 'none' }}>
@@ -239,18 +319,25 @@ export default function AddContribution(props) {
                     )}
                 </div>
             </ModalBody>
-            <ModalFooter>
+            <ModalFooter className="d-flex">
+                {props.allowCreate && (
+                    <div className="flex-grow-1">
+                        <Button color="light" onClick={() => props.onCreatePaper(searchPaper)}>
+                            Add new paper
+                        </Button>
+                    </div>
+                )}
                 <Button
                     disabled={selectedContributions.length === 0}
                     color="primary"
                     className="float-right"
                     onClick={() => {
-                        props.addContributions(selectedContributions);
+                        props.onAddContributions(selectedContributions);
                         setSelectedContributions([]);
                         props.toggle();
                     }}
                 >
-                    Add to comparison
+                    Add contribution{selectedContributions.length > 1 && 's'}
                     {selectedContributions.length > 0 && ` (${selectedContributions.length})`}
                 </Button>
             </ModalFooter>
@@ -260,5 +347,14 @@ export default function AddContribution(props) {
 AddContribution.propTypes = {
     showDialog: PropTypes.bool.isRequired,
     toggle: PropTypes.func.isRequired,
-    addContributions: PropTypes.func.isRequired
+    onAddContributions: PropTypes.func.isRequired,
+    allowCreate: PropTypes.bool,
+    onCreateContribution: PropTypes.func,
+    onCreatePaper: PropTypes.func
+};
+
+AddContribution.defaultProps = {
+    allowCreate: false,
+    onCreateContribution: () => {},
+    onCreatePaper: () => {}
 };
