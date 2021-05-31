@@ -10,6 +10,8 @@ import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
 import { addVisualization } from 'services/similarity';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
+import { Cookies } from 'react-cookie';
+import { MISC } from 'constants/graphSettings';
 
 function PublishVisualization(props) {
     const [isLoading, setIsLoading] = useState(false);
@@ -133,7 +135,17 @@ function PublishVisualization(props) {
                     if (description === '' || title === '') {
                         toast.error(`Please set title and description`);
                     } else {
-                        const newResource = await createResource(title ? title : '', [CLASSES.VISUALIZATION]);
+                        const cookies = new Cookies();
+                        const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
+                        const observatoryInformation = observatory
+                            ? { observatoryId: observatory.id, organizationId: observatory.organization }
+                            : { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID };
+                        const newResource = await createResource(
+                            title ? title : '',
+                            [CLASSES.VISUALIZATION],
+                            observatoryInformation.observatoryId,
+                            observatoryInformation.organizationId
+                        );
                         // we need not to create a resource statement on the comparision;
                         backendReferenceResource = newResource.id;
 

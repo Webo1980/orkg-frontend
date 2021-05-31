@@ -16,8 +16,8 @@ export const updateResourceClasses = (id, classes = null) => {
     return submitPutRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json' }, { ...(classes ? { classes: classes } : null) });
 };
 
-export const createResource = (label, classes = []) => {
-    return submitPostRequest(resourcesUrl, { 'Content-Type': 'application/json' }, { label, classes });
+export const createResource = (label, classes = [], observatoryId = MISC.UNKNOWN_ID, organizationId = MISC.UNKNOWN_ID) => {
+    return submitPostRequest(resourcesUrl, { 'Content-Type': 'application/json' }, { label, classes, observatoryId, organizationId });
 };
 
 export const getResource = id => {

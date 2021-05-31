@@ -37,6 +37,8 @@ import styled from 'styled-components';
 import { slugify } from 'utils';
 import { PREDICATES, CLASSES, ENTITIES } from 'constants/graphSettings';
 import env from '@beam-australia/react-env';
+import { Cookies } from 'react-cookie';
+import { MISC } from 'constants/graphSettings';
 
 const StyledCustomInput = styled(CustomInput)`
     margin-right: 0;
@@ -166,7 +168,17 @@ function Publish(props) {
                         type: props.comparisonType,
                         save_response: true
                     });
-                    const titleResponse = await createResource(title, [CLASSES.COMPARISON]);
+                    const cookies = new Cookies();
+                    const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
+                    const observatoryInformation = observatory
+                        ? { observatoryId: observatory.id, organizationId: observatory.organization }
+                        : { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID };
+                    const titleResponse = await createResource(
+                        title,
+                        [CLASSES.COMPARISON],
+                        observatoryInformation.observatoryId,
+                        observatoryInformation.organizationId
+                    );
                     const resourceId = titleResponse.id;
                     const descriptionResponse = await createLiteral(description);
                     await createLiteralStatement(resourceId, PREDICATES.DESCRIPTION, descriptionResponse.id);
