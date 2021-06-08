@@ -4,13 +4,14 @@ import queryString from 'query-string';
 import { getResource } from 'services/backend/resources';
 import { PREDICATES, MISC, CLASSES } from 'constants/graphSettings';
 import { sortMethod } from 'utils';
-
+import UserService from '../../components/Authentication/UserService';
 export const statementsUrl = `${url}statements/`;
 
 export const createResourceStatement = (subjectId, predicateId, objectId) => {
+    const token = UserService.getToken();
     return submitPostRequest(
         `${statementsUrl}`,
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         {
             subject_id: subjectId,
             predicate_id: predicateId,
@@ -20,9 +21,10 @@ export const createResourceStatement = (subjectId, predicateId, objectId) => {
 };
 
 export const createLiteralStatement = (subjectId, predicateId, literalId) => {
+    const token = UserService.getToken();
     return submitPostRequest(
         `${statementsUrl}`,
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         {
             subject_id: subjectId,
             predicate_id: predicateId,
@@ -32,9 +34,10 @@ export const createLiteralStatement = (subjectId, predicateId, literalId) => {
 };
 
 export const updateStatement = (id, { subject_id = null, predicate_id = null, object_id = null }) => {
+    const token = UserService.getToken();
     return submitPutRequest(
         `${statementsUrl}${id}`,
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         {
             ...(subject_id ? { subject_id: subject_id } : null),
             ...(predicate_id ? { predicate_id: predicate_id } : null),
@@ -44,9 +47,10 @@ export const updateStatement = (id, { subject_id = null, predicate_id = null, ob
 };
 
 export const updateStatements = (statementIds, { subject_id = null, predicate_id = null, object_id = null }) => {
+    const token = UserService.getToken();
     return submitPutRequest(
         `${statementsUrl}?ids=${statementIds.join()}`,
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         {
             ...(subject_id ? { subject_id: subject_id } : null),
             ...(predicate_id ? { predicate_id: predicate_id } : null),
@@ -69,11 +73,13 @@ export const getAllStatements = ({ page = 0, items: size = 9999, sortBy = 'creat
 };
 
 export const deleteStatementById = id => {
-    return submitDeleteRequest(statementsUrl + encodeURIComponent(id));
+    const token = UserService.getToken();
+    return submitDeleteRequest(statementsUrl + encodeURIComponent(id), { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
 };
 
 export const deleteStatementsByIds = ids => {
-    return submitDeleteRequest(`${statementsUrl}?ids=${ids.join()}`);
+    const token = UserService.getToken();
+    return submitDeleteRequest(`${statementsUrl}?ids=${ids.join()}`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
 };
 
 export const getStatementsBySubject = ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {

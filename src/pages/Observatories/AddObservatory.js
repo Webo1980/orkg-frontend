@@ -15,7 +15,8 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { openAuthDialog } from 'actions/auth';
 import { connect } from 'react-redux';
-
+import RenderOnAnonymous from 'components/Authentication/RenderOnAnonymous';
+import UserService from 'components/Authentication/UserService';
 class AddObservatory extends Component {
     constructor(props) {
         super(props);
@@ -157,13 +158,20 @@ class AddObservatory extends Component {
                                 </div>
                             ) : (
                                 <>
-                                    <Button
+                                    <RenderOnAnonymous>
+                                        <Button color="primary" className="mt-2 mb-2" onClick={() => UserService.doLogin()}>
+                                            <Icon className="mr-1" icon={faUser} /> Sign in to create an observatory
+                                        </Button>
+                                    </RenderOnAnonymous>
+                                    {/*<Button
                                         color="link"
                                         className="p-0 mb-2 mt-2 clearfix"
                                         onClick={() => this.props.openAuthDialog({ action: 'signin' })}
                                     >
-                                        <Icon className="mr-1" icon={faUser} /> Sign in to create an observatory
-                                    </Button>
+                                       
+                                       <Icon className="mr-1" icon={faUser} /> Sign in to create an observatory
+                                    
+                                    </Button>*/}
                                 </>
                             )}
                         </Container>

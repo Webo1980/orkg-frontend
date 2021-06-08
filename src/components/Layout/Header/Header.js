@@ -20,9 +20,8 @@ import AddNew from './AddNew';
 import { ReactComponent as Logo } from 'assets/img/logo.svg';
 import { ReactComponent as LogoWhite } from 'assets/img/logo_white.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
-import { Cookies } from 'react-cookie';
 import Gravatar from 'react-gravatar';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -30,19 +29,15 @@ import Authentication from 'components/Authentication/Authentication';
 import SearchForm from './SearchForm';
 import { openAuthDialog, updateAuth, resetAuth } from 'actions/auth';
 import { Redirect } from 'react-router-dom';
-import { getUserInformation } from 'services/backend/users';
 import greetingTime from 'greeting-time';
 import styled, { createGlobalStyle } from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { reverse } from 'named-urls';
 import { compose } from 'redux';
-import env from '@beam-australia/react-env';
-import { toast } from 'react-toastify';
 import HomeBannerBg from 'assets/img/graph-background.svg';
 import { scrollbarWidth } from '@xobotyi/scrollbar-width';
-
-const cookies = new Cookies();
+import UserService from '../../Authentication/UserService';
 
 // determine the scroll bar width and compensate the width when a modal is opened
 const GlobalStyle = createGlobalStyle`
@@ -139,12 +134,9 @@ class Header extends Component {
         };
 
         this.userPopup = createRef();
-
-        this.logoutTimeoutId = null; // timeout for autologout
     }
 
     componentDidMount() {
-        this.userInformation();
         document.addEventListener('mousedown', this.handleClickOutside);
         window.addEventListener('scroll', this.handleScroll);
     }
@@ -153,27 +145,11 @@ class Header extends Component {
         if (this.props.location.pathname !== prevProps.location.pathname) {
             this.setState({ isHomePageStyle: this.props.location.pathname === ROUTES.HOME ? true : false });
         }
-        if (this.state.redirectLogout) {
-            this.setState({
-                redirectLogout: false
-            });
-        }
-        if (!this.logoutTimeoutId && this.props.user) {
-            const token_expires_in = cookies.get('token_expires_in') ? cookies.get('token_expires_in') : null;
-            // Get the diffrence between token expiration time and now
-            const diff = new Date(token_expires_in) - Date.now();
-            // set timeout to autologout
-            this.logoutTimeoutId = setTimeout(this.tokenExpired, diff);
-        }
     }
 
     componentWillUnmount() {
         document.removeEventListener('mousedown', this.handleClickOutside);
         window.removeEventListener('scroll', this.handleScroll);
-        if (this.logoutTimeoutId) {
-            clearTimeout(this.logoutTimeoutId); // clear timeout
-            this.logoutTimeoutId = null;
-        }
     }
 
     handleScroll = () => {
@@ -194,38 +170,26 @@ class Header extends Component {
         }
     };
 
-    tokenExpired = () => {
-        toast.warn('User session expired, please sign in again!');
-        cookies.remove('token', { path: env('PUBLIC_URL') });
-        cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
-        this.props.resetAuth();
-        this.props.openAuthDialog({ action: 'signin' });
-        this.logoutTimeoutId = null;
-    };
-
     userInformation = () => {
-        const cookies = new Cookies();
-        const token = cookies.get('token') ? cookies.get('token') : null;
-        const token_expires_in = cookies.get('token_expires_in') ? cookies.get('token_expires_in') : null;
-        if (token && !this.props.user) {
-            getUserInformation()
-                .then(userData => {
-                    this.props.updateAuth({
+        if (UserService.isLoggedIn) {
+            const keycloakInstance = UserService.getKeycloakInstance();
+            if (keycloakInstance.idTokenParsed) {
+                this.signInRequired = false;
+                this.props
+                    .updateAuth({
                         user: {
-                            displayName: userData.display_name,
-                            id: userData.id,
-                            token: token,
-                            tokenExpire: token_expires_in,
-                            email: userData.email,
-                            isCurationAllowed: userData.is_curation_allowed
+                            displayName: keycloakInstance.idTokenParsed.name,
+                            id: keycloakInstance.idTokenParsed.sub,
+                            token: keycloakInstance.idToken,
+                            tokenExpire: keycloakInstance.tokenParsed.exp,
+                            isCurationAllwed: 'true'
                         }
+                    })
+                    .catch(error => {
+                        this.props.resetAuth();
+                        this.signInRequired = true;
                     });
-                })
-                .catch(error => {
-                    cookies.remove('token', { path: env('PUBLIC_URL') });
-                    cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
-                    this.props.resetAuth();
-                });
+            }
         }
     };
 
@@ -242,12 +206,9 @@ class Header extends Component {
     };
 
     handleSignOut = () => {
-        this.props.resetAuth();
-        const cookies = new Cookies();
-        cookies.remove('token', { path: env('PUBLIC_URL') });
-        cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
+        //this.props.resetAuth();
+        UserService.doLogout();
         this.toggleUserTooltip();
-
         this.setState({
             redirectLogout: true
         });
@@ -267,7 +228,6 @@ class Header extends Component {
         }
         const email = this.props.user && this.props.user.email ? this.props.user.email : 'example@example.com';
         const greeting = greetingTime(new Date());
-        const cookieInfoDismissed = cookies.get('cookieInfoDismissed') ? cookies.get('cookieInfoDismissed') : null;
 
         return (
             <StyledTopBar className={this.state.isHomePageStyle ? 'home-page' : ''}>
@@ -279,7 +239,7 @@ class Header extends Component {
                     fixed="top"
                     id="main-navbar"
                 >
-                    <GlobalStyle scrollbarWidth={scrollbarWidth(true)} cookieInfoDismissed={cookieInfoDismissed} />
+                    <GlobalStyle scrollbarWidth={scrollbarWidth(true)} />
 
                     <div
                         style={{ display: 'flex', width: '100%', transition: 'width 1s ease-in-out' }}
@@ -479,7 +439,7 @@ class Header extends Component {
                                 </div>
                             )}
 
-                            {!this.props.user && (
+                            {/*!this.props.user && (
                                 <Button
                                     color="secondary"
                                     className="pl-4 pr-4 flex-shrink-0 sign-in"
@@ -489,7 +449,7 @@ class Header extends Component {
                                     {' '}
                                     <FontAwesomeIcon className="mr-1" icon={faUser} /> Sign in
                                 </Button>
-                            )}
+                            )*/}
                         </Collapse>
 
                         <Authentication />

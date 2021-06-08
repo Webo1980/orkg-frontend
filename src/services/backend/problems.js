@@ -1,7 +1,6 @@
 import { url } from 'constants/misc';
 import { submitGetRequest } from 'network';
 import queryString from 'query-string';
-
 export const problemsUrl = `${url}problems/`;
 
 export const getResearchFieldsByResearchProblemId = problemId => {

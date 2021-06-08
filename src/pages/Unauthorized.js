@@ -6,6 +6,8 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { openAuthDialog } from 'actions/auth';
 import { useDispatch, useSelector } from 'react-redux';
+import RenderOnAnonymous from 'components/Authentication/RenderOnAnonymous';
+import UserService from 'components/Authentication/UserService';
 
 /**
  * Unauthorized can mean both unauthenticated and unauthorized. So when a user is not signed in,
@@ -18,10 +20,6 @@ const Unauthorized = () => {
     useEffect(() => {
         document.title = 'Unauthorized - ORKG';
     }, []);
-
-    const handleSignIn = () => {
-        dispatch(openAuthDialog({ action: 'signin' }));
-    };
 
     const handleSignUp = () => {
         dispatch(openAuthDialog({ action: 'signup' }));
@@ -42,9 +40,11 @@ const Unauthorized = () => {
                             ) : (
                                 <>
                                     <h2 className="mb-4 h4">You need to sign in to continue</h2>
-                                    <Button color="primary" className="mr-3" onClick={handleSignIn}>
-                                        Sign in
-                                    </Button>
+                                    <RenderOnAnonymous>
+                                        <Button color="primary" className="mt-2 mb-2" onClick={() => UserService.doLogin()}>
+                                            Sign In
+                                        </Button>
+                                    </RenderOnAnonymous>
                                 </>
                             )}
                             <Link to={ROUTES.HOME}>

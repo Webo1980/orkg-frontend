@@ -1,7 +1,7 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
 import { getOrganization } from 'services/backend/organizations';
-
+import UserService from '../../components/Authentication/UserService';
 export const observatoriesUrl = `${url}observatories/`;
 
 export const getAllObservatories = () => {
@@ -13,15 +13,30 @@ export const getObservatoryById = id => {
 };
 
 export const updateObservatoryName = (id, value) => {
-    return submitPutRequest(`${observatoriesUrl}${encodeURIComponent(id)}/name`, { 'Content-Type': 'application/json' }, { value });
+    const token = UserService.getToken();
+    return submitPutRequest(
+        `${observatoriesUrl}${encodeURIComponent(id)}/name`,
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        { value }
+    );
 };
 
 export const updateObservatoryDescription = (id, value) => {
-    return submitPutRequest(`${observatoriesUrl}${encodeURIComponent(id)}/description`, { 'Content-Type': 'application/json' }, { value });
+    const token = UserService.getToken();
+    return submitPutRequest(
+        `${observatoriesUrl}${encodeURIComponent(id)}/description`,
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        { value }
+    );
 };
 
 export const updateObservatoryResearchField = (id, value) => {
-    return submitPutRequest(`${observatoriesUrl}${encodeURIComponent(id)}/research_field`, { 'Content-Type': 'application/json' }, { value });
+    const token = UserService.getToken();
+    return submitPutRequest(
+        `${observatoriesUrl}${encodeURIComponent(id)}/research_field`,
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        { value }
+    );
 };
 
 export const getUsersByObservatoryId = id => {
@@ -49,9 +64,10 @@ export const getObservatoriesStats = id => {
 };
 
 export const createObservatory = (observatoryName, organizationId, description, researchField) => {
+    const token = UserService.getToken();
     return submitPostRequest(
         observatoriesUrl,
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         { observatoryName, organizationId, description, researchField }
     );
 };

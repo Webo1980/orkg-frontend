@@ -1,7 +1,7 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPutRequest, submitPostRequest } from 'network';
 import env from '@beam-australia/react-env';
-
+import UserService from '../../components/Authentication/UserService';
 export const userUrl = `${url}user/`;
 export const authenticationUrl = env('SERVER_URL');
 
@@ -14,7 +14,8 @@ export const getUserInformationById = userId => {
 };
 
 export const updateUserInformation = ({ email, display_name }) => {
-    const headers = { 'Content-Type': 'application/json' };
+    const token = UserService.getToken();
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
     const data = {
         //email, //back doesn't support this
@@ -25,7 +26,8 @@ export const updateUserInformation = ({ email, display_name }) => {
 };
 
 export const updateUserPassword = ({ current_password, new_password, new_matching_password }) => {
-    const headers = { 'Content-Type': 'application/json' };
+    const token = UserService.getToken();
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
     const data = {
         current_password: current_password,
@@ -55,28 +57,6 @@ export const signInWithEmailAndPassword = async (email, password) => {
         .join('&');
 
     return submitPostRequest(`${authenticationUrl}oauth/token`, headers, formBody, false, false);
-
-    /*//TODO: use this setup also in submitPostRequest, and remove the code from there
-  //difference here is that a json is parsed, no matter whether response.ok is true or not
-  try {
-    const response = await fetch(`${authenticationUrl}oauth/token`,
-      {
-        headers: headers,
-        method: 'POST',
-        body: formBody,
-      }
-    );
-    const json = await response.json();
-
-    if (!response.ok) {
-      throw json;
-    }
-
-    return json;
-    
-  } catch (error) {
-    throw error;
-  }*/
 };
 
 export const registerWithEmailAndPassword = (email, password, matching_password, name) => {

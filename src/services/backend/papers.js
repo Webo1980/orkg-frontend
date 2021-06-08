@@ -3,15 +3,26 @@ import { submitPutRequest, submitDeleteRequest, submitPostRequest, submitGetRequ
 import { getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { PREDICATES } from 'constants/graphSettings';
 import { indexContribution } from 'services/similarity';
+import UserService from '../../components/Authentication/UserService';
 
 export const papersUrl = `${url}papers/`;
 
 // Save full paper and index contributions in the similarity service
 export const saveFullPaper = (data, mergeIfExists = false) => {
-    return submitPostRequest(`${papersUrl}?mergeIfExists=${mergeIfExists}`, { 'Content-Type': 'application/json' }, data).then(paper => {
+    const token = UserService.getToken();
+    return submitPostRequest(
+        `${papersUrl}?mergeIfExists=${mergeIfExists}`,
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        data
+    ).then(paper => {
         indexContributionsByPaperId(paper.id);
         return paper;
     });
+};
+
+export const getDetails = () => {
+    const token = UserService.getToken();
+    return submitGetRequest(`${papersUrl}test`, { 'Content-Type': 'application/json' });
 };
 
 export const getIsVerified = id => {
@@ -19,11 +30,13 @@ export const getIsVerified = id => {
 };
 
 export const markAsVerified = id => {
-    return submitPutRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
+    const token = UserService.getToken();
+    return submitPutRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
 };
 
 export const markAsUnverified = id => {
-    return submitDeleteRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
+    const token = UserService.getToken();
+    return submitDeleteRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
 };
 
 export const indexContributionsByPaperId = async paperId => {
