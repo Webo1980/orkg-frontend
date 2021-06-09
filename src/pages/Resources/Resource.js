@@ -20,7 +20,7 @@ import ROUTES from 'constants/routes.js';
 import { connect, useSelector } from 'react-redux';
 import { resetStatementBrowser } from 'actions/statementBrowser';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash, faExternalLinkAlt, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faTrash, faExternalLinkAlt, faTimes, faPlus, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import Confirm from 'components/ConfirmationModal/ConfirmationModal';
 import { CLASSES, PREDICATES, ENTITIES } from 'constants/graphSettings';
 import { toast } from 'react-toastify';
@@ -33,6 +33,7 @@ import GDCVisualizationRenderer from 'libs/selfVisModel/RenderingComponents/GDCV
 import DescriptionTooltip from 'components/DescriptionTooltip/DescriptionTooltip';
 import { CLASS_TYPE_ID } from 'constants/misc';
 import { reverseWithSlug } from 'utils';
+import Discussion from 'components/Observatory/Discussion';
 
 const DEDICATED_PAGE_LINKS = {
     [CLASSES.PAPER]: {
@@ -104,6 +105,7 @@ function Resource(props) {
     const isCurationAllowed = useSelector(state => state.auth.user?.isCurationAllowed);
     const showDeleteButton = editMode && isCurationAllowed;
     const [hasObjectStatement, setHasObjectStatement] = useState(false);
+    const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
     const { deleteResource } = useDeleteResource({ resourceId, redirect: true });
     const [canEdit, setCanEdit] = useState(false);
     const classesAutocompleteRef = useRef(null);
@@ -222,6 +224,9 @@ function Resource(props) {
                             >
                                 <Icon icon={faPlus} className="mr-1" /> Create resource
                             </RequireAuthentication>
+                            <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowDiscussionDialog(v => !v)}>
+                                <Icon icon={faClipboardList} className="mr-1" /> Disucssion
+                            </Button>
                             {dedicatedLink && (
                                 <Button
                                     color="secondary"
@@ -377,6 +382,7 @@ function Resource(props) {
                     </Container>
                 </>
             )}
+            <Discussion showDialog={showDiscussionDialog} toggle={() => setShowDiscussionDialog(v => !v)} label={label} />
         </>
     );
 }

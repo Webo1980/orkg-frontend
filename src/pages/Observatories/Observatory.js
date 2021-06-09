@@ -14,8 +14,9 @@ import { SubTitle, SubtitleSeparator } from 'components/styled';
 import NotFound from 'pages/NotFound';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import Discussion from 'components/Observatory/Discussion';
 
 const Observatory = () => {
     const [error, setError] = useState(null);
@@ -26,6 +27,8 @@ const Observatory = () => {
     const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false);
     const [organizationsList, setOrganizationsList] = useState([]);
     const [showEditDialog, setShowEditDialog] = useState(false);
+    const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
+    const [displayId, setDisplayId] = useState('');
     const { id } = useParams();
     const user = useSelector(state => state.auth.user);
 
@@ -38,6 +41,7 @@ const Observatory = () => {
                     setLabel(observatory.name);
                     setDescription(observatory.description);
                     setIsLoading(false);
+                    setDisplayId(observatory.display_id);
                     setResearchField(observatory.research_field);
                     loadOrganizations(observatory.organization_ids);
                 })
@@ -75,6 +79,7 @@ const Observatory = () => {
                     <Container className="d-flex align-items-center mt-4 mb-4">
                         <h1 className="h5 flex-shrink-0 mb-0">Observatory</h1>
                         <>
+                            {/* <DiscourseForum /> */}
                             <SubtitleSeparator />
                             <SubTitle className="h5 mb-0"> {label}</SubTitle>
                         </>
@@ -85,6 +90,12 @@ const Observatory = () => {
                                 </Button>
                             </ButtonGroup>
                         )}
+
+                        <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
+                            <Button color="secondary" size="sm" onClick={() => setShowDiscussionDialog(v => !v)}>
+                                <Icon icon={faClipboardList} /> Disucssion
+                            </Button>
+                        </ButtonGroup>
                     </Container>
                     {description && (
                         <Container className="p-0">
@@ -125,6 +136,7 @@ const Observatory = () => {
                 researchField={researchField}
                 updateObservatoryMetadata={updateObservatoryMetadata}
             />
+            {label && <Discussion showDialog={showDiscussionDialog} toggle={() => setShowDiscussionDialog(v => !v)} label={label} />}
         </>
     );
 };
