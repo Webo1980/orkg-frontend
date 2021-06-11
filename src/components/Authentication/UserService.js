@@ -1,6 +1,11 @@
 import Keycloak from 'keycloak-js';
+import env from '@beam-australia/react-env';
 
-const keyInstance = new Keycloak('/keycloak.json');
+const keyInstance = new Keycloak({
+    url: env('KEYCLOAK_AUTH_SERVER_URL'),
+    realm: env('KEYCLOAK_REALM'),
+    clientId: env('KEYCLOAK_CLIENT_ID')
+});
 
 /**
  * Initializes Keycloak instance and calls the provided callback function if successfully authenticated.
