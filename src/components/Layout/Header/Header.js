@@ -20,7 +20,7 @@ import AddNew from './AddNew';
 import { ReactComponent as Logo } from 'assets/img/logo.svg';
 import { ReactComponent as LogoWhite } from 'assets/img/logo_white.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faBell } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import { Cookies } from 'react-cookie';
 import Gravatar from 'react-gravatar';
@@ -329,6 +329,10 @@ class Header extends Component {
                                             </small>
                                         </DropdownItem>
                                         <DropdownItem divider />
+                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.FORUMS}>
+                                            Discussion Board{' '}
+                                        </DropdownItem>
+                                        <DropdownItem divider />
 
                                         <DropdownItem header>Advanced views</DropdownItem>
 
@@ -426,6 +430,12 @@ class Header extends Component {
                             <SearchForm placeholder="Search..." />
 
                             <AddNew isHomePageStyle={this.state.isHomePageStyle} />
+
+                            {!!this.props.user && (
+                                <Link to={reverse(ROUTES.NOTIFICATIONS, { userId: this.props.user.id })}>
+                                    <FontAwesomeIcon className="ml-4 mr-4" icon={faBell} size="2x" />
+                                </Link>
+                            )}
 
                             {!!this.props.user && (
                                 <div>

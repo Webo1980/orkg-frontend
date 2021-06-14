@@ -1,7 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, ButtonGroup, Badge } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faLightbulb, faHistory, faWindowMaximize, faChartBar, faExternalLinkAlt, faFilter } from '@fortawesome/free-solid-svg-icons';
+import {
+    faComments,
+    faEllipsisV,
+    faLightbulb,
+    faHistory,
+    faWindowMaximize,
+    faChartBar,
+    faExternalLinkAlt,
+    faFilter
+} from '@fortawesome/free-solid-svg-icons';
 import ComparisonLoadingComponent from 'components/Comparison/ComparisonLoadingComponent';
 import ComparisonTable from 'components/Comparison/Comparison';
 import ExportToLatex from 'components/Comparison/Export/ExportToLatex.js';
@@ -41,8 +50,13 @@ import { NavLink } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import env from '@beam-australia/react-env';
 import AppliedRule from 'components/Comparison/Filters/AppliedRule';
+import { getNotificationByResourceAndUserId } from 'services/backend/notifications';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { unsubscribeFromResource, subscribeToResource } from 'services/backend/notifications';
+import { toast } from 'react-toastify';
 
 function Comparison(props) {
+    console.log(props);
     const {
         metaData,
         contributions,
@@ -111,6 +125,23 @@ function Comparison(props) {
 
     const [showVisualizationModal, setShowVisualizationModal] = useState(false);
     const [applyReconstruction, setUseReconstructedData] = useState(false);
+
+    const [notificationId, setNotificationId] = useState(null);
+
+    useEffect(() => {
+        if (props.user) {
+            getNotificationByResourceAndUserId(metaData.id, props.user.id)
+                .then(data => {
+                    if (data.id !== null) {
+                        setNotificationId(data.id);
+                    }
+                })
+                .catch(error => {
+                    toast.error('Error while loading notification data');
+                });
+        }
+    }, [metaData.id, props.user]);
+
     /**
      * Is case of an error the user can go to the previous link in history
      */
@@ -190,6 +221,31 @@ function Comparison(props) {
             ));
     };
 
+    const toggleSubscribeAndUpdate = () => {
+        if (notificationId === null || notificationId === undefined) {
+            const notificationData = {
+                resourceId: metaData.id,
+                userId: props.user.id,
+                resourceType: 1 //1=comparison
+            };
+            subscribeToResource(notificationData)
+                .then(response => {
+                    setNotificationId(response.id);
+                })
+                .catch(error => {
+                    toast.error('There was an error while subscribing to the paper');
+                });
+        } else {
+            unsubscribeFromResource(notificationId)
+                .then(response => {
+                    setNotificationId(null);
+                })
+                .catch(error => {
+                    toast.error('There was an error while unsubscribing to the paper');
+                });
+        }
+    };
+
     return (
         <div>
             <Breadcrumbs researchFieldId={metaData?.subject ? metaData?.subject.id : researchField ? researchField.id : null} />
@@ -206,6 +262,25 @@ function Comparison(props) {
                         </Tippy>
                     )}
                 </h1>
+                <Button
+                    tag={NavLink}
+                    exact
+                    to={reverse(ROUTES.THREADS_RESOURCE_ID, {
+                        forumId: 'd7acf4fb-51f5-4b2a-a121-5aa0bd8f338c',
+                        // eslint-disable-next-line react/prop-types
+                        resourceId: props.match.params.comparisonId
+                    })}
+                    color="secondary"
+                    size="sm"
+                    style={{ marginLeft: 1 }}
+                >
+                    <Icon icon={faComments} style={{ margin: '2px 4px' }} />
+                    <span>View Discussion Thread</span>
+                </Button>
+                <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={toggleSubscribeAndUpdate}>
+                    <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} /> {notificationId && <span>Unsubscribe</span>}
+                    {!notificationId && <span>Subscribe</span>}
+                </Button>
 
                 {contributionsList.length > 1 && !isLoadingComparisonResult && !isFailedLoadingComparisonResult && (
                     <div style={{ marginLeft: 'auto' }} className="flex-shrink-0 mt-4">

@@ -28,7 +28,12 @@ import { getPaperData_ViewPaper } from 'utils';
 import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
-
+import { getNotificationByResourceAndUserId } from 'services/backend/notifications';
+import { faPaperPlane, faComments } from '@fortawesome/free-solid-svg-icons';
+import { unsubscribeFromResource, subscribeToResource } from 'services/backend/notifications';
+import { Button } from 'reactstrap';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { NavLink } from 'react-router-dom';
 export const EditModeHeader = styled(Container)`
     background-color: #80869b !important;
     color: #fff;
@@ -62,11 +67,14 @@ class ViewPaper extends Component {
         failedLoading: false,
         observatories: [],
         organizationId: '',
-        observatoryId: ''
+        observatoryId: '',
+        notificationId: null,
+        entirePaperData: null
     };
 
     componentDidMount() {
         this.loadPaperData();
+        this.getResourceNotificationStatus(this.props.match.params.resourceId, this.props.user.id);
     }
 
     componentDidUpdate = prevProps => {
@@ -83,6 +91,10 @@ class ViewPaper extends Component {
 
             this.setState({ selectedContribution: selectedContribution });
         }
+
+        console.log('Updated Paper Data:', this.state.entirePaperData);
+        console.log('Contributions:', this.state.contributions);
+        console.log('Selected:', this.state.selectedContribution);
     };
 
     handleShowHeaderBar = isVisible => {
@@ -101,7 +113,6 @@ class ViewPaper extends Component {
                     this.setState({ loading: false, loadingFailed: true });
                     return;
                 }
-
                 this.processObservatoryInformation(paperResource, resourceId);
                 Promise.all([getStatementsBySubject({ id: resourceId }), getIsVerified(resourceId).catch(() => false)])
                     .then(([paperStatements, verified]) => {
@@ -123,6 +134,9 @@ class ViewPaper extends Component {
                                 }
                             });
                     });
+
+                console.log('Paper Resource:', paperResource);
+                //console.log(this.props.user.id);
             })
             .catch(error => {
                 this.setState({ loading: false, loadingFailed: true });
@@ -237,7 +251,8 @@ class ViewPaper extends Component {
 
     processPaperStatements = (paperResource, paperStatements, verified) => {
         const paperData = getPaperData_ViewPaper(paperResource, paperStatements);
-
+        console.log('Paper Data:', paperData);
+        this.setState({ entirePaperData: paperData });
         // Set document title
         document.title = `${paperResource.label} - ORKG`;
         this.props.loadPaper({ ...paperData, verified: verified });
@@ -300,6 +315,92 @@ class ViewPaper extends Component {
         });
     };
 
+    getResourceNotificationStatus = (resourceId, userId) => {
+        if (userId) {
+            getNotificationByResourceAndUserId(resourceId, userId)
+                .then(data => {
+                    if (data.id !== null) {
+                        this.setState({ notificationId: data.id });
+                    }
+                })
+                .catch(error => {
+                    toast.error('Error while loading notification data');
+                });
+        }
+    };
+
+    viewDiscussionThread = () => {
+        const resourceId = this.props.match.params.resourceId;
+    };
+
+    toggleSubscribeAndUpdate = () => {
+        if (this.state.notificationId === null || this.state.notificationId === undefined) {
+            const arrNotificationData = [];
+            const notificationData = {
+                resourceId: this.props.match.params.resourceId,
+                userId: this.props.user.id,
+                resourceType: 0 //0=paper
+            };
+
+            arrNotificationData.push(notificationData);
+            //console.log(this.state.entirePaperData);
+            //authors
+            if (this.state.entirePaperData.authors) {
+                const arrAuthors = this.state.entirePaperData.authors;
+                arrAuthors.map(author => {
+                    const tempAuthorData = {
+                        resourceId: author.id,
+                        userId: this.props.user.id,
+                        resourceType: 4,
+                        statementId: author.statementId
+                    };
+                    return arrNotificationData.push(tempAuthorData);
+                });
+            }
+
+            if (this.state.entirePaperData.researchField) {
+                const tempRFData = {
+                    resourceId: this.state.entirePaperData.researchField.id,
+                    userId: this.props.user.id,
+                    resourceType: 3,
+                    statementId: this.state.entirePaperData.researchField.statementId
+                };
+                //research field
+                arrNotificationData.push(tempRFData);
+            }
+
+            //contributions
+            if (this.state.entirePaperData.contributions) {
+                const arrContributions = this.state.entirePaperData.contributions;
+                arrContributions.map(contribution => {
+                    const tempContributionData = {
+                        resourceId: contribution.id,
+                        userId: this.props.user.id,
+                        resourceType: 5,
+                        statementId: contribution.statementId
+                    };
+                    return arrNotificationData.push(tempContributionData);
+                });
+            }
+
+            subscribeToResource(arrNotificationData)
+                .then(response => {
+                    this.setState({ notificationId: response.id });
+                })
+                .catch(error => {
+                    toast.error('There was an error while subscribing to the paper');
+                });
+        } else {
+            unsubscribeFromResource(this.state.notificationId)
+                .then(response => {
+                    this.setState({ notificationId: null });
+                })
+                .catch(error => {
+                    toast.error('There was an error while unsubscribing to the paper');
+                });
+        }
+    };
+
     /** RENDERING FUNCTION **/
 
     render() {
@@ -334,6 +435,24 @@ class ViewPaper extends Component {
                         <VisibilitySensor onChange={this.handleShowHeaderBar}>
                             <Container className="d-flex align-items-center">
                                 <h1 className="h4 mt-4 mb-4 flex-grow-1">View paper</h1>
+                                <Button
+                                    tag={NavLink}
+                                    exact
+                                    to={reverse(ROUTES.THREADS_RESOURCE_ID, {
+                                        forumId: 'a99aaea9-c93a-488c-a0ec-41f31053cda9',
+                                        resourceId: this.props.match.params.resourceId
+                                    })}
+                                    color="secondary"
+                                    size="sm"
+                                    style={{ marginLeft: 1 }}
+                                >
+                                    <Icon icon={faComments} style={{ margin: '2px 4px' }} />
+                                    <span>View Discussion Thread</span>
+                                </Button>
+                                <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={this.toggleSubscribeAndUpdate}>
+                                    <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} /> {this.state.notificationId && <span>Unsubscribe</span>}
+                                    {!this.state.notificationId && <span>Subscribe</span>}
+                                </Button>
                                 <PaperMenuBar
                                     editMode={this.state.editMode}
                                     paperLink={paperLink}

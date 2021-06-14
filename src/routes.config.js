@@ -59,6 +59,12 @@ import ContributionEditor from 'pages/ContributionEditor';
 import CurationCall from 'pages/CurationCall';
 import WebinarMay11 from 'pages/WebinarMay11';
 
+import ListForums from 'components/DiscussionBoard/ListForums';
+import ListThreads from 'components/DiscussionBoard/ListThreads';
+import ListPosts from 'components/DiscussionBoard/ListPosts';
+import NotificationDetails from 'components/Notifications/NotificationDetails';
+import ListThreadsByResource from 'components/DiscussionBoard/ListThreadsByResource';
+
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
 const PdfTextAnnotation = lazy(() => import('pages/PdfTextAnnotation')); // for dependency "react-pdf-highlighter" ~1.16MB
@@ -352,6 +358,30 @@ const routes = [
     {
         path: ROUTES.WEBINAR_MAY_11,
         component: WebinarMay11
+    },
+    /**Notifications */
+    {
+        path: ROUTES.NOTIFICATIONS,
+        component: NotificationDetails
+    },
+    /* Discussion Board */
+    {
+        path: ROUTES.FORUMS,
+        component: ListForums
+    },
+    {
+        path: ROUTES.THREADS,
+        exact: true,
+        component: ListThreads
+    },
+    {
+        path: ROUTES.THREADS_RESOURCE_ID,
+        exact: true,
+        component: ListThreadsByResource
+    },
+    {
+        path: ROUTES.POSTS,
+        component: ListPosts
     },
     /* Don't add routes below this line */
     {

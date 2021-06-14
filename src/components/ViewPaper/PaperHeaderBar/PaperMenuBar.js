@@ -1,12 +1,14 @@
-import { useState } from 'react';
+/* eslint-disable react/prop-types */
+import { useState, useEffect } from 'react';
 import { Button, ButtonGroup, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faProjectDiagram, faPen, faTimes, faFile, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faProjectDiagram, faPen, faTimes, faFile, faEllipsisV, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 import { reverse } from 'named-urls';
+import { unsubscribeFromPaper, subscribeToPaper } from 'services/backend/notifications';
 
 function PaperMenuBar(props) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -16,7 +18,7 @@ function PaperMenuBar(props) {
             <ButtonGroup className="flex-shrink-0">
                 {props.paperLink && (
                     <a href={props.paperLink} className="btn btn-secondary flex-shrink-0 btn-sm" target="_blank" rel="noopener noreferrer">
-                        <Icon icon={faFile} style={{ margin: '2px 4px 0 0' }} /> View paper
+                        <Icon icon={faFile} style={{ marginLeft: 1 }} /> View paper
                     </a>
                 )}
                 <Button
