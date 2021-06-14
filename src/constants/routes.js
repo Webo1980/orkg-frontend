@@ -58,11 +58,6 @@ const routes = {
     /**Notifications */
     NOTIFICATIONS: '/notifications',
     FETCH_NOTIFICATION_STATUS: '/notifications/notificationresource',
-    /**Discussion Board routes */
-    FORUMS: '/forums',
-    THREADS: '/forum/:forumId/view-threads',
-    POSTS: '/forum/:forumId/view-thread/:threadId',
-    THREADS_RESOURCE_ID: '/forum/:forumId/view-threads/resource/:resourceId',
     /* Legacy routes */
     PREDICATES: '/predicates',
     PREDICATE: '/predicate/:id',

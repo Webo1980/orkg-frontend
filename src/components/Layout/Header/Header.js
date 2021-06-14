@@ -329,10 +329,6 @@ class Header extends Component {
                                             </small>
                                         </DropdownItem>
                                         <DropdownItem divider />
-                                        <DropdownItem tag={RouterNavLink} exact to={ROUTES.FORUMS}>
-                                            Discussion Board{' '}
-                                        </DropdownItem>
-                                        <DropdownItem divider />
 
                                         <DropdownItem header>Advanced views</DropdownItem>
 

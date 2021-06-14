@@ -262,21 +262,6 @@ function Comparison(props) {
                         </Tippy>
                     )}
                 </h1>
-                <Button
-                    tag={NavLink}
-                    exact
-                    to={reverse(ROUTES.THREADS_RESOURCE_ID, {
-                        forumId: 'd7acf4fb-51f5-4b2a-a121-5aa0bd8f338c',
-                        // eslint-disable-next-line react/prop-types
-                        resourceId: props.match.params.comparisonId
-                    })}
-                    color="secondary"
-                    size="sm"
-                    style={{ marginLeft: 1 }}
-                >
-                    <Icon icon={faComments} style={{ margin: '2px 4px' }} />
-                    <span>View Discussion Thread</span>
-                </Button>
                 <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={toggleSubscribeAndUpdate}>
                     <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} /> {notificationId && <span>Unsubscribe</span>}
                     {!notificationId && <span>Subscribe</span>}

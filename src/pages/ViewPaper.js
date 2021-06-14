@@ -329,10 +329,6 @@ class ViewPaper extends Component {
         }
     };
 
-    viewDiscussionThread = () => {
-        const resourceId = this.props.match.params.resourceId;
-    };
-
     toggleSubscribeAndUpdate = () => {
         if (this.state.notificationId === null || this.state.notificationId === undefined) {
             const arrNotificationData = [];
@@ -435,20 +431,6 @@ class ViewPaper extends Component {
                         <VisibilitySensor onChange={this.handleShowHeaderBar}>
                             <Container className="d-flex align-items-center">
                                 <h1 className="h4 mt-4 mb-4 flex-grow-1">View paper</h1>
-                                <Button
-                                    tag={NavLink}
-                                    exact
-                                    to={reverse(ROUTES.THREADS_RESOURCE_ID, {
-                                        forumId: 'a99aaea9-c93a-488c-a0ec-41f31053cda9',
-                                        resourceId: this.props.match.params.resourceId
-                                    })}
-                                    color="secondary"
-                                    size="sm"
-                                    style={{ marginLeft: 1 }}
-                                >
-                                    <Icon icon={faComments} style={{ margin: '2px 4px' }} />
-                                    <span>View Discussion Thread</span>
-                                </Button>
                                 <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={this.toggleSubscribeAndUpdate}>
                                     <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} /> {this.state.notificationId && <span>Unsubscribe</span>}
                                     {!this.state.notificationId && <span>Subscribe</span>}

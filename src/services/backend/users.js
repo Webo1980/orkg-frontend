@@ -13,12 +13,13 @@ export const getUserInformationById = userId => {
     return submitGetRequest(`${userUrl}` + userId, {}, true);
 };
 
-export const updateUserInformation = ({ email, display_name }) => {
+export const updateUserInformation = ({ email, display_name, digest_subscription }) => {
     const headers = { 'Content-Type': 'application/json' };
 
     const data = {
         //email, //back doesn't support this
-        display_name: display_name
+        display_name: display_name,
+        digest_subscription: digest_subscription
     };
 
     return submitPutRequest(`${userUrl}`, headers, data);

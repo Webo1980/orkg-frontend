@@ -31,10 +31,12 @@ export function firstLoad() {
                             token: token,
                             tokenExpire: token_expires_in,
                             email: userData.email,
-                            isCurationAllowed: userData.is_curation_allowed
+                            isCurationAllowed: userData.is_curation_allowed,
+                            digestSubscription: userData.digest_subscription
                         }
                     })
                 );
+
                 return Promise.resolve();
             })
             .catch(() => {

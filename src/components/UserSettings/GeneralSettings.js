@@ -1,4 +1,4 @@
-import { Form, FormGroup, Label, Input, Button, Alert, FormFeedback } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, Alert, FormFeedback, CustomInput } from 'reactstrap';
 import { Component } from 'react';
 import { connect } from 'react-redux';
 import { getUserInformation, updateUserInformation } from 'services/backend/users';
@@ -10,6 +10,8 @@ import { get_error_message } from 'utils';
 import { toast } from 'react-toastify';
 import Gravatar from 'react-gravatar';
 import styled from 'styled-components';
+import UserUnpublishedArticles from 'pages/SmartReview/UserUnpublishedArticles';
+import Tooltip from '../Utils/Tooltip';
 
 const StyledGravatar = styled(Gravatar)`
     border: 3px solid ${props => props.theme.dark};
@@ -23,6 +25,7 @@ class GeneralSettings extends Component {
             display_name: '',
             email: '',
             loading: false,
+            digest_subscription: false,
             errors: null
         };
     }
@@ -33,10 +36,10 @@ class GeneralSettings extends Component {
 
     getUserInformation = async () => {
         const userData = await getUserInformation();
-
         this.setState({
             display_name: userData.display_name,
-            email: userData.email
+            email: userData.email,
+            digest_subscription: userData.digest_subscription ? true : false
         });
     };
 
@@ -46,8 +49,16 @@ class GeneralSettings extends Component {
         });
     };
 
+    handleCheckboxChange = e => {
+        this.setState({
+            [e.target.name]: e.target.checked
+        });
+
+        console.log(e.target.checked);
+    };
+
     handleSave = async () => {
-        const { email, display_name } = this.state;
+        const { email, display_name, digest_subscription } = this.state;
 
         if (!display_name) {
             this.setState({
@@ -63,11 +74,12 @@ class GeneralSettings extends Component {
 
         updateUserInformation({
             email,
-            display_name
+            display_name,
+            digest_subscription
         })
             .then(response => {
                 toast.success('Your changes have been saved successfully');
-                this.props.updateAuth({ user: { ...this.props.user, displayName: display_name } });
+                this.props.updateAuth({ user: { ...this.props.user, displayName: display_name, digest_subscription: digest_subscription } });
 
                 this.setState({
                     loading: false,
@@ -124,6 +136,18 @@ class GeneralSettings extends Component {
                             </a>
                         </p>
                     </Alert>
+                </FormGroup>
+                <FormGroup className="d-flex">
+                    <Label for="digest_subscription">Subscribe to Weekly Newsletter</Label>
+                    <Tooltip message="You will receive a weekly email comprising of new papers, comparisons, etc., added to ORKG during the week." />
+                    <CustomInput
+                        onChange={this.handleCheckboxChange}
+                        checked={this.state.digest_subscription}
+                        type="checkbox"
+                        name="digest_subscription"
+                        id="digest_subscription"
+                        className="ml-3"
+                    />
                 </FormGroup>
                 <Button
                     color="primary"
