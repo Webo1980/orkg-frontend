@@ -1,4 +1,3 @@
-import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
 import UserService from 'userService';
 
