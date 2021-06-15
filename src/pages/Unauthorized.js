@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
-import { openAuthDialog } from 'actions/auth';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import RenderOnAnonymous from 'components/Authentication/RenderOnAnonymous';
 import UserService from 'userService';
 
@@ -14,16 +13,11 @@ import UserService from 'userService';
  * a sign in button is displayed, otherwise just a general unauthorized message is shown
  */
 const Unauthorized = () => {
-    const dispatch = useDispatch();
     const user = useSelector(state => state.auth.user);
 
     useEffect(() => {
         document.title = 'Unauthorized - ORKG';
     }, []);
-
-    const handleSignUp = () => {
-        dispatch(openAuthDialog({ action: 'signup' }));
-    };
 
     return (
         <>
@@ -41,7 +35,7 @@ const Unauthorized = () => {
                                 <>
                                     <h2 className="mb-4 h4">You need to sign in to continue</h2>
                                     <RenderOnAnonymous>
-                                        <Button color="primary" className="mt-2 mb-2" onClick={() => UserService.doLogin()}>
+                                        <Button color="primary" className="mr-3" onClick={() => UserService.doLogin()}>
                                             Sign In
                                         </Button>
                                     </RenderOnAnonymous>
@@ -60,8 +54,8 @@ const Unauthorized = () => {
                                         color: 'inherit',
                                         textDecoration: 'underline'
                                     }}
-                                    onClick={handleSignUp}
-                                    onKeyDown={e => (e.keyCode === 13 ? handleSignUp : undefined)}
+                                    onClick={() => UserService.doLogin({ action: 'register' })}
+                                    onKeyDown={e => (e.keyCode === 13 ? () => UserService.doLogin({ action: 'register' }) : undefined)}
                                     role="button"
                                     tabIndex={0}
                                 >
