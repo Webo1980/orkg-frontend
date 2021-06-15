@@ -5,7 +5,6 @@ import ROUTES from 'constants/routes.js';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
-import RenderOnAnonymous from 'components/Authentication/RenderOnAnonymous';
 import UserService from 'userService';
 
 /**
@@ -34,11 +33,9 @@ const Unauthorized = () => {
                             ) : (
                                 <>
                                     <h2 className="mb-4 h4">You need to sign in to continue</h2>
-                                    <RenderOnAnonymous>
-                                        <Button color="primary" className="mr-3" onClick={() => UserService.doLogin()}>
-                                            Sign In
-                                        </Button>
-                                    </RenderOnAnonymous>
+                                    <Button color="primary" className="mr-3" onClick={() => UserService.doLogin()}>
+                                        Sign In
+                                    </Button>
                                 </>
                             )}
                             <Link to={ROUTES.HOME}>

@@ -27,6 +27,7 @@ export function firstLoad() {
                             token: keycloakInstance.idToken,
                             tokenExpire: keycloakInstance.tokenParsed.exp,
                             email: keycloakInstance.idTokenParsed.email
+                            //isCurationAllowed: true
                         }
                     })
                 );
