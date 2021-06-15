@@ -1,7 +1,6 @@
 import { submitPostRequest, submitPutRequest, submitGetRequest } from 'network';
 import queryString from 'query-string';
 import { url } from 'constants/misc';
-import UserService from '../../components/Authentication/UserService';
 export const predicatesUrl = `${url}predicates/`;
 
 export const getPredicate = id => {
@@ -9,13 +8,11 @@ export const getPredicate = id => {
 };
 
 export const createPredicate = label => {
-    const token = UserService.getToken();
-    return submitPostRequest(predicatesUrl, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, { label: label });
+    return submitPostRequest(predicatesUrl, { 'Content-Type': 'application/json' }, { label: label });
 };
 
 export const updatePredicate = (id, label) => {
-    const token = UserService.getToken();
-    return submitPutRequest(`${predicatesUrl}${id}`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, { label: label });
+    return submitPutRequest(`${predicatesUrl}${id}`, { 'Content-Type': 'application/json' }, { label: label });
 };
 
 export const getPredicates = ({

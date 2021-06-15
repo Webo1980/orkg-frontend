@@ -6,7 +6,7 @@ import { openAuthDialog, resetAuth, toggleAuthDialog, updateAuth } from 'actions
 import { withRouter } from 'react-router-dom';
 import { compose } from 'redux';
 import RenderOnAnonymous from './RenderOnAnonymous';
-import UserService from './UserService';
+import UserService from 'userService';
 
 class KeycloakSignIn extends Component {
     constructor(props) {

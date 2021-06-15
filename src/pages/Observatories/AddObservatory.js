@@ -16,7 +16,7 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { openAuthDialog } from 'actions/auth';
 import { connect } from 'react-redux';
 import RenderOnAnonymous from 'components/Authentication/RenderOnAnonymous';
-import UserService from 'components/Authentication/UserService';
+import UserService from 'userService';
 class AddObservatory extends Component {
     constructor(props) {
         super(props);

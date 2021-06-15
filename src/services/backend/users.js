@@ -1,7 +1,6 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPutRequest, submitPostRequest } from 'network';
 import env from '@beam-australia/react-env';
-import UserService from '../../components/Authentication/UserService';
 export const userUrl = `${url}user/`;
 export const authenticationUrl = env('SERVER_URL');
 
@@ -14,8 +13,7 @@ export const getUserInformationById = userId => {
 };
 
 export const updateUserInformation = ({ email, display_name }) => {
-    const token = UserService.getToken();
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+    const headers = { 'Content-Type': 'application/json' };
 
     const data = {
         //email, //back doesn't support this
@@ -26,8 +24,7 @@ export const updateUserInformation = ({ email, display_name }) => {
 };
 
 export const updateUserPassword = ({ current_password, new_password, new_matching_password }) => {
-    const token = UserService.getToken();
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+    const headers = { 'Content-Type': 'application/json' };
 
     const data = {
         current_password: current_password,

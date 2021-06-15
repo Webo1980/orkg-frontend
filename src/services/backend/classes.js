@@ -1,7 +1,6 @@
 import { url } from 'constants/misc';
 import { submitPostRequest, submitGetRequest } from 'network';
 import queryString from 'query-string';
-import UserService from '../../components/Authentication/UserService';
 
 export const classesUrl = `${url}classes/`;
 
@@ -10,8 +9,7 @@ export const getClassById = id => {
 };
 
 export const createClass = (label, uri = null) => {
-    const token = UserService.getToken();
-    return submitPostRequest(classesUrl, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, { label: label, uri: uri });
+    return submitPostRequest(classesUrl, { 'Content-Type': 'application/json' }, { label: label, uri: uri });
 };
 
 export const getClasses = ({

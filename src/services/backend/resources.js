@@ -5,26 +5,18 @@ import { MISC } from 'constants/graphSettings';
 import queryString from 'query-string';
 import { orderBy } from 'lodash';
 import { url } from 'constants/misc';
-import UserService from '../../components/Authentication/UserService';
 export const resourcesUrl = `${url}resources/`;
 
 export const updateResource = (id, label) => {
-    const token = UserService.getToken();
-    return submitPutRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, { label: label });
+    return submitPutRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json' }, { label: label });
 };
 
 export const updateResourceClasses = (id, classes = null) => {
-    const token = UserService.getToken();
-    return submitPutRequest(
-        `${resourcesUrl}${id}`,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        { ...(classes ? { classes: classes } : null) }
-    );
+    return submitPutRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json' }, { ...(classes ? { classes: classes } : null) });
 };
 
 export const createResource = (label, classes = []) => {
-    const token = UserService.getToken();
-    return submitPostRequest(resourcesUrl, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, { label, classes });
+    return submitPostRequest(resourcesUrl, { 'Content-Type': 'application/json' }, { label, classes });
 };
 
 export const getResource = id => {
@@ -32,8 +24,7 @@ export const getResource = id => {
 };
 
 export const deleteResource = id => {
-    const token = UserService.getToken();
-    return submitDeleteRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+    return submitDeleteRequest(`${resourcesUrl}${id}`, { 'Content-Type': 'application/json' });
 };
 
 export const getResources = ({
@@ -83,12 +74,7 @@ export const getContributorsByResourceId = id => {
 };
 
 export const addResourceToObservatory = ({ observatory_id, organization_id, id }) => {
-    const token = UserService.getToken();
-    return submitPutRequest(
-        `${resourcesUrl}${id}/observatory`,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        { observatory_id, organization_id }
-    );
+    return submitPutRequest(`${resourcesUrl}${id}/observatory`, { 'Content-Type': 'application/json' }, { observatory_id, organization_id });
 };
 
 export const getResourcesByClass = async ({

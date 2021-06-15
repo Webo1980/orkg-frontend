@@ -37,7 +37,7 @@ import { reverse } from 'named-urls';
 import { compose } from 'redux';
 import HomeBannerBg from 'assets/img/graph-background.svg';
 import { scrollbarWidth } from '@xobotyi/scrollbar-width';
-import UserService from '../../Authentication/UserService';
+import UserService from 'userService';
 
 // determine the scroll bar width and compensate the width when a modal is opened
 const GlobalStyle = createGlobalStyle`

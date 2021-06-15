@@ -4,7 +4,7 @@ import { getClasses, getClassById } from './classes';
 import { getPredicates, getPredicate } from './predicates';
 import { getResources, getResource } from './resources';
 import { submitGetRequest, submitPostRequest } from 'network';
-import UserService from '../../components/Authentication/UserService';
+
 export const doisUrl = `${url}dois/`;
 
 export const getPaperByDOI = doi => {
@@ -12,17 +12,15 @@ export const getPaperByDOI = doi => {
 };
 
 export const generateDOIForComparison = (comparison_id, title, subject, description, related_resources, authors, url) => {
-    const token = UserService.getToken();
     return submitPostRequest(
         doisUrl,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        { 'Content-Type': 'application/json' },
         { comparison_id, title, subject, description, related_resources, authors, url }
     );
 };
 
 export const createObject = payload => {
-    const token = UserService.getToken();
-    return submitPostRequest(`${url}objects/`, { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, payload);
+    return submitPostRequest(`${url}objects/`, { 'Content-Type': 'application/json' }, payload);
 };
 
 export const getEntities = (entityType, params) => {

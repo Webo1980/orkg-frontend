@@ -7,7 +7,7 @@ import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { openAuthDialog } from 'actions/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import RenderOnAnonymous from 'components/Authentication/RenderOnAnonymous';
-import UserService from 'components/Authentication/UserService';
+import UserService from 'userService';
 
 /**
  * Unauthorized can mean both unauthenticated and unauthorized. So when a user is not signed in,

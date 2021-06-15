@@ -1,4 +1,4 @@
-import UserService from './UserService';
+import UserService from 'userService';
 
 const RenderOnAnonymous = ({ children }) => (!UserService.isLoggedIn() ? children : null);
 

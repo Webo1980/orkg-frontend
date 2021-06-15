@@ -1,6 +1,5 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
-import UserService from '../../components/Authentication/UserService';
 export const organizationsUrl = `${url}organizations/`;
 
 export const getAllOrganizations = () => {
@@ -12,39 +11,19 @@ export const getOrganization = id => {
 };
 
 export const createOrganization = (organizationName, organizationLogo, createdBy, url) => {
-    const token = UserService.getToken();
-    return submitPostRequest(
-        organizationsUrl,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        { organizationName, organizationLogo, createdBy, url }
-    );
+    return submitPostRequest(organizationsUrl, { 'Content-Type': 'application/json' }, { organizationName, organizationLogo, createdBy, url });
 };
 
 export const updateOrganizationName = (id, value) => {
-    const token = UserService.getToken();
-    return submitPutRequest(
-        `${organizationsUrl}${encodeURIComponent(id)}/name`,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        { value }
-    );
+    return submitPutRequest(`${organizationsUrl}${encodeURIComponent(id)}/name`, { 'Content-Type': 'application/json' }, { value });
 };
 
 export const updateOrganizationUrl = (id, value) => {
-    const token = UserService.getToken();
-    return submitPutRequest(
-        `${organizationsUrl}${encodeURIComponent(id)}/url`,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        { value }
-    );
+    return submitPutRequest(`${organizationsUrl}${encodeURIComponent(id)}/url`, { 'Content-Type': 'application/json' }, { value });
 };
 
 export const updateOrganizationLogo = (id, value) => {
-    const token = UserService.getToken();
-    return submitPutRequest(
-        `${organizationsUrl}${encodeURIComponent(id)}/logo`,
-        { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        { value }
-    );
+    return submitPutRequest(`${organizationsUrl}${encodeURIComponent(id)}/logo`, { 'Content-Type': 'application/json' }, { value });
 };
 
 export const getAllObservatoriesByOrganizationId = id => {

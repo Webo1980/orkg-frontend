@@ -1,5 +1,5 @@
 import * as type from './types';
-import UserService from 'components/Authentication/UserService';
+import UserService from 'userService';
 
 export const updateAuth = payload => dispatch => {
     dispatch({
@@ -16,16 +16,30 @@ export const resetAuth = () => dispatch => {
 
 export function firstLoad() {
     return dispatch => {
-        return dispatch(
-            updateAuth({
-                displayName: '',
-                id: '',
-                token: '',
-                tokenExpire: '',
-                email: '',
-                isCurationAllwed: 'true'
-            })
-        );
+        if (UserService.isLoggedIn) {
+            const keycloakInstance = UserService.getKeycloakInstance();
+            if (keycloakInstance.idTokenParsed) {
+                this.signInRequired = false;
+                return dispatch(
+                    updateAuth({
+                        user: {
+                            displayName: keycloakInstance.idTokenParsed.name,
+                            id: keycloakInstance.idTokenParsed.sub,
+                            token: keycloakInstance.idToken,
+                            tokenExpire: keycloakInstance.tokenParsed.exp,
+                            email: keycloakInstance.idTokenParsed.email
+                        }
+                    })
+                )
+                    .catch(error => {
+                        dispatch({
+                            type: type.RESET_AUTH
+                        });
+                    })
+                    .then(() => Promise.resolve());
+            }
+        }
+        return Promise.resolve();
     };
 }
 
