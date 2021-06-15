@@ -208,10 +208,12 @@ class Header extends Component {
     handleSignOut = () => {
         //this.props.resetAuth();
         UserService.doLogout();
+        /*
         this.toggleUserTooltip();
         this.setState({
             redirectLogout: true
         });
+        */
     };
 
     requireAuthentication = (e, redirectRoute) => {
