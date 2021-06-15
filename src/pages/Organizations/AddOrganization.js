@@ -5,10 +5,10 @@ import { toast } from 'react-toastify';
 import { createOrganization } from 'services/backend/organizations';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import { openAuthDialog } from 'actions/auth';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { reverse } from 'named-urls';
+import UserService from 'userService';
 import ROUTES from 'constants/routes';
 
 class AddOrganization extends Component {
@@ -149,8 +149,8 @@ class AddOrganization extends Component {
                         </Form>
                     ) : (
                         <>
-                            <Button color="link" className="p-0 mb-2 mt-2 clearfix" onClick={() => this.props.openAuthDialog({ action: 'signin' })}>
-                                <Icon className="mr-1" icon={faUser} /> Signin to create organization
+                            <Button color="link" className="p-0 mb-2 mt-2 clearfix" onClick={() => UserService.doLogin()}>
+                                <Icon className="mr-1" icon={faUser} /> Sign in to create organization
                             </Button>
                         </>
                     )}
@@ -164,16 +164,11 @@ const mapStateToProps = state => ({
     user: state.auth.user
 });
 
-const mapDispatchToProps = dispatch => ({
-    openAuthDialog: payload => dispatch(openAuthDialog(payload))
-});
-
 AddOrganization.propTypes = {
-    openAuthDialog: PropTypes.func.isRequired,
     user: PropTypes.object
 };
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    null
 )(AddOrganization);

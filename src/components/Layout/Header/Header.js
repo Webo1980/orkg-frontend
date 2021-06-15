@@ -27,7 +27,7 @@ import PropTypes from 'prop-types';
 import { Cookies } from 'react-cookie';
 import { connect } from 'react-redux';
 import SearchForm from './SearchForm';
-import { openAuthDialog, updateAuth, resetAuth } from 'actions/auth';
+import { updateAuth, resetAuth } from 'actions/auth';
 import { Redirect } from 'react-router-dom';
 import greetingTime from 'greeting-time';
 import styled, { createGlobalStyle } from 'styled-components';
@@ -195,9 +195,9 @@ class Header extends Component {
         */
     };
 
-    requireAuthentication = (e, redirectRoute) => {
-        if (!this.props.user) {
-            this.props.openAuthDialog({ action: 'signin', signInRequired: true, redirectRoute });
+    requireAuthentication = e => {
+        if (!UserService.isLoggedIn()) {
+            UserService.doLogin();
             // Don't follow the link when user is not authenticated
             e.preventDefault();
         }
@@ -449,12 +449,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     resetAuth: () => dispatch(resetAuth()),
-    openAuthDialog: payload => dispatch(openAuthDialog(payload)),
     updateAuth: data => dispatch(updateAuth(data))
 });
 
 Header.propTypes = {
-    openAuthDialog: PropTypes.func.isRequired,
     updateAuth: PropTypes.func.isRequired,
     user: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
     resetAuth: PropTypes.func.isRequired,

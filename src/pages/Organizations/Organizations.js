@@ -5,7 +5,6 @@ import { faSpinner, faPlus } from '@fortawesome/free-solid-svg-icons';
 import OrganizationCard from 'components/OrganizationCard/OrganizationCard';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import { getAllOrganizations } from 'services/backend/organizations';
-import { openAuthDialog } from 'actions/auth';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -91,16 +90,11 @@ const mapStateToProps = state => ({
     user: state.auth.user
 });
 
-const mapDispatchToProps = dispatch => ({
-    openAuthDialog: payload => dispatch(openAuthDialog(payload))
-});
-
 Organizations.propTypes = {
-    openAuthDialog: PropTypes.func.isRequired,
     user: PropTypes.oneOfType([PropTypes.object, PropTypes.number])
 };
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    null
 )(Organizations);

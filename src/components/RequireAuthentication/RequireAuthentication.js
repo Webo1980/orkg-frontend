@@ -1,15 +1,10 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { openAuthDialog } from 'actions/auth';
+import UserService from 'userService';
 import PropTypes from 'prop-types';
 
 const RequireAuthentication = ({ component: Component, ...rest }) => {
-    const user = useSelector(state => state.auth.user);
-    const dispatch = useDispatch();
-
     const requireAuthentication = e => {
-        if (!user) {
-            const redirectRoute = rest.to || null;
-            dispatch(openAuthDialog({ action: 'signin', signInRequired: true, redirectRoute }));
+        if (!UserService.isLoggedIn()) {
+            UserService.doLogin();
             // Don't follow the link when user is not authenticated
             e.preventDefault();
             return null;

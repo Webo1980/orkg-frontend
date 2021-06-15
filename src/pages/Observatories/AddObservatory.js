@@ -13,7 +13,6 @@ import PropTypes from 'prop-types';
 import ROUTES from 'constants/routes';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import { openAuthDialog } from 'actions/auth';
 import { connect } from 'react-redux';
 import UserService from 'userService';
 
@@ -175,21 +174,16 @@ const mapStateToProps = state => ({
     user: state.auth.user
 });
 
-const mapDispatchToProps = dispatch => ({
-    openAuthDialog: payload => dispatch(openAuthDialog(payload))
-});
-
 AddObservatory.propTypes = {
     match: PropTypes.shape({
         params: PropTypes.shape({
             id: PropTypes.string.isRequired
         }).isRequired
     }).isRequired,
-    openAuthDialog: PropTypes.func.isRequired,
     user: PropTypes.object
 };
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    null
 )(AddObservatory);

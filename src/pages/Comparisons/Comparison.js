@@ -21,19 +21,17 @@ import HistoryModal from 'components/Comparison/HistoryModal/HistoryModal';
 import useComparisonVersions from 'components/Comparison/hooks/useComparisonVersions';
 import NewerVersionWarning from 'components/Comparison/HistoryModal/NewerVersionWarning';
 import Publish from 'components/Comparison/Publish/Publish';
+import UserService from 'userService';
 import { ContainerAnimated, ComparisonTypeButton } from 'components/Comparison/styled';
 import useComparison from 'components/Comparison/hooks/useComparison';
 import ShareLinkMarker from 'components/ShareLinkMarker/ShareLinkMarker';
 import { getResource } from 'services/backend/resources';
 import ROUTES from 'constants/routes.js';
 import { useHistory, Link, useParams } from 'react-router-dom';
-import { openAuthDialog } from 'actions/auth';
 import { CSVLink } from 'react-csv';
 import { generateRdfDataVocabularyFile, areAllRulesEmpty } from 'utils';
 import Tippy from '@tippyjs/react';
-import { connect } from 'react-redux';
 import { useCookies } from 'react-cookie';
-import PropTypes from 'prop-types';
 import ExactMatch from 'assets/img/comparison-exact-match.svg';
 import IntelligentMerge from 'assets/img/comparison-intelligent-merge.svg';
 import AddVisualizationModal from 'libs/selfVisModel/ComparisonComponents/AddVisualizationModal';
@@ -351,8 +349,8 @@ function Comparison(props) {
                                     <DropdownItem onClick={() => setShowShareDialog(v => !v)}>Share link</DropdownItem>
                                     <DropdownItem
                                         onClick={e => {
-                                            if (!props.user) {
-                                                props.openAuthDialog({ action: 'signin', signInRequired: true });
+                                            if (!UserService.isLoggedIn()) {
+                                                UserService.doLogin();
                                             } else {
                                                 setShowPublishDialog(v => !v);
                                             }
@@ -627,20 +625,4 @@ function Comparison(props) {
     );
 }
 
-const mapStateToProps = state => ({
-    user: state.auth.user
-});
-
-const mapDispatchToProps = dispatch => ({
-    openAuthDialog: payload => dispatch(openAuthDialog(payload))
-});
-
-Comparison.propTypes = {
-    openAuthDialog: PropTypes.func.isRequired,
-    user: PropTypes.oneOfType([PropTypes.object, PropTypes.number])
-};
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(Comparison);
+export default Comparison;
