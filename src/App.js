@@ -14,6 +14,7 @@ import PropTypes from 'prop-types';
 import { withCookies } from 'react-cookie';
 import { detect } from 'detect-browser';
 import ScrollToTop from 'components/ScrollToTop';
+import AuthProvider from 'components/Authentication/AuthProvider';
 import MetaTags from 'react-meta-tags';
 import { Alert } from 'reactstrap';
 import env from '@beam-australia/react-env';
@@ -55,31 +56,33 @@ class App extends Component {
 
         return (
             <ConnectedRouter history={this.props.history}>
-                <ScrollToTop>
-                    <DefaultLayout>
-                        {this.state.showBrowserWarning && (
-                            <Alert color="danger" style={alertStyle} className="text-center">
-                                <strong>Outdated browser</strong> You are using Internet Explorer which is not supported. Please upgrade your browser
-                                for the best experience
-                            </Alert>
-                        )}
-                        {env('IS_TESTING_SERVER') === 'true' && (
-                            <>
-                                <MetaTags>
-                                    <meta name="robots" content="noindex" /> {/* make sure search engines are not indexing our test server */}
-                                </MetaTags>
-                                <Alert color="warning" style={alertStyle} className="text-center">
-                                    <strong>Warning:</strong> You are using a testing environment. Data you enter in the system can be deleted without
-                                    any notice.
+                <AuthProvider>
+                    <ScrollToTop>
+                        <DefaultLayout>
+                            {this.state.showBrowserWarning && (
+                                <Alert color="danger" style={alertStyle} className="text-center">
+                                    <strong>Outdated browser</strong> You are using Internet Explorer which is not supported. Please upgrade your
+                                    browser for the best experience
                                 </Alert>
-                            </>
-                        )}
-                        {/* Suspense is used for when the component is lazy loaded */}
-                        <Suspense fallback={<div className="mt-5 mb-2 text-center">Loading...</div>}>
-                            <Switch>{renderRoutes(routes)}</Switch>
-                        </Suspense>
-                    </DefaultLayout>
-                </ScrollToTop>
+                            )}
+                            {env('IS_TESTING_SERVER') === 'true' && (
+                                <>
+                                    <MetaTags>
+                                        <meta name="robots" content="noindex" /> {/* make sure search engines are not indexing our test server */}
+                                    </MetaTags>
+                                    <Alert color="warning" style={alertStyle} className="text-center">
+                                        <strong>Warning:</strong> You are using a testing environment. Data you enter in the system can be deleted
+                                        without any notice.
+                                    </Alert>
+                                </>
+                            )}
+                            {/* Suspense is used for when the component is lazy loaded */}
+                            <Suspense fallback={<div className="mt-5 mb-2 text-center">Loading...</div>}>
+                                <Switch>{renderRoutes(routes)}</Switch>
+                            </Suspense>
+                        </DefaultLayout>
+                    </ScrollToTop>
+                </AuthProvider>
             </ConnectedRouter>
         );
     }

@@ -20,12 +20,12 @@ import AddNew from './AddNew';
 import { ReactComponent as Logo } from 'assets/img/logo.svg';
 import { ReactComponent as LogoWhite } from 'assets/img/logo_white.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import Gravatar from 'react-gravatar';
 import PropTypes from 'prop-types';
+import { Cookies } from 'react-cookie';
 import { connect } from 'react-redux';
-import Authentication from 'components/Authentication/Authentication';
 import SearchForm from './SearchForm';
 import { openAuthDialog, updateAuth, resetAuth } from 'actions/auth';
 import { Redirect } from 'react-router-dom';
@@ -38,6 +38,8 @@ import { compose } from 'redux';
 import HomeBannerBg from 'assets/img/graph-background.svg';
 import { scrollbarWidth } from '@xobotyi/scrollbar-width';
 import UserService from 'userService';
+
+const cookies = new Cookies();
 
 // determine the scroll bar width and compensate the width when a modal is opened
 const GlobalStyle = createGlobalStyle`
@@ -170,29 +172,6 @@ class Header extends Component {
         }
     };
 
-    userInformation = () => {
-        if (UserService.isLoggedIn) {
-            const keycloakInstance = UserService.getKeycloakInstance();
-            if (keycloakInstance.idTokenParsed) {
-                this.signInRequired = false;
-                this.props
-                    .updateAuth({
-                        user: {
-                            displayName: keycloakInstance.idTokenParsed.name,
-                            id: keycloakInstance.idTokenParsed.sub,
-                            token: keycloakInstance.idToken,
-                            tokenExpire: keycloakInstance.tokenParsed.exp,
-                            isCurationAllwed: 'true'
-                        }
-                    })
-                    .catch(error => {
-                        this.props.resetAuth();
-                        this.signInRequired = true;
-                    });
-            }
-        }
-    };
-
     toggle() {
         this.setState({
             isOpen: !this.state.isOpen
@@ -230,6 +209,7 @@ class Header extends Component {
         }
         const email = this.props.user && this.props.user.email ? this.props.user.email : 'example@example.com';
         const greeting = greetingTime(new Date());
+        const cookieInfoDismissed = cookies.get('cookieInfoDismissed') ? cookies.get('cookieInfoDismissed') : null;
 
         return (
             <StyledTopBar className={this.state.isHomePageStyle ? 'home-page' : ''}>
@@ -241,7 +221,7 @@ class Header extends Component {
                     fixed="top"
                     id="main-navbar"
                 >
-                    <GlobalStyle scrollbarWidth={scrollbarWidth(true)} />
+                    <GlobalStyle scrollbarWidth={scrollbarWidth(true)} cookieInfoDismissed={cookieInfoDismissed} />
 
                     <div
                         style={{ display: 'flex', width: '100%', transition: 'width 1s ease-in-out' }}
@@ -441,20 +421,12 @@ class Header extends Component {
                                 </div>
                             )}
 
-                            {/*!this.props.user && (
-                                <Button
-                                    color="secondary"
-                                    className="pl-4 pr-4 flex-shrink-0 sign-in"
-                                    outline
-                                    onClick={() => this.props.openAuthDialog({ action: 'signin' })}
-                                >
-                                    {' '}
+                            {!this.props.user && (
+                                <Button color="secondary" className="pl-4 pr-4 flex-shrink-0 sign-in" outline onClick={() => UserService.doLogin()}>
                                     <FontAwesomeIcon className="mr-1" icon={faUser} /> Sign in
                                 </Button>
-                            )*/}
+                            )}
                         </Collapse>
-
-                        <Authentication />
                     </div>
                 </Navbar>
 

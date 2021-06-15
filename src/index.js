@@ -14,7 +14,7 @@ import { MatomoProvider, createInstance } from '@datapunt/matomo-tracker-react';
 import { DndProvider } from 'react-dnd';
 import env from '@beam-australia/react-env';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import UserService from './userService';
+
 // Extract Sass variables into a JS object
 // eslint-disable-next-line import/no-webpack-loader-syntax
 const theme = require('sass-extract-loader?{plugins: ["sass-extract-js"]}!./assets/scss/ThemeVariables.scss');
@@ -52,8 +52,6 @@ const render = () => {
         document.getElementById('root')
     );
 };
-
-UserService.initKeycloak(render);
 
 render();
 unregister();

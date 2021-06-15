@@ -19,8 +19,7 @@ export function firstLoad() {
         if (UserService.isLoggedIn) {
             const keycloakInstance = UserService.getKeycloakInstance();
             if (keycloakInstance.idTokenParsed) {
-                this.signInRequired = false;
-                return dispatch(
+                dispatch(
                     updateAuth({
                         user: {
                             displayName: keycloakInstance.idTokenParsed.name,
@@ -30,13 +29,11 @@ export function firstLoad() {
                             email: keycloakInstance.idTokenParsed.email
                         }
                     })
-                )
-                    .catch(error => {
-                        dispatch({
-                            type: type.RESET_AUTH
-                        });
-                    })
-                    .then(() => Promise.resolve());
+                );
+            } else {
+                dispatch({
+                    type: type.RESET_AUTH
+                });
             }
         }
         return Promise.resolve();
