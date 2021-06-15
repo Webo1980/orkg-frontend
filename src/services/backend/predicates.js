@@ -1,6 +1,7 @@
 import { submitPostRequest, submitPutRequest, submitGetRequest } from 'network';
 import queryString from 'query-string';
 import { url } from 'constants/misc';
+
 export const predicatesUrl = `${url}predicates/`;
 
 export const getPredicate = id => {

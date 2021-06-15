@@ -4,6 +4,7 @@ import queryString from 'query-string';
 import { getResource } from 'services/backend/resources';
 import { PREDICATES, MISC, CLASSES } from 'constants/graphSettings';
 import { sortMethod } from 'utils';
+
 export const statementsUrl = `${url}statements/`;
 
 export const createResourceStatement = (subjectId, predicateId, objectId) => {

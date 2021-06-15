@@ -1,5 +1,6 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
+
 export const organizationsUrl = `${url}organizations/`;
 
 export const getAllOrganizations = () => {

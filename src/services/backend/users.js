@@ -1,6 +1,7 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPutRequest, submitPostRequest } from 'network';
 import env from '@beam-australia/react-env';
+
 export const userUrl = `${url}user/`;
 export const authenticationUrl = env('SERVER_URL');
 

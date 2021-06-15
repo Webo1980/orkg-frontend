@@ -5,6 +5,7 @@ import { MISC } from 'constants/graphSettings';
 import queryString from 'query-string';
 import { orderBy } from 'lodash';
 import { url } from 'constants/misc';
+
 export const resourcesUrl = `${url}resources/`;
 
 export const updateResource = (id, label) => {
