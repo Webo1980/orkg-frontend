@@ -19,12 +19,12 @@ const StyledGravatar = styled(Gravatar)`
     }
 `;
 
-const StyledSpinnerGravatar = styled.div`
-    width: 28px;
-    height: 28px;
+export const StyledSpinnerGravatar = styled.div`
+    width: ${props => props.size};
+    height: ${props => props.size};
     display: inline-block;
     text-align: center;
-    line-height: 28px;
+    line-height: ${props => props.size};
     color: ${props => props.theme.secondary};
     border: 2px solid ${props => props.theme.lightDarker};
     cursor: pointer;
@@ -69,7 +69,7 @@ const UserAvatar = ({ userId, size, appendToTooltip, showDisplayName }) => {
                                 <StyledGravatar className="rounded-circle" md5={contributor?.gravatar_id ?? 'example@example.com'} size={size} />
                             )}
                             {userId && isLoadingContributor && (
-                                <StyledSpinnerGravatar className="rounded-circle">
+                                <StyledSpinnerGravatar className="rounded-circle" size="28px">
                                     <Icon icon={faSpinner} spin />
                                 </StyledSpinnerGravatar>
                             )}
