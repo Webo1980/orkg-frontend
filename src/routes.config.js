@@ -41,7 +41,6 @@ import OrganizationObservatories from 'pages/Observatories/OrganizationObservato
 import SearchResults from 'pages/Search';
 import ViewPaper from 'pages/ViewPaper';
 import Stats from 'pages/Stats';
-import UserSettings from 'pages/UserSettings';
 import UserProfile from 'pages/UserProfile';
 import FeaturedComparisons from 'pages/FeaturedComparisons';
 import Data from 'pages/Data';
@@ -124,11 +123,6 @@ const routes = [
         path: ROUTES.TEMPLATE,
         exact: true,
         component: Template
-    },
-    {
-        path: ROUTES.USER_SETTINGS,
-        exact: true,
-        component: requireAuthentication(UserSettings)
     },
     {
         path: ROUTES.USER_PROFILE,

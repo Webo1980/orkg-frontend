@@ -16,22 +16,27 @@ const initKeycloak = onAuthenticatedCallback => {
     keyInstance
         .init({
             onLoad: 'check-sso',
-            silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+            silentCheckSsoRedirectUri:
+                window.location.origin + env('PUBLIC_URL') + `${env('PUBLIC_URL').endsWith('/') ? '' : '/'}silent-check-sso.html`,
             pkceMethod: 'S256'
         })
-        .then(authenticated => {
+        .then(() => {
             onAuthenticatedCallback();
         });
 };
 
+/* Redirects to login form on (options is an optional object with redirectUri and/or prompt fields). */
 const doLogin = keyInstance.login;
 
+/* Redirects to logout. */
 const doLogout = keyInstance.logout;
 
+/* The base64 encoded token that can be sent in the Authorization header in requests to services. */
 const getToken = () => keyInstance.token;
 
 const isLoggedIn = () => !!keyInstance.token;
 
+/* If the token expires within minValidity seconds (minValidity is optional, if not specified 5 is used) the token is refreshed. If the session status iframe is enabled, the session status is also checked. */
 const updateToken = successCallback =>
     keyInstance
         .updateToken(5)
@@ -44,6 +49,9 @@ const hasRole = roles => roles.some(role => keyInstance.hasRealmRole(role));
 
 const getKeycloakInstance = () => keyInstance;
 
+/* Redirects to the Account Management Console */
+const doAccountManagement = keyInstance.accountManagement;
+
 const UserService = {
     initKeycloak,
     doLogin,
@@ -53,7 +61,8 @@ const UserService = {
     updateToken,
     getUsername,
     hasRole,
-    getKeycloakInstance
+    getKeycloakInstance,
+    doAccountManagement
 };
 
 export default UserService;

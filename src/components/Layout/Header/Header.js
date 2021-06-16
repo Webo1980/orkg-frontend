@@ -381,7 +381,7 @@ const Header = () => {
                                                 >
                                                     Profile
                                                 </Button>
-                                                <Button color="secondary" onClick={toggleUserTooltip} tag={Link} to={ROUTES.USER_SETTINGS}>
+                                                <Button color="secondary" onClick={() => UserService.doAccountManagement()}>
                                                     Settings
                                                 </Button>
                                                 <Button onClick={() => UserService.doLogout()}>Sign out</Button>
