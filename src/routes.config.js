@@ -59,6 +59,7 @@ import ContributionEditor from 'pages/ContributionEditor';
 import CurationCall from 'pages/CurationCall';
 import WebinarMay11 from 'pages/WebinarMay11';
 import NotificationDetails from 'components/Notifications/NotificationDetails';
+import NotificationSettings from 'components/Notifications/NotificationSettings';
 
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -358,6 +359,10 @@ const routes = [
     {
         path: ROUTES.NOTIFICATIONS,
         component: NotificationDetails
+    },
+    {
+        path: ROUTES.USER_NOTIFICATIONS,
+        component: NotificationSettings
     },
     /* Don't add routes below this line */
     {

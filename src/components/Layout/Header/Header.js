@@ -428,7 +428,7 @@ class Header extends Component {
                             <AddNew isHomePageStyle={this.state.isHomePageStyle} />
 
                             {!!this.props.user && (
-                                <Link to={reverse(ROUTES.NOTIFICATIONS, { userId: this.props.user.id })}>
+                                <Link to={reverse(ROUTES.USER_NOTIFICATIONS, { userId: this.props.user.id })}>
                                     <FontAwesomeIcon className="ml-4 mr-4" icon={faBell} size="2x" />
                                 </Link>
                             )}
