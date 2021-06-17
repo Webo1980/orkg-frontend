@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button, ButtonGroup, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { getResource, updateResource, createResource } from 'services/backend/resources';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faProjectDiagram, faPen, faTimes, faFile, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faProjectDiagram, faPen, faTimes, faFile, faEllipsisV, faCode } from '@fortawesome/free-solid-svg-icons';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
@@ -27,6 +28,16 @@ function PaperMenuBar(props) {
                     onClick={() => props.toggle('showGraphModal')}
                 >
                     <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view
+                </Button>
+
+                <Button
+                    className="flex-shrink-0"
+                    color="secondary"
+                    size="sm"
+                    style={{ marginLeft: 1 }}
+                    onClick={() => props.toggle('showAnnotationModal')}
+                >
+                    <Icon icon={faCode} style={{ margin: '2px 4px 0 0' }} /> Annotations
                 </Button>
 
                 {!props.editMode ? (

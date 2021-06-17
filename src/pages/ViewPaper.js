@@ -8,6 +8,7 @@ import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import PaperHeader from 'components/ViewPaper/PaperHeader';
 import Breadcrumbs from 'components/Breadcrumbs/Breadcrumbs';
 import GizmoGraphViewModal from 'components/ViewPaper/GraphView/GizmoGraphViewModal';
+import PaperAnnotations from 'components/ViewPaper/Annotations/PaperAnnotations';
 import ShareLinkMarker from 'components/ShareLinkMarker/ShareLinkMarker';
 import VisibilitySensor from 'react-visibility-sensor';
 import { useSelector } from 'react-redux';
@@ -61,7 +62,9 @@ const ViewPaper = () => {
         handleCreateContribution,
         toggleDeleteContribution,
         setShowGraphModal,
-        showGraphModal
+        showGraphModal,
+        setShowAnnotationModal,
+        showAnnotationModal
     } = useViewPaper({
         paperId: resourceId,
         contributionId
@@ -173,8 +176,8 @@ const ViewPaper = () => {
                     </Container>
                 </>
             )}
-
             <GizmoGraphViewModal showDialog={showGraphModal} toggle={() => setShowGraphModal(v => !v)} paperId={resourceId} />
+            <PaperAnnotations showDialog={showAnnotationModal} toggle={() => setShowAnnotationModal(v => !v)} paperId={resourceId} />
         </div>
     );
 };

@@ -22,6 +22,7 @@ const useViewPaper = ({ paperId, contributionId }) => {
     const [showGraphModal, setShowGraphModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [showHeaderBar, setShowHeaderBar] = useState(false);
+    const [showAnnotationModal, setShowAnnotationModal] = useState(false);
     const dispatch = useDispatch();
     const history = useHistory();
 
@@ -187,6 +188,9 @@ const useViewPaper = ({ paperId, contributionId }) => {
             case 'editMode':
                 setEditMode(v => !v);
                 break;
+            case 'showAnnotationModal':
+                setShowAnnotationModal(v => !v);
+                break;
             default:
                 break;
         }
@@ -207,7 +211,9 @@ const useViewPaper = ({ paperId, contributionId }) => {
         handleCreateContribution,
         toggleDeleteContribution,
         setShowGraphModal,
-        showGraphModal
+        showGraphModal,
+        setShowAnnotationModal,
+        showAnnotationModal
     };
 };
 
