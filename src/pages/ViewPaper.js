@@ -28,9 +28,9 @@ import { getPaperData_ViewPaper } from 'utils';
 import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
-import { getNotificationByResourceAndUserId } from 'services/backend/notifications';
+import { updateUnsubscribeStatusOfResource, deleteUnsubscribeStatusOfResource } from 'services/backend/notifications';
 import { faPaperPlane, faComments } from '@fortawesome/free-solid-svg-icons';
-import { unsubscribeFromResource, subscribeToResource } from 'services/backend/notifications';
+import { unsubscribeFromResource, subscribeToResource, getUnsubscribeByResourceAndUserId } from 'services/backend/notifications';
 import { Button } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { NavLink } from 'react-router-dom';
@@ -74,12 +74,13 @@ class ViewPaper extends Component {
 
     componentDidMount() {
         this.loadPaperData();
-        this.getResourceNotificationStatus(this.props.match.params.resourceId, this.props.user.id);
+        this.getResourceNotificationStatus(this.props.user.id, this.props.match.params.resourceId);
     }
 
     componentDidUpdate = prevProps => {
         if (this.props.match.params.resourceId !== prevProps.match.params.resourceId) {
             this.loadPaperData();
+            this.getResourceNotificationStatus(this.props.user.id, this.props.match.params.resourceId);
         } else if (this.props.match.params.contributionId !== prevProps.match.params.contributionId) {
             const selectedContribution =
                 this.props.match.params.contributionId &&
@@ -315,18 +316,36 @@ class ViewPaper extends Component {
         });
     };
 
-    getResourceNotificationStatus = (resourceId, userId) => {
+    getResourceNotificationStatus = (userId, resourceId) => {
         if (userId) {
-            getNotificationByResourceAndUserId(resourceId, userId)
+            //getNotificationByResourceAndUserId(userId, resourceId)
+            getUnsubscribeByResourceAndUserId(userId, resourceId)
                 .then(data => {
-                    if (data.id !== null) {
-                        this.setState({ notificationId: data.id });
-                    }
+                    console.log('Status:', data);
+                    this.setState({ notificationId: data });
                 })
                 .catch(error => {
                     toast.error('Error while loading notification data');
                 });
         }
+    };
+
+    toggleSubscribeInformation = () => {
+        const userId = this.props.user.id;
+        const resourceId = this.props.match.params.resourceId;
+        const notificationData = {
+            userId,
+            resourceId
+        };
+
+        console.log(this.state.notificationId);
+        if (this.state.notificationId) {
+            deleteUnsubscribeStatusOfResource(userId, resourceId);
+        } else {
+            updateUnsubscribeStatusOfResource(notificationData);
+        }
+
+        this.setState({ notificationId: !this.state.notificationId });
     };
 
     toggleSubscribeAndUpdate = () => {
@@ -431,9 +450,10 @@ class ViewPaper extends Component {
                         <VisibilitySensor onChange={this.handleShowHeaderBar}>
                             <Container className="d-flex align-items-center">
                                 <h1 className="h4 mt-4 mb-4 flex-grow-1">View paper</h1>
-                                <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={this.toggleSubscribeAndUpdate}>
-                                    <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} /> {this.state.notificationId && <span>Unsubscribe</span>}
-                                    {!this.state.notificationId && <span>Subscribe</span>}
+                                <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={this.toggleSubscribeInformation}>
+                                    <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} />{' '}
+                                    {!this.state.notificationId && <span>Unsubscribe</span>}
+                                    {this.state.notificationId && <span>Subscribe</span>}
                                 </Button>
                                 <PaperMenuBar
                                     editMode={this.state.editMode}

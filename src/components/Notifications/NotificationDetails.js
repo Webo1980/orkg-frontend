@@ -34,6 +34,7 @@ const NotificationDetails = () => {
         setIsLoading(true);
         getNotificationsByUserId(user.id)
             .then(notifications => {
+                console.log(notificationList);
                 setNotificationList(notifications);
                 setIsLoading(false);
             })
@@ -46,28 +47,31 @@ const NotificationDetails = () => {
     return (
         <div>
             {notificationList.length === 0 && <span>There are no notifications.</span>}
-
-            {notificationList.length > 0 &&
-                notificationList.map(notification => (
-                    <Alert key={notification.id} className="m-1 p-1" show={show} variant="primary">
-                        <div>
-                            <span>
-                                <Link
-                                    to={reverse(ROUTES.VIEW_PAPER, {
-                                        resourceId: notification.resourceId,
-                                        contributionId: notification.notificationByUserId
-                                    })}
-                                >
-                                    {notification.newPaper && <span>A paper with the title - {notification.title} was added</span>}
-                                    {!notification.newPaper && <span>A paper with the title - {notification.title} was modified</span>}
-                                </Link>
-                            </span>
-                            <Button className="ml-4" onClick={() => deleteNotification(notification.id)} variant="outline-success">
-                                Mark as Read
-                            </Button>
-                        </div>
-                    </Alert>
-                ))}
+            <ul>
+                {notificationList.length > 0 &&
+                    notificationList.map(notification => (
+                        <li>
+                            <Alert key={notification.id} className="m-1 p-1" show={show}>
+                                <div>
+                                    <span>
+                                        <Link
+                                            to={reverse(ROUTES.VIEW_PAPER, {
+                                                resourceId: notification.resourceId,
+                                                contributionId: notification.notificationByUserId
+                                            })}
+                                        >
+                                            {notification.newPaper && <span>A paper with the title - {notification.title} was added</span>}
+                                            {!notification.newPaper && <span>A paper with the title - {notification.title} was modified</span>}
+                                        </Link>
+                                    </span>
+                                    <Button className="ml-4" onClick={() => deleteNotification(notification.id)} variant="outline-danger">
+                                        Delete
+                                    </Button>
+                                </div>
+                            </Alert>
+                        </li>
+                    ))}
+            </ul>
         </div>
     );
 };

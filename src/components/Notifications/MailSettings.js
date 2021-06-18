@@ -54,10 +54,16 @@ const MailSettings = () => {
                     <div className="ml-3">
                         <Input type="radio" value="-1" checked={selectedOption === -1} onChange={e => onTimeSelect(e.target.value)} />
                         <Label for="negativeOne" className="ml-2">
-                            I do not wish to receive any emails
+                            I do not wish to receive daily digest emails.
                         </Label>
                     </div>
                     <div className="ml-3">
+                        <Input type="radio" value="1" checked={selectedOption === 1} onChange={e => onTimeSelect(e.target.value)} />
+                        <Label for="One" className="ml-2">
+                            I wish to receive daily digest emails.
+                        </Label>
+                    </div>
+                    {/**<div className="ml-3">
                         <Input type="radio" value="6" checked={selectedOption === 6} onChange={e => onTimeSelect(e.target.value)} />
                         <Label for="six" className="ml-2">
                             6:00 (CET)
@@ -68,7 +74,7 @@ const MailSettings = () => {
                         <Label for="nine" className="ml-2">
                             19:00 (CET)
                         </Label>
-                    </div>
+                    </div>*/}
                     <div className="mt-3">
                         <Button onClick={setEmailCronJobTime}>Save Changes</Button>
                     </div>

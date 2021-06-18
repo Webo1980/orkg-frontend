@@ -3,6 +3,7 @@ import { submitDeleteRequest, submitGetRequest, submitPostRequest } from 'networ
 
 export const notificationsUrl = `${url}notifications/`;
 export const researchFieldsTreeUrl = `${url}researchfieldstree/`;
+export const unsubscribeUrl = `${url}unsubscribe/`;
 
 export const getNotificationsByUserId = userId => {
     return submitGetRequest(`${notificationsUrl}${encodeURIComponent(userId)}`);
@@ -30,6 +31,20 @@ export const unsubscribeFromResource = notificationId => {
 export const getNotificationByResourceAndUserId = (resourceId, userId) => {
     const getNotificationStatusUrl = notificationsUrl + 'resource/' + encodeURIComponent(resourceId) + '/user/' + encodeURIComponent(userId);
     return submitGetRequest(getNotificationStatusUrl);
+};
+
+export const getUnsubscribeByResourceAndUserId = (userId, resourceId) => {
+    const getNotificationStatusUrl = unsubscribeUrl + 'user/' + encodeURIComponent(userId) + '/resource/' + encodeURIComponent(resourceId);
+    return submitGetRequest(getNotificationStatusUrl);
+};
+
+export const updateUnsubscribeStatusOfResource = notificationData => {
+    return submitPostRequest(`${unsubscribeUrl}`, { 'Content-Type': 'application/json' }, notificationData);
+};
+
+export const deleteUnsubscribeStatusOfResource = (userId, resourceId) => {
+    const getNotificationStatusUrl = unsubscribeUrl + 'user/' + encodeURIComponent(userId) + '/resource/' + encodeURIComponent(resourceId);
+    return submitDeleteRequest(getNotificationStatusUrl);
 };
 
 export const updateResearchFieldNotifications = notificationResearchFields => {

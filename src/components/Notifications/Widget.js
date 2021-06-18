@@ -2018,7 +2018,7 @@ class Widget extends React.Component {
             })
             .catch(e => {
                 console.log(e);
-                toast.error('Failed to load notifications data');
+                //toast.error('Failed to load notifications data');
             });
     };
 

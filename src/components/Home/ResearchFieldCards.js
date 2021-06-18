@@ -112,6 +112,7 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
 
     const fetchResearchFieldsStats = () => {
         return getResearchFieldsStats().then(results => {
+            console.log(results);
             setStats(results);
         });
     };
