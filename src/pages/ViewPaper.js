@@ -28,9 +28,6 @@ import { getPaperData_ViewPaper } from 'utils';
 import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
-import { updateUnsubscribeStatusOfResource, deleteUnsubscribeStatusOfResource } from 'services/backend/notifications';
-import { faPaperPlane, faComments } from '@fortawesome/free-solid-svg-icons';
-import { unsubscribeFromResource, subscribeToResource, getUnsubscribeByResourceAndUserId } from 'services/backend/notifications';
 import { Button } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { NavLink } from 'react-router-dom';
@@ -319,100 +316,14 @@ class ViewPaper extends Component {
     getResourceNotificationStatus = (userId, resourceId) => {
         if (userId) {
             //getNotificationByResourceAndUserId(userId, resourceId)
-            getUnsubscribeByResourceAndUserId(userId, resourceId)
+            /*getUnsubscribeByResourceAndUserId(userId, resourceId)
                 .then(data => {
                     console.log('Status:', data);
                     this.setState({ notificationId: data });
                 })
                 .catch(error => {
                     toast.error('Error while loading notification data');
-                });
-        }
-    };
-
-    toggleSubscribeInformation = () => {
-        const userId = this.props.user.id;
-        const resourceId = this.props.match.params.resourceId;
-        const notificationData = {
-            userId,
-            resourceId
-        };
-
-        console.log(this.state.notificationId);
-        if (this.state.notificationId) {
-            deleteUnsubscribeStatusOfResource(userId, resourceId);
-        } else {
-            updateUnsubscribeStatusOfResource(notificationData);
-        }
-
-        this.setState({ notificationId: !this.state.notificationId });
-    };
-
-    toggleSubscribeAndUpdate = () => {
-        if (this.state.notificationId === null || this.state.notificationId === undefined) {
-            const arrNotificationData = [];
-            const notificationData = {
-                resourceId: this.props.match.params.resourceId,
-                userId: this.props.user.id,
-                resourceType: 0 //0=paper
-            };
-
-            arrNotificationData.push(notificationData);
-            //console.log(this.state.entirePaperData);
-            //authors
-            if (this.state.entirePaperData.authors) {
-                const arrAuthors = this.state.entirePaperData.authors;
-                arrAuthors.map(author => {
-                    const tempAuthorData = {
-                        resourceId: author.id,
-                        userId: this.props.user.id,
-                        resourceType: 4,
-                        statementId: author.statementId
-                    };
-                    return arrNotificationData.push(tempAuthorData);
-                });
-            }
-
-            if (this.state.entirePaperData.researchField) {
-                const tempRFData = {
-                    resourceId: this.state.entirePaperData.researchField.id,
-                    userId: this.props.user.id,
-                    resourceType: 3,
-                    statementId: this.state.entirePaperData.researchField.statementId
-                };
-                //research field
-                arrNotificationData.push(tempRFData);
-            }
-
-            //contributions
-            if (this.state.entirePaperData.contributions) {
-                const arrContributions = this.state.entirePaperData.contributions;
-                arrContributions.map(contribution => {
-                    const tempContributionData = {
-                        resourceId: contribution.id,
-                        userId: this.props.user.id,
-                        resourceType: 5,
-                        statementId: contribution.statementId
-                    };
-                    return arrNotificationData.push(tempContributionData);
-                });
-            }
-
-            subscribeToResource(arrNotificationData)
-                .then(response => {
-                    this.setState({ notificationId: response.id });
-                })
-                .catch(error => {
-                    toast.error('There was an error while subscribing to the paper');
-                });
-        } else {
-            unsubscribeFromResource(this.state.notificationId)
-                .then(response => {
-                    this.setState({ notificationId: null });
-                })
-                .catch(error => {
-                    toast.error('There was an error while unsubscribing to the paper');
-                });
+                });*/
         }
     };
 
@@ -450,11 +361,6 @@ class ViewPaper extends Component {
                         <VisibilitySensor onChange={this.handleShowHeaderBar}>
                             <Container className="d-flex align-items-center">
                                 <h1 className="h4 mt-4 mb-4 flex-grow-1">View paper</h1>
-                                <Button color="secondary" size="sm" style={{ marginLeft: 1 }} onClick={this.toggleSubscribeInformation}>
-                                    <Icon icon={faPaperPlane} style={{ margin: '2px 4px' }} />{' '}
-                                    {!this.state.notificationId && <span>Unsubscribe</span>}
-                                    {this.state.notificationId && <span>Subscribe</span>}
-                                </Button>
                                 <PaperMenuBar
                                     editMode={this.state.editMode}
                                     paperLink={paperLink}

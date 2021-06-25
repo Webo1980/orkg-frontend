@@ -13,10 +13,9 @@ export const deleteNotificationById = notificationId => {
     return submitDeleteRequest(`${notificationsUrl}${encodeURIComponent(notificationId)}`);
 };
 
-export const updateNotification = notificationData => {
-    const updateUrl = notificationsUrl + 'update';
-    console.log(updateUrl);
-    return submitPostRequest(updateUrl, { 'Content-Type': 'application/json' }, notificationData);
+export const getNotificationByResourceAndUserId = (resourceId, userId) => {
+    const getNotificationStatusUrl = notificationsUrl + 'resource/' + encodeURIComponent(resourceId) + '/user/' + encodeURIComponent(userId);
+    return submitGetRequest(getNotificationStatusUrl);
 };
 
 export const subscribeToResource = notificationData => {
@@ -27,34 +26,51 @@ export const subscribeToResource = notificationData => {
 export const unsubscribeFromResource = notificationId => {
     return submitDeleteRequest(`${notificationsUrl}${notificationId}`);
 };
-
-export const getNotificationByResourceAndUserId = (resourceId, userId) => {
-    const getNotificationStatusUrl = notificationsUrl + 'resource/' + encodeURIComponent(resourceId) + '/user/' + encodeURIComponent(userId);
-    return submitGetRequest(getNotificationStatusUrl);
+/*
+export const updateNotification = notificationData => {
+    const updateUrl = notificationsUrl + 'update';
+    console.log(updateUrl);
+    return submitPostRequest(updateUrl, { 'Content-Type': 'application/json' }, notificationData);
 };
+
+
+
 
 export const getUnsubscribeByResourceAndUserId = (userId, resourceId) => {
     const getNotificationStatusUrl = unsubscribeUrl + 'user/' + encodeURIComponent(userId) + '/resource/' + encodeURIComponent(resourceId);
     return submitGetRequest(getNotificationStatusUrl);
 };
-
+*/
 export const updateUnsubscribeStatusOfResource = notificationData => {
     return submitPostRequest(`${unsubscribeUrl}`, { 'Content-Type': 'application/json' }, notificationData);
 };
 
-export const deleteUnsubscribeStatusOfResource = (userId, resourceId) => {
+/*export const deleteUnsubscribeStatusOfResource = (userId, resourceId) => {
     const getNotificationStatusUrl = unsubscribeUrl + 'user/' + encodeURIComponent(userId) + '/resource/' + encodeURIComponent(resourceId);
     return submitDeleteRequest(getNotificationStatusUrl);
-};
+};*/
 
-export const updateResearchFieldNotifications = notificationResearchFields => {
-    console.log('Post:', notificationResearchFields);
-    return submitPostRequest(researchFieldsTreeUrl, { 'Content-Type': 'application/json' }, notificationResearchFields);
+export const updateResearchFieldNotifications = notificationData => {
+    console.log('Post:', notificationData);
+    console.log('testing update...');
+    return submitPostRequest(researchFieldsTreeUrl, { 'Content-Type': 'application/json' }, notificationData);
 };
 
 export const getRFTreeForNotifications = userId => {
     const url = researchFieldsTreeUrl + 'userId/' + userId;
     return submitGetRequest(url);
+};
+
+export const getSubscriptionStatus = (userId, resourceId) => {
+    const url = researchFieldsTreeUrl + 'userId/' + userId + '/resource/' + resourceId;
+    return submitGetRequest(url);
+};
+
+export const deleteSubscriptionStatus = (userId, resourceId) => {
+    const url = researchFieldsTreeUrl + 'userId/' + userId + '/resource/' + resourceId;
+    const res = submitDeleteRequest(url);
+    console.log(res);
+    return res;
 };
 
 export const updateNotificationEmailSettings = notificationEmailData => {

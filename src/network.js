@@ -144,9 +144,19 @@ export const submitDeleteRequest = (url, headers, data) => {
         fetch(url, { method: 'DELETE', headers: myHeaders, body: JSON.stringify(data) })
             .then(response => {
                 if (!response.ok) {
-                    reject(new Error(`Error response. (${response.status}) ${response.statusText}`));
+                    const json = response.json();
+                    if (json.then) {
+                        json.then(reject);
+                    } else {
+                        reject(new Error(`Error response. (${response.status}) ${response.statusText}`));
+                    }
                 } else {
-                    return resolve();
+                    const json = response.json();
+                    if (json.then) {
+                        json.then(resolve).catch(reject);
+                    } else {
+                        return resolve(json);
+                    }
                 }
             })
             .catch(reject);

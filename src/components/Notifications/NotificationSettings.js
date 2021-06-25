@@ -7,6 +7,7 @@ import Widget from './Widget';
 import { useSelector } from 'react-redux';
 import NotificationDetails from './NotificationDetails';
 import MailSettings from './MailSettings';
+import ResearchFieldSubscriptions from './ResearchFieldSubscriptions';
 
 export const StyledSettingsMenu = styled.div`
     list-style: none;
@@ -90,7 +91,8 @@ const NotificationSettings = () => {
                                 <NotificationDetails />
                             </TabPane>
                             <TabPane tabId="general">
-                                <Widget user={user} />
+                                {/*<Widget user={user} />*/}
+                                <ResearchFieldSubscriptions />
                             </TabPane>
                             <TabPane tabId="mail">
                                 <MailSettings />
