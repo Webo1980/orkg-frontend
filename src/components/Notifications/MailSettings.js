@@ -58,7 +58,7 @@ const MailSettings = () => {
                         </Label>
                     </div>
                     <div className="ml-3">
-                        <Input type="radio" value="1" checked={selectedOption === 1} onChange={e => onTimeSelect(e.target.value)} />
+                        <Input type="radio" value="18" checked={selectedOption === 18} onChange={e => onTimeSelect(e.target.value)} />
                         <Label for="One" className="ml-2">
                             I wish to receive daily digest emails.
                         </Label>

@@ -77,7 +77,7 @@ export const updateNotificationEmailSettings = notificationEmailData => {
     const url = notificationsUrl + 'email';
     console.log(url);
     console.log('Post:', notificationEmailData);
-    return submitPostRequest(url, { ' Content-Type': 'application/json ' }, notificationEmailData);
+    return submitPostRequest(url, { 'Content-Type': 'application/json' }, notificationEmailData);
 };
 
 export const getNotificationEmailSettings = userId => {
