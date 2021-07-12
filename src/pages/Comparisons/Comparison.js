@@ -43,10 +43,11 @@ import { NavLink } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import env from '@beam-australia/react-env';
 import AppliedRule from 'components/Comparison/Filters/AppliedRule';
+import { useSelector, useDispatch } from 'react-redux';
+import { setComparisonConfigurationAttribute } from 'actions/comparison';
 
 function Comparison(props) {
     const {
-        metaData,
         contributions,
         properties,
         data,
@@ -67,18 +68,15 @@ function Comparison(props) {
         isFailedLoadingComparisonResult,
         createdBy,
         provenance,
-        researchField,
-        setMetaData,
-        setComparisonType,
         toggleProperty,
         onSortPropertiesEnd,
         toggleTranspose,
         removeContribution,
         addContributions,
+        applyAllRules,
         updateRulesOfProperty,
         removeRule,
         generateUrl,
-        setResponseHash,
         setUrlNeedsToUpdate,
         setShortLink,
         loadCreatedBy,
@@ -87,6 +85,8 @@ function Comparison(props) {
         handleEditContributions
     } = useComparison({});
 
+    const comparisonObject = useSelector(state => state.comparison.object);
+    const dispatch = useDispatch();
     const params = useParams();
     const { versions, isLoadingVersions, hasNextVersion, loadVersions } = useComparisonVersions({ comparisonId: params.comparisonId });
 
@@ -152,8 +152,8 @@ function Comparison(props) {
 
     const handleChangeType = type => {
         setUrlNeedsToUpdate(true);
-        setResponseHash(null);
-        setComparisonType(type);
+        dispatch(setComparisonConfigurationAttribute('responseHash', null));
+        dispatch(setComparisonConfigurationAttribute('comparisonType', type));
         setDropdownMethodOpen(false);
     };
 
@@ -179,7 +179,7 @@ function Comparison(props) {
     };
 
     const getObservatoryInfo = async () => {
-        const resourceId = metaData.id;
+        const resourceId = comparisonObject.id;
         const comparisonResource = await getResource(resourceId);
         await loadCreatedBy(comparisonResource.created_by);
         loadProvenanceInfos(comparisonResource.observatory_id, comparisonResource.organization_id);
@@ -200,7 +200,7 @@ function Comparison(props) {
 
     return (
         <div>
-            <Breadcrumbs researchFieldId={metaData?.subject ? metaData?.subject.id : researchField ? researchField.id : null} />
+            <Breadcrumbs researchFieldId={comparisonObject?.researchField ? comparisonObject?.researchField.id : null} />
             <ContainerAnimated className="d-flex align-items-center">
                 <h1 className="h4 mt-4 mb-4 flex-grow-1">
                     Contribution comparison{' '}
@@ -240,7 +240,7 @@ function Comparison(props) {
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
-                            {!!metaData.id ? (
+                            {!!comparisonObject.id ? (
                                 <Button
                                     color="secondary"
                                     size="sm"
@@ -321,12 +321,12 @@ function Comparison(props) {
                                                 data,
                                                 contributions,
                                                 properties,
-                                                metaData.id
+                                                comparisonObject.id
                                                     ? {
-                                                          title: metaData.title,
-                                                          description: metaData.description,
-                                                          creator: metaData.createdBy,
-                                                          date: metaData.createdAt
+                                                          title: comparisonObject.label,
+                                                          description: comparisonObject.description,
+                                                          creator: comparisonObject.createdBy,
+                                                          date: comparisonObject.createdAt
                                                       }
                                                     : { title: '', description: '', creator: '', date: '' }
                                             )
@@ -334,15 +334,15 @@ function Comparison(props) {
                                     >
                                         Export as RDF
                                     </DropdownItem>
-                                    {metaData?.id && metaData?.doi && (
+                                    {comparisonObject?.id && comparisonObject?.doi && (
                                         <DropdownItem onClick={() => setShowExportCitationsDialog(v => !v)}>Export Citation</DropdownItem>
                                     )}
-                                    {metaData?.id && (
+                                    {comparisonObject?.id && (
                                         <DropdownItem
                                             tag="a"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            href={`https://mybinder.org/v2/gl/TIBHannover%2Forkg%2Forkg-notebook-boilerplate/HEAD?urlpath=notebooks%2FComparison.ipynb%3Fcomparison_id%3D%22${metaData.id}%22%26autorun%3Dtrue`}
+                                            href={`https://mybinder.org/v2/gl/TIBHannover%2Forkg%2Forkg-notebook-boilerplate/HEAD?urlpath=notebooks%2FComparison.ipynb%3Fcomparison_id%3D%22${comparisonObject.id}%22%26autorun%3Dtrue`}
                                         >
                                             Jupyter Notebook <Icon size="sm" icon={faExternalLinkAlt} />
                                         </DropdownItem>
@@ -368,10 +368,10 @@ function Comparison(props) {
                                             </DropdownItem>
                                         </>
                                     )}
-                                    {metaData?.id && (
+                                    {comparisonObject?.id && (
                                         <>
                                             <DropdownItem divider />
-                                            <DropdownItem tag={NavLink} exact to={reverse(ROUTES.RESOURCE, { id: metaData.id })}>
+                                            <DropdownItem tag={NavLink} exact to={reverse(ROUTES.RESOURCE, { id: comparisonObject.id })}>
                                                 View resource
                                             </DropdownItem>
                                         </>
@@ -384,11 +384,11 @@ function Comparison(props) {
             </ContainerAnimated>
 
             {!isLoadingVersions && hasNextVersion && (
-                <NewerVersionWarning versions={versions} comparisonId={metaData?.id || metaData?.hasPreviousVersion?.id} />
+                <NewerVersionWarning versions={versions} comparisonId={comparisonObject?.id || comparisonObject?.hasPreviousVersion?.id} />
             )}
 
             <ContainerAnimated className="box rounded pt-4 pb-4 pl-5 pr-5 clearfix position-relative" style={containerStyle}>
-                <ShareLinkMarker typeOfLink="comparison" title={metaData?.title} />
+                <ShareLinkMarker typeOfLink="comparison" title={comparisonObject?.label} />
                 {!isLoadingMetaData && (isFailedLoadingComparisonResult || isFailedLoadingMetaData) && (
                     <div>
                         {isFailedLoadingComparisonResult && contributionsList.length < 2 ? (
@@ -425,12 +425,12 @@ function Comparison(props) {
                     {!isFailedLoadingMetaData && !isFailedLoadingComparisonResult && (
                         <div className="p-0 d-flex align-items-start">
                             <div className="flex-grow-1">
-                                <h2 className="h4 mb-4 mt-4">{metaData.title ? metaData.title : 'Compare'}</h2>
+                                <h2 className="h4 mb-4 mt-4">{comparisonObject.label ? comparisonObject.label : 'Compare'}</h2>
 
-                                {!isFailedLoadingMetaData && <ComparisonMetaData metaData={metaData} />}
+                                {!isFailedLoadingMetaData && <ComparisonMetaData metaData={comparisonObject} />}
                             </div>
 
-                            {metaData.id && provenance && <ObservatoryBox provenance={provenance} />}
+                            {comparisonObject.id && provenance && <ObservatoryBox provenance={provenance} />}
                         </div>
                     )}
                     {!isFailedLoadingMetaData && !isFailedLoadingComparisonResult && (
@@ -461,7 +461,7 @@ function Comparison(props) {
                                 contributionsList.length > 1 ? (
                                     <div className="mt-1">
                                         {integrateData({
-                                            metaData,
+                                            metaData: comparisonObject,
                                             contributions,
                                             properties,
                                             data,
@@ -469,9 +469,9 @@ function Comparison(props) {
                                             predicatesList
                                         }) && (
                                             <PreviewVisualizationComparison
-                                                comparisonId={metaData.id}
+                                                comparisonId={comparisonObject.id}
                                                 expandVisualization={expandVisualization}
-                                                visualizations={metaData.visualizations}
+                                                visualizations={comparisonObject.visualizations}
                                             />
                                         )}
 
@@ -502,15 +502,15 @@ function Comparison(props) {
                 <div className="mt-3 clearfix">
                     {contributionsList.length > 1 && !isLoadingComparisonResult && (
                         <>
-                            <RelatedResources resourcesStatements={metaData.resources ? metaData.resources : []} />
-                            <RelatedFigures figureStatements={metaData.figures ? metaData.figures : []} />
+                            <RelatedResources resourcesStatements={comparisonObject.resources ? comparisonObject.resources : []} />
+                            <RelatedFigures figureStatements={comparisonObject.figures ? comparisonObject.figures : []} />
                         </>
                     )}
-                    {!isFailedLoadingMetaData && metaData.references && metaData.references.length > 0 && (
+                    {!isFailedLoadingMetaData && comparisonObject.references && comparisonObject.references.length > 0 && (
                         <div style={{ lineHeight: 1.5 }}>
                             <h3 className="mt-5 h5">Data sources</h3>
                             <ul>
-                                {metaData.references.map((reference, index) => (
+                                {comparisonObject.references.map((reference, index) => (
                                     <li key={`ref${index}`}>
                                         <small>
                                             <i>
@@ -525,8 +525,8 @@ function Comparison(props) {
                 </div>
             </ContainerAnimated>
 
-            {metaData.id && (
-                <ProvenanceBox creator={createdBy} provenance={provenance} changeObservatory={getObservatoryInfo} resourceId={metaData.id} />
+            {comparisonObject.id && (
+                <ProvenanceBox creator={createdBy} provenance={provenance} changeObservatory={getObservatoryInfo} resourceId={comparisonObject.id} />
             )}
             <SelectProperties
                 properties={properties}
@@ -536,6 +536,7 @@ function Comparison(props) {
                 toggleProperty={toggleProperty}
                 onSortEnd={onSortPropertiesEnd}
             />
+
             <Share
                 showDialog={showShareDialog}
                 toggle={() => setShowShareDialog(v => !v)}
@@ -543,16 +544,16 @@ function Comparison(props) {
                 comparisonURLConfig={comparisonURLConfig}
                 contributionsList={contributionsList}
                 comparisonType={comparisonType}
-                comparisonId={metaData?.id}
+                comparisonId={comparisonObject?.id}
                 responseHash={responseHash ?? ''}
-                setResponseHash={setResponseHash}
+                setResponseHash={hash => dispatch(setComparisonConfigurationAttribute('responseHash', hash))}
                 shortLink={shortLink}
                 setShortLink={setShortLink}
-                subject={!metaData?.subject && researchField ? researchField : metaData?.subject}
+                subject={comparisonObject?.researchField}
             />
             {!isLoadingVersions && versions?.length > 1 && showComparisonVersions && (
                 <HistoryModal
-                    comparisonId={metaData?.id || metaData?.hasPreviousVersion?.id}
+                    comparisonId={comparisonObject?.id || comparisonObject?.hasPreviousVersion?.id}
                     toggle={() => setShowComparisonVersions(v => !v)}
                     showDialog={showComparisonVersions}
                 />
@@ -560,17 +561,16 @@ function Comparison(props) {
             <Publish
                 showDialog={showPublishDialog}
                 toggle={() => setShowPublishDialog(v => !v)}
-                comparisonId={metaData?.id}
-                doi={metaData?.doi}
-                metaData={!metaData?.subject && researchField ? { ...metaData, subject: researchField } : metaData}
+                comparisonId={comparisonObject?.id}
+                doi={comparisonObject?.doi}
+                metaData={!comparisonObject?.researchField ? { ...comparisonObject } : comparisonObject}
                 publicURL={publicURL}
-                setMetaData={setMetaData}
                 contributionsList={contributionsList}
                 predicatesList={predicatesList}
                 comparisonType={comparisonType}
                 responseHash={responseHash ?? ''}
                 comparisonURLConfig={comparisonURLConfig}
-                authors={metaData?.authors}
+                authors={comparisonObject?.authors}
                 loadCreatedBy={loadCreatedBy}
                 loadProvenanceInfos={loadProvenanceInfos}
                 data={data}
@@ -591,18 +591,18 @@ function Comparison(props) {
                 contributionsList={contributionsList}
                 comparisonType={comparisonType}
                 responseHash={responseHash ?? ''}
-                setResponseHash={setResponseHash}
-                title={metaData?.title}
-                description={metaData?.description}
-                comparisonId={metaData?.id}
+                setResponseHash={hash => dispatch(setComparisonConfigurationAttribute('responseHash', hash))}
+                title={comparisonObject?.label}
+                description={comparisonObject?.description}
+                comparisonId={comparisonObject?.id}
                 shortLink={shortLink}
                 setShortLink={setShortLink}
             />
             <ExportCitation
                 showDialog={showExportCitationsDialog}
                 toggle={() => setShowExportCitationsDialog(v => !v)}
-                DOI={metaData?.doi}
-                comparisonId={metaData?.id}
+                DOI={comparisonObject?.doi}
+                comparisonId={comparisonObject?.id}
             />
 
             <AddVisualizationModal
@@ -610,7 +610,7 @@ function Comparison(props) {
                 showDialog={showVisualizationModal}
                 // Some data we track as input for the new data model TODO Check what we need
                 initialData={{
-                    metaData,
+                    metaData: comparisonObject,
                     contributions,
                     properties,
                     data,
@@ -619,7 +619,7 @@ function Comparison(props) {
                 }}
                 closeOnExport={closeOnExport}
                 updatePreviewComponent={() => {
-                    loadVisualizations(metaData.id);
+                    loadVisualizations(comparisonObject.id);
                 }}
                 useReconstructedData={applyReconstruction}
             />

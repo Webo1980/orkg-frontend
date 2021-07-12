@@ -42,6 +42,8 @@ import { Link } from 'react-router-dom';
 import { getPropertyObjectFromData, filterObjectOfStatementsByPredicateAndClass } from 'utils';
 import styled from 'styled-components';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
+import { setComparisonDoi } from 'actions/comparison';
+import { useSelector, useDispatch } from 'react-redux';
 import { slugify } from 'utils';
 import { PREDICATES, CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
 import env from '@beam-australia/react-env';
@@ -83,15 +85,17 @@ const AuthorTag = styled.div`
 `;
 
 function Publish(props) {
+    const comparisonObject = useSelector(state => state.comparison.object);
+    const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
     const history = useHistory();
     const [assignDOI, setAssignDOI] = useState(false);
-    const [title, setTitle] = useState(props.metaData && props.metaData.title ? props.metaData.title : '');
-    const [description, setDescription] = useState(props.metaData && props.metaData.description ? props.metaData.description : '');
+    const [title, setTitle] = useState(comparisonObject && comparisonObject.label ? comparisonObject.label : '');
+    const [description, setDescription] = useState(comparisonObject && comparisonObject.description ? comparisonObject.description : '');
     const [references, setReferences] = useState(
-        props.metaData?.references && props.metaData.references.length > 0 ? props.metaData.references : ['']
+        comparisonObject?.references && comparisonObject.references.length > 0 ? comparisonObject.references : ['']
     );
-    const [subject, setSubject] = useState(props.metaData && props.metaData.subject ? props.metaData.subject : undefined);
+    const [subject, setSubject] = useState(comparisonObject && comparisonObject.subject ? comparisonObject.subject : undefined);
     const [comparisonCreators, setComparisonCreators] = useState(props.authors ?? []);
 
     const handleCreatorsChange = creators => {
@@ -100,12 +104,12 @@ function Publish(props) {
     };
 
     useEffect(() => {
-        setTitle(props.metaData && props.metaData.title ? props.metaData.title : '');
-        setDescription(props.metaData && props.metaData.description ? props.metaData.description : '');
-        setReferences(props.metaData?.references && props.metaData.references.length > 0 ? props.metaData.references : ['']);
-        setSubject(props.metaData && props.metaData.subject ? props.metaData.subject : undefined);
-        setComparisonCreators(props.authors ? props.authors : []);
-    }, [props.metaData, props.authors]);
+        setTitle(comparisonObject && comparisonObject.label ? comparisonObject.label : '');
+        setDescription(comparisonObject && comparisonObject.description ? comparisonObject.description : '');
+        setReferences(comparisonObject?.references && comparisonObject.references.length > 0 ? comparisonObject.references : ['']);
+        setSubject(comparisonObject && comparisonObject.subject ? comparisonObject.subject : undefined);
+        setComparisonCreators(comparisonObject.authors ? comparisonObject.authors : []);
+    }, [comparisonObject]);
 
     // TODO: improve code by using reduce function and unify code with paper edit dialog
     const saveCreators = async (creators, resourceId) => {
@@ -216,10 +220,10 @@ function Publish(props) {
                                         props.comparisonType === 'merge' ? predicateID : getPropertyObjectFromData(props.data, { id: predicateID });
                                     return { '@id': property.id };
                                 }),
-                                ...(props.metaData.hasPreviousVersion && {
+                                ...(comparisonObject.hasPreviousVersion && {
                                     [PREDICATES.HAS_PREVIOUS_VERSION]: [
                                         {
-                                            '@id': props.metaData.hasPreviousVersion.id
+                                            '@id': comparisonObject.hasPreviousVersion.id
                                         }
                                     ]
                                 })
@@ -277,10 +281,7 @@ function Publish(props) {
                     `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
                 )
                     .then(doiResponse => {
-                        props.setMetaData(prevMetaData => ({
-                            ...prevMetaData,
-                            doi: doiResponse.data.attributes.doi
-                        }));
+                        dispatch(setComparisonDoi(doiResponse.data.attributes.doi));
                         createLiteral(doiResponse.data.attributes.doi).then(doiLiteral => {
                             createResourceStatement(comparisonId, PREDICATES.HAS_DOI, doiLiteral.id);
                             setIsLoading(false);
@@ -318,8 +319,12 @@ function Publish(props) {
         <Modal size="lg" isOpen={props.showDialog} toggle={props.toggle}>
             <ModalHeader toggle={props.toggle}>Publish comparison</ModalHeader>
             <ModalBody>
-                {!props.comparisonId && props.metaData.hasPreviousVersion && props.nextVersions?.length > 0 && (
-                    <NewerVersionWarning versions={props.nextVersions} comparisonId={props.metaData.hasPreviousVersion.id} showViewHistory={false} />
+                {!props.comparisonId && comparisonObject.hasPreviousVersion && props.nextVersions?.length > 0 && (
+                    <NewerVersionWarning
+                        versions={props.nextVersions}
+                        comparisonId={comparisonObject.hasPreviousVersion.id}
+                        showViewHistory={false}
+                    />
                 )}
                 <Alert color="info">
                     {!props.comparisonId && (
@@ -335,17 +340,17 @@ function Publish(props) {
                         <>This comparison is already published, you can find the persistent link and the DOI below.</>
                     )}
                 </Alert>
-                {!props.comparisonId && props.metaData.hasPreviousVersion && (
+                {!props.comparisonId && comparisonObject.hasPreviousVersion && (
                     <Alert color="info">
                         You are publishing a new version of a published comparison. The comparison you are about to publish will be marked as a new
                         version of the{' '}
-                        <Link target="_blank" to={reverse(ROUTES.COMPARISON, { comparisonId: props.metaData.hasPreviousVersion.id })}>
+                        <Link target="_blank" to={reverse(ROUTES.COMPARISON, { comparisonId: comparisonObject.hasPreviousVersion.id })}>
                             original comparison{' '}
                         </Link>
-                        {props.metaData.hasPreviousVersion.created_by !== MISC.UNKNOWN_ID && (
+                        {comparisonObject.hasPreviousVersion.created_by !== MISC.UNKNOWN_ID && (
                             <>
                                 {' created by '}
-                                <UserAvatar showDisplayName={true} userId={props.metaData.hasPreviousVersion.created_by} />
+                                <UserAvatar showDisplayName={true} userId={comparisonObject.hasPreviousVersion.created_by} />
                             </>
                         )}
                         .
@@ -595,9 +600,7 @@ Publish.propTypes = {
     comparisonId: PropTypes.string,
     doi: PropTypes.string,
     authors: PropTypes.array,
-    setMetaData: PropTypes.func.isRequired,
     publicURL: PropTypes.string.isRequired,
-    metaData: PropTypes.object.isRequired,
     contributionsList: PropTypes.array.isRequired,
     predicatesList: PropTypes.array.isRequired,
     comparisonType: PropTypes.string,

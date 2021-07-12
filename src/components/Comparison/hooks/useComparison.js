@@ -3,6 +3,23 @@ import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'serv
 import { getContributorInformationById } from 'services/backend/contributors';
 import { getObservatoryAndOrganizationInformation } from 'services/backend/observatories';
 import { getResource } from 'services/backend/resources';
+import {
+    updateVisualizations,
+    setComparisonObject,
+    clearComparisonId,
+    setComparisonSetPreviousVersion,
+    setComparisonSetResearchField,
+    setComparisonConfiguration,
+    setComparisonContributionList,
+    setComparisonPredicatesList,
+    setComparisonConfigurationAttribute,
+    setComparisonProperties,
+    setComparisonContributions,
+    setComparisonData,
+    setComparisonFilterControlData,
+    setComparisonMatrixData
+} from 'actions/comparison';
+import { useSelector, useDispatch } from 'react-redux';
 import { getComparison, getResourceData } from 'services/similarity/index';
 import {
     extendPropertyIds,
@@ -13,10 +30,12 @@ import {
     get_error_message,
     applyRule,
     getRuleByProperty,
-    getComparisonData
+    getComparisonData,
+    getComparisonConfiguration
 } from 'utils';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
 import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
+import { DEFAULT_COMPARISON_METHOD } from 'constants/misc';
 import { reverse } from 'named-urls';
 import { flatten, groupBy, intersection, findIndex, cloneDeep, isEmpty, uniq, without } from 'lodash';
 import arrayMove from 'array-move';
@@ -25,47 +44,15 @@ import queryString from 'query-string';
 import { usePrevious } from 'react-use';
 import Confirm from 'reactstrap-confirm';
 
-const DEFAULT_COMPARISON_METHOD = 'path';
-
 function useComparison({ id }) {
     const location = useLocation();
     const history = useHistory();
     const params = useParams();
     const comparisonId = id || params.comparisonId;
 
-    /**
-     * @typedef {Object} MetaData
-     * @property {String} id comparison ID
-     * @property {String} title comparison title
-     * @property {String} description comparison description
-     * @property {Array[String]} references comparison data sources
-     * @property {String} createdAt Comparison Creation Time
-     * @property {String|Object} createdBy Comparison resource creator
-     * @property {Array[Object]} resources Comparison related resources
-     * @property {Array[Object]} figures Comparison related figures
-     * @property {Array[Object]} visualizations Comparison visualizations
-     * @property {Array[Object]} authors Comparison authors
-     */
-    /**
-     * @typedef {Function} MetaDataSetter Set Metadata
-     */
-    /**
-     * @type {[MetaData, MetaDataSetter]} Loading
-     */
-    const [metaData, setMetaData] = useState({});
-    const [properties, setProperties] = useState([]);
-
-    const [contributions, setContributions] = useState([]);
-    const [data, setData] = useState({});
-    const [filterControlData, setFilterControlData] = useState([]);
     const [errors, setErrors] = useState([]);
-    const [matrixData, setMatrixData] = useState([]);
-
     const [createdBy, setCreatedBy] = useState(null);
     const [provenance, setProvenance] = useState(null);
-
-    // research fields (only the research field of the first contribution)
-    const [researchField, setResearchField] = useState(null);
 
     // urls
     const [urlNeedsToUpdate, setUrlNeedsToUpdate] = useState(false);
@@ -73,12 +60,20 @@ function useComparison({ id }) {
     const [comparisonURLConfig, setComparisonURLConfig] = useState(window.location.search);
     const [shortLink, setShortLink] = useState('');
 
+    const dispatch = useDispatch();
+    const comparisonObject = useSelector(state => state.comparison.object);
+    const contributionsList = useSelector(state => state.comparison.configuration.contributionsList);
+    const predicatesList = useSelector(state => state.comparison.configuration.predicatesList);
+    const transpose = useSelector(state => state.comparison.configuration.transpose);
+    const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
+    const responseHash = useSelector(state => state.comparison.configuration.responseHash);
+    const data = useSelector(state => state.comparison.data);
+    const matrixData = useSelector(state => state.comparison.matrixData);
+    const contributions = useSelector(state => state.comparison.contributions);
+    const properties = useSelector(state => state.comparison.properties);
+    const filterControlData = useSelector(state => state.comparison.filterControlData);
+
     // comparison config
-    const [transpose, setTranspose] = useState(false);
-    const [comparisonType, setComparisonType] = useState(DEFAULT_COMPARISON_METHOD);
-    const [responseHash, setResponseHash] = useState(null);
-    const [contributionsList, setContributionsList] = useState([]);
-    const [predicatesList, setPredicatesList] = useState([]);
     const [shouldFetchLiveComparison, setShouldFetchLiveComparison] = useState(false);
 
     // reference to previous comparison type
@@ -112,7 +107,7 @@ function useComparison({ id }) {
                 false,
                 CLASSES.VISUALIZATION
             );
-            setMetaData({ ...metaData, visualizations: visualizations });
+            dispatch(updateVisualizations(visualizations));
         });
     };
     /**
@@ -138,26 +133,17 @@ function useComparison({ id }) {
                     // Get meta data and config of a comparison
                     getStatementsBySubject({ id: cId }).then(statements => {
                         const comparisonObject = getComparisonData(comparisonResource, statements);
-                        setMetaData({
-                            ...comparisonObject,
-                            title: comparisonObject.label,
-                            createdAt: comparisonObject.created_at,
-                            createdBy: comparisonObject.created_by
-                        });
+
+                        dispatch(setComparisonObject(comparisonObject));
 
                         const url = configurationData.data.url;
                         if (url) {
-                            setResponseHash(getParamFromQueryString(url.substring(url.indexOf('?')), 'response_hash'));
-                            setComparisonType(getParamFromQueryString(url.substring(url.indexOf('?')), 'type') ?? DEFAULT_COMPARISON_METHOD);
-                            setTranspose(getParamFromQueryString(url.substring(url.indexOf('?')), 'transpose', true));
-                            setPredicatesList(getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'properties'));
-                            const contributionsIDs =
-                                without(uniq(getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'contributions')), undefined, null, '') ??
-                                [];
-                            setContributionsList(contributionsIDs);
+                            dispatch(setComparisonConfiguration(getComparisonConfiguration(url)));
                         } else {
-                            setPredicatesList(
-                                filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_PROPERTY, false)?.map(p => p.id)
+                            dispatch(
+                                setComparisonPredicatesList(
+                                    filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_PROPERTY, false)?.map(p => p.id)
+                                )
                             );
                             const contributionsIDs =
                                 without(
@@ -173,7 +159,7 @@ function useComparison({ id }) {
                                     null,
                                     ''
                                 ) ?? [];
-                            setContributionsList(contributionsIDs);
+                            dispatch(setComparisonContributionList(contributionsIDs));
                         }
                         if (
                             !filterObjectOfStatementsByPredicateAndClass(
@@ -330,15 +316,13 @@ function useComparison({ id }) {
      * @param {Array} propertyId property ID
      */
     const updateRulesOfProperty = (newRules, propertyId) => {
-        setFilterControlData(pervState => {
-            const newState = [...pervState];
-            const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
-            const toChange = { ...newState[toChangeIndex] };
-            toChange.rules = newRules;
-            newState[toChangeIndex] = toChange;
-            applyAllRules(newState);
-            return newState;
-        });
+        const newState = [...filterControlData];
+        const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
+        const toChange = { ...newState[toChangeIndex] };
+        toChange.rules = newRules;
+        newState[toChangeIndex] = toChange;
+        applyAllRules(newState);
+        dispatch(setComparisonFilterControlData(newState));
     };
 
     /**
@@ -349,15 +333,13 @@ function useComparison({ id }) {
      * @param {String} value Filter value
      */
     const removeRule = ({ propertyId, type, value }) => {
-        setFilterControlData(pervState => {
-            const newState = [...pervState];
-            const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
-            const toChange = { ...newState[toChangeIndex] };
-            toChange.rules = toChange.rules.filter(item => !(item.propertyId === propertyId && item.type === type && item.value === value));
-            newState[toChangeIndex] = toChange;
-            applyAllRules(newState);
-            return newState;
-        });
+        const newState = [...filterControlData];
+        const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
+        const toChange = { ...newState[toChangeIndex] };
+        toChange.rules = toChange.rules.filter(item => !(item.propertyId === propertyId && item.type === type && item.value === value));
+        newState[toChangeIndex] = toChange;
+        applyAllRules(newState);
+        dispatch(setComparisonFilterControlData(newState));
     };
 
     /**
@@ -386,8 +368,8 @@ function useComparison({ id }) {
                     subjectId: comparisonData.contributions[0].paperId,
                     predicateId: PREDICATES.HAS_RESEARCH_FIELD
                 }).then(s => {
-                    if (s.length && !metaData?.subject) {
-                        setResearchField(s[0].object);
+                    if (s.length && !comparisonObject?.researchField) {
+                        dispatch(setComparisonSetResearchField(s[0].object));
                     }
                     return Promise.resolve(comparisonData);
                 });
@@ -404,23 +386,27 @@ function useComparison({ id }) {
 
                 comparisonData.properties = extendAndSortProperties(comparisonData);
 
-                setContributions(comparisonData.contributions);
-                setProperties(comparisonData.properties);
-                setData(comparisonData.data);
-                setFilterControlData(generateFilterControlData(comparisonData.contributions, comparisonData.properties, comparisonData.data));
+                dispatch(setComparisonContributions(comparisonData.contributions));
+                dispatch(setComparisonProperties(comparisonData.properties));
+                dispatch(setComparisonData(comparisonData.data));
+                dispatch(
+                    setComparisonFilterControlData(
+                        generateFilterControlData(comparisonData.contributions, comparisonData.properties, comparisonData.data)
+                    )
+                );
                 setIsLoadingComparisonResult(false);
                 setIsFailedLoadingComparisonResult(false);
 
                 if (comparisonData.response_hash) {
-                    setResponseHash(comparisonData.response_hash);
+                    dispatch(setComparisonConfigurationAttribute('responseHash', comparisonData.response_hash));
                 } else {
-                    setResponseHash(responseHash);
+                    dispatch(setComparisonConfigurationAttribute('responseHash', responseHash));
                 }
             })
             .then(() => {
                 if (!comparisonId && queryString.parse(location.search)?.hasPreviousVersion) {
                     getResource(queryString.parse(location.search).hasPreviousVersion).then(prevVersion =>
-                        setMetaData({ ...metaData, hasPreviousVersion: prevVersion })
+                        dispatch(setComparisonSetPreviousVersion(prevVersion))
                     );
                 }
             })
@@ -440,8 +426,8 @@ function useComparison({ id }) {
      */
     const toggleProperty = id => {
         const newProperties = properties.map(property => (property.id === id ? { ...property, active: !property.active } : property));
-        setProperties(newProperties);
-        setPredicatesList(activatedPropertiesToList(newProperties));
+        dispatch(setComparisonProperties(newProperties));
+        dispatch(setComparisonPredicatesList(activatedPropertiesToList(newProperties)));
         setUrlNeedsToUpdate(true);
     };
 
@@ -450,8 +436,8 @@ function useComparison({ id }) {
      */
     const onSortPropertiesEnd = ({ oldIndex, newIndex }) => {
         const newProperties = arrayMove(properties, oldIndex, newIndex);
-        setProperties(newProperties);
-        setPredicatesList(activatedPropertiesToList(newProperties));
+        dispatch(setComparisonProperties(newProperties));
+        dispatch(setComparisonPredicatesList(activatedPropertiesToList(newProperties)));
         setUrlNeedsToUpdate(true);
     };
 
@@ -479,18 +465,17 @@ function useComparison({ id }) {
             newData[property].splice(cIndex, 1);
         }
         newProperties = extendAndSortProperties({ data: newData, properties: newProperties });
-        setContributionsList(activatedContributionsToList(newContributions));
-        setContributions(newContributions);
-        setData(newData);
-        setProperties(newProperties);
-        setFilterControlData(prevFilterControlData => {
-            // keep existing filter rules
-            const newFilterControlData = generateFilterControlData(newContributions, newProperties, newData).map(filter => {
-                filter.rules = getRuleByProperty(prevFilterControlData, filter.property.id);
-                return filter;
-            });
-            return newFilterControlData;
+        dispatch(setComparisonContributionList(activatedContributionsToList(newContributions)));
+
+        dispatch(setComparisonContributions(newContributions));
+        dispatch(setComparisonData(newData));
+        dispatch(setComparisonProperties(newProperties));
+        // keep existing filter rules
+        const newFilterControlData = generateFilterControlData(newContributions, newProperties, newData).map(filter => {
+            filter.rules = getRuleByProperty(filterControlData, filter.property.id);
+            return filter;
         });
+        dispatch(setComparisonFilterControlData(newFilterControlData));
         setUrlNeedsToUpdate(true);
     };
 
@@ -503,8 +488,8 @@ function useComparison({ id }) {
         const newContributions = contributions.map(contribution => {
             return contributionIds.includes(contribution.id) ? { ...contribution, active: true } : { ...contribution, active: false };
         });
-        setContributionsList(activatedContributionsToList(newContributions));
-        setContributions(newContributions);
+        dispatch(setComparisonContributionList(activatedContributionsToList(newContributions)));
+        dispatch(setComparisonContributions(newContributions));
         setUrlNeedsToUpdate(true);
     };
 
@@ -515,9 +500,9 @@ function useComparison({ id }) {
      */
     const addContributions = newContributionIds => {
         setUrlNeedsToUpdate(true);
-        setResponseHash(null);
+        dispatch(setComparisonConfigurationAttribute('responseHash', null));
         const contributionsIDs = without(uniq(contributionsList.concat(newContributionIds)), undefined, null, '') ?? [];
-        setContributionsList(contributionsIDs);
+        dispatch(setComparisonContributionList(contributionsIDs));
     };
 
     /**
@@ -526,7 +511,7 @@ function useComparison({ id }) {
      */
     const toggleTranspose = () => {
         setUrlNeedsToUpdate(true);
-        setTranspose(transpose => !transpose);
+        dispatch(setComparisonConfigurationAttribute('transpose', !transpose));
     };
 
     /**
@@ -609,11 +594,11 @@ function useComparison({ id }) {
                 rows.push(row);
             }
         }
-        setMatrixData([header, ...rows]);
+        dispatch(setComparisonMatrixData([header, ...rows]));
     };
 
     const handleEditContributions = async () => {
-        if (metaData?.id || responseHash) {
+        if (comparisonObject?.id || responseHash) {
             const isConfirmed = await Confirm({
                 title: 'This is a published comparison',
                 message: `The comparison you are viewing is published, which means it cannot be modified. To make changes, fetch the live comparison data and try this action again`,
@@ -623,7 +608,7 @@ function useComparison({ id }) {
 
             if (isConfirmed) {
                 setUrlNeedsToUpdate(true);
-                setResponseHash(null);
+                dispatch(setComparisonConfigurationAttribute('responseHash', null));
                 setShouldFetchLiveComparison(true);
             }
         } else {
@@ -638,7 +623,7 @@ function useComparison({ id }) {
                 history.push(
                     reverse(ROUTES.CONTRIBUTION_EDITOR) +
                         `?contributions=${contributionsList.join(',')}${
-                            metaData?.hasPreviousVersion ? `&hasPreviousVersion=${metaData?.hasPreviousVersion.id}` : ''
+                            comparisonObject?.hasPreviousVersion ? `&hasPreviousVersion=${comparisonObject?.hasPreviousVersion.id}` : ''
                         }`
                 );
             }
@@ -659,17 +644,24 @@ function useComparison({ id }) {
         } else {
             // Update browser title
             document.title = 'Comparison - ORKG';
-            setResponseHash(
-                metaData?.hasPreviousVersion?.id && responseHash ? responseHash : getParamFromQueryString(location.search, 'response_hash')
+            dispatch(
+                setComparisonConfigurationAttribute(
+                    'responseHash',
+                    comparisonObject?.hasPreviousVersion?.id && responseHash
+                        ? responseHash
+                        : getParamFromQueryString(location.search, 'response_hash')
+                )
             );
-            setComparisonType(getParamFromQueryString(location.search, 'type') ?? DEFAULT_COMPARISON_METHOD);
-            setTranspose(getParamFromQueryString(location.search, 'transpose', true));
+            dispatch(
+                setComparisonConfigurationAttribute('comparisonType', getParamFromQueryString(location.search, 'type') ?? DEFAULT_COMPARISON_METHOD)
+            );
+
+            dispatch(setComparisonConfigurationAttribute('transpose', getParamFromQueryString(location.search, 'transpose', true)));
             const contributionsIDs = without(uniq(getArrayParamFromQueryString(location.search, 'contributions')), undefined, null, '') ?? [];
-            setContributionsList(contributionsIDs);
-            setPredicatesList(getArrayParamFromQueryString(location.search, 'properties'));
+            dispatch(setComparisonContributionList(contributionsIDs));
+            dispatch(setComparisonPredicatesList(getArrayParamFromQueryString(location.search, 'properties')));
         }
         updateComparisonPublicURL();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [comparisonId, loadComparisonMetaData]);
 
     /**
@@ -684,7 +676,6 @@ function useComparison({ id }) {
         ) {
             getComparisonResult();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [comparisonType, contributionsList.length]);
 
     /**
@@ -696,19 +687,12 @@ function useComparison({ id }) {
     useEffect(() => {
         if (urlNeedsToUpdate) {
             generateUrl();
-            if (metaData.id) {
-                setMetaData({
-                    ...metaData,
-                    doi: '',
-                    hasPreviousVersion: { id: metaData.id, created_at: metaData.createdAt, created_by: metaData.created_by },
-                    id: null,
-                    visualizations: []
-                });
+            if (comparisonObject.id) {
+                dispatch(clearComparisonId());
             }
             setUrlNeedsToUpdate(false);
             generateMatrixOfComparison();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transpose, responseHash, comparisonType, urlNeedsToUpdate]);
 
     /**
@@ -719,10 +703,9 @@ function useComparison({ id }) {
         if (!isLoadingComparisonResult) {
             generateMatrixOfComparison();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingComparisonResult]);
+
     return {
-        metaData,
         contributions,
         properties,
         data,
@@ -743,9 +726,6 @@ function useComparison({ id }) {
         isFailedLoadingComparisonResult,
         createdBy,
         provenance,
-        researchField,
-        setMetaData,
-        setComparisonType,
         toggleProperty,
         onSortPropertiesEnd,
         toggleTranspose,
@@ -755,7 +735,6 @@ function useComparison({ id }) {
         updateRulesOfProperty,
         removeRule,
         generateUrl,
-        setResponseHash,
         setUrlNeedsToUpdate,
         setShortLink,
         loadCreatedBy,

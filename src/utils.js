@@ -1,9 +1,9 @@
 import capitalize from 'capitalize';
 import { FILTER_TYPES } from 'constants/comparisonFilterTypes';
 import { CLASSES, MISC, PREDICATES, ENTITIES } from 'constants/graphSettings';
-import { PREDICATE_TYPE_ID, RESOURCE_TYPE_ID } from 'constants/misc';
+import { PREDICATE_TYPE_ID, RESOURCE_TYPE_ID, DEFAULT_COMPARISON_METHOD } from 'constants/misc';
 import ROUTES from 'constants/routes';
-import { find, flatten, flattenDepth, isEqual, isString, last, uniq, sortBy, uniqBy } from 'lodash';
+import { find, flatten, flattenDepth, isEqual, isString, last, uniq, sortBy, uniqBy, without } from 'lodash';
 import { unescape } from 'he';
 import { reverse } from 'named-urls';
 import queryString from 'query-string';
@@ -1211,4 +1211,31 @@ export const checkCookie = () => {
     cookies.set('testcookie', 1, { path: env('PUBLIC_URL'), maxAge: 5 });
     const cookieEnabled = cookies.get('testcookie') ? cookies.get('testcookie') : null;
     return cookieEnabled ? true : false;
+};
+
+export const filterStatementsBySubjectId = (statements, subjectId) => {
+    return statements.filter(statement => statement.subject.id === subjectId);
+};
+
+/**
+ * Parse comparison configuration from url
+ * @param {String} id
+ * @param {String } label
+ * @param {Array} comparisonStatements
+ */
+export const getComparisonConfiguration = url => {
+    const response_hash = getParamFromQueryString(url.substring(url.indexOf('?')), 'response_hash') ?? null;
+    const type = getParamFromQueryString(url.substring(url.indexOf('?')), 'type') ?? DEFAULT_COMPARISON_METHOD;
+    const transpose = getParamFromQueryString(url.substring(url.indexOf('?')), 'transpose', true);
+    const predicatesList = getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'properties');
+    const contributionsList =
+        without(uniq(getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'contributions')), undefined, null, '') ?? [];
+
+    return {
+        responseHash: response_hash,
+        comparisonType: type,
+        transpose,
+        predicatesList,
+        contributionsList
+    };
 };

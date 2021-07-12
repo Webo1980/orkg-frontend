@@ -5,34 +5,36 @@ import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
 import ROUTES from 'constants/routes.js';
 import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import { CLASSES } from 'constants/graphSettings';
+import { useSelector } from 'react-redux';
 
-function ComparisonMetaData(props) {
+const ComparisonMetaData = () => {
+    const comparisonObject = useSelector(state => state.comparison.object);
+
     return (
         <div>
-            {props.metaData.title ? (
+            {comparisonObject.label ? (
                 <>
-                    {props.metaData.description && (
+                    {comparisonObject.description && (
                         <div style={{ lineHeight: 1.5 }} className="h6 mb-2">
-                            {props.metaData.description}
+                            {comparisonObject.description}
                         </div>
                     )}
                     <div>
-                        {props.metaData.createdAt ? (
+                        {comparisonObject.created_at ? (
                             <span className="badge badge-light mr-2">
                                 <Icon icon={faCalendar} className="text-primary" />{' '}
-                                {props.metaData.createdAt ? moment(props.metaData.createdAt).format('MMMM') : ''}{' '}
-                                {props.metaData.createdAt ? moment(props.metaData.createdAt).format('YYYY') : ''}
+                                {comparisonObject.created_at ? moment(comparisonObject.created_at).format('MMMM') : ''}{' '}
+                                {comparisonObject.created_at ? moment(comparisonObject.created_at).format('YYYY') : ''}
                             </span>
                         ) : (
                             ''
                         )}
 
-                        {props.metaData.authors && props.metaData.authors.length > 0 && (
+                        {comparisonObject.authors && comparisonObject.authors.length > 0 && (
                             <>
-                                {props.metaData.authors.map((author, index) =>
+                                {comparisonObject.authors.map((author, index) =>
                                     author?.classes?.includes(CLASSES.AUTHOR) ? (
                                         <Link className="p-0" to={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.id })} key={index}>
                                             <Badge color="light" className="mr-2 mb-2">
@@ -48,14 +50,14 @@ function ComparisonMetaData(props) {
                             </>
                         )}
                     </div>
-                    {props.metaData.doi && (
+                    {comparisonObject.doi && (
                         <div>
-                            {props.metaData.doi && (
+                            {comparisonObject.doi && (
                                 <div style={{ marginBottom: '20px', lineHeight: 1.5 }}>
                                     <small>
                                         DOI:{' '}
                                         <i>
-                                            <ValuePlugins type="literal">{props.metaData.doi}</ValuePlugins>
+                                            <ValuePlugins type="literal">{comparisonObject.doi}</ValuePlugins>
                                         </i>
                                     </small>
                                 </div>
@@ -68,11 +70,6 @@ function ComparisonMetaData(props) {
             )}
         </div>
     );
-}
-
-ComparisonMetaData.propTypes = {
-    metaData: PropTypes.object,
-    authors: PropTypes.array
 };
 
 export default ComparisonMetaData;
