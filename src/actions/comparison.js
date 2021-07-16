@@ -82,6 +82,19 @@ export const setComparisonSetPreviousVersion = data => dispatch => {
     });
 };
 
+/**
+ * Get ordered list of selected properties
+ */
+export const activatedPropertiesToList = propertiesData => {
+    const activeProperties = [];
+    propertiesData.forEach((property, index) => {
+        if (property.active) {
+            activeProperties.push(property.id);
+        }
+    });
+    return activeProperties;
+};
+
 export function getComparisonURLConfig(comparisonState) {
     const params = queryString.stringify(
         {

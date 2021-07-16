@@ -4,6 +4,9 @@ import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSort } from '@fortawesome/free-solid-svg-icons';
 import { SortableContainer, SortableElement, sortableHandle } from 'react-sortable-hoc';
+import { setComparisonPredicatesList, setComparisonProperties, activatedPropertiesToList } from 'actions/comparison';
+import { useSelector, useDispatch } from 'react-redux';
+import arrayMove from 'array-move';
 import capitalize from 'capitalize';
 import Tooltip from 'components/Utils/Tooltip';
 
@@ -25,7 +28,30 @@ const ListGroupItemStyled = styled(ListGroupItem)`
     display: flex !important;
 `;
 
-function SelectProperties(props) {
+const SelectProperties = props => {
+    const dispatch = useDispatch();
+    const { properties } = useSelector(state => state.comparison);
+
+    /**
+     * Update the order of properties
+     */
+    const onSortPropertiesEnd = ({ oldIndex, newIndex }) => {
+        const newProperties = arrayMove(properties, oldIndex, newIndex);
+        dispatch(setComparisonProperties(newProperties));
+        dispatch(setComparisonPredicatesList(activatedPropertiesToList(newProperties)));
+    };
+
+    /**
+     * Toggle a property from the table
+     *
+     * @param {String} id Property id to toggle
+     */
+    const toggleProperty = id => {
+        const newProperties = properties.map(property => (property.id === id ? { ...property, active: !property.active } : property));
+        dispatch(setComparisonProperties(newProperties));
+        dispatch(setComparisonPredicatesList(activatedPropertiesToList(newProperties)));
+    };
+
     const SortableHandle = sortableHandle(() => (
         <DragHandle>
             <Icon icon={faSort} />
@@ -40,7 +66,7 @@ function SelectProperties(props) {
                 id={`checkbox-${property.id}`}
                 label={capitalize(property.label)}
                 className="flex-grow-1"
-                onChange={() => props.toggleProperty(property.id)}
+                onChange={() => toggleProperty(property.id)}
                 checked={property.active}
             />
             <Tooltip message="Amount of contributions" hideDefaultIcon>
@@ -63,18 +89,15 @@ function SelectProperties(props) {
         <Modal isOpen={props.showPropertiesDialog} toggle={props.togglePropertiesDialog}>
             <ModalHeader toggle={props.togglePropertiesDialog}>Select properties</ModalHeader>
             <ModalBody>
-                <SortableList items={props.properties} onSortEnd={props.onSortEnd} lockAxis="y" helperClass="sortableHelper" useDragHandle />
+                <SortableList items={properties} onSortEnd={onSortPropertiesEnd} lockAxis="y" helperClass="sortableHelper" useDragHandle />
             </ModalBody>
         </Modal>
     );
-}
+};
 
 SelectProperties.propTypes = {
     showPropertiesDialog: PropTypes.bool.isRequired,
-    togglePropertiesDialog: PropTypes.func.isRequired,
-    properties: PropTypes.array.isRequired,
-    onSortEnd: PropTypes.func.isRequired,
-    toggleProperty: PropTypes.func.isRequired
+    togglePropertiesDialog: PropTypes.func.isRequired
 };
 
 export default SelectProperties;

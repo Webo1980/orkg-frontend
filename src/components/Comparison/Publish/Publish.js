@@ -35,18 +35,20 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { faClipboard } from '@fortawesome/free-regular-svg-icons';
 import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useSelector, useDispatch } from 'react-redux';
 import { reverse } from 'named-urls';
 import { useHistory } from 'react-router-dom';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import { getPropertyObjectFromData, filterObjectOfStatementsByPredicateAndClass } from 'utils';
+import { getComparisonURLConfig } from 'actions/comparison';
 import styled from 'styled-components';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
 import { setComparisonDoi } from 'actions/comparison';
-import { useSelector, useDispatch } from 'react-redux';
 import { slugify } from 'utils';
 import { PREDICATES, CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
 import env from '@beam-australia/react-env';
+import { getPublicUrl } from 'utils';
 
 const StyledCustomInput = styled(CustomInput)`
     margin-right: 0;
@@ -96,7 +98,11 @@ function Publish(props) {
         comparisonObject?.references && comparisonObject.references.length > 0 ? comparisonObject.references : ['']
     );
     const [subject, setSubject] = useState(comparisonObject && comparisonObject.subject ? comparisonObject.subject : undefined);
-    const [comparisonCreators, setComparisonCreators] = useState(props.authors ?? []);
+    const [comparisonCreators, setComparisonCreators] = useState(comparisonObject?.authors ?? []);
+    const { data } = useSelector(state => state.comparison);
+    const { id } = useSelector(state => state.comparison.object);
+    const comparisonURLConfig = useSelector(state => getComparisonURLConfig(state.comparison));
+    const { contributionsList, predicatesList, responseHash, comparisonType } = useSelector(state => state.comparison.configuration);
 
     const handleCreatorsChange = creators => {
         creators = creators ? creators : [];
@@ -171,19 +177,19 @@ function Publish(props) {
         e.preventDefault();
         setIsLoading(true);
         try {
-            if (!props.comparisonId) {
+            if (!id) {
                 if (title && title.trim() !== '' && description && description.trim() !== '') {
                     let response_hash;
 
-                    if (!props.responseHash) {
+                    if (!responseHash) {
                         const comparison = await getComparison({
-                            contributionIds: props.contributionsList,
-                            type: props.comparisonType,
+                            contributionIds: contributionsList,
+                            type: comparisonType,
                             save_response: true
                         });
                         response_hash = comparison.response_hash;
                     } else {
-                        response_hash = props.responseHash;
+                        response_hash = responseHash;
                     }
                     const comparison_obj = {
                         predicates: [],
@@ -212,12 +218,11 @@ function Publish(props) {
                                             }
                                         ]
                                     }),
-                                [PREDICATES.COMPARE_CONTRIBUTION]: props.contributionsList.map(contributionID => ({
+                                [PREDICATES.COMPARE_CONTRIBUTION]: contributionsList.map(contributionID => ({
                                     '@id': contributionID
                                 })),
-                                [PREDICATES.HAS_PROPERTY]: props.predicatesList.map(predicateID => {
-                                    const property =
-                                        props.comparisonType === 'merge' ? predicateID : getPropertyObjectFromData(props.data, { id: predicateID });
+                                [PREDICATES.HAS_PROPERTY]: predicatesList.map(predicateID => {
+                                    const property = comparisonType === 'merge' ? predicateID : getPropertyObjectFromData(data, { id: predicateID });
                                     return { '@id': property.id };
                                 }),
                                 ...(comparisonObject.hasPreviousVersion && {
@@ -234,7 +239,7 @@ function Publish(props) {
                     await saveCreators(comparisonCreators, createdComparison.id);
                     await createResourceData({
                         resourceId: createdComparison.id,
-                        data: { url: `${props.comparisonURLConfig}&response_hash=${response_hash}` }
+                        data: { url: `${comparisonURLConfig}&response_hash=${response_hash}` }
                     });
                     toast.success('Comparison saved successfully');
                     // Assign a DOI
@@ -247,7 +252,7 @@ function Publish(props) {
                     throw Error('Please enter a title and a description');
                 }
             } else {
-                publishDOI(props.comparisonId);
+                publishDOI(id);
             }
         } catch (error) {
             toast.error(`Error publishing a comparison : ${error.message}`);
@@ -257,8 +262,8 @@ function Publish(props) {
 
     const publishDOI = async comparisonId => {
         try {
-            if (props.comparisonId && props.authors.length === 0) {
-                await saveCreators(comparisonCreators, props.comparisonId);
+            if (id && comparisonObject?.authors.length === 0) {
+                await saveCreators(comparisonCreators, id);
             }
             // Load ORCID of curators
             let comparisonCreatorsORCID = comparisonCreators.map(async curator => {
@@ -276,9 +281,9 @@ function Publish(props) {
                     title,
                     subject ? subject.label : '',
                     description,
-                    props.contributionsList,
+                    contributionsList,
                     comparisonCreatorsORCID.map(c => ({ creator: c.label, orcid: c.orcid })),
-                    `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
+                    `${getPublicUrl()}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
                 )
                     .then(doiResponse => {
                         dispatch(setComparisonDoi(doiResponse.data.attributes.doi));
@@ -319,7 +324,7 @@ function Publish(props) {
         <Modal size="lg" isOpen={props.showDialog} toggle={props.toggle}>
             <ModalHeader toggle={props.toggle}>Publish comparison</ModalHeader>
             <ModalBody>
-                {!props.comparisonId && comparisonObject.hasPreviousVersion && props.nextVersions?.length > 0 && (
+                {!id && comparisonObject.hasPreviousVersion && props.nextVersions?.length > 0 && (
                     <NewerVersionWarning
                         versions={props.nextVersions}
                         comparisonId={comparisonObject.hasPreviousVersion.id}
@@ -327,20 +332,18 @@ function Publish(props) {
                     />
                 )}
                 <Alert color="info">
-                    {!props.comparisonId && (
+                    {!id && (
                         <>
                             A published comparison is made public to other users. The state of the comparison is saved and a persistent link is
                             created.
                         </>
                     )}
-                    {props.comparisonId && !props.doi && (
+                    {id && !comparisonObject.doi && (
                         <>This comparison is already published, you can find the persistent link below, or create a DOI for this comparison.</>
                     )}
-                    {props.comparisonId && props.doi && (
-                        <>This comparison is already published, you can find the persistent link and the DOI below.</>
-                    )}
+                    {id && comparisonObject.doi && <>This comparison is already published, you can find the persistent link and the DOI below.</>}
                 </Alert>
-                {!props.comparisonId && comparisonObject.hasPreviousVersion && (
+                {!id && comparisonObject.hasPreviousVersion && (
                     <Alert color="info">
                         You are publishing a new version of a published comparison. The comparison you are about to publish will be marked as a new
                         version of the{' '}
@@ -356,18 +359,14 @@ function Publish(props) {
                         .
                     </Alert>
                 )}
-                {props.comparisonId && (
+                {id && (
                     <FormGroup>
                         <Label for="comparison_link">Comparison link</Label>
                         <InputGroup>
-                            <Input
-                                id="comparison_link"
-                                value={`${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: props.comparisonId })}`}
-                                disabled
-                            />
+                            <Input id="comparison_link" value={`${getPublicUrl()}${reverse(ROUTES.COMPARISON, { comparisonId: id })}`} disabled />
                             <InputGroupAddon addonType="append">
                                 <CopyToClipboard
-                                    text={`${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: props.comparisonId })}`}
+                                    text={`${getPublicUrl()}${reverse(ROUTES.COMPARISON, { comparisonId: id })}`}
                                     onCopy={() => {
                                         toast.dismiss();
                                         toast.success(`Comparison link copied!`);
@@ -381,14 +380,14 @@ function Publish(props) {
                         </InputGroup>
                     </FormGroup>
                 )}
-                {props.doi && (
+                {comparisonObject.doi && (
                     <FormGroup>
                         <Label for="doi_link">DOI</Label>
                         <InputGroup>
-                            <Input id="doi_link" value={`https://doi.org/${props.doi}`} disabled />
+                            <Input id="doi_link" value={`https://doi.org/${comparisonObject.doi}`} disabled />
                             <InputGroupAddon addonType="append">
                                 <CopyToClipboard
-                                    text={`https://doi.org/${props.doi}`}
+                                    text={`https://doi.org/${comparisonObject.doi}`}
                                     onCopy={() => {
                                         toast.dismiss();
                                         toast.success(`DOI link copied!`);
@@ -402,11 +401,11 @@ function Publish(props) {
                         </InputGroup>
                     </FormGroup>
                 )}
-                {props.comparisonId && !props.doi && (
+                {id && !comparisonObject.doi && (
                     <FormGroup>
                         <div>
                             <Tooltip
-                                message={`A DOI ${env('DATACITE_DOI_PREFIX')}/${props.comparisonId} 
+                                message={`A DOI ${env('DATACITE_DOI_PREFIX')}/${id} 
                                 will be assigned to published comparison and it cannot be changed in future.`}
                             >
                                 <StyledCustomInput
@@ -424,13 +423,13 @@ function Publish(props) {
                         </div>
                     </FormGroup>
                 )}
-                {props.comparisonId && (
+                {id && (
                     <ShareCreatedContent
                         typeOfLink="comparison"
                         title={`An @orkg_org comparison on '${title}' in the area of ${subject?.label ? `%23${slugify(subject.label)}` : ''}`}
                     />
                 )}
-                {!props.doi && (!props.comparisonId || (props.comparisonId && assignDOI)) && (
+                {!comparisonObject.doi && (!id || (id && assignDOI)) && (
                     <>
                         {' '}
                         <FormGroup>
@@ -441,7 +440,7 @@ function Publish(props) {
                                 type="text"
                                 name="title"
                                 value={title}
-                                disabled={Boolean(props.comparisonId)}
+                                disabled={Boolean(id)}
                                 id="title"
                                 onChange={e => setTitle(e.target.value)}
                             />
@@ -454,7 +453,7 @@ function Publish(props) {
                                 type="textarea"
                                 name="description"
                                 value={description}
-                                disabled={Boolean(props.comparisonId)}
+                                disabled={Boolean(id)}
                                 id="description"
                                 onChange={e => setDescription(e.target.value)}
                             />
@@ -470,13 +469,13 @@ function Publish(props) {
                                     return (
                                         <InputGroup className="mb-1" key={`ref${i}`}>
                                             <Input
-                                                disabled={Boolean(props.comparisonId)}
+                                                disabled={Boolean(id)}
                                                 type="text"
                                                 name="reference"
                                                 value={x}
                                                 onChange={e => handleReferenceChange(e, i)}
                                             />
-                                            {!Boolean(props.comparisonId) && (
+                                            {!Boolean(id) && (
                                                 <InputGroupAddon addonType="append">
                                                     {references.length !== 1 && (
                                                         <Button
@@ -528,7 +527,7 @@ function Publish(props) {
                             <Label for="Creator">
                                 <Tooltip message="The creator or creators of the comparison. Enter both the first and last name">Creators</Tooltip>
                             </Label>
-                            {!props.doi && (!props.comparisonId || props.authors.length === 0) && (
+                            {!comparisonObject.doi && (!id || comparisonObject?.authors?.length === 0) && (
                                 <AuthorsInput
                                     disabled={Boolean(comparisonCreators.length > 0)}
                                     itemLabel="creator"
@@ -536,10 +535,10 @@ function Publish(props) {
                                     value={comparisonCreators}
                                 />
                             )}
-                            {!props.doi &&
-                                props.comparisonId &&
-                                props.authors.length !== 0 &&
-                                props.authors.map((creator, index) => (
+                            {!comparisonObject.doi &&
+                                id &&
+                                comparisonObject?.authors?.length !== 0 &&
+                                comparisonObject?.authors.map((creator, index) => (
                                     <AuthorTag key={`creator${index}`}>
                                         <div className="name">
                                             {creator.label}
@@ -548,7 +547,7 @@ function Publish(props) {
                                     </AuthorTag>
                                 ))}
                         </FormGroup>
-                        {!props.comparisonId && (
+                        {!id && (
                             <FormGroup>
                                 <div>
                                     <Tooltip message="A DOI will be assigned to published comparison and it cannot be changed in future.">
@@ -572,16 +571,16 @@ function Publish(props) {
 
                 <></>
             </ModalBody>
-            {((!props.doi && !props.comparisonId) || (props.comparisonId && !props.doi && assignDOI)) && (
+            {((!comparisonObject.doi && !id) || (id && !comparisonObject.doi && assignDOI)) && (
                 <ModalFooter>
-                    {!props.doi && !props.comparisonId && (
+                    {!comparisonObject.doi && !id && (
                         <div className="text-align-center mt-2">
                             <Button color="primary" disabled={isLoading} onClick={handleSubmit}>
                                 {isLoading && <span className="fa fa-spinner fa-spin" />} Publish
                             </Button>
                         </div>
                     )}
-                    {props.comparisonId && !props.doi && assignDOI && (
+                    {id && !comparisonObject.doi && assignDOI && (
                         <div className="text-align-center mt-2">
                             <Button color="primary" disabled={isLoading} onClick={handleSubmit}>
                                 {isLoading && <span className="fa fa-spinner fa-spin" />} Publish DOI
@@ -597,18 +596,6 @@ function Publish(props) {
 Publish.propTypes = {
     showDialog: PropTypes.bool.isRequired,
     toggle: PropTypes.func.isRequired,
-    comparisonId: PropTypes.string,
-    doi: PropTypes.string,
-    authors: PropTypes.array,
-    publicURL: PropTypes.string.isRequired,
-    contributionsList: PropTypes.array.isRequired,
-    predicatesList: PropTypes.array.isRequired,
-    comparisonType: PropTypes.string,
-    responseHash: PropTypes.string,
-    comparisonURLConfig: PropTypes.string.isRequired,
-    loadCreatedBy: PropTypes.func.isRequired,
-    loadProvenanceInfos: PropTypes.func.isRequired,
-    data: PropTypes.object.isRequired,
     nextVersions: PropTypes.array.isRequired
 };
 

@@ -420,28 +420,6 @@ function useComparison({ id }) {
     }, [comparisonType, contributionsList, extendAndSortProperties, responseHash]);
 
     /**
-     * Toggle a property from the table
-     *
-     * @param {String} id Property id to toggle
-     */
-    const toggleProperty = id => {
-        const newProperties = properties.map(property => (property.id === id ? { ...property, active: !property.active } : property));
-        dispatch(setComparisonProperties(newProperties));
-        dispatch(setComparisonPredicatesList(activatedPropertiesToList(newProperties)));
-        setUrlNeedsToUpdate(true);
-    };
-
-    /**
-     * Update the order of properties
-     */
-    const onSortPropertiesEnd = ({ oldIndex, newIndex }) => {
-        const newProperties = arrayMove(properties, oldIndex, newIndex);
-        dispatch(setComparisonProperties(newProperties));
-        dispatch(setComparisonPredicatesList(activatedPropertiesToList(newProperties)));
-        setUrlNeedsToUpdate(true);
-    };
-
-    /**
      * Remove contribution
      *
      * @param {String} contributionId Contribution id to remove
@@ -725,8 +703,6 @@ function useComparison({ id }) {
         isFailedLoadingComparisonResult,
         createdBy,
         provenance,
-        toggleProperty,
-        onSortPropertiesEnd,
         toggleTranspose,
         removeContribution,
         addContributions,

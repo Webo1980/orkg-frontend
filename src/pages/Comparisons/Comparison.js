@@ -56,25 +56,19 @@ function Comparison(props) {
         errors,
         transpose,
         comparisonType,
-        responseHash,
         contributionsList,
         predicatesList,
-        publicURL,
-        comparisonURLConfig,
         isLoadingMetaData,
         isFailedLoadingMetaData,
         isLoadingComparisonResult,
         isFailedLoadingComparisonResult,
         createdBy,
         provenance,
-        toggleProperty,
-        onSortPropertiesEnd,
         toggleTranspose,
         removeContribution,
         addContributions,
         updateRulesOfProperty,
         removeRule,
-        generateUrl,
         setUrlNeedsToUpdate,
         loadCreatedBy,
         loadProvenanceInfos,
@@ -525,14 +519,7 @@ function Comparison(props) {
             {comparisonObject.id && (
                 <ProvenanceBox creator={createdBy} provenance={provenance} changeObservatory={getObservatoryInfo} resourceId={comparisonObject.id} />
             )}
-            <SelectProperties
-                properties={properties}
-                showPropertiesDialog={showPropertiesDialog}
-                togglePropertiesDialog={() => setShowPropertiesDialog(v => !v)}
-                generateUrl={generateUrl}
-                toggleProperty={toggleProperty}
-                onSortEnd={onSortPropertiesEnd}
-            />
+            <SelectProperties showPropertiesDialog={showPropertiesDialog} togglePropertiesDialog={() => setShowPropertiesDialog(v => !v)} />
 
             <Share showDialog={showShareDialog} toggle={() => setShowShareDialog(v => !v)} />
             {!isLoadingVersions && versions?.length > 1 && showComparisonVersions && (
@@ -545,19 +532,6 @@ function Comparison(props) {
             <Publish
                 showDialog={showPublishDialog}
                 toggle={() => setShowPublishDialog(v => !v)}
-                comparisonId={comparisonObject?.id}
-                doi={comparisonObject?.doi}
-                metaData={!comparisonObject?.researchField ? { ...comparisonObject } : comparisonObject}
-                publicURL={publicURL}
-                contributionsList={contributionsList}
-                predicatesList={predicatesList}
-                comparisonType={comparisonType}
-                responseHash={responseHash ?? ''}
-                comparisonURLConfig={comparisonURLConfig}
-                authors={comparisonObject?.authors}
-                loadCreatedBy={loadCreatedBy}
-                loadProvenanceInfos={loadProvenanceInfos}
-                data={data}
                 nextVersions={!isLoadingVersions && hasNextVersion ? versions : []}
             />
 
