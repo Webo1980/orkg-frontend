@@ -40,7 +40,7 @@ const initialState = {
     matrixData: [],
     createdBy: [],
     provenance: [],
-    shortLink: [],
+    shortLink: '',
     researchField: null,
     isLoadingMetaData: false,
     isFailedLoadingMetaData: false,
@@ -77,6 +77,14 @@ export default function reducer(state = initialState, action) {
         case type.COMPARISON_SET_FILTER_CONTROL_DATA: {
             const { payload } = action;
             const newState = dotProp.set(state, `filterControlData`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_SHORT_LINK: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `shortLink`, payload);
             return {
                 ...newState
             };

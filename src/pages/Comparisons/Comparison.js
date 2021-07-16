@@ -61,7 +61,6 @@ function Comparison(props) {
         predicatesList,
         publicURL,
         comparisonURLConfig,
-        shortLink,
         isLoadingMetaData,
         isFailedLoadingMetaData,
         isLoadingComparisonResult,
@@ -73,12 +72,10 @@ function Comparison(props) {
         toggleTranspose,
         removeContribution,
         addContributions,
-        applyAllRules,
         updateRulesOfProperty,
         removeRule,
         generateUrl,
         setUrlNeedsToUpdate,
-        setShortLink,
         loadCreatedBy,
         loadProvenanceInfos,
         loadVisualizations,
@@ -537,20 +534,7 @@ function Comparison(props) {
                 onSortEnd={onSortPropertiesEnd}
             />
 
-            <Share
-                showDialog={showShareDialog}
-                toggle={() => setShowShareDialog(v => !v)}
-                publicURL={publicURL}
-                comparisonURLConfig={comparisonURLConfig}
-                contributionsList={contributionsList}
-                comparisonType={comparisonType}
-                comparisonId={comparisonObject?.id}
-                responseHash={responseHash ?? ''}
-                setResponseHash={hash => dispatch(setComparisonConfigurationAttribute('responseHash', hash))}
-                shortLink={shortLink}
-                setShortLink={setShortLink}
-                subject={comparisonObject?.researchField}
-            />
+            <Share showDialog={showShareDialog} toggle={() => setShowShareDialog(v => !v)} />
             {!isLoadingVersions && versions?.length > 1 && showComparisonVersions && (
                 <HistoryModal
                     comparisonId={comparisonObject?.id || comparisonObject?.hasPreviousVersion?.id}
@@ -579,25 +563,7 @@ function Comparison(props) {
 
             <AddContribution onAddContributions={addContributions} showDialog={showAddContribution} toggle={() => setShowAddContribution(v => !v)} />
 
-            <ExportToLatex
-                data={matrixData}
-                contributions={contributions.filter(c => c.active)}
-                properties={properties}
-                showDialog={showLatexDialog}
-                toggle={() => setShowLatexDialog(v => !v)}
-                transpose={transpose}
-                publicURL={publicURL}
-                comparisonURLConfig={comparisonURLConfig}
-                contributionsList={contributionsList}
-                comparisonType={comparisonType}
-                responseHash={responseHash ?? ''}
-                setResponseHash={hash => dispatch(setComparisonConfigurationAttribute('responseHash', hash))}
-                title={comparisonObject?.label}
-                description={comparisonObject?.description}
-                comparisonId={comparisonObject?.id}
-                shortLink={shortLink}
-                setShortLink={setShortLink}
-            />
+            <ExportToLatex showDialog={showLatexDialog} toggle={() => setShowLatexDialog(v => !v)} s />
             <ExportCitation
                 showDialog={showExportCitationsDialog}
                 toggle={() => setShowExportCitationsDialog(v => !v)}

@@ -1239,3 +1239,11 @@ export const getComparisonConfiguration = url => {
         contributionsList
     };
 };
+
+/**
+ * Get base url of the application
+ */
+export const getPublicUrl = () => {
+    const publicURL = env('PUBLIC_URL').endsWith('/') ? env('PUBLIC_URL').slice(0, -1) : env('PUBLIC_URL');
+    return `${window.location.protocol}//${window.location.host}${publicURL}`;
+};

@@ -1,4 +1,5 @@
 import * as type from './types.js';
+import queryString from 'query-string';
 
 export const clearComparisonId = () => dispatch => {
     dispatch({ type: type.COMPARISON_CLEAR_COMPARISON_ID });
@@ -77,6 +78,30 @@ export const setComparisonSetResearchField = data => dispatch => {
 export const setComparisonSetPreviousVersion = data => dispatch => {
     dispatch({
         type: type.COMPARISON_SET_DOI,
+        payload: data
+    });
+};
+
+export function getComparisonURLConfig(comparisonState) {
+    const params = queryString.stringify(
+        {
+            contributions: comparisonState.configuration.contributionsList.join(','),
+            properties: comparisonState.configuration.predicatesList.map(predicate => encodeURIComponent(predicate)).join(','),
+            type: comparisonState.configuration.comparisonType,
+            transpose: comparisonState.configuration.transpose
+        },
+        {
+            skipNull: true,
+            skipEmptyString: true,
+            encode: false
+        }
+    );
+    return `?${params}`;
+}
+
+export const setComparisonShortLink = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_SHORT_LINK,
         payload: data
     });
 };

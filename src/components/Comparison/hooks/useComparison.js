@@ -58,7 +58,7 @@ function useComparison({ id }) {
     const [urlNeedsToUpdate, setUrlNeedsToUpdate] = useState(false);
     const [publicURL, setPublicURL] = useState(window.location.href);
     const [comparisonURLConfig, setComparisonURLConfig] = useState(window.location.search);
-    const [shortLink, setShortLink] = useState('');
+    const [, setShortLink] = useState('');
 
     const dispatch = useDispatch();
     const comparisonObject = useSelector(state => state.comparison.object);
@@ -719,7 +719,6 @@ function useComparison({ id }) {
         predicatesList,
         publicURL,
         comparisonURLConfig,
-        shortLink,
         isLoadingMetaData,
         isFailedLoadingMetaData,
         isLoadingComparisonResult,

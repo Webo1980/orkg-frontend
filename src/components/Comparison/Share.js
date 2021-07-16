@@ -8,46 +8,55 @@ import { faClipboard } from '@fortawesome/free-regular-svg-icons';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { createShortLink, getComparison } from 'services/similarity/index';
 import ShareCreatedContent from 'components/ShareLinkMarker/ShareCreatedContent';
+import { setComparisonConfigurationAttribute, setComparisonShortLink, getComparisonURLConfig } from 'actions/comparison';
+import { useSelector, useDispatch } from 'react-redux';
+import { getPublicUrl } from 'utils';
 import { slugify } from 'utils';
 import { toast } from 'react-toastify';
 
-function Share(props) {
+const Share = ({ showDialog, toggle }) => {
     const [shortLinkIsLoading, setShortLinkIsLoading] = useState(false);
     const [shortLinkIsFailed, setShortLinkIsFailed] = useState(false);
+
+    const dispatch = useDispatch();
+    const { id, researchField } = useSelector(state => state.comparison.object);
+    const shortLink = useSelector(state => state.comparison.shortLink);
+    const { contributionsList, responseHash, comparisonType } = useSelector(state => state.comparison.configuration);
+    const comparisonURLConfig = useSelector(state => getComparisonURLConfig(state.comparison));
 
     const generateShortLink = async () => {
         setShortLinkIsLoading(true);
         setShortLinkIsFailed(false);
-        if (props.comparisonId && props.responseHash) {
-            props.setShortLink(`${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: props.comparisonId })}`);
+        if (id && responseHash) {
+            dispatch(setComparisonShortLink(`${getPublicUrl()}${reverse(ROUTES.COMPARISON, { comparisonId: id })}`));
             setShortLinkIsLoading(false);
             setShortLinkIsFailed(false);
         } else {
             let link = ``;
-            if (!props.responseHash) {
+            if (!responseHash) {
                 const saveComparison = await getComparison({
-                    contributionIds: props.contributionsList,
-                    type: props.comparisonType,
+                    contributionIds: contributionsList,
+                    type: comparisonType,
                     save_response: true
                 });
-                link = `${props.publicURL}${reverse(ROUTES.COMPARISON)}${props.comparisonURLConfig}&response_hash=${saveComparison.response_hash}`;
-                props.setResponseHash(saveComparison.response_hash);
+                link = `${getPublicUrl()}${reverse(ROUTES.COMPARISON)}${comparisonURLConfig}&response_hash=${saveComparison.response_hash}`;
+                dispatch(setComparisonConfigurationAttribute('responseHash', saveComparison.response_hash));
             } else {
-                link = `${props.publicURL}${reverse(ROUTES.COMPARISON)}${props.comparisonURLConfig}`;
+                link = `${getPublicUrl()}${reverse(ROUTES.COMPARISON)}${comparisonURLConfig}`;
             }
             createShortLink({
                 long_url: link
             })
                 .then(data => {
-                    const shortLink = `${props.publicURL}${reverse(ROUTES.COMPARISON_SHORTLINK, { shortCode: data.short_code })}`;
-                    props.setShortLink(shortLink);
+                    const nshortLink = `${getPublicUrl()}${reverse(ROUTES.COMPARISON_SHORTLINK, { shortCode: data.short_code })}`;
+                    dispatch(setComparisonShortLink(nshortLink));
                     setShortLinkIsLoading(false);
                     setShortLinkIsFailed(false);
                 })
                 .catch(() => {
                     setShortLinkIsLoading(false);
                     setShortLinkIsFailed(true);
-                    props.setShortLink(link);
+                    dispatch(setComparisonShortLink(link));
                 });
         }
     };
@@ -55,22 +64,22 @@ function Share(props) {
     return (
         <Modal
             onOpened={() => {
-                if (!props.shortLink) {
+                if (!shortLink) {
                     generateShortLink();
                 }
             }}
-            isOpen={props.showDialog}
-            toggle={props.toggle}
+            isOpen={showDialog}
+            toggle={toggle}
         >
-            <ModalHeader toggle={props.toggle}>Share link</ModalHeader>
+            <ModalHeader toggle={toggle}>Share link</ModalHeader>
             <ModalBody>
                 <p>The created comparison can be shared using the following link: </p>
 
                 <InputGroup>
-                    <Input value={!shortLinkIsLoading ? props.shortLink : 'Loading share link...'} disabled />
+                    <Input value={!shortLinkIsLoading ? shortLink : 'Loading share link...'} disabled />
                     <InputGroupAddon addonType="append">
                         <CopyToClipboard
-                            text={!shortLinkIsLoading ? props.shortLink : 'Loading share link...'}
+                            text={!shortLinkIsLoading ? shortLink : 'Loading share link...'}
                             onCopy={() => {
                                 toast.success('Share link copied!');
                             }}
@@ -85,7 +94,7 @@ function Share(props) {
                 {!shortLinkIsLoading && (
                     <ShareCreatedContent
                         typeOfLink="comparison"
-                        title={`An @orkg_org comparison in the area of ${props.subject?.label ? `%23${slugify(props.subject.label)}` : ''}`}
+                        title={`An @orkg_org comparison in the area of ${researchField?.label ? `%23${slugify(researchField.label)}` : ''}`}
                     />
                 )}
 
@@ -97,21 +106,11 @@ function Share(props) {
             </ModalBody>
         </Modal>
     );
-}
+};
 
 Share.propTypes = {
     showDialog: PropTypes.bool.isRequired,
-    toggle: PropTypes.func.isRequired,
-    comparisonType: PropTypes.string,
-    comparisonURLConfig: PropTypes.string.isRequired,
-    publicURL: PropTypes.string.isRequired,
-    responseHash: PropTypes.string,
-    comparisonId: PropTypes.string,
-    contributionsList: PropTypes.array,
-    setResponseHash: PropTypes.func.isRequired,
-    shortLink: PropTypes.string.isRequired,
-    subject: PropTypes.object,
-    setShortLink: PropTypes.func.isRequired
+    toggle: PropTypes.func.isRequired
 };
 
 export default Share;
