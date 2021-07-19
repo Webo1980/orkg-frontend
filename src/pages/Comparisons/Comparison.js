@@ -15,7 +15,7 @@ import { ContainerAnimated } from 'components/Comparison/styled';
 import useComparison from 'components/Comparison/hooks/useComparison';
 import ShareLinkMarker from 'components/ShareLinkMarker/ShareLinkMarker';
 import ROUTES from 'constants/routes.js';
-import { useHistory, Link } from 'react-router-dom';
+import { useHistory, Link, useParams } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import PreviewVisualizationComparison from 'libs/selfVisModel/ComparisonComponents/PreviewVisualizationComparison';
 import env from '@beam-australia/react-env';
@@ -24,21 +24,13 @@ import ComparisonHeader from 'components/Comparison/ComparisonHeader/ComparisonH
 import AppliedFilters from 'components/Comparison/ComparisonHeader/AppliedFilters';
 
 const Comparison = () => {
-    const { removeContribution, updateRulesOfProperty } = useComparison({});
+    const params = useParams();
+    const comparisonId = params.comparisonId;
 
-    const comparisonObject = useSelector(state => state.comparison.object);
-    const {
-        contributions,
-        properties,
-        data,
-        filterControlData,
-        isLoadingMetadata,
-        isFailedLoadingMetadata,
-        isLoadingResult,
-        isFailedLoadingResult,
-        errors
-    } = useSelector(state => state.comparison);
-    const { transpose, comparisonType, contributionsList, fullWidth, viewDensity } = useSelector(state => state.comparison.configuration);
+    const { comparisonObject } = useComparison({ id: comparisonId });
+
+    const { isLoadingMetadata, isFailedLoadingMetadata, isLoadingResult, isFailedLoadingResult, errors } = useSelector(state => state.comparison);
+    const { contributionsList, fullWidth } = useSelector(state => state.comparison.configuration);
 
     /** adding some additional state for meta data **/
 
@@ -135,17 +127,7 @@ const Comparison = () => {
                                     <div className="mt-1">
                                         {/*<PreviewVisualizationComparison />*/}
 
-                                        <ComparisonTable
-                                            data={data}
-                                            properties={properties}
-                                            contributions={contributions}
-                                            removeContribution={removeContribution}
-                                            transpose={transpose}
-                                            viewDensity={viewDensity}
-                                            filterControlData={filterControlData}
-                                            updateRulesOfProperty={updateRulesOfProperty}
-                                            comparisonType={comparisonType}
-                                        />
+                                        <ComparisonTable object={comparisonObject} />
                                     </div>
                                 ) : (
                                     <Alert className="mt-3 text-center" color="danger">

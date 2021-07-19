@@ -24,35 +24,32 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { getComparison, getResourceData } from 'services/similarity/index';
 import {
-    extendPropertyIds,
-    similarPropertiesByLabel,
     filterObjectOfStatementsByPredicateAndClass,
     getArrayParamFromQueryString,
     getParamFromQueryString,
     get_error_message,
-    applyRule,
-    getRuleByProperty,
     getComparisonData,
-    getComparisonConfiguration
+    getComparisonConfiguration,
+    extendAndSortProperties,
+    generateFilterControlData
 } from 'utils';
-import { useParams, useLocation, useHistory } from 'react-router-dom';
+import { useLocation, useHistory } from 'react-router-dom';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { DEFAULT_COMPARISON_METHOD } from 'constants/misc';
 import { reverse } from 'named-urls';
-import { flatten, groupBy, intersection, findIndex, cloneDeep, isEmpty, uniq, without } from 'lodash';
+import { uniq, without } from 'lodash';
 import ROUTES from 'constants/routes.js';
 import queryString from 'query-string';
 import { usePrevious } from 'react-use';
 
-function useComparison({ id }) {
+const useComparison = ({ id = null }) => {
     const location = useLocation();
     const history = useHistory();
-    const params = useParams();
-    const comparisonId = id || params.comparisonId;
+    const comparisonId = id;
 
     // urls
     const [urlNeedsToUpdate, setUrlNeedsToUpdate] = useState(false);
-    const [publicURL, setPublicURL] = useState(window.location.href);
+    const [, setPublicURL] = useState(window.location.href);
     const [, setComparisonURLConfig] = useState(window.location.search);
     const [, setShortLink] = useState('');
 
@@ -66,7 +63,6 @@ function useComparison({ id }) {
     const data = useSelector(state => state.comparison.data);
     const contributions = useSelector(state => state.comparison.contributions);
     const properties = useSelector(state => state.comparison.properties);
-    const filterControlData = useSelector(state => state.comparison.filterControlData);
     const isLoadingResult = useSelector(state => state.comparison.isLoadingResult);
 
     // comparison config
@@ -172,113 +168,6 @@ function useComparison({ id }) {
     }, []);
 
     /**
-     * Extend and sort properties
-     *
-     * @param {Object} comparisonData Comparison Data result
-     * @return {Array} list of properties extended and sorted
-     */
-    const extendAndSortProperties = useCallback(
-        comparisonData => {
-            // if there are properties in the query string
-            if (predicatesList.length > 0) {
-                // Create an extended version of propertyIds (ADD the IDs of similar properties)
-                const extendedPropertyIds = extendPropertyIds(predicatesList, comparisonData.data);
-                // sort properties based on query string (is not presented in query string, sort at the bottom)
-                // TODO: sort by label when is not active
-                comparisonData.properties.sort((a, b) => {
-                    const index1 = extendedPropertyIds.indexOf(a.id) !== -1 ? extendedPropertyIds.indexOf(a.id) : 1000;
-                    const index2 = extendedPropertyIds.indexOf(b.id) !== -1 ? extendedPropertyIds.indexOf(b.id) : 1000;
-                    return index1 - index2;
-                });
-                // hide properties based on query string
-                comparisonData.properties.forEach((property, index) => {
-                    if (!extendedPropertyIds.includes(property.id)) {
-                        comparisonData.properties[index].active = false;
-                    } else {
-                        comparisonData.properties[index].active = true;
-                    }
-                });
-            } else {
-                //no properties ids in the url, but the ones from the api still need to be sorted
-                comparisonData.properties.sort((a, b) => {
-                    if (a.active === b.active) {
-                        return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
-                    } else {
-                        return !a.active ? 1 : -1;
-                    }
-                });
-            }
-
-            // Get Similar properties by Label
-            comparisonData.properties.forEach((property, index) => {
-                comparisonData.properties[index].similar = similarPropertiesByLabel(property.label, comparisonData.data[property.id]);
-            });
-
-            return comparisonData.properties;
-        },
-        [predicatesList]
-    );
-
-    /**
-     * Generate Filter Control Data
-     *
-     * @param {Array} contributions Array of contributions
-     * @param {Array} properties Array of properties
-     * @param {Object} data Comparison Data object
-     * @return {Array} Filter Control Data
-     */
-    const generateFilterControlData = (contributions, properties, data) => {
-        const controlData = [
-            ...properties.map(property => {
-                return {
-                    property,
-                    rules: [],
-                    values: groupBy(
-                        flatten(contributions.map((_, index) => data[property.id][index]).filter(([first]) => Object.keys(first).length !== 0)),
-                        'label'
-                    )
-                };
-            })
-        ];
-        controlData.forEach(item => {
-            Object.keys(item.values).forEach(key => {
-                item.values[key] = item.values[key].map(({ path }) => path[0]);
-            });
-        });
-        return controlData;
-    };
-
-    /**
-     * Update filter control data of a property
-     *
-     * @param {Array} rules Array of rules
-     * @param {Array} propertyId property ID
-     */
-    const updateRulesOfProperty = (newRules, propertyId) => {
-        const newState = [...filterControlData];
-        const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
-        const toChange = { ...newState[toChangeIndex] };
-        toChange.rules = newRules;
-        newState[toChangeIndex] = toChange;
-        applyAllRules(newState);
-        dispatch(setComparisonFilterControlData(newState));
-    };
-
-    /**
-     * Apply filter control data rules
-     *
-     * @param {Array} newState Filter Control Data
-     */
-    const applyAllRules = newState => {
-        const AllContributionsID = contributions.map(contribution => contribution.id);
-        const contributionIds = []
-            .concat(...newState.map(item => item.rules))
-            .map(c => applyRule({ filterControlData, ...c }))
-            .reduce((prev, acc) => intersection(prev, acc), AllContributionsID);
-        displayContributions(contributionIds);
-    };
-
-    /**
      * Call the comparison service to get the comparison result
      */
     const getComparisonResult = useCallback(() => {
@@ -306,7 +195,7 @@ function useComparison({ id }) {
                     }
                 });
 
-                comparisonData.properties = extendAndSortProperties(comparisonData);
+                comparisonData.properties = extendAndSortProperties(comparisonData, predicatesList);
 
                 dispatch(setComparisonContributions(comparisonData.contributions));
                 dispatch(setComparisonProperties(comparisonData.properties));
@@ -339,72 +228,7 @@ function useComparison({ id }) {
                 dispatch(setComparisonFailedLoadingResult(true));
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [comparisonType, contributionsList, extendAndSortProperties, responseHash]);
-
-    /**
-     * Remove contribution
-     *
-     * @param {String} contributionId Contribution id to remove
-     */
-    const removeContribution = contributionId => {
-        const cIndex = findIndex(contributions, c => c.id === contributionId);
-        const newContributions = contributions
-            .filter(c => c.id !== contributionId)
-            .map(contribution => {
-                return { ...contribution, active: contribution.active };
-            });
-        const newData = cloneDeep(data);
-        let newProperties = cloneDeep(properties);
-        for (const property in newData) {
-            // remove the contribution from data
-            if (flatten(newData[property][cIndex]).filter(v => !isEmpty(v)).length !== 0) {
-                // decrement the contribution amount from properties if it has some values
-                const pIndex = newProperties.findIndex(p => p.id === property);
-                newProperties[pIndex].contributionAmount = newProperties[pIndex].contributionAmount - 1;
-            }
-            newData[property].splice(cIndex, 1);
-        }
-        newProperties = extendAndSortProperties({ data: newData, properties: newProperties });
-        dispatch(setComparisonContributionList(activatedContributionsToList(newContributions)));
-
-        dispatch(setComparisonContributions(newContributions));
-        dispatch(setComparisonData(newData));
-        dispatch(setComparisonProperties(newProperties));
-        // keep existing filter rules
-        const newFilterControlData = generateFilterControlData(newContributions, newProperties, newData).map(filter => {
-            filter.rules = getRuleByProperty(filterControlData, filter.property.id);
-            return filter;
-        });
-        dispatch(setComparisonFilterControlData(newFilterControlData));
-        setUrlNeedsToUpdate(true);
-    };
-
-    /**
-     * display certain contributionIds
-     *
-     * @param {array} contributionIds Contribution ids to display
-     */
-    const displayContributions = contributionIds => {
-        const newContributions = contributions.map(contribution => {
-            return contributionIds.includes(contribution.id) ? { ...contribution, active: true } : { ...contribution, active: false };
-        });
-        dispatch(setComparisonContributionList(activatedContributionsToList(newContributions)));
-        dispatch(setComparisonContributions(newContributions));
-        setUrlNeedsToUpdate(true);
-    };
-
-    /**
-     * Get ordered list of selected contributions
-     */
-    const activatedContributionsToList = useCallback(contributionsData => {
-        const activeContributions = [];
-        contributionsData.forEach((contribution, index) => {
-            if (contribution.active) {
-                activeContributions.push(contribution.id);
-            }
-        });
-        return activeContributions;
-    }, []);
+    }, [comparisonType, contributionsList, responseHash]);
 
     /**
      * Update the URL
@@ -538,6 +362,6 @@ function useComparison({ id }) {
         }
     }, [generateMatrixOfComparison, isLoadingResult]);
 
-    return { removeContribution, updateRulesOfProperty };
-}
+    return { comparisonObject };
+};
 export default useComparison;

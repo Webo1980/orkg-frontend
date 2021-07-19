@@ -1260,3 +1260,77 @@ export const activatedContributionsToList = contributionsData => {
     });
     return activeContributions;
 };
+
+/**
+ * Extend and sort properties
+ *
+ * @param {Object} comparisonData Comparison Data result
+ * @return {Array} list of properties extended and sorted
+ */
+export const extendAndSortProperties = (comparisonData, predicatesList) => {
+    // if there are properties in the query string
+    if (predicatesList.length > 0) {
+        // Create an extended version of propertyIds (ADD the IDs of similar properties)
+        const extendedPropertyIds = extendPropertyIds(predicatesList, comparisonData.data);
+        // sort properties based on query string (is not presented in query string, sort at the bottom)
+        // TODO: sort by label when is not active
+        comparisonData.properties.sort((a, b) => {
+            const index1 = extendedPropertyIds.indexOf(a.id) !== -1 ? extendedPropertyIds.indexOf(a.id) : 1000;
+            const index2 = extendedPropertyIds.indexOf(b.id) !== -1 ? extendedPropertyIds.indexOf(b.id) : 1000;
+            return index1 - index2;
+        });
+        // hide properties based on query string
+        comparisonData.properties.forEach((property, index) => {
+            if (!extendedPropertyIds.includes(property.id)) {
+                comparisonData.properties[index].active = false;
+            } else {
+                comparisonData.properties[index].active = true;
+            }
+        });
+    } else {
+        //no properties ids in the url, but the ones from the api still need to be sorted
+        comparisonData.properties.sort((a, b) => {
+            if (a.active === b.active) {
+                return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+            } else {
+                return !a.active ? 1 : -1;
+            }
+        });
+    }
+
+    // Get Similar properties by Label
+    comparisonData.properties.forEach((property, index) => {
+        comparisonData.properties[index].similar = similarPropertiesByLabel(property.label, comparisonData.data[property.id]);
+    });
+
+    return comparisonData.properties;
+};
+
+/**
+ * Generate Filter Control Data
+ *
+ * @param {Array} contributions Array of contributions
+ * @param {Array} properties Array of properties
+ * @param {Object} data Comparison Data object
+ * @return {Array} Filter Control Data
+ */
+export const generateFilterControlData = (contributions, properties, data) => {
+    const controlData = [
+        ...properties.map(property => {
+            return {
+                property,
+                rules: [],
+                values: groupBy(
+                    flatten(contributions.map((_, index) => data[property.id][index]).filter(([first]) => Object.keys(first).length !== 0)),
+                    'label'
+                )
+            };
+        })
+    ];
+    controlData.forEach(item => {
+        Object.keys(item.values).forEach(key => {
+            item.values[key] = item.values[key].map(({ path }) => path[0]);
+        });
+    });
+    return controlData;
+};

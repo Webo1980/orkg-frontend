@@ -4,7 +4,6 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import PropertyValue from 'components/Comparison/PropertyValue';
 import ROUTES from 'constants/routes';
-import { functions, isEqual, omit } from 'lodash';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import { ScrollSyncPane } from 'react-scroll-sync';
@@ -12,15 +11,30 @@ import { ReactTableWrapper, Contribution, Delete, ItemHeader, ItemHeaderInner, P
 import TableCell from './TableCell';
 import { useTable, useFlexLayout } from 'react-table';
 import { useSticky } from 'react-table-sticky';
-import { getPropertyObjectFromData } from 'utils';
+import {
+    getPropertyObjectFromData,
+    extendAndSortProperties,
+    activatedContributionsToList,
+    generateFilterControlData,
+    getRuleByProperty,
+    applyRule
+} from 'utils';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+    setComparisonContributionList,
+    setComparisonProperties,
+    setComparisonContributions,
+    setComparisonData,
+    setComparisonFilterControlData
+} from 'actions/comparison';
+import { flatten, findIndex, cloneDeep, isEmpty, intersection } from 'lodash';
 import PropTypes from 'prop-types';
 
-const compareProps = (prevProps, nextProps) => {
-    // remove functions from equality check (mainly targeting "removeContribution"), otherwise it is always false
-    return isEqual(omit(prevProps, functions(prevProps)), omit(nextProps, functions(nextProps)));
-};
-
 const ComparisonTable = props => {
+    const dispatch = useDispatch();
+
+    const predicatesList = useSelector(state => state.comparison.configuration.predicatesList);
+
     const scrollContainerHead = useRef(null);
     const smallerFontSize = props.viewDensity === 'compact';
 
@@ -30,6 +44,88 @@ const ComparisonTable = props => {
     } else if (props.viewDensity === 'compact') {
         cellPadding = 1;
     }
+
+    /**
+     * Remove contribution
+     *
+     * @param {String} contributionId Contribution id to remove
+     */
+    const removeContribution = contributionId => {
+        const cIndex = findIndex(props.contributions, c => c.id === contributionId);
+        const newContributions = props.contributions
+            .filter(c => c.id !== contributionId)
+            .map(contribution => {
+                return { ...contribution, active: contribution.active };
+            });
+        const newData = cloneDeep(props.data);
+        let newProperties = cloneDeep(props.properties);
+        for (const property in newData) {
+            // remove the contribution from data
+            if (flatten(newData[property][cIndex]).filter(v => !isEmpty(v)).length !== 0) {
+                // decrement the contribution amount from properties if it has some values
+                const pIndex = newProperties.findIndex(p => p.id === property);
+                newProperties[pIndex].contributionAmount = newProperties[pIndex].contributionAmount - 1;
+            }
+            newData[property].splice(cIndex, 1);
+        }
+        newProperties = extendAndSortProperties({ data: newData, properties: newProperties }, predicatesList);
+        dispatch(setComparisonContributionList(activatedContributionsToList(newContributions)));
+
+        dispatch(setComparisonContributions(newContributions));
+        dispatch(setComparisonData(newData));
+        dispatch(setComparisonProperties(newProperties));
+        // keep existing filter rules
+        const newFilterControlData = generateFilterControlData(newContributions, newProperties, newData).map(filter => {
+            filter.rules = getRuleByProperty(props.filterControlData, filter.property.id);
+            return filter;
+        });
+        dispatch(setComparisonFilterControlData(newFilterControlData));
+        //setUrlNeedsToUpdate(true);
+    };
+
+    /**
+     * Update filter control data of a property
+     *
+     * @param {Array} rules Array of rules
+     * @param {Array} propertyId property ID
+     */
+    const updateRulesOfProperty = (newRules, propertyId) => {
+        const newState = [...props.filterControlData];
+        const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
+        const toChange = { ...newState[toChangeIndex] };
+        toChange.rules = newRules;
+        newState[toChangeIndex] = toChange;
+        applyAllRules(newState);
+        dispatch(setComparisonFilterControlData(newState));
+    };
+
+    /**
+     * Apply filter control data rules
+     *
+     * @param {Array} newState Filter Control Data
+     */
+    const applyAllRules = newState => {
+        const AllContributionsID = props.contributions.map(contribution => contribution.id);
+        const contributionIds = []
+            .concat(...newState.map(item => item.rules))
+            .map(c => applyRule({ filterControlData: props.filterControlData, ...c }))
+            .reduce((prev, acc) => intersection(prev, acc), AllContributionsID);
+        displayContributions(contributionIds);
+    };
+
+    /**
+     * display certain contributionIds
+     *
+     * @param {array} contributionIds Contribution ids to display
+     */
+    const displayContributions = contributionIds => {
+        const newContributions = props.contributions.map(contribution => {
+            return contributionIds.includes(contribution.id) ? { ...contribution, active: true } : { ...contribution, active: false };
+        });
+        dispatch(setComparisonContributionList(activatedContributionsToList(newContributions)));
+        dispatch(setComparisonContributions(newContributions));
+        //setUrlNeedsToUpdate(true);
+    };
 
     const data = useMemo(() => {
         return [
@@ -90,7 +186,7 @@ const ComparisonTable = props => {
                                 <PropertyValue
                                     embeddedMode={props.embeddedMode}
                                     filterControlData={props.filterControlData}
-                                    updateRulesOfProperty={props.updateRulesOfProperty}
+                                    updateRulesOfProperty={updateRulesOfProperty}
                                     similar={info.value.similar}
                                     label={info.value.label}
                                     id={info.value.id}
@@ -116,7 +212,7 @@ const ComparisonTable = props => {
                             </PropertiesInner>
 
                             {!props.embeddedMode && props.contributions.filter(contribution => contribution.active).length > 2 && (
-                                <Delete onClick={() => props.removeContribution(info.value.id)}>
+                                <Delete onClick={() => removeContribution(info.value.id)}>
                                     <Icon icon={faTimes} />
                                 </Delete>
                             )}
@@ -150,7 +246,7 @@ const ComparisonTable = props => {
                                               </ItemHeaderInner>
 
                                               {!props.embeddedMode && props.contributions.filter(contribution => contribution.active).length > 2 && (
-                                                  <Delete onClick={() => props.removeContribution(contribution.id)}>
+                                                  <Delete onClick={() => removeContribution(contribution.id)}>
                                                       <Icon icon={faTimes} />
                                                   </Delete>
                                               )}
@@ -182,7 +278,7 @@ const ComparisonTable = props => {
                                           <PropertyValue
                                               embeddedMode={props.embeddedMode}
                                               filterControlData={props.filterControlData}
-                                              updateRulesOfProperty={props.updateRulesOfProperty}
+                                              updateRulesOfProperty={updateRulesOfProperty}
                                               similar={property.similar}
                                               label={property.label}
                                               id={property.id}
@@ -272,13 +368,11 @@ ComparisonTable.propTypes = {
     contributions: PropTypes.array.isRequired,
     data: PropTypes.object.isRequired,
     properties: PropTypes.array.isRequired,
-    removeContribution: PropTypes.func.isRequired,
     transpose: PropTypes.bool.isRequired,
     comparisonType: PropTypes.string.isRequired,
     viewDensity: PropTypes.oneOf(['spacious', 'normal', 'compact']),
     scrollContainerBody: PropTypes.object.isRequired,
     filterControlData: PropTypes.array.isRequired,
-    updateRulesOfProperty: PropTypes.func.isRequired,
     embeddedMode: PropTypes.bool.isRequired
 };
 
@@ -286,4 +380,4 @@ ComparisonTable.defaultProps = {
     embeddedMode: false
 };
 
-export default memo(ComparisonTable, compareProps);
+export default memo(ComparisonTable);

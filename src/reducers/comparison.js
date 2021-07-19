@@ -48,7 +48,7 @@ const initialState = {
     researchField: null,
     isLoadingMetadata: false,
     isFailedLoadingMetadata: false,
-    isLoadingResult: false,
+    isLoadingResult: true,
     isFailedLoadingResult: false
 };
 

@@ -1,9 +1,9 @@
 import { setComparisonData } from 'actions/smartReview';
-import Comparison from 'components/Comparison/Comparison';
-import ComparisonLoadingComponent from 'components/Comparison/ComparisonLoadingComponent';
-import useComparison from 'components/Comparison/hooks/useComparison';
+import EmbeddedComparison from 'components/Comparison/EmbeddedComparison/EmbeddedComparison';
+import { useState, useEffect } from 'react';
+import configureStore from 'store';
+import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setUsedReferences } from 'actions/smartReview';
 import { isEqual } from 'lodash';
@@ -12,24 +12,21 @@ const SectionComparison = ({ id, sectionId }) => {
     const references = useSelector(state => state.smartReview.references);
     const usedReferences = useSelector(state => state.smartReview.usedReferences);
     const dispatch = useDispatch();
-    const comparisonData = useComparison({
-        id
-    });
-    const { contributions, properties, data, isLoadingComparisonResult, filterControlData, updateRulesOfProperty, comparisonType } = comparisonData;
+    const [store, setStore] = useState(null);
 
-    useEffect(() => {
-        if (Object.keys(comparisonData.data).length === 0) {
+    const setComparisonDataCallBack = data => {
+        if (Object.keys(data).length === 0) {
             return;
         }
         dispatch(
             setComparisonData({
                 id,
-                data: comparisonData
+                data: data
             })
         );
-    }, [comparisonData, dispatch, id]);
+    };
 
-    useEffect(() => {
+    const updateReferences = contributions => {
         const paperIds = contributions.map(contribution => contribution.paperId);
         if (paperIds.length === 0) {
             return;
@@ -38,25 +35,18 @@ const SectionComparison = ({ id, sectionId }) => {
         if (!isEqual(_usedReferences, usedReferences[sectionId])) {
             dispatch(setUsedReferences({ references: _usedReferences, sectionId }));
         }
-    }, [contributions, dispatch, references, sectionId, usedReferences]);
+    };
+    useEffect(() => {
+        setStore(configureStore());
+    }, []);
 
     return (
         <>
-            {id && contributions.length > 0 && (
-                <Comparison
-                    data={data}
-                    properties={properties}
-                    contributions={contributions}
-                    removeContribution={() => {}}
-                    transpose={false}
-                    viewDensity="compact"
-                    comparisonType={comparisonType}
-                    filterControlData={filterControlData}
-                    updateRulesOfProperty={updateRulesOfProperty}
-                    embeddedMode={true}
-                />
+            {store && id && (
+                <Provider store={store}>
+                    <EmbeddedComparison id={id} updateReferences={updateReferences} setComparisonDataCallBack={setComparisonDataCallBack} />
+                </Provider>
             )}
-            {id && isLoadingComparisonResult && <ComparisonLoadingComponent />}
         </>
     );
 };
