@@ -40,6 +40,27 @@ export const setComparisonData = data => dispatch => {
     });
 };
 
+export const setComparisonProvenance = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_PROVENANCE,
+        payload: data
+    });
+};
+
+export const setComparisonCreatedBy = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_CREATED_BY,
+        payload: data
+    });
+};
+
+export const setComparisonErrors = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_ERRORS,
+        payload: data
+    });
+};
+
 export const setComparisonConfigurationAttribute = (attribute, data) => dispatch => {
     dispatch({
         type: type.COMPARISON_SET_CONFIGURATION_ATTRIBUTE,
@@ -68,9 +89,37 @@ export const setComparisonConfiguration = data => dispatch => {
     });
 };
 
-export const setComparisonSetResearchField = data => dispatch => {
+export const setComparisonResearchField = data => dispatch => {
     dispatch({
         type: type.COMPARISON_SET_RESEARCH_FIELD,
+        payload: data
+    });
+};
+
+export const setComparisonLoadingMetadata = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_LOADING_METADATA,
+        payload: data
+    });
+};
+
+export const setComparisonFailedLoadingMetadata = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_FAILED_LOADING_METADATA,
+        payload: data
+    });
+};
+
+export const setComparisonLoadingResult = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_LOADING_RESULT,
+        payload: data
+    });
+};
+
+export const setComparisonFailedLoadingResult = data => dispatch => {
+    dispatch({
+        type: type.COMPARISON_SET_FAILED_LOADING_RESULT,
         payload: data
     });
 };

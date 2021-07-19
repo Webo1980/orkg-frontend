@@ -1,6 +1,8 @@
 import * as type from 'actions/types';
 import dotProp from 'dot-prop-immutable';
 import { DEFAULT_COMPARISON_METHOD } from 'constants/misc';
+import { Cookies } from 'react-cookie';
+const cookies = new Cookies();
 
 const initialState = {
     object: {
@@ -30,7 +32,9 @@ const initialState = {
         comparisonType: DEFAULT_COMPARISON_METHOD,
         responseHash: null,
         contributionsList: [],
-        predicatesList: []
+        predicatesList: [],
+        fullWidth: cookies.get('useFullWidthForComparisonTable') === 'true' ? cookies.get('useFullWidthForComparisonTable') : false,
+        viewDensity: cookies.get('viewDensityComparisonTable') ? cookies.get('viewDensityComparisonTable') : 'spacious'
     },
     properties: [],
     contributions: [],
@@ -38,14 +42,14 @@ const initialState = {
     filterControlData: [],
     errors: [],
     matrixData: [],
-    createdBy: [],
-    provenance: [],
+    createdBy: null,
+    provenance: null,
     shortLink: '',
     researchField: null,
-    isLoadingMetaData: false,
-    isFailedLoadingMetaData: false,
-    isLoadingComparisonResult: false,
-    isFailedLoadingComparisonResult: false
+    isLoadingMetadata: false,
+    isFailedLoadingMetadata: false,
+    isLoadingResult: false,
+    isFailedLoadingResult: false
 };
 
 export default function reducer(state = initialState, action) {
@@ -85,6 +89,61 @@ export default function reducer(state = initialState, action) {
         case type.COMPARISON_SET_SHORT_LINK: {
             const { payload } = action;
             const newState = dotProp.set(state, `shortLink`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_LOADING_METADATA: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `isLoadingMetadata`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_FAILED_LOADING_METADATA: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `isFailedLoadingMetadata`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_ERRORS: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `errors`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_LOADING_RESULT: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `isLoadingResult`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_FAILED_LOADING_RESULT: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `isFailedLoadingResult`, payload);
+            return {
+                ...newState
+            };
+        }
+
+        case type.COMPARISON_SET_PROVENANCE: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `provenance`, payload);
+            return {
+                ...newState
+            };
+        }
+        case type.COMPARISON_SET_CREATED_BY: {
+            const { payload } = action;
+            const newState = dotProp.set(state, `createdBy`, payload);
             return {
                 ...newState
             };

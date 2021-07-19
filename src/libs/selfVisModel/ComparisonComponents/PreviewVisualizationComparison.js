@@ -5,52 +5,89 @@ import SingleVisualizationComponent from './SingleVisualizationComponent';
 import PreviewCarouselComponent from './PreviewCarouselComponent';
 import ContentLoader from 'react-content-loader';
 import { getVisualizationData } from 'utils';
+import { useSelector, useDispatch } from 'react-redux';
+import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
 import { find } from 'lodash';
-import PropTypes from 'prop-types';
 
-function PreviewVisualizationComparison(props) {
+function PreviewVisualizationComparison() {
     const [isLoading, setIsLoading] = useState(false);
     const [visData, setVisData] = useState([]);
 
-    const fetchVisualizationData = () => {
-        if (props.visualizations && props.visualizations.length) {
-            setIsLoading(true);
-            // Get the reconstruction model from the comparison service
-            const reconstructionModelsCalls = Promise.all(props.visualizations.map(v => getVisualization(v.id).catch(() => false)));
-            // Get the meta data for each visualization
-            const visDataCalls = getStatementsBySubjects({ ids: props.visualizations.map(v => v.id) }).then(visualizationsStatements => {
-                const visualizations = visualizationsStatements.map(visualizationStatements => {
-                    const resourceSubject = find(props.visualizations, { id: visualizationStatements.id });
-                    return getVisualizationData(
-                        visualizationStatements.id,
-                        visualizationStatements && resourceSubject.label ? resourceSubject.label : 'No Title',
-                        visualizationStatements.statements
-                    );
-                });
-                return visualizations;
-            });
-            Promise.all([visDataCalls, reconstructionModelsCalls]).then(result => {
-                // zip the result
-                result[0].forEach(visualization => (visualization.reconstructionModel = result[1].find(v => v.orkgOrigin === visualization.id)));
-                // filter out the visualization that doesn't exist;
-                const visDataObjects = result[0].filter(v => v.reconstructionModel);
-                setIsLoading(false);
-                setVisData(visDataObjects);
-            });
-        } else {
-            setVisData([]);
-            setIsLoading(false);
+    const comparisonObject = useSelector(state => state.comparison.object);
+    const { data, isLoadingResult, isFailedLoadingResult } = useSelector(state => state.comparison);
+    const contributions = useSelector(state => state.comparison.contributions.filter(c => c.active));
+    const properties = useSelector(state => state.comparison.properties.filter(c => c.active));
+    const { contributionsList, predicatesList } = useSelector(state => state.comparison.configuration);
+
+    const [showVisualizationModal, setShowVisualizationModal] = useState(false);
+    const [applyReconstruction, setUseReconstructedData] = useState(false);
+
+    const model = new SelfVisDataModel();
+    model.integrateInputData({
+        metaData: comparisonObject,
+        contributions,
+        properties,
+        data,
+        contributionsList,
+        predicatesList
+    });
+
+    /**
+     * Expand a preview of a visualization
+     *
+     * @param {Boolean} val weather to use reconstructed data
+     */
+    const expandVisualization = val => {
+        setUseReconstructedData(val);
+        if (val === false) {
+            const model = new SelfVisDataModel();
+            model.resetCustomizationModel();
         }
+        //setShowVisualizationModal(true);
     };
+    console.log('PreviewVisualizationComparison');
 
     useEffect(() => {
+        const fetchVisualizationData = () => {
+            console.log('fetchVisualizationData');
+            if (comparisonObject.visualizations && comparisonObject.visualizations.length) {
+                setIsLoading(true);
+                // Get the reconstruction model from the comparison service
+                const reconstructionModelsCalls = Promise.all(comparisonObject.visualizations.map(v => getVisualization(v.id).catch(() => false)));
+                // Get the meta data for each visualization
+                const visDataCalls = getStatementsBySubjects({ ids: comparisonObject.visualizations.map(v => v.id) }).then(
+                    visualizationsStatements => {
+                        const svisualizations = visualizationsStatements.map(visualizationStatements => {
+                            const resourceSubject = find(comparisonObject.visualizations, { id: visualizationStatements.id });
+                            return getVisualizationData(
+                                visualizationStatements.id,
+                                visualizationStatements && resourceSubject.label ? resourceSubject.label : 'No Title',
+                                visualizationStatements.statements
+                            );
+                        });
+                        return svisualizations;
+                    }
+                );
+                Promise.all([visDataCalls, reconstructionModelsCalls]).then(result => {
+                    // zip the result
+                    result[0].forEach(visualization => (visualization.reconstructionModel = result[1].find(v => v.orkgOrigin === visualization.id)));
+                    // filter out the visualization that doesn't exist;
+                    const visDataObjects = result[0].filter(v => v.reconstructionModel);
+                    setIsLoading(false);
+                    setVisData(visDataObjects);
+                });
+            } else {
+                setVisData([]);
+                setIsLoading(false);
+            }
+        };
         fetchVisualizationData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.comparisonId, JSON.stringify(props.visualizations)]);
+        console.log('useEffect');
+    }, [JSON.stringify(comparisonObject.visualizations)]);
 
     return (
         <div>
-            {!isLoading && visData && visData.length > 0 && (
+            {!isLoading && data && visData && visData.length > 0 && (
                 <PreviewCarouselComponent>
                     {visData.map((data, index) => {
                         return (
@@ -58,7 +95,7 @@ function PreviewVisualizationComparison(props) {
                                 key={'singleVisComp_' + index}
                                 input={data}
                                 itemIndex={index}
-                                expandVisualization={props.expandVisualization}
+                                expandVisualization={val => expandVisualization(val)}
                             />
                         );
                     })}
@@ -81,11 +118,5 @@ function PreviewVisualizationComparison(props) {
         </div>
     );
 }
-
-PreviewVisualizationComparison.propTypes = {
-    comparisonId: PropTypes.string,
-    expandVisualization: PropTypes.func,
-    visualizations: PropTypes.array
-};
 
 export default PreviewVisualizationComparison;

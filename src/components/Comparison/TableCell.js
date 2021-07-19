@@ -5,6 +5,7 @@ import StatementBrowserDialog from '../StatementBrowser/StatementBrowserDialog';
 import ValuePlugins from '../ValuePlugins/ValuePlugins';
 import { PREDICATE_TYPE_ID, RESOURCE_TYPE_ID } from 'constants/misc';
 import Tippy from '@tippyjs/react';
+import { slugify } from 'utils';
 
 export const Item = styled.div`
     padding-right: 10px;
@@ -129,7 +130,7 @@ class TableCell extends Component {
                                             </Tippy>
                                         </span>
                                     ) : (
-                                        <span key={`value-${date.label}`}>
+                                        <span key={`value-${slugify(date.label)}-${index}`}>
                                             {index > 0 && <ItemInnerSeparator />}
                                             <Tippy
                                                 content={this.PathTooltipContent(date)}

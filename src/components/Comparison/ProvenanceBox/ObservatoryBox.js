@@ -1,8 +1,8 @@
 import ROUTES from 'constants/routes';
 import { reverse } from 'named-urls';
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { useSelector } from 'react-redux';
 
 const ObservatoryBoxStyled = styled.div`
     float: right;
@@ -24,7 +24,9 @@ const ObservatoryBoxStyled = styled.div`
     }
 `;
 
-const ObservatoryBox = ({ provenance }) => {
+const ObservatoryBox = () => {
+    const provenance = useSelector(state => state.comparison.provenance ?? null);
+
     if (!provenance || !provenance.organization) {
         return null;
     }
@@ -45,14 +47,6 @@ const ObservatoryBox = ({ provenance }) => {
             </Link>
         </ObservatoryBoxStyled>
     );
-};
-
-ObservatoryBox.propTypes = {
-    provenance: PropTypes.object
-};
-
-ObservatoryBox.defaultProps = {
-    provenance: null
 };
 
 export default ObservatoryBox;

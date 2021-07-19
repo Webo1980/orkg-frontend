@@ -1,14 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
-import { getContributorInformationById } from 'services/backend/contributors';
-import { getObservatoryAndOrganizationInformation } from 'services/backend/observatories';
 import { getResource } from 'services/backend/resources';
 import {
-    updateVisualizations,
     setComparisonObject,
     clearComparisonId,
     setComparisonSetPreviousVersion,
-    setComparisonSetResearchField,
+    setComparisonResearchField,
     setComparisonConfiguration,
     setComparisonContributionList,
     setComparisonPredicatesList,
@@ -17,7 +14,12 @@ import {
     setComparisonContributions,
     setComparisonData,
     setComparisonFilterControlData,
-    setComparisonMatrixData
+    setComparisonMatrixData,
+    setComparisonFailedLoadingMetadata,
+    setComparisonLoadingMetadata,
+    setComparisonLoadingResult,
+    setComparisonFailedLoadingResult,
+    setComparisonErrors
 } from 'actions/comparison';
 import { useSelector, useDispatch } from 'react-redux';
 import { getComparison, getResourceData } from 'services/similarity/index';
@@ -34,15 +36,13 @@ import {
     getComparisonConfiguration
 } from 'utils';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
-import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
+import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { DEFAULT_COMPARISON_METHOD } from 'constants/misc';
 import { reverse } from 'named-urls';
 import { flatten, groupBy, intersection, findIndex, cloneDeep, isEmpty, uniq, without } from 'lodash';
-import arrayMove from 'array-move';
 import ROUTES from 'constants/routes.js';
 import queryString from 'query-string';
 import { usePrevious } from 'react-use';
-import Confirm from 'reactstrap-confirm';
 
 function useComparison({ id }) {
     const location = useLocation();
@@ -50,14 +50,10 @@ function useComparison({ id }) {
     const params = useParams();
     const comparisonId = id || params.comparisonId;
 
-    const [errors, setErrors] = useState([]);
-    const [createdBy, setCreatedBy] = useState(null);
-    const [provenance, setProvenance] = useState(null);
-
     // urls
     const [urlNeedsToUpdate, setUrlNeedsToUpdate] = useState(false);
     const [publicURL, setPublicURL] = useState(window.location.href);
-    const [comparisonURLConfig, setComparisonURLConfig] = useState(window.location.search);
+    const [, setComparisonURLConfig] = useState(window.location.search);
     const [, setShortLink] = useState('');
 
     const dispatch = useDispatch();
@@ -68,22 +64,16 @@ function useComparison({ id }) {
     const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
     const responseHash = useSelector(state => state.comparison.configuration.responseHash);
     const data = useSelector(state => state.comparison.data);
-    const matrixData = useSelector(state => state.comparison.matrixData);
     const contributions = useSelector(state => state.comparison.contributions);
     const properties = useSelector(state => state.comparison.properties);
     const filterControlData = useSelector(state => state.comparison.filterControlData);
+    const isLoadingResult = useSelector(state => state.comparison.isLoadingResult);
 
     // comparison config
     const [shouldFetchLiveComparison, setShouldFetchLiveComparison] = useState(false);
 
     // reference to previous comparison type
     const prevComparisonType = usePrevious(comparisonType);
-
-    // loading indicators
-    const [isLoadingMetaData, setIsLoadingMetaData] = useState(false);
-    const [isFailedLoadingMetaData, setIsFailedLoadingMetaData] = useState(false);
-    const [isLoadingComparisonResult, setIsLoadingComparisonResult] = useState(true);
-    const [isFailedLoadingComparisonResult, setIsFailedLoadingComparisonResult] = useState(false);
 
     /**
      * set comparison Public URL
@@ -106,7 +96,7 @@ function useComparison({ id }) {
      */
     const loadComparisonMetaData = useCallback(cId => {
         if (cId) {
-            setIsLoadingMetaData(true);
+            dispatch(setComparisonLoadingMetadata(true));
             // Get the comparison resource and comparison config
             Promise.all([getResource(cId), getResourceData(cId)])
                 .then(([comparisonResource, configurationData]) => {
@@ -158,15 +148,11 @@ function useComparison({ id }) {
                                 CLASSES.CONTRIBUTION
                             )?.map(c => c.id)
                         ) {
-                            setIsLoadingComparisonResult(false);
+                            dispatch(setComparisonLoadingResult(false));
                         }
-                        setIsLoadingMetaData(false);
-                        setIsFailedLoadingMetaData(false);
+                        dispatch(setComparisonLoadingMetadata(false));
+                        dispatch(setComparisonFailedLoadingMetadata(false));
                     });
-
-                    // Get Provenance data
-                    loadCreatedBy(comparisonResource.created_by);
-                    loadProvenanceInfos(comparisonResource.observatory_id, comparisonResource.organization_id);
                 })
                 .catch(error => {
                     let errorMessage = null;
@@ -175,51 +161,15 @@ function useComparison({ id }) {
                     } else {
                         errorMessage = get_error_message(error);
                     }
-                    setErrors(errorMessage);
-                    setIsLoadingMetaData(false);
-                    setIsFailedLoadingMetaData(true);
+                    dispatch(setComparisonErrors(errorMessage));
+                    dispatch(setComparisonLoadingMetadata(false));
+                    dispatch(setComparisonFailedLoadingMetadata(true));
                 });
         } else {
-            setIsLoadingMetaData(false);
-            setIsFailedLoadingMetaData(true);
+            dispatch(setComparisonLoadingMetadata(false));
+            dispatch(setComparisonFailedLoadingMetadata(true));
         }
     }, []);
-
-    /**
-     * Load creator user
-     *
-     * @param {String} created_by user ID
-     */
-    const loadCreatedBy = created_by => {
-        // Get Provenance data
-        if (created_by && created_by !== MISC.UNKNOWN_ID) {
-            getContributorInformationById(created_by)
-                .then(creator => {
-                    setCreatedBy(creator);
-                })
-                .catch(() => {
-                    setCreatedBy(null);
-                });
-        } else {
-            setCreatedBy(null);
-        }
-    };
-
-    /**
-     * Load Provenance data
-     *
-     * @param {String} observatory_id observatory ID
-     * @param {String} organization_id organization ID
-     */
-    const loadProvenanceInfos = (observatory_id, organization_id) => {
-        if (observatory_id && observatory_id !== MISC.UNKNOWN_ID) {
-            getObservatoryAndOrganizationInformation(observatory_id, organization_id).then(observatory => {
-                setProvenance(observatory);
-            });
-        } else {
-            setProvenance(null);
-        }
-    };
 
     /**
      * Extend and sort properties
@@ -315,23 +265,6 @@ function useComparison({ id }) {
     };
 
     /**
-     * Remove a rule from filter control data of a property
-     *
-     * @param {Array} propertyId property ID
-     * @param {String} type Filter type
-     * @param {String} value Filter value
-     */
-    const removeRule = ({ propertyId, type, value }) => {
-        const newState = [...filterControlData];
-        const toChangeIndex = newState.findIndex(item => item.property.id === propertyId);
-        const toChange = { ...newState[toChangeIndex] };
-        toChange.rules = toChange.rules.filter(item => !(item.propertyId === propertyId && item.type === type && item.value === value));
-        newState[toChangeIndex] = toChange;
-        applyAllRules(newState);
-        dispatch(setComparisonFilterControlData(newState));
-    };
-
-    /**
      * Apply filter control data rules
      *
      * @param {Array} newState Filter Control Data
@@ -349,7 +282,7 @@ function useComparison({ id }) {
      * Call the comparison service to get the comparison result
      */
     const getComparisonResult = useCallback(() => {
-        setIsLoadingComparisonResult(true);
+        dispatch(setComparisonLoadingResult(true));
         getComparison({ contributionIds: contributionsList, type: comparisonType, response_hash: responseHash, save_response: false })
             .then(comparisonData => {
                 // get Research field of the first contributions
@@ -358,7 +291,7 @@ function useComparison({ id }) {
                     predicateId: PREDICATES.HAS_RESEARCH_FIELD
                 }).then(s => {
                     if (s.length && !comparisonObject?.researchField) {
-                        dispatch(setComparisonSetResearchField(s[0].object));
+                        dispatch(setComparisonResearchField(s[0].object));
                     }
                     return Promise.resolve(comparisonData);
                 });
@@ -383,8 +316,8 @@ function useComparison({ id }) {
                         generateFilterControlData(comparisonData.contributions, comparisonData.properties, comparisonData.data)
                     )
                 );
-                setIsLoadingComparisonResult(false);
-                setIsFailedLoadingComparisonResult(false);
+                dispatch(setComparisonLoadingResult(false));
+                dispatch(setComparisonFailedLoadingResult(false));
 
                 if (comparisonData.response_hash) {
                     dispatch(setComparisonConfigurationAttribute('responseHash', comparisonData.response_hash));
@@ -401,9 +334,9 @@ function useComparison({ id }) {
             })
             .catch(error => {
                 console.log(error);
-                setErrors(get_error_message(error));
-                setIsLoadingComparisonResult(false);
-                setIsFailedLoadingComparisonResult(true);
+                dispatch(setComparisonErrors(get_error_message(error)));
+                dispatch(setComparisonLoadingResult(false));
+                dispatch(setComparisonFailedLoadingResult(true));
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [comparisonType, contributionsList, extendAndSortProperties, responseHash]);
@@ -461,40 +394,6 @@ function useComparison({ id }) {
     };
 
     /**
-     * Add contributions
-     *
-     * @param {Array[String]} newContributionIds Contribution ids to add
-     */
-    const addContributions = newContributionIds => {
-        setUrlNeedsToUpdate(true);
-        dispatch(setComparisonConfigurationAttribute('responseHash', null));
-        const contributionsIDs = without(uniq(contributionsList.concat(newContributionIds)), undefined, null, '') ?? [];
-        dispatch(setComparisonContributionList(contributionsIDs));
-    };
-
-    /**
-     * Toggle transpose option
-     *
-     */
-    const toggleTranspose = () => {
-        setUrlNeedsToUpdate(true);
-        dispatch(setComparisonConfigurationAttribute('transpose', !transpose));
-    };
-
-    /**
-     * Get ordered list of selected properties
-     */
-    const activatedPropertiesToList = useCallback(propertiesData => {
-        const activeProperties = [];
-        propertiesData.forEach((property, index) => {
-            if (property.active) {
-                activeProperties.push(property.id);
-            }
-        });
-        return activeProperties;
-    }, []);
-
-    /**
      * Get ordered list of selected contributions
      */
     const activatedContributionsToList = useCallback(contributionsData => {
@@ -532,7 +431,7 @@ function useComparison({ id }) {
     /**
      * Create a tabular data of the comparison
      */
-    const generateMatrixOfComparison = () => {
+    const generateMatrixOfComparison = useCallback(() => {
         const header = ['Title'];
 
         for (const property of properties) {
@@ -562,40 +461,7 @@ function useComparison({ id }) {
             }
         }
         dispatch(setComparisonMatrixData([header, ...rows]));
-    };
-
-    const handleEditContributions = async () => {
-        if (comparisonObject?.id || responseHash) {
-            const isConfirmed = await Confirm({
-                title: 'This is a published comparison',
-                message: `The comparison you are viewing is published, which means it cannot be modified. To make changes, fetch the live comparison data and try this action again`,
-                cancelColor: 'light',
-                confirmText: 'Fetch live data'
-            });
-
-            if (isConfirmed) {
-                setUrlNeedsToUpdate(true);
-                dispatch(setComparisonConfigurationAttribute('responseHash', null));
-                setShouldFetchLiveComparison(true);
-            }
-        } else {
-            const isConfirmed = await Confirm({
-                title: 'Edit contribution data',
-                message: `You are about the edit the contributions displayed in the comparison. Changing this data does not only affect this comparison, but also other parts of the ORKG`,
-                cancelColor: 'light',
-                confirmText: 'Continue'
-            });
-
-            if (isConfirmed) {
-                history.push(
-                    reverse(ROUTES.CONTRIBUTION_EDITOR) +
-                        `?contributions=${contributionsList.join(',')}${
-                            comparisonObject?.hasPreviousVersion ? `&hasPreviousVersion=${comparisonObject?.hasPreviousVersion.id}` : ''
-                        }`
-                );
-            }
-        }
-    };
+    }, [contributions, data, dispatch, properties]);
 
     useEffect(() => {
         // only is there is no hash, live comparison data can be fetched
@@ -664,46 +530,14 @@ function useComparison({ id }) {
 
     /**
      * Update Matrix of comparison
-     *  1/ isLoadingComparisonResult is false (finished loading)
+     *  1/ isLoadingResult is false (finished loading)
      */
     useEffect(() => {
-        if (!isLoadingComparisonResult) {
+        if (!isLoadingResult) {
             generateMatrixOfComparison();
         }
-    }, [isLoadingComparisonResult]);
+    }, [generateMatrixOfComparison, isLoadingResult]);
 
-    return {
-        contributions,
-        properties,
-        data,
-        filterControlData,
-        matrixData,
-        errors,
-        transpose,
-        comparisonType,
-        responseHash,
-        contributionsList,
-        predicatesList,
-        publicURL,
-        comparisonURLConfig,
-        isLoadingMetaData,
-        isFailedLoadingMetaData,
-        isLoadingComparisonResult,
-        isFailedLoadingComparisonResult,
-        createdBy,
-        provenance,
-        toggleTranspose,
-        removeContribution,
-        addContributions,
-        applyAllRules,
-        updateRulesOfProperty,
-        removeRule,
-        generateUrl,
-        setUrlNeedsToUpdate,
-        setShortLink,
-        loadCreatedBy,
-        loadProvenanceInfos,
-        handleEditContributions
-    };
+    return { removeContribution, updateRulesOfProperty };
 }
 export default useComparison;

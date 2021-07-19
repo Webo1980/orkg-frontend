@@ -1247,3 +1247,16 @@ export const getPublicUrl = () => {
     const publicURL = env('PUBLIC_URL').endsWith('/') ? env('PUBLIC_URL').slice(0, -1) : env('PUBLIC_URL');
     return `${window.location.protocol}//${window.location.host}${publicURL}`;
 };
+
+/**
+ * Get ordered list of selected contributions
+ */
+export const activatedContributionsToList = contributionsData => {
+    const activeContributions = [];
+    contributionsData.forEach((contribution, index) => {
+        if (contribution.active) {
+            activeContributions.push(contribution.id);
+        }
+    });
+    return activeContributions;
+};
