@@ -72,7 +72,6 @@ function Comparison(props) {
         setUrlNeedsToUpdate,
         loadCreatedBy,
         loadProvenanceInfos,
-        loadVisualizations,
         handleEditContributions
     } = useComparison({});
 
@@ -548,19 +547,7 @@ function Comparison(props) {
             <AddVisualizationModal
                 toggle={() => setShowVisualizationModal(v => !v)}
                 showDialog={showVisualizationModal}
-                // Some data we track as input for the new data model TODO Check what we need
-                initialData={{
-                    metaData: comparisonObject,
-                    contributions,
-                    properties,
-                    data,
-                    contributionsList,
-                    predicatesList
-                }}
                 closeOnExport={closeOnExport}
-                updatePreviewComponent={() => {
-                    loadVisualizations(comparisonObject.id);
-                }}
                 useReconstructedData={applyReconstruction}
             />
         </div>

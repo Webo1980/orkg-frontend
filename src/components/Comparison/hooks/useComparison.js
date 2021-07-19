@@ -99,17 +99,6 @@ function useComparison({ id }) {
         setPublicURL(newURL);
     };
 
-    const loadVisualizations = comparisonID => {
-        getStatementsBySubjectAndPredicate({ subjectId: comparisonID, predicateId: PREDICATES.HAS_VISUALIZATION }).then(statements => {
-            const visualizations = filterObjectOfStatementsByPredicateAndClass(
-                statements,
-                PREDICATES.HAS_VISUALIZATION,
-                false,
-                CLASSES.VISUALIZATION
-            );
-            dispatch(updateVisualizations(visualizations));
-        });
-    };
     /**
      * Load comparison meta data and comparison config
      *
@@ -714,7 +703,6 @@ function useComparison({ id }) {
         setShortLink,
         loadCreatedBy,
         loadProvenanceInfos,
-        loadVisualizations,
         handleEditContributions
     };
 }

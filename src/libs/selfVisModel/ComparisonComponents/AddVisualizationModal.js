@@ -5,13 +5,18 @@ import CellEditor from 'libs/selfVisModel/RenderingComponents/CellEditor';
 import CellSelector from 'libs/selfVisModel/RenderingComponents/CellSelector';
 import VisualizationWidget from 'libs/selfVisModel/VisRenderer/VisualizationWidget';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
+import { getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import PublishVisualization from './PublishVisualization';
 import HelpVideoModal from './HelpVideoModal';
 import { usePrevious } from 'react-use';
 import Tippy from '@tippyjs/react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import { PREDICATES, CLASSES } from 'constants/graphSettings';
+import { updateVisualizations } from 'actions/comparison';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { useSelector, useDispatch } from 'react-redux';
+import { filterObjectOfStatementsByPredicateAndClass } from 'utils';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 
 const TabButtons = styled(Row)`
@@ -48,6 +53,13 @@ function AddVisualizationModal(props) {
     const [showVideoModal, setShowVideoModal] = useState(false);
     const prevProcessStep = usePrevious(processStep);
     const prevShowDialog = usePrevious(props.showDialog);
+
+    const dispatch = useDispatch();
+    const { data } = useSelector(state => state.comparison);
+    const contributions = useSelector(state => state.comparison.contributions.filter(c => c.active));
+    const properties = useSelector(state => state.comparison.properties.filter(c => c.active));
+    const comparisonObject = useSelector(state => state.comparison.object);
+    const { contributionsList, predicatesList } = useSelector(state => state.comparison.configuration);
 
     const updateDimensions = () => {
         // test
@@ -110,10 +122,29 @@ function AddVisualizationModal(props) {
         return assumedWidth;
     };
 
+    const loadVisualizations = () => {
+        getStatementsBySubjectAndPredicate({ subjectId: comparisonObject.id, predicateId: PREDICATES.HAS_VISUALIZATION }).then(statements => {
+            const visualizations = filterObjectOfStatementsByPredicateAndClass(
+                statements,
+                PREDICATES.HAS_VISUALIZATION,
+                false,
+                CLASSES.VISUALIZATION
+            );
+            dispatch(updateVisualizations(visualizations));
+        });
+    };
+
     const onLoadModal = () => {
         // check if we need to run the parser
         const mmr = new SelfVisDataModel(); // this is a singleton
-        mmr.integrateInputData(props.initialData);
+        mmr.integrateInputData({
+            metaData: comparisonObject,
+            contributions,
+            properties,
+            data,
+            contributionsList,
+            predicatesList
+        });
     };
 
     return (
@@ -175,9 +206,9 @@ function AddVisualizationModal(props) {
                         closeAllAndReloadVisualizations={() => {
                             setShowPublishVisualizationDialog(!showPublishVisualizationDialog);
                             props.toggle();
-                            props.updatePreviewComponent();
+                            loadVisualizations();
                         }}
-                        comparisonId={props.initialData.metaData.id}
+                        comparisonId={comparisonObject.id}
                     />
                 </ModalBody>
                 <ModalFooter className="p-2">
@@ -210,7 +241,7 @@ function AddVisualizationModal(props) {
                         )}
                         {processStep === 2 && (
                             <>
-                                {props.initialData.metaData.id && (
+                                {comparisonObject.id && (
                                     <RequireAuthentication
                                         component={Button}
                                         color="primary"
@@ -223,7 +254,7 @@ function AddVisualizationModal(props) {
                                     </RequireAuthentication>
                                 )}
 
-                                {!props.initialData.metaData.id && (
+                                {!comparisonObject.id && (
                                     <Tippy
                                         hideOnClick={false}
                                         content="Cannot publish visualization to a unpublished comparison. You must publish the comparison first."
@@ -243,9 +274,7 @@ function AddVisualizationModal(props) {
 AddVisualizationModal.propTypes = {
     useReconstructedData: PropTypes.bool.isRequired,
     showDialog: PropTypes.bool.isRequired,
-    toggle: PropTypes.func.isRequired,
-    updatePreviewComponent: PropTypes.func.isRequired,
-    initialData: PropTypes.object
+    toggle: PropTypes.func.isRequired
 };
 
 export default AddVisualizationModal;
