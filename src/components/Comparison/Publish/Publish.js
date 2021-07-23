@@ -274,7 +274,9 @@ function Publish(props) {
                     description,
                     props.contributionsList,
                     comparisonCreatorsORCID.map(c => ({ creator: c.label, orcid: c.orcid })),
-                    `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
+                    `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`,
+                    CLASSES.COMPARISON,
+                    CLASSES.DATASET
                 )
                     .then(doiResponse => {
                         props.setMetaData(prevMetaData => ({
