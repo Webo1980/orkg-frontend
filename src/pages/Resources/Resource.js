@@ -33,7 +33,7 @@ import GDCVisualizationRenderer from 'libs/selfVisModel/RenderingComponents/GDCV
 import DescriptionTooltip from 'components/DescriptionTooltip/DescriptionTooltip';
 import { CLASS_TYPE_ID } from 'constants/misc';
 import { reverseWithSlug } from 'utils';
-import Discussion from 'components/Observatory/Discussion';
+import DiscussionHeader from 'pages/Discussions/DiscussionHeader';
 
 const DEDICATED_PAGE_LINKS = {
     [CLASSES.PAPER]: {
@@ -224,9 +224,10 @@ function Resource(props) {
                             >
                                 <Icon icon={faPlus} className="mr-1" /> Create resource
                             </RequireAuthentication>
-                            <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowDiscussionDialog(v => !v)}>
-                                <Icon icon={faClipboardList} className="mr-1" /> Disucssion
-                            </Button>
+                            {/* <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowDiscussionDialog(v => !v)}> */}
+                            {/* <Icon icon={faClipboardList} className="mr-1" /> Disucssion */}
+                            {/* </Button> */}
+                            <DiscussionHeader label={label} />
                             {dedicatedLink && (
                                 <Button
                                     color="secondary"
@@ -382,7 +383,6 @@ function Resource(props) {
                     </Container>
                 </>
             )}
-            <Discussion showDialog={showDiscussionDialog} toggle={() => setShowDiscussionDialog(v => !v)} label={label} />
         </>
     );
 }

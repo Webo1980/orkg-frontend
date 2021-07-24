@@ -41,6 +41,7 @@ import { NavLink } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import env from '@beam-australia/react-env';
 import AppliedRule from 'components/Comparison/Filters/AppliedRule';
+import DiscussionHeader from 'pages/Discussions/DiscussionHeader';
 
 function Comparison(props) {
     const {
@@ -232,6 +233,7 @@ function Comparison(props) {
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
+                            <DiscussionHeader label={metaData.title} />
                             {!!metaData.id ? (
                                 <Button
                                     color="secondary"

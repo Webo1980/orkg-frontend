@@ -14,9 +14,9 @@ import { SubTitle, SubtitleSeparator } from 'components/styled';
 import NotFound from 'pages/NotFound';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { faPen, faClipboardList } from '@fortawesome/free-solid-svg-icons';
+import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import Discussion from 'components/Observatory/Discussion';
+import DiscussionHeader from 'pages/Discussions/DiscussionHeader';
 
 const Observatory = () => {
     const [error, setError] = useState(null);
@@ -85,17 +85,20 @@ const Observatory = () => {
                         </>
                         {!!user && user.isCurationAllowed && (
                             <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
+                                <DiscussionHeader label={label} />
                                 <Button color="secondary" size="sm" onClick={() => setShowEditDialog(v => !v)}>
                                     <Icon icon={faPen} /> Edit
                                 </Button>
                             </ButtonGroup>
                         )}
-
-                        <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
-                            <Button color="secondary" size="sm" onClick={() => setShowDiscussionDialog(v => !v)}>
-                                <Icon icon={faClipboardList} /> Disucssion
-                            </Button>
-                        </ButtonGroup>
+                        {/* <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}> */}
+                        {/* <Button color="secondary" size="sm" onClick={() => setShowDiscussionDialog(v => !v)}> */}
+                        {/* <Icon icon={faClipboardList} /> Discussion: */}
+                        {/* <small> */}
+                        {/* <i> {`${discussionList.length} comment(s)`} </i> */}
+                        {/* </small> */}
+                        {/* </Button> */}
+                        {/* </ButtonGroup> */}
                     </Container>
                     {description && (
                         <Container className="p-0">
@@ -136,7 +139,6 @@ const Observatory = () => {
                 researchField={researchField}
                 updateObservatoryMetadata={updateObservatoryMetadata}
             />
-            {label && <Discussion showDialog={showDiscussionDialog} toggle={() => setShowDiscussionDialog(v => !v)} label={label} />}
         </>
     );
 };
