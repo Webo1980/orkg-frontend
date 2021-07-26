@@ -27,7 +27,6 @@ const Observatory = () => {
     const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false);
     const [organizationsList, setOrganizationsList] = useState([]);
     const [showEditDialog, setShowEditDialog] = useState(false);
-    const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
     const [displayId, setDisplayId] = useState('');
     const { id } = useParams();
     const user = useSelector(state => state.auth.user);
