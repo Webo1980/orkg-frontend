@@ -1,6 +1,7 @@
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Papers from 'components/ResearchField/Papers';
+import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import ResearchFieldSelector from 'components/ResearchFieldSelector/ResearchFieldSelector';
 import { getResearchFieldsStats } from 'services/backend/stats';
 import { MISC } from 'constants/graphSettings';
@@ -61,6 +62,25 @@ const ResearchFields = () => {
             </Container>
             <Container className="p-0">
                 <div className="box rounded-lg p-4">
+                    <div className="d-flex">
+                        <div>
+                            <p>
+                                The <i>ORKG Research fields taxonomy</i> is used to organize and facilitate browsing and exploring the research
+                                knowledge graph.
+                            </p>
+                            <div>
+                                Further information about the taxonomy can be found in the{' '}
+                                <a
+                                    href="https://www.orkg.org/orkg/help-center/article/20/ORKG_Research_fields_taxonomy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    ORKG help center
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
                     <Row>
                         <Col md="5" className="border-right">
                             <ResearchFieldSelector
@@ -97,6 +117,7 @@ const ResearchFields = () => {
                         </Col>
                     </Row>
                 </div>
+                <ComparisonPopup />
             </Container>
         </>
     );

@@ -1,3 +1,8 @@
+/**
+ * 
+ * IMPORTANT: Please make sure to update ThemeVariables.js if you update any of the following variables
+ * 
+ */
 // Theme variables
 $primary: #e86161;
 $primary-darker: darken($primary, 20%);
@@ -13,7 +18,8 @@ $border-width: 1px;
 $border-radius: 6px;
 $theme-colors: (
     primary-darker: $primary-darker,
-    secondary-darker: $secondary-darker
+    secondary-darker: $secondary-darker,
+    body: $body-color
 );
 
 // Forms
