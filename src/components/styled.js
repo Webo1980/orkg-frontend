@@ -134,3 +134,9 @@ export const CardBadgeFilter = styled.div`
         border: 1px ${props => props.theme.secondaryDarker} solid;
     }
 `;
+
+export const CmsPage = styled.div`
+    img {
+        max-width: 100%;
+    }
+`;
