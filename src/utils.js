@@ -38,7 +38,7 @@ export function hashCode(s) {
  */
 
 export function getArrayParamFromQueryString(locationSearch, param) {
-    const values = queryString.parse(decodeURIComponent(locationSearch), { arrayFormat: 'comma' })[param];
+    const values = queryString.parse(locationSearch, { arrayFormat: 'comma' })[param];
     if (!values) {
         return [];
     }
@@ -280,7 +280,7 @@ export const getComparisonData = (resource, comparisonStatements) => {
         label: resource.label ? resource.label : 'No Title',
         authors: authors ? authors.sort((a, b) => a.s_created_at.localeCompare(b.s_created_at)) : [], // sort authors by their statement creation time (s_created_at)
         contributions: contributions,
-        reference: references,
+        references,
         doi: doi ? doi.label : '',
         description: description ? description.label : '',
         icon: icon ? icon.label : '',
@@ -774,7 +774,7 @@ export function truncStringPortion(str, firstCharCount = str.length, endCharCoun
 // TODO: refactor the authors dialog and create a hook to put this function
 export async function saveAuthors({ prevAuthors, newAuthors, paperId }) {
     if (isEqual(prevAuthors, newAuthors)) {
-        return null;
+        return prevAuthors;
     }
 
     const statementsIds = [];
@@ -1177,6 +1177,14 @@ export const stringifySort = sort => {
  */
 export const slugify = input => {
     return slugifyString(input.replace('/', ' '), '_');
+};
+
+/**
+ * Get base url of the application
+ */
+export const getPublicUrl = () => {
+    const publicURL = env('PUBLIC_URL').endsWith('/') ? env('PUBLIC_URL').slice(0, -1) : env('PUBLIC_URL');
+    return `${window.location.protocol}//${window.location.host}${publicURL}`;
 };
 
 /**

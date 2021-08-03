@@ -1,8 +1,71 @@
-# Changelog
-
 All notable changes to the ORKG will be documented in this file. The format is based on [Keep a
 Changelog](https://keepachangelog.com/en/1.0.0/) and we adhere to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+## [V0.47](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.46...V0.47) - 2021-08-03
+
+### Changes
+
+- Replace title about page [`#655`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/655)
+- fix: wrap top menu to prevent horizontal scrolling on small screens [`#654`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/654)
+- feat(SB): Select datatype of literal [`#647`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/647)
+- fix(Header): improve responsiveness [`#657`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/657)
+- feat(ValuePlugins): support inline Latex and AsciiMath [`#646`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/646)
+- UX(Comparison popup): Start comparison only if two contributions are selected [`#652`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/652)
+- style: Enhance similar contributions elements in small screens [`#653`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/653)
+- fix: Exclude videos and images patterns from link ValuePlugin [`#651`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/651)
+- chore: remove unused packages [`#650`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/650)
+
+---
+## [V0.46](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.45...V0.46) - 2021-07-26
+
+### Changes
+
+- feat: Integration of Strapi CMS [`#564`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/564)
+
+---
+## [V0.45](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.44.1...V0.45) - 2021-07-21
+
+### Changes
+
+- fix: Issue with fetch statements for resource [`#648`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/648)
+- enhancement(Benchmark): Show benchmark of a research problem on dataset [`#628`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/628)
+- feat(Stats): add additional statistics [`#625`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/625)
+- fix(SmartReview): save authors without change [`#645`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/645)
+- feat(Observatories): human-readable URLs [`#507`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/507)
+- fix(Comparison): Remove decoding before parsing comparison configuration [`#643`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/643)
+- fix(SmartReview): preserve order of ontology items, rely on backend default sorting [`#612`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/612)
+
+---
+## [V0.44.1](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.44...V0.44.1) - 2021-07-15
+
+### Changes
+
+- fix(CSV import): Validation schema [`#642`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/642)
+
+---
+## [V0.44](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.43...V0.44) - 2021-07-13
+
+### Changes
+
+- fix: make several UI components more accessible [`#636`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/636)
+- fix: Paper cannot be edited when no research field is provided [`#641`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/641)
+- feat(CSV import): Fetch metadata if DOI is provided [`#640`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/640)
+- fix(CSV Import): Research field validation [`#639`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/639)
+- feat(ValuePlugins): support inline clickable links [`#635`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/635)
+
+---
+## [V0.43](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.42.1...V0.43) - 2021-07-07
+
+### Changes
+
+- fix: add Comparison pop-up to ResearchFields page [`#634`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/634)
+- feat(SmartReview): show selection box when adding a reference [`#626`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/626)
+- fix: some contribution editor and comparison issues [`#630`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/630)
+- feat(CSV import): support for resources with header prefix [`#633`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/633)
+- internal: Update dependencies [`#629`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/629)
+- fix(Comparison): display references [`#631`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/631)
 
 ---
 ## [V0.42.1](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/V0.42...V0.42.1) - 2021-06-24

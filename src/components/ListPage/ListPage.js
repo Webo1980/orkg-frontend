@@ -5,7 +5,8 @@ import ContentLoader from 'react-content-loader';
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useState } from 'react';
 import { usePrevious } from 'react-use';
-import { ButtonGroup, Container, ListGroup } from 'reactstrap';
+import { Container, ListGroup } from 'reactstrap';
+import TitleBar from 'components/TitleBar/TitleBar';
 
 const ListPage = ({ label, resourceClass, renderListItem, buttons, fetchItems, boxShadow, pageSize = 25 }) => {
     const [results, setResults] = useState([]);
@@ -71,19 +72,28 @@ const ListPage = ({ label, resourceClass, renderListItem, buttons, fetchItems, b
 
     const loadNextPage = () => setPage(prevPage => prevPage + 1);
 
+    const handleKeyDown = e => {
+        if (e.key === 'Enter') {
+            loadNextPage();
+        }
+    };
+
     return (
         <>
-            <Container className="d-flex align-items-center">
-                <div className="d-flex flex-grow-1 mt-4 mb-4">
-                    <h1 className="h4 m-0">View {label}</h1>
-                    <div className="text-muted ml-3 mt-1">
+            <TitleBar
+                titleAddition={
+                    <div className="text-muted mt-1">
                         {totalElements === 0 && isLoading ? <Icon icon={faSpinner} spin /> : totalElements} {label}
                     </div>
-                </div>
-                <ButtonGroup>
-                    {buttons} <HeaderSearchButton placeholder={`Search ${label}...`} type={resourceClass} />
-                </ButtonGroup>
-            </Container>
+                }
+                buttonGroup={
+                    <>
+                        {buttons} <HeaderSearchButton placeholder={`Search ${label}...`} type={resourceClass} />
+                    </>
+                }
+            >
+                View {label}
+            </TitleBar>
             <Container className="p-0">
                 {results.length > 0 && (
                     <ListGroup flush className="box rounded" style={{ overflow: 'hidden' }}>
@@ -93,7 +103,7 @@ const ListPage = ({ label, resourceClass, renderListItem, buttons, fetchItems, b
                                 style={{ cursor: 'pointer' }}
                                 className="list-group-item list-group-item-action text-center mt-2"
                                 onClick={loadNextPage}
-                                onKeyDown={e => (e.key === 'Enter' ? loadNextPage : undefined)}
+                                onKeyDown={handleKeyDown}
                                 role="button"
                                 tabIndex={0}
                             >

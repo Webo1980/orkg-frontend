@@ -236,7 +236,7 @@ class Contributions extends Component {
                                         <SuggestedTemplates
                                             syncBackend={true}
                                             selectedResource={this.props.selectedResource ? this.props.selectedResource : selectedContributionId}
-                                            researchField={this.props.researchField.id}
+                                            researchField={this.props.researchField?.id}
                                             researchProblems={this.props.researchProblemsIds}
                                             disabled={shared > 1 ? true : false}
                                         />
@@ -371,9 +371,7 @@ class Contributions extends Component {
                                             {!this.state.isSimilaireContributionsLoading && (
                                                 <>
                                                     {!this.state.isSimilaireContributionsFailedLoading ? (
-                                                        <SimilarContributions
-                                                            similaireContributions={this.state.similaireContributions.slice(0, 3)}
-                                                        />
+                                                        <SimilarContributions similarContributions={this.state.similaireContributions.slice(0, 3)} />
                                                     ) : (
                                                         <Alert color="light">
                                                             Failed to connect to the similarity service, please try again later
