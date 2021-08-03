@@ -40,7 +40,7 @@ import UserAvatar from 'components/UserAvatar/UserAvatar';
 import { slugify } from 'utils';
 import { PREDICATES, CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
 import env from '@beam-australia/react-env';
-//import { Cookies } from 'react-cookie';
+import { Cookies } from 'react-cookie';
 
 const StyledCustomInput = styled(CustomInput)`
     margin-right: 0;
@@ -177,20 +177,10 @@ function Publish(props) {
                     } else {
                         response_hash = props.responseHash;
                     }
-                    /*
+
                     const cookies = new Cookies();
                     const observatory = cookies.get('selected_observatory') ? cookies.get('selected_observatory') : null;
-                    const observatoryInformation = observatory
-                        ? { observatoryId: observatory.id, organizationId: observatory.organization }
-                        : { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID };
-                    
-                    const titleResponse = await createResource(
-                        title,
-                        [CLASSES.COMPARISON],
-                        observatoryInformation.observatoryId,
-                        observatoryInformation.organizationId
-                    );
-                    */
+
                     const comparison_obj = {
                         predicates: [],
                         resource: {
@@ -234,8 +224,12 @@ function Publish(props) {
                                     ]
                                 })
                             }
-                        }
+                        } //,
+                        //observatoryInfo: observatory
+                        //? { observatoryId: observatory.id, organizationId: observatory.organization_id }
+                        //: { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID }
                     };
+                    console.log(comparison_obj);
                     const createdComparison = await createObject(comparison_obj);
                     await saveCreators(comparisonCreators, createdComparison.id);
                     await createResourceData({

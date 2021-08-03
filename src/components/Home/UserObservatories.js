@@ -29,7 +29,7 @@ function UserObservatories(props) {
         findObservatoriesByUserId(props.observatories);
     }, [props.observatories]);
 
-    const updateObservatory = async observatory => {
+    const updateObservatory = observatory => {
         const cookies = new Cookies();
 
         if (selectedObservatory) {
@@ -49,14 +49,14 @@ function UserObservatories(props) {
                 updateAuth({
                     user: {
                         ...user,
-                        selectedObservatory: { id: observatory.id, name: observatory.name, organization: observatory.organization.id }
+                        selectedObservatory: { id: observatory.id, name: observatory.name, organization_id: observatory.organization.id }
                     }
                 })
             );
 
             cookies.set(
                 'selected_observatory',
-                { id: observatory.id, name: observatory.name, organization: observatory.organization.id },
+                { id: observatory.id, name: observatory.name, organization_id: observatory.organization.id },
                 { path: env('PUBLIC_URL') }
             );
         }
@@ -78,7 +78,7 @@ function UserObservatories(props) {
                         onKeyPress={() => updateObservatory(userObservatories)}
                     >
                         <p className="mt-2"> {userObservatories.name}</p>
-                        {userObservatories.organization && (
+                        {userObservatories.organization_id && (
                             <>
                                 <ObservatoryItem style={{ marginLeft: 'auto' }}>
                                     <img

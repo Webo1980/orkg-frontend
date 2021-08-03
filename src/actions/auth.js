@@ -43,7 +43,7 @@ export function firstLoad() {
                                 ? {
                                       id: observatory.id,
                                       name: observatory.name,
-                                      organizationId: observatory.organization
+                                      organizationId: observatory.organization_id
                                   }
                                 : null
                         }
