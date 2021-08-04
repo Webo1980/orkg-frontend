@@ -7,7 +7,7 @@ function ResearchProblem(props) {
 
     return (
         <div>
-            <ResearchProblemHeader id={researchProblemId} />
+            <ResearchProblemHeader id={researchProblemId} slug={props.match.params.slug} />
             <Benchmarks id={researchProblemId} />
 
             <Papers id={researchProblemId} boxShadow />
@@ -18,7 +18,8 @@ function ResearchProblem(props) {
 ResearchProblem.propTypes = {
     match: PropTypes.shape({
         params: PropTypes.shape({
-            researchProblemId: PropTypes.string
+            researchProblemId: PropTypes.string,
+            slug: PropTypes.string
         }).isRequired
     }).isRequired
 };

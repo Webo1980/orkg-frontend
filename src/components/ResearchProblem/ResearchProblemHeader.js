@@ -39,7 +39,7 @@ import CheckClasses from 'components/CheckClasses/CheckClasses';
 import { CLASSES } from 'constants/graphSettings';
 import TitleBar from 'components/TitleBar/TitleBar';
 
-const ResearchProblemHeader = ({ id }) => {
+const ResearchProblemHeader = ({ id, slug }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
@@ -115,6 +115,15 @@ const ResearchProblemHeader = ({ id }) => {
                                 >
                                     <Icon icon={faPen} /> Edit
                                 </RequireAuthentication>
+                                <Button
+                                    color="secondary"
+                                    size="sm"
+                                    style={{ marginRight: 2 }}
+                                    tag={Link}
+                                    to={reverse(ROUTES.RELATED_PAPERS, { slug: slug })}
+                                >
+                                    <Icon icon={faPen} /> Related Papers
+                                </Button>
                                 <ButtonDropdown isOpen={menuOpen} toggle={() => setMenuOpen(v => !v)} nav inNavbar>
                                     <DropdownToggle size="sm" color="secondary" className="px-3 rounded-right">
                                         <Icon icon={faEllipsisV} />
@@ -224,7 +233,8 @@ const ResearchProblemHeader = ({ id }) => {
 };
 
 ResearchProblemHeader.propTypes = {
-    id: PropTypes.string.isRequired
+    id: PropTypes.string.isRequired,
+    slug: PropTypes.string
 };
 
 export default ResearchProblemHeader;
