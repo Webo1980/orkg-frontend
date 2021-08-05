@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
 import { faPlus, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import ListPage from 'components/ListPage/ListPage';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
-import SmartReviewCard from 'components/SmartReviewCard/SmartReviewCard';
 import { CLASSES } from 'constants/graphSettings';
+import SmartReviewCard from 'components/SmartReviewCard/SmartReviewCard';
 import ROUTES from 'constants/routes';
 import { getSmartReviewData } from 'utils';
 import { useSelector } from 'react-redux';
@@ -15,10 +14,6 @@ import { getStatementsBySubjects } from 'services/backend/statements';
 
 const SmartReviews = () => {
     const user = useSelector(state => state.auth.user);
-
-    useEffect(() => {
-        document.title = 'SmartReviews - ORKG';
-    });
 
     const renderListItem = versions => <SmartReviewCard key={versions[0]?.id} versions={versions} showBadge={false} />;
 
@@ -71,15 +66,13 @@ const SmartReviews = () => {
     );
 
     return (
-        <>
-            <ListPage
-                label="SmartReviews"
-                resourceClass={CLASSES.SMART_REVIEW_PUBLISHED}
-                renderListItem={renderListItem}
-                fetchItems={fetchItems}
-                buttons={buttons}
-            />
-        </>
+        <ListPage
+            label="SmartReviews"
+            resourceClass={CLASSES.SMART_REVIEW_PUBLISHED}
+            renderListItem={renderListItem}
+            fetchItems={fetchItems}
+            buttons={buttons}
+        />
     );
 };
 
