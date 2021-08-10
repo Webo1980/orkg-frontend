@@ -21,8 +21,7 @@ export const getWorksDataByString = (input, value = 'Confidence interval') => {
 };
 
 export const getPapersFromOpenAIRE = input => {
-    const g = `{ openAIREPapers(searchTerm:"${input}") { title doi authors abstract } }`;
-    console.log(g);
+    const g = `{ openAIREPapers(searchTerm:"${input}") { title  year doi authors abstract peerReview { type citationCount } } }`;
 
     return submitGetRequest(`${graphql}?query=${g}`);
 };

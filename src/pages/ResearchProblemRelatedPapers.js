@@ -24,17 +24,31 @@ const ResearchProblemRelatedPapers = props => {
         const loadContent = async input => {
             setIsLoadingPapers(true);
             const result = [];
+            const every_word_im_shuffling = input
+                .split(/\s\b(?!\s)/)
+                .sort(function() {
+                    return 0.5 - Math.random();
+                })
+                .join(' ');
+            console.log(every_word_im_shuffling);
+            const r = input.split(' ');
+            //console.log(r);
             let res = await getPapersFromOpenAIRE(input.toLowerCase());
             res = res.data.openAIREPapers;
-            res.map(r => {
-                result.push({
-                    title: r.title,
-                    id: r.doi,
-                    authors: r.authors,
-                    abstract: r.abstract
-                });
-            });
-            setData(result);
+            setData(res);
+            //res.map(r => {
+            //console.log(r);
+            //result.push({
+            //title: r.title,
+            //id: r.doi,
+            //authors: r.authors,
+            //abstract: r.abstract,
+            //year: r.year,
+            //peerReview: r.peerReview.type,
+            //citations: r.peerReview.citationCount
+            //});
+            //});
+            //setData(result);
             setIsLoadingPapers(false);
         };
 

@@ -17,7 +17,7 @@ import RequireAuthentication from 'components/RequireAuthentication/RequireAuthe
 import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
 import { SubTitle, SubtitleSeparator } from 'components/styled';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faEllipsisV, faFileAlt } from '@fortawesome/free-solid-svg-icons';
 import ExternalDescription from 'components/ResearchProblem/ExternalDescription';
 import Contributors from './Contributors';
 import Breadcrumbs from 'components/Breadcrumbs/Breadcrumbs';
@@ -122,7 +122,7 @@ const ResearchProblemHeader = ({ id, slug }) => {
                                     tag={Link}
                                     to={reverse(ROUTES.RELATED_PAPERS, { slug: slug })}
                                 >
-                                    <Icon icon={faPen} /> Related Papers
+                                    <Icon icon={faFileAlt} /> Related Papers
                                 </Button>
                                 <ButtonDropdown isOpen={menuOpen} toggle={() => setMenuOpen(v => !v)} nav inNavbar>
                                     <DropdownToggle size="sm" color="secondary" className="px-3 rounded-right">

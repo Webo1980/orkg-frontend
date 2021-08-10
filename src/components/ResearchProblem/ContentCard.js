@@ -4,7 +4,7 @@ import { reverse } from 'named-urls';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCalendar } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faUserEdit, faQuoteLeft, faUser } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import AddToComparison from 'components/ViewPaper/AddToComparison';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
@@ -12,7 +12,6 @@ import RelativeBreadcrumbs from 'components/RelativeBreadcrumbs/RelativeBreadcru
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { NavLink } from 'reactstrap';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { Badge } from 'reactstrap';
 
 const PaperCardStyled = styled.div`
@@ -70,8 +69,24 @@ const ContentCard = props => {
                                     })}
                                 </>
                             )}
-                            {/* {props.comment.updated_at && <Icon size="sm" icon={faCalendar} className="ml-2 mr-1" />} */}
-                            {/* {props.comment.updated_at ? moment(props.comment.updated_at).format('DD-MM-YYYY') : ''} */}
+                            {props.objectInformation.year && (
+                                <>
+                                    <Icon size="sm" icon={faCalendar} className="ml-2 mr-1" />
+                                    {moment(props.objectInformation.year).format('DD-MM-YYYY')}
+                                </>
+                            )}
+                            {props.objectInformation.peerReview.type && (
+                                <>
+                                    <Icon size="sm" icon={faUserEdit} className="ml-2 mr-1" />
+                                    {console.log(props.objectInformation.peerReview.type)}
+                                    {props.objectInformation.peerReview.type === 'PeerReview' && 'Peer Reviewed'}
+                                    <br />
+                                </>
+                            )}
+                            <span style={{ marginLeft: '8px' }}>
+                                <Icon size="sm" icon={faQuoteLeft} className="ml-2 mr-1" />
+                                Citations: {props.objectInformation.peerReview.citationCount ? props.objectInformation.peerReview.citationCount : 0}
+                            </span>
                         </small>
                     </div>
                 </div>
