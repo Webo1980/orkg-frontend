@@ -20,7 +20,7 @@ import ROUTES from 'constants/routes.js';
 import { connect, useSelector } from 'react-redux';
 import { resetStatementBrowser } from 'actions/statementBrowser';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash, faExternalLinkAlt, faTimes, faPlus, faClipboardList } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faTrash, faExternalLinkAlt, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Confirm from 'components/ConfirmationModal/ConfirmationModal';
 import { CLASSES, PREDICATES, ENTITIES } from 'constants/graphSettings';
 import { toast } from 'react-toastify';
@@ -107,7 +107,6 @@ function Resource(props) {
     const isCurationAllowed = useSelector(state => state.auth.user?.isCurationAllowed);
     const showDeleteButton = editMode && isCurationAllowed;
     const [hasObjectStatement, setHasObjectStatement] = useState(false);
-    const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
     const [hasDOI, setHasDOI] = useState(false);
     const { deleteResource } = useDeleteResource({ resourceId, redirect: true });
     const [canEdit, setCanEdit] = useState(false);

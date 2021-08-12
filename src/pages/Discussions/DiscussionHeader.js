@@ -1,26 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Container, Button, ButtonGroup } from 'reactstrap';
-import InternalServerError from 'pages/InternalServerError';
-import NotFound from 'pages/NotFound';
-import { faClipboardList } from '@fortawesome/free-solid-svg-icons';
+import { Button, ButtonGroup, Badge } from 'reactstrap';
+import { faClipboardList, faComments } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Discussion from 'pages/Discussions/Discussion';
 import { getDiscourseDiscussion } from 'services/backend/Discourse';
 import PropTypes from 'prop-types';
 
 const DiscussionHeader = props => {
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
     const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
     const [isLoadingDiscussion, setIsLoadingDiscussion] = useState(null);
     const [discussionList, setDiscussionList] = useState([]);
 
     useEffect(() => {
         const loadDiscussionData = label => {
-            const id = label.replace(/\s+/g, '-').toLowerCase();
+            const id = label
+                .replace(/\s+/g, '-')
+                .replace(/[*+~%\\<>/;.(){}?,'"!:@\#\^|]/g, '')
+                .toLowerCase();
+
+            //console.log(id);
             setIsLoadingDiscussion(true);
             getDiscourseDiscussion(id)
                 .then(comments => {
+                    console.log(comments);
                     setDiscussionList(comments.post_stream.posts);
                     setIsLoadingDiscussion(false);
                 })
@@ -33,15 +35,13 @@ const DiscussionHeader = props => {
 
     return (
         <>
-            {isLoading && <Container className="box rounded pt-4 pb-4 pl-5 pr-5 mt-5 clearfix">Loading ...</Container>}
-            {!isLoading && error && <>{error.statusCode === 404 ? <NotFound /> : <InternalServerError />}</>}
-            {!isLoading && !error && discussionList && (
+            {!isLoadingDiscussion && discussionList && (
                 <>
-                    <ButtonGroup className="flex-shrink-0" style={{ marginRight: 2 }}>
+                    <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 1, marginRight: 2 }}>
                         <Button color="secondary" size="sm" onClick={() => setShowDiscussionDialog(v => !v)}>
-                            <Icon icon={faClipboardList} /> Discussion:
+                            <Icon icon={faComments} /> Discussion
                             <small>
-                                <i> {`${discussionList.length} comment(s)`} </i>
+                                <Badge style={{ backgroundColor: 'darkGrey', marginLeft: '5px' }}>{discussionList.length}</Badge>
                             </small>
                         </Button>
                     </ButtonGroup>

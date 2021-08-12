@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 import { reverse } from 'named-urls';
+import DiscussionHeader from 'pages/Discussions/DiscussionHeader';
 
 function PaperMenuBar(props) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -30,6 +31,7 @@ function PaperMenuBar(props) {
                 >
                     <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view
                 </Button>
+                <DiscussionHeader label={props.label} />
 
                 {!props.editMode && (
                     <RequireAuthentication

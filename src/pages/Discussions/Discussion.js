@@ -14,7 +14,10 @@ const Discussion = props => {
 
     useEffect(() => {
         const loadDiscussionData = label => {
-            const id = label.replace(/\s+/g, '-').toLowerCase();
+            const id = label
+                .replace(/\s+/g, '-')
+                .replace(/[*+~%\\<>/;.(){}?,'"!:@\#\^|]/g, '')
+                .toLowerCase();
             setIsLoadingDiscussion(true);
             getDiscourseDiscussion(id)
                 .then(comments => {

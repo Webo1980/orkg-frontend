@@ -83,14 +83,14 @@ const Observatory = () => {
                             <SubtitleSeparator />
                             <SubTitle className="h5 mb-0"> {label}</SubTitle>
                         </>
-                        {!!user && user.isCurationAllowed && (
-                            <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
-                                <DiscussionHeader label={label} />
+                        <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
+                            <DiscussionHeader label={label} />
+                            {!!user && user.isCurationAllowed && (
                                 <Button color="secondary" size="sm" onClick={() => setShowEditDialog(v => !v)}>
                                     <Icon icon={faPen} /> Edit
                                 </Button>
-                            </ButtonGroup>
-                        )}
+                            )}
+                        </ButtonGroup>
                         {/* <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}> */}
                         {/* <Button color="secondary" size="sm" onClick={() => setShowDiscussionDialog(v => !v)}> */}
                         {/* <Icon icon={faClipboardList} /> Discussion: */}

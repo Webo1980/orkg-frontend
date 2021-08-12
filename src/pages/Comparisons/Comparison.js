@@ -247,7 +247,7 @@ function Comparison(props) {
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
-                            <DiscussionHeader label={metaData.title} />
+                            {metaData && metaData.title && <DiscussionHeader label={metaData.title} />}
                             {!!metaData.id ? (
                                 <Button
                                     color="secondary"
