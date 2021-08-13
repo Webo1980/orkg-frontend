@@ -35,3 +35,9 @@ export const getCitationByDOI = (DOI, style = '', header = 'text/x-bibliography'
             .catch(reject);
     });
 };
+
+export const getPeerReviewInformation = doi => {
+    const query = `{ peerReview(id: "${doi}") { type } }`;
+    console.log(query);
+    return submitGetRequest(`${env('DATACITE_GRAPHQL_API')}?query=${query}`);
+};

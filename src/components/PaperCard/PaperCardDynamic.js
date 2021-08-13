@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCalendar } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import RelativeBreadcrumbs from 'components/RelativeBreadcrumbs/RelativeBreadcrumbs';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
@@ -13,6 +13,7 @@ import { CLASSES, PREDICATES } from 'constants/graphSettings';
 import { filterObjectOfStatementsByPredicateAndClass } from 'utils';
 import moment from 'moment';
 import ContentLoader from 'react-content-loader';
+import PaperMetrics from 'components/PaperInformation/PaperMetrics';
 
 const PaperCardStyled = styled.div`
     & .options {
@@ -59,11 +60,13 @@ const PaperCardDynamic = props => {
             true,
             CLASSES.RESEARCH_FIELD
         );
+        const doiObject = filterObjectOfStatementsByPredicateAndClass(paperStatements, PREDICATES.HAS_DOI, true);
         return {
             publicationYear,
             publicationMonth,
             authors: authors ? authors.sort((a, b) => a.created_at.localeCompare(b.created_at)) : [],
-            researchField
+            researchField,
+            doi: doiObject ? doiObject.label : ''
         };
     };
 
@@ -86,6 +89,7 @@ const PaperCardDynamic = props => {
                                     ? moment(optimizedPaperObject.publicationMonth.label, 'M').format('MMMM')
                                     : ''}{' '}
                                 {optimizedPaperObject.publicationYear?.label && optimizedPaperObject.publicationYear.label}
+                                <PaperMetrics doi={optimizedPaperObject.doi} />
                             </small>
                             <div className="d-block d-md-none">
                                 <RelativeBreadcrumbs researchField={optimizedPaperObject.researchField} />

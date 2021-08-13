@@ -34,15 +34,19 @@ const ContentCard = props => {
 
     return (
         <PaperCardStyled className="list-group-item list-group-item-action pr-2">
-            {console.log(props)}
             <div className="row">
                 <div className="d-flex">
                     <div className="d-block">
                         {props.objectInformation && (
                             <>
-                                <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: props.objectInformation.id })}>
+                                <a
+                                    href={`https://doi.org/${props.objectInformation.doi}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-center"
+                                >
                                     {props.objectInformation.title ? props.objectInformation.title : <em>No title</em>}
-                                </Link>{' '}
+                                </a>{' '}
                             </>
                         )}
                         <br />
@@ -85,7 +89,7 @@ const ContentCard = props => {
                             )}
                             <span style={{ marginLeft: '8px' }}>
                                 <Icon size="sm" icon={faQuoteLeft} className="ml-2 mr-1" />
-                                Citations: {props.objectInformation.peerReview.citationCount ? props.objectInformation.peerReview.citationCount : 0}
+                                Citations: {props.objectInformation.citations ? props.objectInformation.citations : 0}
                             </span>
                         </small>
                     </div>

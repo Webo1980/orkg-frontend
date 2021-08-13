@@ -20,8 +20,8 @@ export const getWorksDataByString = (input, value = 'Confidence interval') => {
     return submitGetRequest(`${graphql}?query=${g}`);
 };
 
-export const getPapersFromOpenAIRE = input => {
-    const g = `{ openAIREPapers(searchTerm:"${input}") { title  year doi authors abstract peerReview { type citationCount } } }`;
+export const getPapersFromSemanticScholar = input => {
+    const g = `{ semanticScholarPapers(searchTerm: "${input}") { title doi year authors abstract citations peerReview { type } } }`;
 
     return submitGetRequest(`${graphql}?query=${g}`);
 };
