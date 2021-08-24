@@ -104,3 +104,11 @@ export const getResourcesByClass = async ({
     );
     return resources;
 };
+
+export const createResourceDiscourseTopic = (id, title, raw) => {
+    return submitPostRequest(`${resourcesUrl}${id}/discussion`, { 'Content-Type': 'application/json' }, { title, raw });
+};
+
+export const getResourceDiscussion = async slug => {
+    return submitGetRequest(`${resourcesUrl}${encodeURIComponent(slug)}/discussion`);
+};

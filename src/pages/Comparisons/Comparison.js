@@ -44,6 +44,7 @@ import { reverse } from 'named-urls';
 import env from '@beam-australia/react-env';
 import AppliedRule from 'components/Comparison/Filters/AppliedRule';
 import DiscussionHeader from 'pages/Discussions/DiscussionHeader';
+import { ENTITIES } from 'constants/graphSettings';
 
 function Comparison(props) {
     const {
@@ -247,7 +248,7 @@ function Comparison(props) {
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
-                            {metaData && metaData.title && <DiscussionHeader label={metaData.title} />}
+                            {metaData && metaData.title && <DiscussionHeader id={metaData.id} type={ENTITIES.RESOURCE} label={metaData.title} />}
                             {!!metaData.id ? (
                                 <Button
                                     color="secondary"

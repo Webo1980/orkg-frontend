@@ -84,7 +84,7 @@ const Observatory = () => {
                             <SubTitle className="h5 mb-0"> {label}</SubTitle>
                         </>
                         <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
-                            <DiscussionHeader label={label} />
+                            <DiscussionHeader label={label} id={id} type="observatory" />
                             {!!user && user.isCurationAllowed && (
                                 <Button color="secondary" size="sm" onClick={() => setShowEditDialog(v => !v)}>
                                     <Icon icon={faPen} /> Edit

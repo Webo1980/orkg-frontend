@@ -240,10 +240,7 @@ function Resource(props) {
                             >
                                 <Icon icon={faPlus} className="mr-1" /> Create resource
                             </RequireAuthentication>
-                            {/* <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowDiscussionDialog(v => !v)}> */}
-                            {/* <Icon icon={faClipboardList} className="mr-1" /> Disucssion */}
-                            {/* </Button> */}
-                            <DiscussionHeader label={label} />
+                            <DiscussionHeader label={label} id={resourceId} type={ENTITIES.RESOURCE} />
                             {dedicatedLink && (
                                 <Button
                                     color="secondary"

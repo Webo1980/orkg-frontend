@@ -57,20 +57,6 @@ export const createObservatory = (observatory_name, organization_id, description
     );
 };
 
-export const getDiscourseDiscussion = async slug => {
-    const h = {
-        'Api-Key': '0db5e1a62efddfa3e0ee25aa60710184e4e089374b216a8e448338b66cd2216c',
-        'Api-Username': 'hariskmohammadk'
-    };
-    //headers = { Accept: `${header}` };
-    //const myHeaders = headers ? new Headers(headers) : {};
-    //h.append('Api-Key', '0db5e1a62efddfa3e0ee25aa60710184e4e089374b216a8e448338b66cd2216c');
-    //h.append('Api-Username', 'hariskmohammadk');
-    //console.log(headers);
-    //return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(slug)}/discussion`);
-    return submitGetRequest('http://localhost:3000/t/test-observatory.json', h);
-};
-
 export const getObservatoryAndOrganizationInformation = (observatoryId, organizationId) => {
     return getObservatoryById(observatoryId).then(obsResponse => {
         if (organizationId !== MISC.UNKNOWN_ID) {
@@ -105,4 +91,12 @@ export const getObservatoryAndOrganizationInformation = (observatoryId, organiza
             };
         }
     });
+};
+
+export const createObservatoryDiscourseTopic = (id, title, raw) => {
+    return submitPostRequest(`${observatoriesUrl}${encodeURIComponent(id)}/discussion`, { 'Content-Type': 'application/json' }, { title, raw });
+};
+
+export const getObservatoryDiscussion = async slug => {
+    return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(slug)}/discussion`);
 };
