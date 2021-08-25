@@ -12,21 +12,19 @@ const DiscussionHeader = props => {
     const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
     const [isLoadingDiscussion, setIsLoadingDiscussion] = useState(null);
     const [discussionList, setDiscussionList] = useState([]);
-    const [topicId, setTopicId] = useState(topicId ? topicId : props.topicId);
 
-    const loadDiscussionData = (type = props.type) => {
+    const loadDiscussionData = (id, type) => {
         setIsLoadingDiscussion(true);
-        console.log(topicId);
-        if (type === 'observatory' && topicId != 0) {
-            getObservatoryDiscussion(topicId)
+        if (type === 'observatory' && id !== 0) {
+            getObservatoryDiscussion(id)
                 .then(comments => {
                     setDiscussionList(comments.post_stream.posts);
                 })
                 .catch(error => {
                     console.log(error);
                 });
-        } else if (type === ENTITIES.RESOURCE && topicId != 0) {
-            getResourceDiscussion(topicId)
+        } else if (type === ENTITIES.RESOURCE && id !== 0) {
+            getResourceDiscussion(id)
                 .then(comments => {
                     setDiscussionList(comments.post_stream.posts);
                 })
@@ -38,12 +36,11 @@ const DiscussionHeader = props => {
     };
 
     useEffect(() => {
-        loadDiscussionData(props.type);
-    }, [props.type]);
+        loadDiscussionData(props.topicId, props.type);
+    }, [props.topicId, props.type]);
 
     const updateMetadata = comments => {
-        setTopicId(comments.topic_id);
-        loadDiscussionData();
+        loadDiscussionData(comments.topic_id, props.type);
     };
 
     return (
