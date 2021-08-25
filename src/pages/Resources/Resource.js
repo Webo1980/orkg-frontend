@@ -113,6 +113,7 @@ function Resource(props) {
     const [createdBy, setCreatedBy] = useState(null);
     const classesAutocompleteRef = useRef(null);
     const [isOpenPWCModal, setIsOpenPWCModal] = useState(false);
+    const [topicId, setTopicId] = useState('');
 
     useEffect(() => {
         const findResource = async () => {
@@ -120,6 +121,7 @@ function Resource(props) {
             getResource(resourceId)
                 .then(responseJson => {
                     document.title = `${responseJson.label} - Resource - ORKG`;
+                    setTopicId(responseJson.topic_id);
                     setCreatedBy(responseJson.created_by);
                     const classesCalls = responseJson.classes.map(classResource => getClassById(classResource));
                     Promise.all(classesCalls)
@@ -240,7 +242,7 @@ function Resource(props) {
                             >
                                 <Icon icon={faPlus} className="mr-1" /> Create resource
                             </RequireAuthentication>
-                            <DiscussionHeader label={label} id={resourceId} type={ENTITIES.RESOURCE} />
+                            <DiscussionHeader label={label} topicId={topicId} objId={resourceId} type={ENTITIES.RESOURCE} />
                             {dedicatedLink && (
                                 <Button
                                     color="secondary"

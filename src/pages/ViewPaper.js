@@ -61,7 +61,8 @@ const ViewPaper = () => {
         handleCreateContribution,
         toggleDeleteContribution,
         setShowGraphModal,
-        showGraphModal
+        showGraphModal,
+        topicId
     } = useViewPaper({
         paperId: resourceId,
         contributionId
@@ -98,6 +99,7 @@ const ViewPaper = () => {
                                 toggle={toggle}
                                 id={resourceId}
                                 label={viewPaper.paperResource?.label}
+                                topicId={topicId}
                             />
                         </Container>
                     </VisibilitySensor>

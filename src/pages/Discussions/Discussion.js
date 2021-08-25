@@ -17,12 +17,16 @@ const Discussion = props => {
             let response = '';
             if (props.type === 'observatory') {
                 response = await createObservatoryDiscourseTopic(
-                    props.id,
+                    props.objId,
                     props.label,
                     `This topic provides detailed dicussion about ${props.label}`
                 );
             } else if (props.type === ENTITIES.RESOURCE) {
-                response = await createResourceDiscourseTopic(props.id, props.label, `This topic provides detailed dicussion about ${props.label}`);
+                response = await createResourceDiscourseTopic(
+                    props.objId,
+                    props.label,
+                    `This topic provides detailed dicussion about ${props.label}`
+                );
             }
             if (response) {
                 const a = document.createElement('a');
@@ -108,8 +112,9 @@ Discussion.propTypes = {
     label: PropTypes.string.isRequired,
     comments: PropTypes.array.isRequired,
     type: PropTypes.object.isRequired,
-    id: PropTypes.string.isRequired,
-    updateMetadata: PropTypes.func
+    topicId: PropTypes.string.isRequired,
+    updateMetadata: PropTypes.func,
+    objId: PropTypes.string.isRequired
 };
 
 export default Discussion;

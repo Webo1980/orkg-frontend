@@ -29,6 +29,7 @@ const Observatory = () => {
     const [organizationsList, setOrganizationsList] = useState([]);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [displayId, setDisplayId] = useState('');
+    const [topicId, setTopicId] = useState('');
     const { id } = useParams();
     const user = useSelector(state => state.auth.user);
 
@@ -44,6 +45,7 @@ const Observatory = () => {
                     setIsLoading(false);
                     setDisplayId(observatory.display_id);
                     setResearchField(observatory.research_field);
+                    setTopicId(observatory.topic_id);
                     loadOrganizations(observatory.organization_ids);
                 })
                 .catch(error => {
@@ -84,21 +86,13 @@ const Observatory = () => {
                             <SubTitle className="h5 mb-0"> {label}</SubTitle>
                         </>
                         <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
-                            <DiscussionHeader label={label} id={id} type="observatory" />
+                            <DiscussionHeader label={label} topicId={topicId} objId={id} type="observatory" />
                             {!!user && user.isCurationAllowed && (
                                 <Button color="secondary" size="sm" onClick={() => setShowEditDialog(v => !v)}>
                                     <Icon icon={faPen} /> Edit
                                 </Button>
                             )}
                         </ButtonGroup>
-                        {/* <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}> */}
-                        {/* <Button color="secondary" size="sm" onClick={() => setShowDiscussionDialog(v => !v)}> */}
-                        {/* <Icon icon={faClipboardList} /> Discussion: */}
-                        {/* <small> */}
-                        {/* <i> {`${discussionList.length} comment(s)`} </i> */}
-                        {/* </small> */}
-                        {/* </Button> */}
-                        {/* </ButtonGroup> */}
                     </Container>
                     {description && (
                         <Container className="p-0">

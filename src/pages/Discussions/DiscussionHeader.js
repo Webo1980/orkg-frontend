@@ -12,41 +12,38 @@ const DiscussionHeader = props => {
     const [showDiscussionDialog, setShowDiscussionDialog] = useState(false);
     const [isLoadingDiscussion, setIsLoadingDiscussion] = useState(null);
     const [discussionList, setDiscussionList] = useState([]);
+    const [topicId, setTopicId] = useState(topicId ? topicId : props.topicId);
 
-    const loadDiscussionData = (label, type = props.type) => {
-        const id = label
-            .replace(/\s+/g, '-')
-            .replace(/[*+~%\\<>/;.(){}?,'"!:@|]/g, '')
-            .toLowerCase();
+    const loadDiscussionData = (type = props.type) => {
         setIsLoadingDiscussion(true);
-
-        if (type === 'observatory') {
-            getObservatoryDiscussion(id)
+        console.log(topicId);
+        if (type === 'observatory' && topicId != 0) {
+            getObservatoryDiscussion(topicId)
                 .then(comments => {
                     setDiscussionList(comments.post_stream.posts);
-                    setIsLoadingDiscussion(false);
                 })
                 .catch(error => {
-                    setIsLoadingDiscussion(false);
+                    console.log(error);
                 });
-        } else if (type === ENTITIES.RESOURCE) {
-            getResourceDiscussion(id)
+        } else if (type === ENTITIES.RESOURCE && topicId != 0) {
+            getResourceDiscussion(topicId)
                 .then(comments => {
                     setDiscussionList(comments.post_stream.posts);
-                    setIsLoadingDiscussion(false);
                 })
                 .catch(error => {
-                    setIsLoadingDiscussion(false);
+                    console.log(error);
                 });
         }
+        setIsLoadingDiscussion(false);
     };
 
     useEffect(() => {
-        loadDiscussionData(props.label, props.type);
-    }, [props.label, props.type]);
+        loadDiscussionData(props.type);
+    }, [props.type]);
 
     const updateMetadata = comments => {
-        loadDiscussionData(comments.topic_slug);
+        setTopicId(comments.topic_id);
+        loadDiscussionData();
     };
 
     return (
@@ -71,7 +68,8 @@ const DiscussionHeader = props => {
                     label={props.label}
                     comments={discussionList}
                     type={props.type}
-                    id={props.id}
+                    topicId={props.topicId}
+                    objId={props.objId}
                     updateMetadata={updateMetadata}
                 />
             )}
@@ -82,7 +80,8 @@ const DiscussionHeader = props => {
 DiscussionHeader.propTypes = {
     label: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    id: PropTypes.string.isRequired
+    topicId: PropTypes.string.isRequired,
+    objId: PropTypes.string.isRequired
 };
 
 export default DiscussionHeader;

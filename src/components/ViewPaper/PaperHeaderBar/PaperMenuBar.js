@@ -32,7 +32,9 @@ function PaperMenuBar(props) {
                 >
                     <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view
                 </Button>
-                <DiscussionHeader label={props.label} id={props.id} type={ENTITIES.RESOURCE} />
+                {(props.topicId || props.topicId === 0) && (
+                    <DiscussionHeader label={props.label} topicId={props.topicId} objId={props.id} type={ENTITIES.RESOURCE} />
+                )}
 
                 {!props.editMode && (
                     <RequireAuthentication
@@ -82,7 +84,8 @@ PaperMenuBar.propTypes = {
     paperLink: PropTypes.string,
     id: PropTypes.string,
     label: PropTypes.string,
-    toggle: PropTypes.func.isRequired
+    toggle: PropTypes.func.isRequired,
+    topicId: PropTypes.string
 };
 
 export default PaperMenuBar;

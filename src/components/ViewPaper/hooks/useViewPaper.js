@@ -22,6 +22,7 @@ const useViewPaper = ({ paperId, contributionId }) => {
     const [showGraphModal, setShowGraphModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [showHeaderBar, setShowHeaderBar] = useState(false);
+    const [topicId, setTopicId] = useState('');
     const dispatch = useDispatch();
     const history = useHistory();
 
@@ -79,6 +80,7 @@ const useViewPaper = ({ paperId, contributionId }) => {
                         setIsLoading(false);
                         setContributions(paperData.contributions);
                         loadAuthorsORCID(paperData.authors);
+                        setTopicId(paperResource.topic_id);
                         return paperData.contributions;
                     }
                 );
@@ -207,7 +209,8 @@ const useViewPaper = ({ paperId, contributionId }) => {
         handleCreateContribution,
         toggleDeleteContribution,
         setShowGraphModal,
-        showGraphModal
+        showGraphModal,
+        topicId
     };
 };
 
