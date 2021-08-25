@@ -81,7 +81,6 @@ const Observatory = () => {
                     <Container className="d-flex align-items-center mt-4 mb-4">
                         <h1 className="h5 flex-shrink-0 mb-0">Observatory</h1>
                         <>
-                            {/* <DiscourseForum /> */}
                             <SubtitleSeparator />
                             <SubTitle className="h5 mb-0"> {label}</SubTitle>
                         </>

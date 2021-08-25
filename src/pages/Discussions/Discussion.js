@@ -39,7 +39,6 @@ const Discussion = props => {
             } else {
                 toast.error('Discussion cannot be joined');
                 setCreatingTopic(false);
-                return null;
             }
         } else {
             const a = document.createElement('a');
@@ -61,7 +60,6 @@ const Discussion = props => {
                 <ModalBody>
                     <>
                         {' '}
-                        {/* {!isLoadingDiscussion && ( */}
                         <ListGroup>
                             {props.comments.length > 0 ? (
                                 <>
@@ -73,25 +71,6 @@ const Discussion = props => {
                                 <div className="text-center mt-4 mb-4">No discussion found!</div>
                             )}
                         </ListGroup>
-                        {/* )} */}
-                        {/* {isLoadingDiscussion && ( */}
-                        {/* <div className="text-center mt-4 mb-4 p-5 container box rounded"> */}
-                        {/* <div className="text-left"> */}
-                        {/* <ContentLoader */}
-                        {/* speed={2} */}
-                        {/* width={400} */}
-                        {/* height={50} */}
-                        {/* viewBox="0 0 400 50" */}
-                        {/* style={{ width: '100% !important' }} */}
-                        {/* backgroundColor="#f3f3f3" */}
-                        {/* foregroundColor="#ecebeb" */}
-                        {/* > */}
-                        {/* <rect x="0" y="0" rx="3" ry="3" width="400" height="20" /> */}
-                        {/* <rect x="0" y="25" rx="3" ry="3" width="300" height="20" /> */}
-                        {/* </ContentLoader> */}
-                        {/* </div> */}
-                        {/* </div> */}
-                        {/* )} */}
                     </>
                 </ModalBody>
                 <ModalFooter>
