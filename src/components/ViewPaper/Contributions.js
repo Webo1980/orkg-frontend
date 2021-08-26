@@ -31,6 +31,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import DescriptionTooltip from 'components/DescriptionTooltip/DescriptionTooltip';
 import { reverseWithSlug } from 'utils';
+import SimilarPapers from 'components/ViewPaper/ExternalSimilarPapers/SimilarPapers';
 
 const Title = styled.div`
     font-size: 18px;
@@ -402,6 +403,12 @@ class Contributions extends Component {
 
                                         {selectedContributionId && <ContributionComparisons contributionId={selectedContributionId} />}
                                     </Form>
+                                    <div>
+                                        <Title>
+                                            External similar papers
+                                            {this.props.researchProblems && <SimilarPapers problem={this.props.researchProblems[0]} />}
+                                        </Title>
+                                    </div>
                                 </StyledHorizontalContribution>
                             </AnimationContainer>
                         </TransitionGroup>
