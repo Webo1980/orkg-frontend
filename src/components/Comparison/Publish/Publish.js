@@ -229,12 +229,11 @@ function Publish(props) {
                                     ]
                                 })
                             }
-                        } //,
-                        //observatoryInfo: observatory
-                        //? { observatoryId: observatory.id, organizationId: observatory.organization_id }
-                        //: { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID }
+                        },
+                        observatoryInfo: observatory
+                            ? { observatoryId: observatory.id, organizationId: observatory.organization_id }
+                            : { observatoryId: MISC.UNKNOWN_ID, organizationId: MISC.UNKNOWN_ID }
                     };
-                    console.log(comparison_obj);
                     const createdComparison = await createObject(comparison_obj);
                     await saveCreators(comparisonCreators, createdComparison.id);
                     await createResourceData({
