@@ -36,7 +36,7 @@ const SmartReviewCard = ({ versions, showCurationFlags, showBadge }) => {
     });
 
     return (
-        <SmartReviewCardStyled className={`list-group-item list-group-item-action d-flex pr-3 ${showCurationFlags ? ' pl-2  ' : ' pl-4  '}`}>
+        <SmartReviewCardStyled className={`list-group-item list-group-item-action d-flex pr-3 ${showCurationFlags ? ' pl-2  ' : ' pl-3  '}`}>
             <div className="col-md-9 d-flex p-0">
                 {showCurationFlags && (
                     <div className="d-flex flex-column flex-shrink-0" style={{ width: '25px' }}>

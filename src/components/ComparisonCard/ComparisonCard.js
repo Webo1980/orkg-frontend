@@ -31,7 +31,7 @@ const ComparisonCard = props => {
     return (
         <ComparisonCardStyled
             rounded={props.rounded}
-            className={`list-group-item list-group-item-action d-flex pr-3 ${props.showCurationFlags ? ' pl-2  ' : ' pl-4  '}`}
+            className={`list-group-item list-group-item-action d-flex pr-3 ${props.showCurationFlags ? ' pl-2  ' : ' pl-3  '}`}
         >
             <div className="col-md-9 d-flex p-0">
                 {props.showCurationFlags && (
