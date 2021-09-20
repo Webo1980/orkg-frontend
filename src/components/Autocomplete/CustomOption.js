@@ -61,7 +61,7 @@ export default function CustomOption(props) {
                             </small>
                         </div>
                     )}
-                    {truncatedURI && (
+                    {!props.hideOntologyDetails && truncatedURI && (
                         <div>
                             <i>
                                 <small className={!propsWithoutInnerProps.isFocused && !propsWithoutInnerProps.isSelected ? 'text-muted' : undefined}>
@@ -111,7 +111,7 @@ export default function CustomOption(props) {
                             </Tippy>
                         </div>
                     )}
-                    {props.data.id && (
+                    {!props.hideOntologyDetails && props.data.id && (
                         <div onClick={onClick} className="badge" onKeyDown={e => (e.keyCode === 13 ? onClick : undefined)} role="button" tabIndex={0}>
                             {props.data.id}
                         </div>
@@ -125,5 +125,10 @@ export default function CustomOption(props) {
 CustomOption.propTypes = {
     children: PropTypes.node.isRequired,
     data: PropTypes.object.isRequired,
-    innerProps: PropTypes.object.isRequired
+    innerProps: PropTypes.object.isRequired,
+    hideOntologyDetails: PropTypes.bool
+};
+
+CustomOption.defaultProps = {
+    hideOntologyDetails: false
 };

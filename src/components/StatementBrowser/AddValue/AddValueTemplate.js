@@ -7,7 +7,7 @@ import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowser
 import defaultDatatypes from 'components/Templates/helpers/defaultDatatypes';
 import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faPlus, faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
 import useToggle from './helpers/useToggle';
 import validationSchema from './helpers/validationSchema';
@@ -22,6 +22,7 @@ import PropTypes from 'prop-types';
 export default function AddValueTemplate(props) {
     const literalInputRef = useRef(null);
     const resourceInputRef = useRef(null);
+    const unitAutocompleteRef = useRef(null);
     const dispatch = useDispatch();
     const statementBrowser = useSelector(state => state.statementBrowser);
     const { classes, templates, openExistingResourcesInDialog } = statementBrowser;
@@ -32,6 +33,7 @@ export default function AddValueTemplate(props) {
     const [entityType, setEntityType] = useState(getConfigByType(props.isLiteral ? MISC.DEFAULT_LITERAL_DATATYPE : 'object')._class);
     const [inputValue, setInputValue] = useState('');
     const [inputDataType, setInputDataType] = useState(getConfigByType(props.isLiteral ? MISC.DEFAULT_LITERAL_DATATYPE : 'object').type);
+    const [unit, setUnit] = useState(null);
     const [showAddValue, setShowAddValue] = useToggle(false);
     const [isValid, setIsValid] = useState(true);
     const [formFeedback, setFormFeedback] = useState(null);
@@ -134,7 +136,7 @@ export default function AddValueTemplate(props) {
                 setSuggestionType(suggestions[0]);
                 confirmConversion.current.show();
             } else {
-                props.handleAddValue(entityType, inputValue, getDataType());
+                props.handleAddValue({ valueType: entityType, inputValue, dataType: getDataType(), unit });
                 setShowAddValue(false);
             }
         }
@@ -142,13 +144,13 @@ export default function AddValueTemplate(props) {
 
     const acceptSuggestion = () => {
         confirmConversion.current.hide();
-        props.handleAddValue(suggestionType._class, inputValue, suggestionType.type);
+        props.handleAddValue({ valueType: suggestionType._class, inputValue, dataType: suggestionType.type, unit });
         setInputDataType(suggestionType.type);
         setShowAddValue(false);
     };
 
     const rejectSuggestion = () => {
-        props.handleAddValue(entityType, inputValue, getDataType());
+        props.handleAddValue({ valueType: entityType, inputValue, dataType: getDataType(), unit });
         setShowAddValue(false);
     };
 
@@ -172,6 +174,7 @@ export default function AddValueTemplate(props) {
     useEffect(() => {
         if (!showAddValue) {
             setInputValue('');
+            setUnit(null);
         }
     }, [showAddValue]);
 
@@ -206,6 +209,8 @@ export default function AddValueTemplate(props) {
         }
     }, [classes, dispatch, props.isLiteral, props.valueClass, templates]);
 
+    const isCreateDisabled = !inputValue?.toString() || disabledCreate || (entityType === 'measurement' && !unit);
+
     return (
         <ValueItemStyle className={showAddValue ? 'editingLabel' : ''}>
             {modal ? (
@@ -230,7 +235,7 @@ export default function AddValueTemplate(props) {
                             if (isInlineResource && entityType !== 'literal') {
                                 // is the valueType is literal, it's not possible to set it as an object of a statement
                                 // 1 - create a resource
-                                props.handleAddValue(entityType, isInlineResource).then(resourceId => {
+                                props.handleAddValue({ valueType: entityType, inputValue: isInlineResource }).then(resourceId => {
                                     // 2 - open the dialog on that resource
                                     if (openExistingResourcesInDialog) {
                                         dispatch(
@@ -265,7 +270,7 @@ export default function AddValueTemplate(props) {
                 <div>
                     <InputGroup size="sm">
                         {!props.valueClass && <DatatypeSelector valueType={inputDataType} setValueType={setInputDataType} />}
-                        {entityType === 'object' ? (
+                        {entityType === 'object' && (
                             <AutoComplete
                                 entityType={ENTITIES.RESOURCE}
                                 excludeClasses={`${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE}`}
@@ -288,14 +293,34 @@ export default function AddValueTemplate(props) {
                                         // escape
                                         setShowAddValue(false);
                                     } else if (e.keyCode === 13 && !isMenuOpen()) {
-                                        props.handleAddValue(entityType, inputValue);
+                                        props.handleAddValue({ valueType: entityType, inputValue });
                                         setShowAddValue(false);
                                     }
                                 }}
                                 innerRef={ref => (resourceInputRef.current = ref)}
                                 handleCreateExistingLabel={handleCreateExistingLabel}
                             />
-                        ) : (
+                        )}
+                        {entityType === 'literal' && (
+                            <InputField
+                                valueClass={props.valueClass}
+                                inputValue={inputValue}
+                                setInputValue={setInputValue}
+                                inputDataType={inputDataType}
+                                onSubmit={onSubmit}
+                                isValid={isValid}
+                                literalInputRef={literalInputRef}
+                                onKeyDown={e => {
+                                    if (e.keyCode === 27) {
+                                        // escape
+                                        setShowAddValue(false);
+                                    } else if (e.keyCode === 13) {
+                                        onSubmit();
+                                    }
+                                }}
+                            />
+                        )}
+                        {entityType === 'measurement' && (
                             <>
                                 <InputField
                                     valueClass={props.valueClass}
@@ -314,6 +339,33 @@ export default function AddValueTemplate(props) {
                                         }
                                     }}
                                 />
+                                <AutoComplete
+                                    entityType={ENTITIES.CLASS}
+                                    onChange={value => setUnit(value)}
+                                    placeholder="Unit"
+                                    value={unit}
+                                    menuWidth={300}
+                                    autoLoadOption={true}
+                                    openMenuOnFocus={true}
+                                    allowCreate={true}
+                                    cssClasses="form-control-sm"
+                                    innerRef={ref => (unitAutocompleteRef.current = ref)}
+                                    autoFocus={false}
+                                    ols={true}
+                                    inputId="unit-autocomplete"
+                                    olsChildrenIri="UO:0000000"
+                                    olsOntology={[
+                                        {
+                                            label: 'Units of measurement ontology',
+                                            id: 'UO',
+                                            uri: 'http://purl.obolibrary.org/obo/uo.owl',
+                                            ontologyId: 'uo:',
+                                            external: true
+                                        }
+                                    ]}
+                                    hideOntologyDetails
+                                    showTooltipOnHover
+                                />
                             </>
                         )}
                         <InputGroupAddon addonType="append">
@@ -325,18 +377,20 @@ export default function AddValueTemplate(props) {
                                     setFormFeedback(null);
                                 }}
                             >
-                                Cancel
+                                <Icon icon={faTimes} style={{ minWidth: 15 }} />
                             </StyledButton>
                             <StyledButton
                                 outline
-                                disabled={!inputValue?.toString() || disabledCreate}
+                                disabled={isCreateDisabled}
                                 onClick={() => {
                                     onSubmit();
                                 }}
                             >
                                 {disabledCreate ? (
                                     <Tippy hideOnClick={false} content="Please use the existing research problem that has this label." arrow={true}>
-                                        <span>Create</span>
+                                        <span>
+                                            <Icon icon={faCheck} style={{ minWidth: 15 }} />
+                                        </span>
                                     </Tippy>
                                 ) : (
                                     <Tippy
@@ -352,7 +406,9 @@ export default function AddValueTemplate(props) {
                                         trigger="manual"
                                         placement="top"
                                     >
-                                        <span>Create</span>
+                                        <span>
+                                            <Icon icon={faCheck} style={{ minWidth: 15 }} />
+                                        </span>
                                     </Tippy>
                                 )}
                             </StyledButton>

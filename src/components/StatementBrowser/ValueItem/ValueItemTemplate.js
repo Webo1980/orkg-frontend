@@ -21,10 +21,11 @@ import DatatypeSelector from 'components/StatementBrowser/DatatypeSelector/Datat
 import { getConfigByType, getSuggestionByTypeAndValue } from 'constants/DataTypes';
 import Tippy from '@tippyjs/react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
+import { CLASSES, ENTITIES, MISC, PREDICATES } from 'constants/graphSettings';
 import ConfirmConversionTooltip from 'components/StatementBrowser/ConfirmConversionTooltip/ConfirmConversionTooltip';
 import PropTypes from 'prop-types';
 import Joi from 'joi';
+import Autocomplete from 'components/Autocomplete/Autocomplete';
 
 export default function ValueItemTemplate(props) {
     const dispatch = useDispatch();
@@ -67,6 +68,8 @@ export default function ValueItemTemplate(props) {
 
     const [disableHover, setDisableHover] = useState(false);
     const [draftLabel, setDraftLabel] = useState(props.value.label);
+    const [unit, setUnit] = useState('');
+    const [isMeasurement, setIsMeasurement] = useState(false);
     const [draftDataType, setDraftDataType] = useState(props.value.type === 'literal' ? props.value.datatype : 'object');
     const [isValid, setIsValid] = useState(true);
     const [formFeedback, setFormFeedback] = useState(null);
@@ -129,6 +132,9 @@ export default function ValueItemTemplate(props) {
         if (error) {
             setFormFeedback(error.message);
             setIsValid(false);
+        } else if (isMeasurement) {
+            props.commitChangeMeasurement(draftLabel, unit);
+            dispatch(toggleEditValue({ id: props.id }));
         } else {
             // setDraftLabel(value);
             setFormFeedback(null);
@@ -138,7 +144,7 @@ export default function ValueItemTemplate(props) {
                 setSuggestionType(suggestions[0]);
                 confirmConversion.current.show();
             } else {
-                props.commitChangeLabel(draftLabel, getDataType(draftDataType));
+                props.commitChangeLabel(draftLabel, getDataType(draftDataType), unit);
                 dispatch(toggleEditValue({ id: props.id }));
             }
         }
@@ -146,13 +152,13 @@ export default function ValueItemTemplate(props) {
 
     const acceptSuggestion = () => {
         confirmConversion.current.hide();
-        props.commitChangeLabel(draftLabel, suggestionType.type);
+        props.commitChangeLabel(draftLabel, suggestionType.type, unit);
         setDraftDataType(suggestionType.type);
         dispatch(toggleEditValue({ id: props.id }));
     };
 
     const rejectSuggestion = () => {
-        props.commitChangeLabel(draftLabel, getDataType(draftDataType));
+        props.commitChangeLabel(draftLabel, getDataType(draftDataType), unit);
         dispatch(toggleEditValue({ id: props.id }));
     };
 
@@ -164,19 +170,22 @@ export default function ValueItemTemplate(props) {
         }
     }, [draftDataType]);
 
-    const generatedFormattedLabel = labelFormat => {
-        const valueObject = {};
-        for (const propertyId of resource.propertyIds) {
-            const property = properties.byId[propertyId];
-            valueObject[property.existingPredicateId] =
-                property?.valueIds && property.valueIds.length > 0 ? values.byId[property.valueIds[0]].label : property.label;
-        }
-        if (Object.keys(valueObject).length > 0) {
-            return format(labelFormat, valueObject);
-        } else {
-            return props.value.label;
-        }
-    };
+    const generatedFormattedLabel = useCallback(
+        labelFormat => {
+            const valueObject = {};
+            for (const propertyId of resource.propertyIds) {
+                const property = properties.byId[propertyId];
+                valueObject[property.existingPredicateId] =
+                    property?.valueIds && property.valueIds.length > 0 ? values.byId[property.valueIds[0]].label : property.label;
+            }
+            if (Object.keys(valueObject).length > 0) {
+                return format(labelFormat, valueObject);
+            } else {
+                return props.value.label;
+            }
+        },
+        [properties.byId, props.value?.label, resource?.propertyIds, values.byId]
+    );
 
     const getLabel = useCallback(() => {
         const existingResourceId = resource ? resource.existingResourceId : false;
@@ -199,9 +208,34 @@ export default function ValueItemTemplate(props) {
         } else {
             return props.value.label;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resource, hasLabelFormat, labelFormat]);
+    }, [
+        resource,
+        props.value?.classes,
+        props.value?.type,
+        props.value?.label,
+        props.value?.resourceId,
+        hasLabelFormat,
+        dispatch,
+        generatedFormattedLabel,
+        labelFormat
+    ]);
 
+    useEffect(() => {
+        if (props.value.classes && props.value.classes.includes(CLASSES.TEMPLATE_OF_MEASUREMENT)) {
+            setIsMeasurement(true);
+            setDraftDataType('measurement');
+            for (const propertyId of resource.propertyIds) {
+                const property = properties.byId[propertyId];
+                const id = property.existingPredicateId;
+                if (id === PREDICATES.HAS_VALUE) {
+                    setDraftLabel(values?.byId[property.valueIds?.[0]]?.label);
+                }
+                if (id === PREDICATES.UNIT_LABEL) {
+                    setUnit(values?.byId[property.valueIds?.[0]]?.label);
+                }
+            }
+        }
+    }, [properties.byId, props.value?.classes, resource?.propertyIds, values.byId]);
     return (
         <ValueItemStyle>
             {!props.value.isEditing ? (
@@ -293,18 +327,71 @@ export default function ValueItemTemplate(props) {
             ) : (
                 <div>
                     <InputGroup size="sm " className="d-flex">
-                        {!valueClass && props.value.type === ENTITIES.LITERAL && (
-                            <DatatypeSelector entity={props.value.type} valueType={draftDataType} setValueType={setDraftDataType} />
+                        {!valueClass && (props.value.type === ENTITIES.LITERAL || isMeasurement) && (
+                            <DatatypeSelector
+                                entity={isMeasurement ? 'measurement' : props.value.type}
+                                valueType={draftDataType}
+                                setValueType={setDraftDataType}
+                            />
                         )}
-                        <InputField
-                            valueClass={valueClass}
-                            inputValue={draftLabel}
-                            setInputValue={setDraftLabel}
-                            inputDataType={draftDataType}
-                            onKeyDown={e => (e.keyCode === 13 || e.keyCode === 27) && e.target.blur()} // stop editing on enter and escape
-                            //onBlur={() => onSubmit()}
-                            isValid={isValid}
-                        />
+                        {isMeasurement ? (
+                            <>
+                                <InputField
+                                    //valueClass={props.valueClass}
+                                    inputValue={draftLabel}
+                                    setInputValue={setDraftLabel}
+                                    //inputDataType={inputDataType}
+                                    onSubmit={onSubmit}
+                                    isValid={isValid}
+                                    //literalInputRef={literalInputRef}
+                                    onKeyDown={e => {
+                                        if (e.keyCode === 27) {
+                                            // escape
+                                            //setShowAddValue(false);
+                                        } else if (e.keyCode === 13) {
+                                            onSubmit();
+                                        }
+                                    }}
+                                />
+                                <Autocomplete
+                                    entityType={ENTITIES.CLASS}
+                                    onChange={value => setUnit(value)}
+                                    placeholder="Unit"
+                                    value={unit}
+                                    menuWidth={300}
+                                    autoLoadOption={true}
+                                    openMenuOnFocus={true}
+                                    allowCreate={true}
+                                    cssClasses="form-control-sm"
+                                    //innerRef={ref => (unitAutocompleteRef.current = ref)}
+                                    autoFocus={false}
+                                    ols={true}
+                                    inputId="unit-autocomplete"
+                                    olsChildrenIri="UO:0000000"
+                                    olsOntology={[
+                                        {
+                                            label: 'Units of measurement ontology',
+                                            id: 'UO',
+                                            uri: 'http://purl.obolibrary.org/obo/uo.owl',
+                                            ontologyId: 'uo:',
+                                            external: true
+                                        }
+                                    ]}
+                                    hideOntologyDetails
+                                    showTooltipOnHover
+                                />
+                            </>
+                        ) : (
+                            <InputField
+                                valueClass={valueClass}
+                                inputValue={draftLabel}
+                                setInputValue={setDraftLabel}
+                                inputDataType={draftDataType}
+                                onKeyDown={e => (e.keyCode === 13 || e.keyCode === 27) && e.target.blur()} // stop editing on enter and escape
+                                //onBlur={() => onSubmit()}
+                                isValid={isValid}
+                            />
+                        )}
                         <InputGroupAddon addonType="append">
                             <StyledButton outline onClick={() => onSubmit()}>
                                 <Tippy
@@ -342,6 +429,7 @@ ValueItemTemplate.propTypes = {
     predicate: PropTypes.object,
     components: PropTypes.array.isRequired,
     commitChangeLabel: PropTypes.func.isRequired,
+    commitChangeMeasurement: PropTypes.func.isRequired,
     handleDatasetClick: PropTypes.func.isRequired,
     handleDeleteValue: PropTypes.func.isRequired
 };

@@ -7,11 +7,10 @@ import OntologiesModal from './OntologiesModal';
 import { getEntity, getEntities } from 'services/backend/misc';
 import { createClass, getClasses } from 'services/backend/classes';
 import { getResourcesByClass } from 'services/backend/resources';
-import { olsBaseUrl, selectTerms, getAllOntologies, getOntologyTerms, getTermMatchingAcrossOntologies } from 'services/ols/index';
+import { olsBaseUrl, selectTerms, getAllOntologies, getOntologyTerms, getTermMatchingAcrossOntologies, getTermDescendants } from 'services/ols/index';
 import { AsyncPaginate, withAsyncPaginate } from 'react-select-async-paginate';
 import Creatable from 'react-select/creatable';
 import PropTypes from 'prop-types';
-import { truncate } from 'lodash';
 import { components } from 'react-select';
 import { compareOption } from 'utils';
 import styled, { withTheme } from 'styled-components';
@@ -49,7 +48,7 @@ function Autocomplete(props) {
     const [inputValue, setInputValue] = useState(typeof props.value !== 'object' || props.value === null ? props.value : props.value.label);
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [ontologySelectorIsOpen, setOntologySelectorIsOpen] = useState(false);
-    const [selectedOntologies, setSelectedOntologies] = useState([]);
+    const [selectedOntologies, setSelectedOntologies] = useState(props.olsOntology ?? []);
 
     // Pagination params
     const PAGE_SIZE = 10;
@@ -169,6 +168,36 @@ function Autocomplete(props) {
         }
     };
 
+    const getTermDescendantsByIri = async (value, page) => {
+        const ontology = props.olsOntology[0].ontologyId.replace(':', '');
+        if (value) {
+            try {
+                return await selectTerms({
+                    page,
+                    PAGE_SIZE,
+                    type: 'class',
+                    ontology,
+                    q: encodeURIComponent(value.trim()),
+                    childrenOf: `http://purl.obolibrary.org/obo/${props.olsChildrenIri.replace(':', '_')}`
+                });
+            } catch (error) {
+                return { content: [], last: true, totalElements: 0 };
+            }
+        } else {
+            try {
+                return await getTermDescendants({
+                    page,
+                    pageSize: PAGE_SIZE,
+                    ontology,
+                    parentIri: props.olsChildrenIri
+                });
+            } catch (error) {
+                // No matching class
+                return { content: [], last: true, totalElements: 0 };
+            }
+        }
+    };
+
     /**
      * Lookup for an ontology
      *
@@ -265,6 +294,8 @@ function Autocomplete(props) {
                 responseJson = await OntologyLookup(value, page);
             } else if (pageOLS === undefined && selectedOntologies.length === 0) {
                 responseJson = await InternalORKGLookup(value, page);
+            } else if (props.ols && props.olsChildrenIri) {
+                responseJson = await getTermDescendantsByIri(value, page);
             } else if (props.ols) {
                 responseJson = await GetExternalClasses(value, pageOLS);
             }
@@ -487,35 +518,34 @@ function Autocomplete(props) {
                 <components.Menu {...innerProps}>
                     <div>{children}</div>
                     {props.ols && (
-                        <StyledMenuListHeader className=" align-items-center p-1 d-flex clearfix">
-                            <div className=" flex-grow-1 justify-content-end">
-                                {inputValue && props.allowCreate && (
-                                    <Button
-                                        outline
-                                        color="info"
-                                        onClick={() => {
-                                            if (props.onNewItemSelected) {
-                                                props.onNewItemSelected(inputValue);
-                                            } else {
-                                                props.onChange(
-                                                    props.isMulti ? [...props.value, { label: inputValue, __isNew__: true }] : { label: inputValue },
-                                                    { action: 'create-option' }
-                                                );
-                                                setInputValue('');
-                                            }
-                                        }}
-                                        size="sm"
-                                    >
-                                        Create "{truncate(inputValue, { length: 15 })}"
-                                    </Button>
-                                )}
-                            </div>
+                        <StyledMenuListHeader className="align-items-center p-1 d-flex clearfix">
+                            {inputValue && props.allowCreate && (
+                                <Button
+                                    outline
+                                    color="info"
+                                    onClick={() => {
+                                        if (props.onNewItemSelected) {
+                                            props.onNewItemSelected(inputValue);
+                                        } else {
+                                            props.onChange(
+                                                props.isMulti ? [...props.value, { label: inputValue, __isNew__: true }] : { label: inputValue },
+                                                { action: 'create-option' }
+                                            );
+                                            setInputValue('');
+                                        }
+                                    }}
+                                    size="sm"
+                                    className="text-truncate mr-1"
+                                >
+                                    Create <em>{inputValue}</em>
+                                </Button>
+                            )}
                             {props.requestUrl !== olsBaseUrl && (
                                 <>
                                     <Button
                                         outline
                                         color="info"
-                                        className="justify-content-end"
+                                        className="ml-auto ml-1"
                                         onClick={() => setOntologySelectorIsOpen(v => !v)}
                                         size="sm"
                                     >
@@ -526,7 +556,7 @@ function Autocomplete(props) {
                                                     : 'Select an ontology'
                                             }
                                         >
-                                            <span>
+                                            <span className="text-nowrap">
                                                 <Icon
                                                     color={selectedOntologies.length > 0 ? props.theme.primary : undefined}
                                                     icon={faAtom}
@@ -555,11 +585,17 @@ function Autocomplete(props) {
                         props.onChange(innerProps.data);
                     }}
                 >
-                    <CustomOption {...innerProps}>{children}</CustomOption>
+                    <CustomOption {...innerProps} hideOntologyDetails={props.hideOntologyDetails}>
+                        {children}
+                    </CustomOption>
                 </NativeListener>
             );
         } else {
-            return <CustomOption {...innerProps}>{children}</CustomOption>;
+            return (
+                <CustomOption {...innerProps} hideOntologyDetails={props.hideOntologyDetails}>
+                    {children}
+                </CustomOption>
+            );
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -607,7 +643,8 @@ function Autocomplete(props) {
         menu: provided => ({
             ...provided,
             zIndex: 10,
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            width: props.menuWidth || '100%'
         }),
         option: provided => ({
             ...provided,
@@ -672,68 +709,71 @@ function Autocomplete(props) {
                 toggle={() => setOntologySelectorIsOpen(v => !v)}
                 showDialog={ontologySelectorIsOpen}
             />
-            <StyledAutoCompleteInputFormControl className={`form-control ${props.cssClasses ? props.cssClasses : 'default'} border-0`}>
-                <Select
-                    key={JSON.stringify(selectedOntologies.map(o => o.id))}
-                    value={props.value}
-                    loadOptions={loadOptions}
-                    additional={defaultAdditional}
-                    noOptionsMessage={noResults}
-                    onChange={
-                        props.onChange
-                            ? (select, action) => {
-                                  handleExternalSelect(select, action);
-                                  setInputValue('');
-                              }
-                            : handleChange
-                    }
-                    onInputChange={handleInputChange}
-                    inputValue={inputValue || ''}
-                    styles={customStyles}
-                    placeholder={props.placeholder}
-                    aria-label={props.placeholder}
-                    autoFocus={props.autoFocus}
-                    cacheOptions={false}
-                    cache={false}
-                    defaultOptions={props.defaultOptions ?? true}
-                    openMenuOnFocus={props.openMenuOnFocus}
-                    onBlur={props.onBlur}
-                    onKeyDown={props.onKeyDown}
-                    selectRef={props.innerRef}
-                    createOptionPosition="first"
-                    menuPortalTarget={props.menuPortalTarget}
-                    components={{
-                        Option: Option,
-                        Menu: Menu,
-                        Control: Control,
-                        DropdownIndicator: DropdownIndicator
-                    }}
-                    menuIsOpen={menuIsOpen}
-                    onMenuOpen={() => setMenuIsOpen(true)}
-                    onMenuClose={() => setMenuIsOpen(false)}
-                    getOptionLabel={({ label }) => label}
-                    getOptionValue={({ id }) => id}
-                    isClearable={props.isClearable}
-                    isDisabled={props.isDisabled}
-                    isMulti={props.isMulti}
-                    inputId={props.inputId}
-                    isValidNewOption={(inputValue, selectValue, selectOptions) => {
-                        if (props.handleCreateExistingLabel) {
-                            // to disable the create button
-                            props.handleCreateExistingLabel(inputValue, selectOptions);
+            <Tippy content={props.value?.label} disabled={!props.showTooltipOnHover || !props.value?.label}>
+                <StyledAutoCompleteInputFormControl className={`form-control ${props.cssClasses ? props.cssClasses : 'default'} border-0`}>
+                    <Select
+                        key={JSON.stringify(selectedOntologies.map(o => o.id))}
+                        value={props.value}
+                        loadOptions={loadOptions}
+                        additional={defaultAdditional}
+                        noOptionsMessage={noResults}
+                        onChange={
+                            props.onChange
+                                ? (select, action) => {
+                                      handleExternalSelect(select, action);
+                                      setInputValue('');
+                                  }
+                                : handleChange
                         }
-                        if (!props.allowCreate) {
-                            return false;
-                        } else {
-                            return !(
-                                !inputValue ||
-                                selectValue.some(option => compareOption(inputValue, option)) ||
-                                selectOptions.some(option => compareOption(inputValue, option))
-                            );
-                        }
-                    }}
-                />
-            </StyledAutoCompleteInputFormControl>
+                        onInputChange={handleInputChange}
+                        inputValue={inputValue || ''}
+                        styles={customStyles}
+                        placeholder={props.placeholder}
+                        aria-label={props.placeholder}
+                        autoFocus={props.autoFocus}
+                        cacheOptions={false}
+                        cache={false}
+                        defaultOptions={props.defaultOptions ?? true}
+                        openMenuOnFocus={props.openMenuOnFocus}
+                        onBlur={props.onBlur}
+                        onKeyDown={props.onKeyDown}
+                        selectRef={props.innerRef}
+                        createOptionPosition="first"
+                        menuPortalTarget={props.menuPortalTarget}
+                        components={{
+                            Option: Option,
+                            Menu: Menu,
+                            Control: Control,
+                            DropdownIndicator: DropdownIndicator
+                        }}
+                        menuIsOpen={menuIsOpen}
+                        onMenuOpen={() => setMenuIsOpen(true)}
+                        onMenuClose={() => setMenuIsOpen(false)}
+                        getOptionLabel={({ label }) => label}
+                        getOptionValue={({ id }) => id}
+                        isClearable={props.isClearable}
+                        isDisabled={props.isDisabled}
+                        isMulti={props.isMulti}
+                        inputId={props.inputId}
+                        classNamePrefix="react-select"
+                        isValidNewOption={(inputValue, selectValue, selectOptions) => {
+                            if (props.handleCreateExistingLabel) {
+                                // to disable the create button
+                                props.handleCreateExistingLabel(inputValue, selectOptions);
+                            }
+                            if (!props.allowCreate) {
+                                return false;
+                            } else {
+                                return !(
+                                    !inputValue ||
+                                    selectValue.some(option => compareOption(inputValue, option)) ||
+                                    selectOptions.some(option => compareOption(inputValue, option))
+                                );
+                            }
+                        }}
+                    />
+                </StyledAutoCompleteInputFormControl>
+            </Tippy>
         </ConditionalWrapper>
     );
 }
@@ -775,7 +815,12 @@ Autocomplete.propTypes = {
     inputId: PropTypes.string,
     onChangeInputValue: PropTypes.func,
     inputValue: PropTypes.string,
-    menuPortalTarget: PropTypes.object
+    menuPortalTarget: PropTypes.object,
+    olsOntology: PropTypes.string,
+    olsChildrenIri: PropTypes.string,
+    menuWidth: PropTypes.number,
+    hideOntologyDetails: PropTypes.bool,
+    showTooltipOnHover: PropTypes.bool
 };
 
 Autocomplete.defaultProps = {
@@ -792,6 +837,11 @@ Autocomplete.defaultProps = {
     inputGroup: true,
     inputId: null,
     inputValue: null,
-    menuPortalTarget: null
+    menuPortalTarget: null,
+    olsOntology: null,
+    olsChildrenIri: null,
+    menuWidth: null,
+    hideOntologyDetails: false,
+    showTooltipOnHover: false
 };
 export default withTheme(Autocomplete);

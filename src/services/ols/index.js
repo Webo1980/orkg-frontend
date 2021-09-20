@@ -4,9 +4,9 @@ import env from '@beam-australia/react-env';
 
 export const olsBaseUrl = env('OLS_BASE_URL');
 
-export const selectTerms = ({ page = 0, pageSize = 10, type = 'ontology', q = null, ontology = null }) => {
+export const selectTerms = ({ page = 0, pageSize = 10, type = 'ontology', q = null, ontology = null, childrenOf = undefined }) => {
     const params = queryString.stringify(
-        { rows: pageSize, start: page * pageSize, type, ...(q ? { q: q } : {}), ontology },
+        { rows: pageSize, start: page * pageSize, type, ...(q ? { q: q } : {}), ontology, childrenOf },
         {
             skipNull: true,
             skipEmptyString: true
@@ -31,6 +31,31 @@ export const selectTerms = ({ page = 0, pageSize = 10, type = 'ontology', q = nu
             last: Math.ceil(res.response.numFound / pageSize) <= page ? true : false,
             totalElements: res.response.numFound
         };
+    });
+};
+
+export const getTermDescendants = ({ page = 0, pageSize = 10, ontology = null, parentIri = null, q = null }) => {
+    const params = queryString.stringify(
+        { page, size: pageSize, iri: parentIri, ...(q ? { q: q } : {}) },
+        {
+            skipNull: true,
+            skipEmptyString: true
+        }
+    );
+    const options = [];
+    return submitGetRequest(`${olsBaseUrl}ontologies/${ontology}/descendants?${params}`).then(res => {
+        if (res._embedded.terms.length > 0) {
+            for (const item of res._embedded.terms) {
+                options.push({
+                    external: true,
+                    label: item.label,
+                    id: item.ontology_prefix,
+                    ...(item.iri ? { uri: item.iri } : {}),
+                    ...(item.description && item.description.length > 0 ? { description: item.description[0] } : {})
+                });
+            }
+        }
+        return { content: options, last: res.page.totalPages <= res.page.number ? true : false, totalElements: res.page.totalElements };
     });
 };
 

@@ -12,20 +12,22 @@ import {
 import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
 import RDFDataCube from 'components/RDFDataCube/RDFDataCube';
 import { updateStatement, deleteStatementById } from 'services/backend/statements';
-import { createResource as createResourceAPICall, updateResource } from 'services/backend/resources';
+import { createResource as createResourceAPICall, updateResource, updateResourceClasses } from 'services/backend/resources';
 import { updateLiteral } from 'services/backend/literals';
 import { toast } from 'react-toastify';
 import { guid } from 'utils';
 import ValueItemTemplate from './ValueItemTemplate';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { PREDICATES } from 'constants/graphSettings';
+import { PREDICATES, CLASSES } from 'constants/graphSettings';
 
 export default function ValueItem(props) {
     const dispatch = useDispatch();
 
     const value = useSelector(state => state.statementBrowser.values.byId[props.id]);
+    const values = useSelector(state => state.statementBrowser.values);
     const property = useSelector(state => state.statementBrowser.properties.byId[props.propertyId]);
+    const properties = useSelector(state => state.statementBrowser.properties);
     const openExistingResourcesInDialog = useSelector(state => state.statementBrowser.openExistingResourcesInDialog);
     const resource = useSelector(state => state.statementBrowser.resources.byId[props.value.resourceId]);
 
@@ -57,6 +59,53 @@ export default function ValueItem(props) {
                 }
                 dispatch(doneSavingValue({ id: props.id }));
             }
+        }
+    };
+
+    const commitChangeMeasurement = async (label, unit) => {
+        let valueLiteral = null;
+        let unitLabelLiteral = null;
+        let valueValueId = null;
+        let unitValueId = null;
+
+        for (const propertyId of resource.propertyIds) {
+            const property = properties.byId[propertyId];
+            const id = property.existingPredicateId;
+            if (id === PREDICATES.HAS_VALUE) {
+                valueValueId = property.valueIds?.[0];
+                valueLiteral = values?.byId[valueValueId];
+            }
+            if (id === PREDICATES.UNIT_LABEL) {
+                unitValueId = property.valueIds?.[0];
+                unitLabelLiteral = values?.byId[property.valueIds?.[0]];
+            }
+        }
+
+        dispatch(
+            updateValueLabel({
+                label,
+                valueId: valueValueId
+            })
+        );
+        if (unit?.label) {
+            dispatch(
+                updateValueLabel({
+                    label: unit.label,
+                    valueId: unitValueId
+                })
+            );
+        }
+        if (props.syncBackend) {
+            dispatch(isSavingValue({ id: props.id })); // To show the saving message instead of the value label
+            if (props.value.resourceId) {
+                await updateLiteral(valueLiteral.resourceId, label);
+                if (unit?.label) {
+                    await updateLiteral(unitLabelLiteral.resourceId, unit?.label);
+                    await updateResourceClasses(props.value.resourceId, [CLASSES.TEMPLATE_OF_MEASUREMENT, unit?.id]);
+                }
+                toast.success('Value updated successfully');
+            }
+            dispatch(doneSavingValue({ id: props.id }));
         }
     };
 
@@ -222,6 +271,7 @@ export default function ValueItem(props) {
                 handleOnClick={handleOnClick}
                 handleChangeResource={handleChangeResource}
                 commitChangeLabel={commitChangeLabel}
+                commitChangeMeasurement={commitChangeMeasurement}
                 handleDatasetClick={handleDatasetClick}
                 enableEdit={props.enableEdit}
                 handleDeleteValue={handleDeleteValue}

@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { guid } from 'utils';
 import { isLiteral, getValueClass } from './helpers/utils';
 import PropTypes from 'prop-types';
-import { MISC } from 'constants/graphSettings';
+import { CLASSES, MISC, PREDICATES } from 'constants/graphSettings';
 
 const AddValue = props => {
     const dispatch = useDispatch();
@@ -82,11 +82,11 @@ const AddValue = props => {
         return statements;
     };
 
-    const handleValueSelect = async (valueType, { id, value, shared, classes, external, statements }) => {
+    const handleValueSelect = async (valueType, { id, value, shared, classes = [], external, statements }) => {
         if (props.syncBackend) {
             if (external) {
                 // create the object
-                const newObject = await createResource(value, valueClass ? [valueClass.id] : []);
+                const newObject = await createResource(value, valueClass ? [valueClass.id] : classes);
                 const newStatement = await createResourceStatement(selectedResource, predicate.existingPredicateId, newObject.id);
                 dispatch(
                     createValue({
@@ -97,7 +97,7 @@ const AddValue = props => {
                         isExistingValue: true,
                         statementId: newStatement.id,
                         shared: newObject.shared,
-                        classes: valueClass ? [valueClass.id] : []
+                        classes: valueClass ? [valueClass.id] : classes
                     })
                 );
                 //create statements
@@ -125,7 +125,7 @@ const AddValue = props => {
             }
         } else {
             if (external) {
-                const newObject = await handleAddValue(valueType, value, null);
+                const newObject = await handleAddValue({ valueType, inputValue: value, dataType: null });
                 // create statements
                 dispatch(
                     prefillStatements({
@@ -150,11 +150,32 @@ const AddValue = props => {
         }
     };
 
-    const handleAddValue = async (valueType, inputValue, datatype = MISC.DEFAULT_LITERAL_DATATYPE) => {
+    const handleAddValue = async ({ valueType, inputValue, dataType = MISC.DEFAULT_LITERAL_DATATYPE, unit }) => {
         let newObject = null;
         let newStatement = null;
         const valueId = guid();
         const existingResourceId = guid();
+
+        if (valueType === 'measurement') {
+            const statements = [
+                {
+                    predicate: { id: PREDICATES.HAS_VALUE, label: 'has value' },
+                    value: { type: 'literal', label: inputValue, id: null } // TODO: add xsd:decimal
+                },
+                {
+                    predicate: { id: PREDICATES.UNIT_LABEL, label: 'unit label' },
+                    value: { type: 'literal', label: unit?.label, id: null }
+                }
+            ];
+            handleValueSelect('object', {
+                value: 'Value',
+                shared: 0,
+                classes: [unit?.id, CLASSES.TEMPLATE_OF_MEASUREMENT],
+                external: true,
+                statements
+            });
+            return;
+        }
         if (props.syncBackend) {
             switch (valueType) {
                 case 'object':
@@ -166,14 +187,14 @@ const AddValue = props => {
                     newStatement = await createResourceStatement(selectedResource, predicate.existingPredicateId, newObject.id);
                     break;
                 default:
-                    newObject = await createLiteral(inputValue, datatype);
+                    newObject = await createLiteral(inputValue, dataType);
                     newStatement = await createLiteralStatement(selectedResource, predicate.existingPredicateId, newObject.id);
             }
             dispatch(
                 createValue({
                     label: inputValue?.toString(),
                     type: valueType,
-                    ...(valueType === 'literal' && { datatype: datatype }),
+                    ...(valueType === 'literal' && { dataType }),
                     propertyId: props.propertyId ? props.propertyId : selectedProperty,
                     existingResourceId: newObject.id,
                     isExistingValue: true,
@@ -188,11 +209,11 @@ const AddValue = props => {
                     valueId,
                     label: inputValue?.toString(),
                     type: valueType,
-                    ...(valueType === 'literal' && { datatype: datatype }),
+                    ...(valueType === 'literal' && { dataType }),
                     propertyId: props.propertyId ? props.propertyId : selectedProperty,
                     existingResourceId,
                     isExistingValue: false,
-                    classes: valueClass ? [valueClass.id] : [],
+                    classes: valueClass ? [valueClass.id] : [], // TODO: Add a template class when a unit is used
                     shared: 1
                 })
             );

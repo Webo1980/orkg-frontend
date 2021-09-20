@@ -59,7 +59,8 @@ export const PREDICATES = {
     WEBSITE: 'website',
     LINKED_IN_ID: 'linkedInID',
     RESEARCH_GATE_ID: 'researchGateID',
-    GOOGLE_SCHOLAR_ID: 'googleScholarID'
+    GOOGLE_SCHOLAR_ID: 'googleScholarID',
+    UNIT_LABEL: 'unitLabel'
 };
 
 export const CLASSES = {
@@ -98,7 +99,8 @@ export const CLASSES = {
     VISUALIZATION: 'Visualization',
     COMPARISON_RELATED_RESOURCE: 'ComparisonRelatedResource',
     COMPARISON_RELATED_FIGURE: 'ComparisonRelatedFigure',
-    ONTOLOGY_SECTION: 'OntologySection'
+    ONTOLOGY_SECTION: 'OntologySection',
+    TEMPLATE_OF_MEASUREMENT: 'TemplateOfMeasurement'
 };
 
 export const MISC = {

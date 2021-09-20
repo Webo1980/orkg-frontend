@@ -29,6 +29,7 @@ const DATA_TYPES = [
     },
     { name: 'Decimal', type: 'xsd:decimal', _class: ENTITIES.LITERAL, schema: Joi.number(), inputFormType: 'text', weight: 2 },
     { name: 'Integer', type: 'xsd:integer', _class: ENTITIES.LITERAL, schema: Joi.number().integer(), inputFormType: 'text', weight: 3 },
+    { name: 'With unit', type: 'measurement', _class: 'measurement', schema: Joi.number(), inputFormType: 'text', weight: 4 },
     {
         name: 'Boolean',
         tooltip: 'Choose Boolean for "true" or "false" value',
