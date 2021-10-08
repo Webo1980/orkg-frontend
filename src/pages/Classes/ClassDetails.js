@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container, Table, Button } from 'reactstrap';
 import { getStatementsByObjectAndPredicate } from 'services/backend/statements';
-import { getClassById } from 'services/backend/classes';
+import { getClassById, updateClassLabel, updateClassURI } from 'services/backend/classes';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPlus, faFileCsv, faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
 import StatementBrowser from 'components/StatementBrowser/StatementBrowser';
@@ -10,6 +10,7 @@ import ImportCSVInstances from 'components/ClassInstances/ImportCSVInstances';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import InternalServerError from 'pages/InternalServerError';
 import NotFound from 'pages/NotFound';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
@@ -18,6 +19,7 @@ import { useLocation } from 'react-router-dom';
 import { CLASS_TYPE_ID } from 'constants/misc';
 import { CLASSES, PREDICATES } from 'constants/graphSettings';
 import TitleBar from 'components/TitleBar/TitleBar';
+import InlineEditForm from 'components/InlineEditForm/InlineEditForm';
 
 function ClassDetails(props) {
     const location = useLocation();
@@ -29,6 +31,15 @@ function ClassDetails(props) {
     const [isLoading, setIsLoading] = useState(true);
     const [modalImportIsOpen, setModalImportIsOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const isCurationAllowed = useSelector(state => state.auth.user?.isCurationAllowed);
+
+    const onLabelSubmit = nlabel => {
+        return updateClassLabel(props.match.params.id, nlabel);
+    };
+
+    const onURISubmit = nUri => {
+        return updateClassURI(props.match.params.id, label, nUri);
+    };
 
     useEffect(() => {
         const findClass = async () => {
@@ -101,25 +112,39 @@ function ClassDetails(props) {
                         <Table bordered>
                             <tbody>
                                 <tr>
-                                    <th scope="row">ID</th>
-                                    <td> {props.match.params.id}</td>
+                                    <th scope="row" className="col-3">
+                                        ID
+                                    </th>
+                                    <td className="col-9"> {props.match.params.id}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Label</th>
                                     <td>
-                                        {label ? (
-                                            label
-                                        ) : (
-                                            <i>
-                                                <small>No label</small>
-                                            </i>
+                                        {isCurationAllowed && <InlineEditForm value={label} handleSubmitClick={onLabelSubmit} />}
+                                        {!isCurationAllowed && (
+                                            <>
+                                                {label ? (
+                                                    label
+                                                ) : (
+                                                    <i>
+                                                        <small>No label</small>
+                                                    </i>
+                                                )}
+                                            </>
                                         )}
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">URI</th>
                                     <td>
-                                        <i>{uri && uri !== 'null' ? <a href={uri}>{uri}</a> : 'Not Defined'}</i>
+                                        {isCurationAllowed && (!uri || uri === 'null') && (
+                                            <InlineEditForm value={uri} handleSubmitClick={onURISubmit} />
+                                        )}
+                                        {(!isCurationAllowed || (uri && uri !== 'null')) && (
+                                            <>
+                                                <i>{uri && uri !== 'null' ? <a href={uri}>{uri}</a> : 'Not Defined'}</i>{' '}
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                                 <tr>

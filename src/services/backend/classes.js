@@ -1,5 +1,5 @@
 import { url } from 'constants/misc';
-import { submitPostRequest, submitGetRequest } from 'network';
+import { submitPostRequest, submitGetRequest, submitPutRequest } from 'network';
 import queryString from 'query-string';
 
 export const classesUrl = `${url}classes/`;
@@ -10,6 +10,14 @@ export const getClassById = id => {
 
 export const createClass = (label, uri = null) => {
     return submitPostRequest(classesUrl, { 'Content-Type': 'application/json' }, { label: label, uri: uri });
+};
+
+export const updateClassLabel = (id, label) => {
+    return submitPutRequest(`${classesUrl}${encodeURIComponent(id)}/`, { 'Content-Type': 'application/json' }, { label: label });
+};
+
+export const updateClassURI = (id, uri) => {
+    return submitPutRequest(`${classesUrl}${encodeURIComponent(id)}/`, { 'Content-Type': 'application/json' }, { uri: uri });
 };
 
 export const getClasses = ({
