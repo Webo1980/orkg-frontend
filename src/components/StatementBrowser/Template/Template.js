@@ -36,6 +36,7 @@ const Template = props => {
             <ListGroup>
                 <TemplateHeader
                     syncBackend={props.syncBackend}
+                    enableEdit={props.enableEdit}
                     value={props.value}
                     id={props.id}
                     propertyId={props.propertyId}
@@ -59,18 +60,20 @@ const Template = props => {
                         />
                     );
                 })}
-                <AddPropertyWrapper>
-                    <div className="row no-gutters">
-                        <div className="col-4 propertyHolder" />
-                    </div>
-                    <AddProperty
-                        isDisabled={!canAddProperty}
-                        syncBackend={props.syncBackend}
-                        inTemplate={true}
-                        contextStyle="Template"
-                        resourceId={props.value.resourceId}
-                    />
-                </AddPropertyWrapper>
+                {props.enableEdit && (
+                    <AddPropertyWrapper>
+                        <div className="row no-gutters">
+                            <div className="col-4 propertyHolder" />
+                        </div>
+                        <AddProperty
+                            isDisabled={!canAddProperty}
+                            syncBackend={props.syncBackend}
+                            inTemplate={true}
+                            contextStyle="Template"
+                            resourceId={props.value.resourceId}
+                        />
+                    </AddPropertyWrapper>
+                )}
             </ListGroup>
         </AnimationContainer>
     );
