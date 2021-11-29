@@ -39,6 +39,7 @@ const TabButton = styled.div`
 `;
 
 function AddVisualizationModal(props) {
+    console.log('isVisualizationModalClicked in the ADD: ' + props.isVisualizeClicked.isVisualizationModalClicked);
     const [callingTimeoutCount, setCallingTimeoutCount] = useState(0);
     const [processStep, setProcessStep] = useState(0);
     const [windowHeight, setWindowHeight] = useState(0);
@@ -116,6 +117,12 @@ function AddVisualizationModal(props) {
         mmr.integrateInputData(props.initialData);
     };
 
+    const editIsClicked = () => {
+        console.log('editIsClicked');
+        document.getElementById('mapAndEdit').style.display = 'block';
+        document.getElementById('select').style.display = 'block';
+    };
+
     return (
         <>
             <Modal
@@ -143,12 +150,33 @@ function AddVisualizationModal(props) {
                     </Button>
                 </ModalHeader>
                 <ModalBody id="selfVisServiceModalBody">
+                    {props.isVisualizeClicked.isVisualizationModalClicked && (
+                        <button
+                            type="button"
+                            class="btn pull-right btn btn-secondary btn-sm"
+                            onClick={() => {
+                                editIsClicked();
+                            }}
+                        >
+                            Edit
+                        </button>
+                    )}
                     <TabButtons>
                         {/*  TAB BUTTONS*/}
-                        <TabButton active={processStep === 0} onClick={() => setProcessStep(0)}>
+                        <TabButton
+                            id="select"
+                            style={{ display: props.isVisualizeClicked.isVisualizationModalClicked === true ? 'none' : 'block' }}
+                            active={processStep === 0}
+                            onClick={() => setProcessStep(0)}
+                        >
                             Select
                         </TabButton>
-                        <TabButton active={processStep === 1} onClick={() => setProcessStep(1)}>
+                        <TabButton
+                            id="mapAndEdit"
+                            style={{ display: props.isVisualizeClicked.isVisualizationModalClicked === true ? 'none' : 'block' }}
+                            active={processStep === 1}
+                            onClick={() => setProcessStep(1)}
+                        >
                             Map &amp; edit
                         </TabButton>
                         <TabButton active={processStep === 2} onClick={() => setProcessStep(2)}>
@@ -245,7 +273,8 @@ AddVisualizationModal.propTypes = {
     showDialog: PropTypes.bool.isRequired,
     toggle: PropTypes.func.isRequired,
     updatePreviewComponent: PropTypes.func.isRequired,
-    initialData: PropTypes.object
+    initialData: PropTypes.object,
+    isVisualizeClicked: PropTypes.bool
 };
 
 export default AddVisualizationModal;

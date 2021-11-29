@@ -132,6 +132,7 @@ function Comparison(props) {
 
     const [showVisualizationModal, setShowVisualizationModal] = useState(false);
     const [applyReconstruction, setUseReconstructedData] = useState(false);
+    const [isVisualizationModalClicked, setVisualizationModalClicked] = useState(false);
     /**
      * Is case of an error the user can go to the previous link in history
      */
@@ -177,12 +178,15 @@ function Comparison(props) {
      * @param {Boolean} val weather to use reconstructed data
      */
     const expandVisualization = val => {
+        console.log('setVisualizationModalClicked Before:' + isVisualizationModalClicked);
+        setVisualizationModalClicked(true);
         setUseReconstructedData(val);
         if (val === false) {
             const model = new SelfVisDataModel();
             model.resetCustomizationModel();
         }
         setShowVisualizationModal(true);
+        console.log('setVisualizationModalClicked After:' + isVisualizationModalClicked);
     };
 
     const integrateData = initData => {
@@ -279,6 +283,7 @@ function Comparison(props) {
                                     onClick={() => {
                                         setUseReconstructedData(false);
                                         setShowVisualizationModal(!showVisualizationModal);
+                                        setVisualizationModalClicked(false);
                                     }}
                                     style={{ marginRight: 2 }}
                                 >
@@ -699,6 +704,7 @@ function Comparison(props) {
             />
 
             <AddVisualizationModal
+                isVisualizeClicked={{ isVisualizationModalClicked }}
                 toggle={() => setShowVisualizationModal(v => !v)}
                 showDialog={showVisualizationModal}
                 // Some data we track as input for the new data model TODO Check what we need
