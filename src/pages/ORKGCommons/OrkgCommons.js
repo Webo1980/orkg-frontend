@@ -64,7 +64,7 @@ const OrkgCommons = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [content, setContent] = useState(null);
     const [isLoadingContent, setIsLoadingContent] = useState(false);
-    const [text, setText] = useState(null);
+    const [text, setText] = useState('');
     const [search, setSearch] = useState(false);
     useEffect(() => {
         document.title = 'ORKG Commons';
@@ -74,6 +74,7 @@ const OrkgCommons = () => {
         console.log(type);
         setIsLoadingContent(true);
         if (type === 'content') {
+            console.log('content');
             const res = getWorksData();
             Promise.all([res]).then(r => {
                 console.log(r);

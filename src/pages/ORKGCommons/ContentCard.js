@@ -55,13 +55,13 @@ const ContentCard = props => {
                                                 <NavLink
                                                     className="p-0"
                                                     style={{ display: 'contents' }}
-                                                    href={r.id ? `https://orcid/${r.id.label}` : ''}
+                                                    href={r.id ? `https://orcid/${r.id}` : ''}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
                                                     <Badge color="light" className="mr-2 mb-2" key={index}>
                                                         <Icon size="sm" icon={faUser} /> {''}
-                                                        {r.label} {''}
+                                                        {r.name} {''}
                                                     </Badge>
                                                 </NavLink>
                                             </>
