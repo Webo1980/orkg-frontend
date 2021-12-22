@@ -37,6 +37,7 @@ import { useQuery } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
 import Content from 'pages/ORKGCommons/Content';
 import { Col, Row, Card, CardBody } from 'reactstrap';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 const GlobalStyle = createGlobalStyle`
     // ensure printing only prints the contents and no other elements
@@ -102,7 +103,7 @@ const OrkgCommons = () => {
                     <FormGroup>
                         <InputGroup>
                             <InputGroupButtonDropdown addonType="append" isOpen={isDropdownOpen} toggle={() => setIsDropdownOpen(v => !v)}>
-                                <StyledDropdownToggle disableBorderRadiusLeft={true}>
+                                <StyledDropdownToggle disableBorderRadiusRight={true}>
                                     <small>{type}</small>
                                     <Icon size="xs" />
                                 </StyledDropdownToggle>
@@ -121,7 +122,7 @@ const OrkgCommons = () => {
                                     style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                     onClick={() => setSearch(true)}
                                 >
-                                    <Icon icon={faClipboard} />
+                                    <Icon icon={faSearch} />
                                 </Button>
                             </InputGroupAddon>
                         </InputGroup>

@@ -8,12 +8,12 @@ import { getPaperData } from 'utils';
 import { find, property } from 'lodash';
 import PropTypes from 'prop-types';
 import Papers from 'pages/Papers';
-import { getWorksData, getPapersbyLabelfromORKG } from 'services/backend/Graphql';
+import { getWorksData, getPapersbyLabelfromORKG, getPapersbyProblem } from 'services/backend/Graphql';
 import ContentCard from './ContentCard';
 import REGEX from 'constants/regex';
 import { Col, Row, Card, CardBody } from 'reactstrap';
 import { Input, Button, Label, FormGroup, Alert, CustomInput, InputGroupAddon, InputGroup } from 'reactstrap';
-import { easeElastic } from 'd3';
+import Select from 'react-select';
 
 const Content = input => {
     const [isLoadingPapers, setIsLoadingPapers] = useState(null);
@@ -21,18 +21,17 @@ const Content = input => {
     const [facets, setFacets] = useState([]);
     const [text, setText] = useState('');
     const [text1, setText1] = useState(null);
-    const [copyData, setCopyData] = useState(null);
+    const [rp, setrp] = useState(null);
+    const [researchProblems, setResearchProblems] = useState(null);
 
     useEffect(() => {
         const loadContent = async input => {
             setIsLoadingPapers(true);
             const value = input.input;
             const result = [];
-            console.log(value);
             if (REGEX.DOI.test(value)) {
                 await getWorksData(value).then(r => {
                     if (r.data) {
-                        console.log(r.data.work);
                         result.push({
                             title: r.data.work.titles[0].title,
                             id: r.data.work.id,
@@ -50,7 +49,6 @@ const Content = input => {
                     //});
                     setIsLoadingPapers(false);
                 });
-                console.log(result);
                 setData(result);
             } else {
                 //console.log(input.input);
@@ -62,10 +60,10 @@ const Content = input => {
                 //contributions: e.contributions
                 //});
                 let t = [];
+                let rProblems = [];
                 getPapersbyLabelfromORKG(input.input).then(r => {
-                    //console.log(r.data.Resource);
                     const papers = r.data.papers;
-                    console.log(papers.length);
+                    //const problem = r.data.problems;
                     for (let i = 0; i < papers.length; i++) {
                         result.push({
                             title: papers[i].label ? papers[i].label : papers[i].label,
@@ -75,49 +73,30 @@ const Content = input => {
                             })
                         });
                         let r = getFacets(papers[i].contributions);
-                        //console.log(...r);
-                        t.push(...r);
-                        //if (r.data.Resource[i].relatedPapers) {
-                        //const d = r.data.Resource[i].relatedPapers;
-                        //for (let j = 0; j < d.length; j++) {
-                        //console.log(d[j].paper);
-                        //result.push({
-                        //title: d[j].paper.label,
-                        //id: d[j].paper.resource_id,
-                        //details: d[j].details ? d[j].details : ''
-                        //});
-                        //}
+                        t.push(...r.properties);
+                        rProblems.push(...r.rProblems);
                     }
-                    console.log(t);
                     const uniqueNames = Array.from(new Set(t));
-                    console.log(uniqueNames);
-                    //uniqueCount = ["a","b","c","d","d","e","a","b","c","f","g","h","h","h","e","a"];
                     let count = {};
                     t.forEach(function(i) {
                         count[i] = (count[i] || 0) + 1;
                     });
-                    console.log(count);
                     let sk = Object.keys(count).sort(function(a, b) {
                         return count[b] - count[a];
                     });
                     setFacets(sk.slice(0, 10));
-                    //}
-                    //r.data.Resource.map(e => {
-                    //console.log(e);
-                    //if (e) {
-                    //console.log(e.details);
-                    //result.push({
-                    //title: e.paper.label,
-                    //id: e.paper.resource_id,
-                    //details: e.details
-                    //});
-                    //}
-                    //});
-                    //console.log(r.data.findPaperByLabel);
                     setIsLoadingPapers(false);
+                    const uniqueP = Array.from(new Set(rProblems));
+                    let temp = [];
+                    temp.push({ value: '', label: '' });
+                    for (r = 0; r < uniqueP.length; r++) {
+                        temp.push({ value: uniqueP[r], label: uniqueP[r] });
+                    }
+
+                    setResearchProblems(temp);
                 });
                 setData(result);
-                console.log(facets);
+                //console.log(rProblems);
             }
         };
 
@@ -125,8 +104,52 @@ const Content = input => {
     }, [input]);
 
     const getValue = e => {
-        console.log(e);
-        setText(e);
+        console.log(e.label);
+        setrp(e);
+        const result = [];
+        let t = [];
+        let rProblems = [];
+        getPapersbyProblem(e.label).then(r => {
+            const papers = r.data.problems[0].papers;
+            console.log(papers);
+            //const problem = r.data.problems;
+            console.log(papers.length);
+            for (let i = 0; i < papers.length; i++) {
+                result.push({
+                    title: papers[i].label ? papers[i].label : papers[i].label,
+                    id: papers[i].doi?.label ? papers[i].doi.label : '',
+                    authors: papers[i].authors.map(c => {
+                        return { name: c.label, id: c.id?.label ? c.id.label : '' };
+                    })
+                });
+                let r = getFacets(papers[i].contributions);
+                t.push(...r.properties);
+                rProblems.push(...r.rProblems);
+            }
+            console.log(t);
+            const uniqueNames = Array.from(new Set(t));
+            console.log(uniqueNames);
+            let count = {};
+            t.forEach(function(i) {
+                count[i] = (count[i] || 0) + 1;
+            });
+            console.log(count);
+            let sk = Object.keys(count).sort(function(a, b) {
+                return count[b] - count[a];
+            });
+            setFacets(sk.slice(0, 10));
+            setIsLoadingPapers(false);
+            const uniqueP = Array.from(new Set(rProblems));
+            console.log(uniqueP);
+            let temp = [];
+            temp.push({ value: '', label: '' });
+            for (r = 0; r < uniqueP.length; r++) {
+                temp.push({ value: uniqueP[r], label: uniqueP[r] });
+            }
+
+            setResearchProblems(temp);
+            setData(result);
+        });
     };
 
     const getValue1 = e => {
@@ -140,24 +163,21 @@ const Content = input => {
     };
 
     const getFacets = contributions => {
-        //console.log(i);
         let properties = [];
+        let rProblems = [];
         if (contributions.length > 0) {
-            //console.log(i[0].contribution_details);
-            //console.log(contributions[0]);
             for (let j = 0; j < 1; j++) {
                 if (contributions[j].details.length > 0) {
                     let details = contributions[j].details;
                     for (let k = 0; k < details.length; k++) {
-                        //console.log(details[k].property);
                         let found = properties.filter(o => o === details[k].property);
                         if (found.length == 0) {
                             properties.push(details[k].property);
                         }
-                        //console.log(properties.filter(o => o === details[k].property));
-                        //console.log('.......');
-                        //console.log(properties.filter(o => o === details[k].property));
-                        //console.log('-------');
+                        if (details[k].property.includes('research problem')) {
+                            //console.log(details[k].label);
+                            rProblems.push(details[k].label);
+                        }
                     }
                     //console.log(contributions[j].details);
                 }
@@ -176,8 +196,13 @@ const Content = input => {
             console.log('............');
             //console.log(properties);
             //console.log('------------');
-            return properties;
+            return { properties, rProblems };
         }
+    };
+
+    const executeQuery = q => {
+        console.log(q);
+        //getPaperData();
     };
 
     return (
@@ -187,7 +212,20 @@ const Content = input => {
                     {!isLoadingPapers && data && (
                         <Col className="col-4">
                             <div className="box p-4">
-                                {facets.length}
+                                {/* Research problem: <Input id="problem_content" onChange={e => getValue(e.target.value)} value={text} /> */}
+                                Research Problem:
+                                <Select
+                                    value={rp}
+                                    onChange={v => getValue(v)}
+                                    onClick={v => getValue(v)}
+                                    options={researchProblems}
+                                    blurInputOnSelect
+                                    openMenuOnFocus
+                                    className="flex-grow-1 mr-1 focus-primary"
+                                    classNamePrefix="react-select"
+                                    placeholder="Select research problem"
+                                />
+                                <br />
                                 {facets.length > 0 && (
                                     <div>
                                         {facets.map(f => {
@@ -200,10 +238,6 @@ const Content = input => {
                                         })}
                                     </div>
                                 )}
-                                {/* Filter 1: <Input id="search_content" onChange={e => getValue(e.target.value)} value={text} /> */}
-                                {/* <br /> */}
-                                Filter 1: <Input id="search_content1" onChange={e => getValue1(e.target.value)} value={text1} />
-                                <br />
                                 <Button
                                     color="primary"
                                     className="pl-3 pr-3"

@@ -34,16 +34,12 @@ export const getWorksData = input => {
     //console.log(useQuery(GET_PETS));
 };
 
-export const getPapersbyLabelfromORKG = (input, value = 'Confidence interval') => {
+export const getPapersbyLabelfromORKG = input => {
     const c = [];
-    console.log(input);
     c.push({ label_contains: input });
     c.push({ label_contains: input === input.toLowerCase() ? input.toUpperCase() : input.toLowerCase() });
     //c.push({ label_contains: 'covid-19' });
     //let c = [{ label_contains: 'covid-19' }, { label_contains: 'COVID-19' }, { label_contains: 'corona' }];
-    c.map(r => {
-        console.log(r.label_contains);
-    });
     //const g = `{ findPaperByLabel(filter: { OR: [
     //${c.map(r => {
     //return `{label_contains:"${r.label_contains}"}`;
@@ -55,6 +51,11 @@ export const getPapersbyLabelfromORKG = (input, value = 'Confidence interval') =
     //${c.map(r => {
     //return `{label_contains:"${r.label_contains}"}`;
     //})} ]}) { relatedPapers { label paper { label resource_id } details(value: "${value}") { label details { label } average } work { id citationCount } } } }`;
+
+    //if value.length> 0
+    //then include this value in query
+    //for example
+    //papers(where: {}, problem: '')
 
     const g = `{
             papers(
@@ -86,7 +87,35 @@ export const getPapersbyLabelfromORKG = (input, value = 'Confidence interval') =
             }
           }`;
 
-    console.log(g);
+    /*const g = `{
+            problems(
+              where: {
+                OR: [${c.map(r => {
+                    return `{label_CONTAINS:"${r.label_contains}"}`;
+                })}]
+              }
+            ) {
+              label
+              papers {
+                label
+                doi {
+                  label
+                }
+                authors {
+                  label
+                id {
+                  label
+                }
+              }
+                contributions {
+                  details {
+                    property
+                    label
+                  }
+                }
+              }
+            }
+      }`;*/
 
     //const g =
     //'{ Resource(label: "Determination of the COVID-19 basic reproduction number") { relatedPapers { label paper { label resource_id } details(value: "Confidence interval") { label details { label } average } work { id citationCount } } } }';
@@ -94,10 +123,37 @@ export const getPapersbyLabelfromORKG = (input, value = 'Confidence interval') =
     //'query {work(id: "https://doi.org/10.1101/2020.03.08.20030643") {id titles {title} creators { id name familyName } citations { totalCount nodes { id titles {title}publisher}}}}';
 
     //const g = '{ Paper(doi: "10.1109/TITS.2013.2296697") { label resource_id authors { label id { label } } } }';
-
-    console.log(`${graphql}?query=${g}`);
     return submitGetRequest(`${graphql}?query=${g}`);
     //return GET_PETS;
     //const { data, loading, error } = useQuery(GET_PETS);
     //console.log(useQuery(GET_PETS));
+};
+
+export const getPapersbyProblem = input => {
+    const g = `{
+      problems(
+        where: { label: "${input}" }
+    ) {
+      label
+      papers {
+        label
+        doi {
+          label
+        }
+        authors {
+          label
+          id {
+            label
+          }
+        }
+        contributions {
+          details {
+            property
+            label
+          }
+        }
+      }
+    }
+  }`;
+    return submitGetRequest(`${graphql}?query=${g}`);
 };
