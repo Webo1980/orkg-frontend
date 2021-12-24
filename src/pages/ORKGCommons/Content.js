@@ -14,11 +14,12 @@ import REGEX from 'constants/regex';
 import { Col, Row, Card, CardBody } from 'reactstrap';
 import { Input, Button, Label, FormGroup, Alert, CustomInput, InputGroupAddon, InputGroup } from 'reactstrap';
 import Select from 'react-select';
+import Joi from 'joi';
 
 const Content = input => {
     const [isLoadingPapers, setIsLoadingPapers] = useState(null);
     const [data, setData] = useState(null);
-    const [facets, setFacets] = useState([]);
+    const [facets, setFacets] = useState(null);
     const [text, setText] = useState('');
     const [text1, setText1] = useState(null);
     const [rp, setrp] = useState(null);
@@ -51,19 +52,10 @@ const Content = input => {
                 });
                 setData(result);
             } else {
-                //console.log(input.input);
-                //getWorksDataByString(input.input).then(r => {
-                //r.data.findPaperByLabel.map(e => {
-                //result.push({
-                //title: e.label,
-                //authors: e.authors,
-                //contributions: e.contributions
-                //});
                 let t = [];
                 let rProblems = [];
                 getPapersbyLabelfromORKG(input.input).then(r => {
                     const papers = r.data.papers;
-                    //const problem = r.data.problems;
                     for (let i = 0; i < papers.length; i++) {
                         result.push({
                             title: papers[i].label ? papers[i].label : papers[i].label,
@@ -72,19 +64,22 @@ const Content = input => {
                                 return { name: c.label, id: c.id?.label ? c.id.label : '' };
                             })
                         });
-                        let r = getFacets(papers[i].contributions);
-                        t.push(...r.properties);
-                        rProblems.push(...r.rProblems);
+                        //let r = getFacets(papers[i].contributions);
+                        let contributions = papers[i].contributions;
+                        if (contributions.length > 0) {
+                            for (let j = 0; j < 1; j++) {
+                                if (contributions[j].details.length > 0) {
+                                    let details = contributions[j].details;
+                                    for (let k = 0; k < details.length; k++) {
+                                        if (details[k].property.includes('research problem')) {
+                                            //console.log(details[k].label);
+                                            rProblems.push(details[k].label);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    const uniqueNames = Array.from(new Set(t));
-                    let count = {};
-                    t.forEach(function(i) {
-                        count[i] = (count[i] || 0) + 1;
-                    });
-                    let sk = Object.keys(count).sort(function(a, b) {
-                        return count[b] - count[a];
-                    });
-                    setFacets(sk.slice(0, 10));
                     setIsLoadingPapers(false);
                     const uniqueP = Array.from(new Set(rProblems));
                     let temp = [];
@@ -106,14 +101,19 @@ const Content = input => {
     const getValue = e => {
         console.log(e.label);
         setrp(e);
+        getPapersByProblem(e.label);
+    };
+
+    const getPapersByProblem = problem => {
         const result = [];
-        let t = [];
+        let filters = [];
         let rProblems = [];
-        getPapersbyProblem(e.label).then(r => {
+        console.log(problem);
+        getPapersbyProblem(problem).then(r => {
             const papers = r.data.problems[0].papers;
-            console.log(papers);
+            //console.log(papers);
             //const problem = r.data.problems;
-            console.log(papers.length);
+            //console.log(papers.length);
             for (let i = 0; i < papers.length; i++) {
                 result.push({
                     title: papers[i].label ? papers[i].label : papers[i].label,
@@ -123,33 +123,99 @@ const Content = input => {
                     })
                 });
                 let r = getFacets(papers[i].contributions);
-                t.push(...r.properties);
-                rProblems.push(...r.rProblems);
+                filters.push(...r);
+                //rProblems.push(...r.rProblems);
             }
-            console.log(t);
-            const uniqueNames = Array.from(new Set(t));
-            console.log(uniqueNames);
-            let count = {};
-            t.forEach(function(i) {
-                count[i] = (count[i] || 0) + 1;
-            });
-            console.log(count);
-            let sk = Object.keys(count).sort(function(a, b) {
-                return count[b] - count[a];
-            });
-            setFacets(sk.slice(0, 10));
-            setIsLoadingPapers(false);
-            const uniqueP = Array.from(new Set(rProblems));
-            console.log(uniqueP);
-            let temp = [];
-            temp.push({ value: '', label: '' });
-            for (r = 0; r < uniqueP.length; r++) {
-                temp.push({ value: uniqueP[r], label: uniqueP[r] });
-            }
+            //console.log(t);
+            const uniqueNames = Array.from(new Set(filters));
+            //console.log(uniqueNames);
+            getFiltersValues(uniqueNames, papers);
+            //console.log(uniqueNames);
+            //let count = {};
+            //t.forEach(function(i) {
+            //count[i] = (count[i] || 0) + 1;
+            //});
+            //console.log(count);
+            //let sk = Object.keys(count).sort(function(a, b) {
+            //return count[b] - count[a];
+            //});
+            //setFacets(sk.slice(0, 10));
+            //setIsLoadingPapers(false);
+            //const uniqueP = Array.from(new Set(rProblems));
+            //console.log(uniqueP);
+            //let temp = [];
+            //temp.push({ value: '', label: '' });
+            //for (r = 0; r < uniqueP.length; r++) {
+            //temp.push({ value: uniqueP[r], label: uniqueP[r] });
+            //}
 
-            setResearchProblems(temp);
+            //setResearchProblems(temp);
+            console.log(result);
             setData(result);
         });
+    };
+
+    const getFiltersValues = (filters, papers) => {
+        //console.log(filters);
+        let filterValues = {};
+        for (let i = 0; i < filters.length; i++) {
+            filterValues[filters[i]] = [];
+        }
+        //console.log(filterValues);
+        for (let i = 0; i < papers.length; i++) {
+            let contributions = papers[i].contributions;
+            if (contributions.length > 0) {
+                for (let j = 0; j < contributions.length; j++) {
+                    if (contributions[j].details.length > 0) {
+                        let details = contributions[j].details;
+                        for (let k = 0; k < details.length; k++) {
+                            //console.log(details[k].property);
+                            if (details[k].property in filterValues) {
+                                filterValues[details[k].property].push(details[k].label);
+                            }
+                        }
+                    }
+                }
+                console.log('............');
+            }
+        }
+        let temp = [];
+        for (const [key, _] of Object.entries(filterValues)) {
+            //console.log(key);
+            if (!filterValues[key].every((val, i, arr) => val === arr[0])) {
+                //console.log(key);
+                temp.push(key);
+                let type = analyzeValues(filterValues[key]);
+            }
+        }
+        console.log(temp);
+        setFacets(temp);
+    };
+
+    const analyzeValues = values => {
+        console.log(values);
+        let output = '';
+        if (values.length === values.filter(value => !isNaN(value) && !isNaN(parseFloat(value))).length) {
+            output = 'num';
+            console.log('true');
+        } else if (
+            values.length ===
+            values.filter(value => {
+                const { error } = Joi.date()
+                    .required()
+                    .validate(value);
+                return !error ? true : false;
+            }).length
+        ) {
+            console.log('true');
+            output = 'date';
+        } else if (values.length !== values.filter(value => value.split(' ').length < 6).length) {
+            console.log('true');
+            output = 'string';
+        } else if (values.length > 1) {
+            output = 'category';
+        }
+        return output;
     };
 
     const getValue1 = e => {
@@ -174,10 +240,9 @@ const Content = input => {
                         if (found.length == 0) {
                             properties.push(details[k].property);
                         }
-                        if (details[k].property.includes('research problem')) {
-                            //console.log(details[k].label);
-                            rProblems.push(details[k].label);
-                        }
+                        //if (details[k].property.includes('Basic reproduction number')) {
+                        //console.log(details[k].label);
+                        //}
                     }
                     //console.log(contributions[j].details);
                 }
@@ -196,7 +261,7 @@ const Content = input => {
             console.log('............');
             //console.log(properties);
             //console.log('------------');
-            return { properties, rProblems };
+            return properties;
         }
     };
 
@@ -226,7 +291,7 @@ const Content = input => {
                                     placeholder="Select research problem"
                                 />
                                 <br />
-                                {facets.length > 0 && (
+                                {facets && facets.length > 0 && (
                                     <div>
                                         {facets.map(f => {
                                             return (
