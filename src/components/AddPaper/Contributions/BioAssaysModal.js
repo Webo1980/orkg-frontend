@@ -129,7 +129,7 @@ const BioAssaysModal = props => {
                             <div className="custom-file mb-3">
                                 <CsvReader
                                     cssClass="csv-reader-input"
-                                    cssInputClass="custom-file-input "
+                                    cssInputClass="form-control"
                                     accept=".txt"
                                     onFileLoaded={(data, fileInfo) => setBioassaysTest(data.join('\n'))}
                                     parserOptions={{

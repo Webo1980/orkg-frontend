@@ -158,7 +158,7 @@ const Contributions = () => {
                         Specify research contributions
                     </Tooltip>
                 </h2>
-                <div className="flex-shrink-0 ml-auto">
+                <div className="flex-shrink-0 ms-auto">
                     {BioassaysFieldsList.includes(selectedResearchField) && (
                         <Button onClick={() => setIsOpenBioassays(v => !v)} outline size="sm" color="secondary" className="me-1">
                             <Icon icon={faFlask} /> Add Bioassay
