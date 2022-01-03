@@ -58,6 +58,7 @@ const routes = {
     TOOLS: '/tools',
     CONTRIBUTION_EDITOR: '/contribution-editor',
     ADD_COMPARISON: '/add-comparison',
+    PAPER_DETAIL: '/paper-details/:doi',
     FEDRATED_UI: '/orkg-commons',
     /* Legacy routes */
     PREDICATES: '/predicates',

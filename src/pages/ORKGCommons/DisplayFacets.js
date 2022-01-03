@@ -16,7 +16,7 @@ import { Input, Button, Label, FormGroup, Alert, CustomInput, InputGroupAddon, I
 import Select from 'react-select';
 import Joi from 'joi';
 
-const DisplayFacets = facets => {
+const DisplayFacets = props => {
     const [isLoadingFacets, setIsLoadingFacets] = useState(null);
     //const [data, setData] = useState(null);
     const [text, setText] = useState('');
@@ -28,20 +28,23 @@ const DisplayFacets = facets => {
     useEffect(() => {
         const addFacetsDefaultValues = async input => {
             setIsLoadingFacets(true);
-            console.log(input.facets);
-            let v = input.facets;
+            console.log(input);
+            //let v = input.facets;
+            let v = input;
             let list = [];
-            for (let i = 0; i < v.length; i++) {
+            for (let i = 0; i < input.length; i++) {
                 list[`max${v[i].value}`] = 0;
                 list[`min${v[i].value}`] = 0;
             }
-            //console.log(list);
+            //getFacetsData(list);
+            //console.log(props.getFacetsData);
+            //props.getFacetsData(list);
             setInputList(list);
             setIsLoadingFacets(false);
         };
 
-        addFacetsDefaultValues(facets);
-    }, [facets]);
+        addFacetsDefaultValues(props.facets);
+    }, [props.facets]);
 
     const getFilters = (value, type) => {
         //console.log(inputList);
@@ -58,11 +61,11 @@ const DisplayFacets = facets => {
                             onChange={e => handleChange(e, value)}
                             style={{
                                 marginRight: '0.5rem',
-                                width: '120px'
+                                width: '130px',
+                                height: '39px'
                             }}
                         />
                     </FormGroup>
-                    to
                     <FormGroup>
                         <Input
                             type="number"
@@ -73,7 +76,8 @@ const DisplayFacets = facets => {
                             onChange={e => handleChange(e, value)}
                             style={{
                                 marginLeft: '0.5rem',
-                                width: '120px'
+                                width: '130px',
+                                height: '40px'
                             }}
                         />
                     </FormGroup>
@@ -82,11 +86,17 @@ const DisplayFacets = facets => {
         }
     };
 
+    const search = () => {
+        console.log('9');
+        props.getFacetsData(inputList);
+        //getFacetsData(inputList);
+    };
+
     const handleChange = (e, field) => {
         e.preventDefault();
         const list = { ...inputList };
-        console.log(list);
-        list[e.target.name] = e.target.value;
+        //console.log(list);
+        list[e.target.name] = parseInt(e.target.value);
         setInputList(list);
         //list[`${field}min`] = parseInt(e.target.value);
         //console.log(list);
@@ -102,33 +112,51 @@ const DisplayFacets = facets => {
         //console.log(setInputList(list));
     };
 
+    const reset = () => {
+        const list = { ...inputList };
+        console.log(list);
+        for (const [key, _] of Object.entries(list)) {
+            list[key] = 0;
+        }
+        setInputList(list);
+        props.getFacetsData(inputList);
+    };
+
     return (
         <>
             {console.log('.......')}
-            {!isLoadingFacets && facets.facets && facets.facets.length > 0 && (
+            {!isLoadingFacets && props.facets && props.facets.length > 0 && (
                 <div>
-                    {facets.facets.map(f => {
-                        return (
-                            <>
-                                <div>
-                                    {f.value}
-                                    {/* <FormGroup> */}
-                                    {/* <Input */}
-                                    {/* type="number" */}
-                                    {/* id={`max${f.value}`} */}
-                                    {/* placeholder="9" */}
-                                    {/* value={inputList[`max${f.value}`]} */}
-                                    {/* name={`max${f.value}`} */}
-                                    {/* onChange={e => handleChange(e, f.value)} */}
-                                    {/* /> */}
-                                    {/* </FormGroup> */}
-                                    {getFilters(f.value, f.type)}
-                                </div>
-                                {/* {getFilters(f.type, f.value)} */}
-                                {/* <Input id="search_content1" onChange={e => getValue1(e.target.value)} value={text1} /> */}
-                            </>
-                        );
+                    {props.facets.map(f => {
+                        if (f.type === 'num') {
+                            return (
+                                <>
+                                    <div>
+                                        {f.value}
+                                        {/* <FormGroup> */}
+                                        {/* <Input */}
+                                        {/* type="number" */}
+                                        {/* id={`max${f.value}`} */}
+                                        {/* placeholder="9" */}
+                                        {/* value={inputList[`max${f.value}`]} */}
+                                        {/* name={`max${f.value}`} */}
+                                        {/* onChange={e => handleChange(e, f.value)} */}
+                                        {/* /> */}
+                                        {/* </FormGroup> */}
+                                        {getFilters(f.value, f.type)}
+                                    </div>
+                                    {/* {getFilters(f.type, f.value)} */}
+                                    {/* <Input id="search_content1" onChange={e => getValue1(e.target.value)} value={text1} /> */}
+                                </>
+                            );
+                        }
                     })}
+                    <Button color="primary" className="pl-2 pr-2 btn-sm" onClick={() => search()}>
+                        Search
+                    </Button>{' '}
+                    <Button color="primary" className="pl-2 pr-2 btn-sm" onClick={() => reset()}>
+                        Reset
+                    </Button>
                 </div>
             )}
         </>
@@ -136,7 +164,8 @@ const DisplayFacets = facets => {
 };
 
 DisplayFacets.propTypes = {
-    facets: PropTypes.array
+    facets: PropTypes.array,
+    getFacetsData: PropTypes.func.isRequired
 };
 
 export default DisplayFacets;

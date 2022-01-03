@@ -62,6 +62,7 @@ import ContributionEditor from 'pages/ContributionEditor';
 import CurationCall from 'pages/CurationCall';
 import WebinarMay11 from 'pages/WebinarMay11';
 import OrkgCommons from 'pages/ORKGCommons/OrkgCommons';
+import PaperDetails from 'pages/ORKGCommons/PaperDetails';
 
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -374,6 +375,10 @@ const routes = [
     {
         path: ROUTES.FEDRATED_UI,
         component: OrkgCommons
+    },
+    {
+        path: ROUTES.PAPER_DETAIL,
+        component: PaperDetails
     },
     /* Don't add routes below this line */
     {

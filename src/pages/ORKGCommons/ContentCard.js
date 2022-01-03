@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faCalendar } from '@fortawesome/free-solid-svg-icons';
-import ROUTES from 'constants/routes.js';
 import AddToComparison from 'components/ViewPaper/AddToComparison';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
 import RelativeBreadcrumbs from 'components/RelativeBreadcrumbs/RelativeBreadcrumbs';
@@ -14,6 +13,7 @@ import moment from 'moment';
 import { NavLink } from 'reactstrap';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { Badge } from 'reactstrap';
+import ROUTES from 'constants/routes';
 
 const PaperCardStyled = styled.div`
     & .options {
@@ -38,9 +38,14 @@ const ContentCard = props => {
             <div className="row">
                 <div className="d-flex">
                     <div className="d-block">
+                        {console.log(props.objectInformation)}
                         {props.objectInformation && (
                             <>
-                                <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: props.objectInformation.id })}>
+                                {console.log(encodeURIComponent(props.objectInformation.doi))}
+                                {/* <a href={`${ROUTES.PAPER_DETAIL}/${props.objectInformation.id}`} target="_blank" rel="noopener noreferrer"> */}
+                                {/* {props.objectInformation.title ? props.objectInformation.title : <em>No title</em>} */}
+                                {/* </a> */}
+                                <Link to={reverse(ROUTES.PAPER_DETAIL, { doi: encodeURIComponent(props.objectInformation.id) })}>
                                     {props.objectInformation.title ? props.objectInformation.title : <em>No title</em>}
                                 </Link>{' '}
                             </>
@@ -50,22 +55,24 @@ const ContentCard = props => {
                             {props.objectInformation.authors && (
                                 <>
                                     {props.objectInformation.authors.map((r, index) => {
-                                        return (
-                                            <>
-                                                <NavLink
-                                                    className="p-0"
-                                                    style={{ display: 'contents' }}
-                                                    href={r.id ? `https://orcid/${r.id}` : ''}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    <Badge color="light" className="mr-2 mb-2" key={index}>
-                                                        <Icon size="sm" icon={faUser} /> {''}
-                                                        {r.name} {''}
-                                                    </Badge>
-                                                </NavLink>
-                                            </>
-                                        );
+                                        if (r.name) {
+                                            return (
+                                                <>
+                                                    <NavLink
+                                                        className="p-0"
+                                                        style={{ display: 'contents' }}
+                                                        href={r.id ? `https://orcid/${r.id}` : ''}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <Badge color="light" className="mr-2 mb-2" key={index}>
+                                                            <Icon size="sm" icon={faUser} /> {''}
+                                                            {r.name} {''}
+                                                        </Badge>
+                                                    </NavLink>
+                                                </>
+                                            );
+                                        }
                                     })}
                                 </>
                             )}

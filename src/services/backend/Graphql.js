@@ -34,6 +34,63 @@ export const getWorksData = input => {
     //console.log(useQuery(GET_PETS));
 };
 
+export const getWorksDatabyLabel = input => {
+    const query = `{
+      works(query: "${input}", resourceType:"Text", first:25) {
+        totalCount
+        edges {
+          node {
+            id
+            titles {
+              title
+            }
+            creators {
+              familyName
+              givenName
+              id
+            }
+          }
+        }
+      }
+    }`;
+    return submitGetRequest(`${federatedGraphql}?query=${query}`);
+};
+
+export const getWorksDataWithCitations = input => {
+    const query = `
+    {
+      work(id: "${input}") {
+        id
+        titles {
+          title
+        }
+        descriptions {
+          description
+        }
+        creators {
+          givenName
+          familyName
+          id
+        }
+        citations {
+          nodes {
+            doi
+            titles {
+              title
+            }
+            creators {
+              givenName
+              familyName
+              id
+            }
+            publisher
+          }
+        }
+      }
+    }`;
+    return submitGetRequest(`${federatedGraphql}?query=${query}`);
+};
+
 export const getPapersbyLabelfromORKG = input => {
     const c = [];
     c.push({ label_contains: input });
@@ -74,9 +131,7 @@ export const getPapersbyLabelfromORKG = input => {
                       property
                     }
                   }
-              doi {
-                label
-              }
+              id
               label
               authors{
                 label
@@ -137,9 +192,7 @@ export const getPapersbyProblem = input => {
       label
       papers {
         label
-        doi {
-          label
-        }
+        id
         authors {
           label
           id {

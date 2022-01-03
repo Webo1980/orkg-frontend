@@ -110,8 +110,6 @@ const OrkgCommons = () => {
                                 <DropdownMenu>
                                     <StyledDropdownItem onClick={() => setType('content')}>Content</StyledDropdownItem>
                                     <StyledDropdownItem onClick={() => setType('people')}>People</StyledDropdownItem>
-                                    <StyledDropdownItem onClick={() => setType('organization')}>Organization</StyledDropdownItem>
-                                    <StyledDropdownItem onClick={() => setType('project')}>Project</StyledDropdownItem>
                                 </DropdownMenu>
                             </InputGroupButtonDropdown>
                             <Input id="search_content" onChange={e => getValue(e.target.value)} value={text} />

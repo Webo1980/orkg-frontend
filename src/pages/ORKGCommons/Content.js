@@ -8,7 +8,7 @@ import { getPaperData } from 'utils';
 import { find, property } from 'lodash';
 import PropTypes from 'prop-types';
 import Papers from 'pages/Papers';
-import { getWorksData, getPapersbyLabelfromORKG, getPapersbyProblem } from 'services/backend/Graphql';
+import { getWorksData, getPapersbyLabelfromORKG, getPapersbyProblem, getWorksDatabyLabel } from 'services/backend/Graphql';
 import ContentCard from './ContentCard';
 import REGEX from 'constants/regex';
 import { Col, Row, Card, CardBody } from 'reactstrap';
@@ -49,12 +49,31 @@ const Content = input => {
             } else {
                 let t = [];
                 let rProblems = [];
-                getPapersbyLabelfromORKG(input.input).then(r => {
+                console.log(input.input);
+                await getWorksDatabyLabel(input.input).then(r => {
+                    if (r.data) {
+                        let data = r.data.works.edges;
+                        console.log(data.length);
+                        for (let i = 0; i < data.length; i++) {
+                            let nodeData = data[i].node;
+                            console.log(i);
+                            result.push({
+                                title: nodeData.titles[0].title,
+                                id: nodeData.id ? nodeData.id : '',
+                                authors: nodeData.creators.map(c => {
+                                    return { name: c.givenName !== null ? c.givenName + ' ' + c.familyName : '', id: c.id };
+                                })
+                            });
+                        }
+                    }
+                });
+                console.log(result);
+                /*getPapersbyLabelfromORKG(input.input).then(r => {
                     const papers = r.data.papers;
                     for (let i = 0; i < papers.length; i++) {
                         result.push({
                             title: papers[i].label ? papers[i].label : papers[i].label,
-                            id: papers[i].doi?.label ? papers[i].doi.label : '',
+                            id: papers[i].id ? papers[i].id : '',
                             authors: papers[i].authors.map(c => {
                                 return { name: c.label, id: c.id?.label ? c.id.label : '' };
                             })
@@ -74,7 +93,6 @@ const Content = input => {
                             }
                         }
                     }
-                    setIsLoadingPapers(false);
                     const uniqueP = Array.from(new Set(rProblems));
                     let temp = [];
                     temp.push({ value: '', label: '' });
@@ -83,8 +101,10 @@ const Content = input => {
                     }
 
                     setResearchProblems(temp);
-                });
+                }); */
+                console.log(result);
                 setData(result);
+                setIsLoadingPapers(false);
             }
         };
 
@@ -107,10 +127,11 @@ const Content = input => {
             for (let i = 0; i < papers.length; i++) {
                 result.push({
                     title: papers[i].label ? papers[i].label : papers[i].label,
-                    id: papers[i].doi?.label ? papers[i].doi.label : '',
+                    id: papers[i].id ? papers[i].id : '',
                     authors: papers[i].authors.map(c => {
                         return { name: c.label, id: c.id?.label ? c.id.label : '' };
-                    })
+                    }),
+                    contributions: papers[i].contributions
                 });
                 let r = getFacets(papers[i].contributions);
                 filters.push(...r);
@@ -194,6 +215,45 @@ const Content = input => {
         }
     };
 
+    const getFacetsData = filterValues => {
+        console.log(filterValues);
+        console.log(data);
+        let result = [];
+        let contribution = '';
+        for (let i = 0; i < data.length; i++) {
+            contribution = data[i].contributions;
+            //console.log(contribution.length);
+            let found = false;
+            for (let k = 0; k < contribution.length; k++) {
+                let cd = contribution[k].details;
+                //console.log(cd);
+                for (let j = 0; j < cd.length; j++) {
+                    //console.log(filterValues[`max${cd[j].property}`]);
+                    if (filterValues[`min${cd[j].property}`] !== undefined && filterValues[`max${cd[j].property}`] !== undefined) {
+                        console.log(k);
+                        if (cd[j].label >= filterValues[`min${cd[j].property}`] && cd[j].label <= filterValues[`max${cd[j].property}`]) {
+                            //filterValues[contribution[k].property].push(contribution[k].label);
+                            console.log(data[i].title ? data[i].title : '');
+                            found = true;
+                        }
+                    }
+                }
+            }
+            if (found) {
+                result.push({
+                    title: data[i].title ? data[i].title : '',
+                    id: data[i].id ? data[i].id : '',
+                    authors: data[i].authors,
+                    contributions: data[i].contributions
+                });
+            }
+        }
+        console.log(result.length);
+        if (result.length > 0) {
+            setData(result);
+        }
+    };
+
     const analyzeValues = values => {
         let output = '';
         if (values.length === values.filter(value => !isNaN(value) && !isNaN(parseFloat(value))).length) {
@@ -223,50 +283,30 @@ const Content = input => {
         <>
             <Container className="mt-4">
                 <Row>
-                    {!isLoadingPapers && data && (
-                        <Col className="col-4">
-                            <div className="box p-4">
-                                {/* Research problem: <Input id="problem_content" onChange={e => getValue(e.target.value)} value={text} /> */}
-                                Research Problem:
-                                <Select
-                                    value={rp}
-                                    onChange={v => getValue(v)}
-                                    onClick={v => getValue(v)}
-                                    options={researchProblems}
-                                    blurInputOnSelect
-                                    openMenuOnFocus
-                                    className="flex-grow-1 mr-1 focus-primary"
-                                    classNamePrefix="react-select"
-                                    placeholder="Select research problem"
-                                />
-                                <br />
-                                {console.log(facets)}
-                                {facets && facets.length > 0 && <DisplayFacets facets={facets} />}
-                                {/* {facets && facets.length > 0 && ( */}
-                                {/* <div> */}
-                                {/* {facets.map(f => { */}
-                                {/* return ( */}
-                                {/* <> */}
-                                {/* <div> */}
-                                {/* {f.value} {f.type} */}
-                                {/* </div> */}
-                                {/* {getFilters(f.type, f.value)} */}
-                                {/* <Input id="search_content1" onChange={e => getValue1(e.target.value)} value={text1} /> */}
-                                {/* </> */}
-                                {/* ); */}
-                                {/* })} */}
-                                {/* </div> */}
-                                {/* )} */}
-                                <Button
-                                    color="primary"
-                                    className="pl-3 pr-3"
-                                    // onClick={() => search()}
-                                >
-                                    Search
-                                </Button>
-                            </div>
-                        </Col>
-                    )}
+                    <Col className="col-4">
+                        <div className="box p-4">
+                            {!isLoadingPapers && researchProblems && researchProblems.length > 0 && (
+                                <>
+                                    {/* Research problem: <Input id="problem_content" onChange={e => getValue(e.target.value)} value={text} /> */}
+                                    Research Problem:
+                                    <Select
+                                        value={rp}
+                                        onChange={v => getValue(v)}
+                                        onClick={v => getValue(v)}
+                                        options={researchProblems}
+                                        blurInputOnSelect
+                                        openMenuOnFocus
+                                        className="flex-grow-1 mr-1 focus-primary"
+                                        classNamePrefix="react-select"
+                                        placeholder="Select research problem"
+                                    />
+                                    <br />
+                                    {console.log(facets)}
+                                    {facets && facets.length > 0 && <DisplayFacets facets={facets} getFacetsData={getFacetsData} />}
+                                </>
+                            )}
+                        </div>
+                    </Col>
                     <Col className="col-8">
                         <div className="box p-4">
                             {!isLoadingPapers && data && (
