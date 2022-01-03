@@ -1,31 +1,34 @@
-import * as type from '../actions/types';
+import * as type from 'actions/types';
 import dotProp from 'dot-prop-immutable';
 import assign from 'lodash/assign';
 import { asyncLocalStorage } from 'utils';
 
 const initialState = {
-    researchProblems: {},
     comparison: {
         byId: {},
         allIds: []
     },
-    title: '',
-    paperResourceId: 0,
+    paperResource: {
+        id: '',
+        label: '',
+        created_at: null,
+        classes: [],
+        shared: 0,
+        created_by: '00000000-0000-0000-0000-000000000000',
+        observatory_id: '00000000-0000-0000-0000-000000000000',
+        extraction_method: 'UNKNOWN',
+        organization_id: '00000000-0000-0000-0000-000000000000'
+    },
     authors: [],
-    publicationMonth: 0,
-    publicationMonthResourceId: 0,
-    publicationYear: 0,
-    publicationYearResourceId: 0,
-    doi: '',
-    doiResourceId: 0,
+    publicationMonth: {},
+    publicationYear: {},
+    doi: {},
     researchField: {},
     verified: false,
-    publishedIn: '',
-    url: '',
-    urlResourceId: 0,
-    createdBy: null
+    publishedIn: {},
+    url: {},
+    isAddingContribution: false
 };
-//const cookies = new Cookies();
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default (state = initialState, action) => {
@@ -35,37 +38,61 @@ export default (state = initialState, action) => {
 
             return {
                 ...state,
-                title: typeof payload.title ? payload.title : state.title,
-                paperResourceId: typeof payload.paperResourceId !== 'undefined' ? payload.paperResourceId : state.paperResourceId,
-                authors: typeof payload.authors !== 'undefined' ? payload.authors : state.authors,
-                publicationMonth: typeof payload.publicationMonth !== 'undefined' ? payload.publicationMonth : state.publicationMonth,
-                publicationMonthResourceId:
-                    typeof payload.publicationMonthResourceId !== 'undefined' ? payload.publicationMonthResourceId : state.publicationMonthResourceId,
-                publicationYear: typeof payload.publicationYear !== 'undefined' ? payload.publicationYear : state.publicationYear,
-                publicationYearResourceId:
-                    typeof payload.publicationYearResourceId !== 'undefined' ? payload.publicationYearResourceId : state.publicationYearResourceId,
-                doi: typeof payload.doi !== 'undefined' ? payload.doi : state.doi,
-                doiResourceId: typeof payload.doiResourceId !== 'undefined' ? payload.doiResourceId : state.doiResourceId,
-                researchField: typeof payload.researchField !== 'undefined' ? payload.researchField : state.researchField,
-                verified: typeof payload.verified !== 'undefined' ? payload.verified : state.verified,
-                publishedIn: typeof payload.publishedIn !== 'undefined' ? payload.publishedIn : state.publishedIn,
-                url: typeof payload.url !== 'undefined' ? payload.url : state.url,
-                urlResourceId: typeof payload.urlResourceId !== 'undefined' ? payload.urlResourceId : state.urlResourceId,
-                createdBy: typeof payload.createdBy !== 'undefined' ? payload.createdBy : state.createdBy
+                ...payload
             };
         }
 
-        case type.SET_RESEARCH_PROBLEMS: {
+        case type.IS_ADDING_CONTRIBUTION: {
+            return dotProp.set(state, 'isAddingContribution', true);
+        }
+
+        case type.DONE_ADDING_CONTRIBUTION: {
+            return dotProp.set(state, 'isAddingContribution', false);
+        }
+
+        case type.SET_PAPER_CONTRIBUTIONS: {
             const { payload } = action;
+            return dotProp.set(state, 'contributions', payload);
+        }
 
-            const newState = dotProp.set(state, 'researchProblems', ids => ({
-                ...ids,
-                [payload.resourceId]: payload.researchProblems
-            }));
+        case type.IS_DELETING_CONTRIBUTION: {
+            const { payload } = action;
+            const contributionIndex = dotProp
+                .get(state, 'contributions')
+                .map(c => c.id)
+                .indexOf(payload.id);
+            const newState = dotProp.set(state, `contributions.${contributionIndex}.isDeleting`, true);
+            return newState;
+        }
 
-            return {
-                ...newState
-            };
+        case type.DONE_DELETING_CONTRIBUTION: {
+            const { payload } = action;
+            const contributionIndex = dotProp
+                .get(state, 'contributions')
+                .map(c => c.id)
+                .indexOf(payload.id);
+            const newState = dotProp.set(state, `contributions.${contributionIndex}.isDeleting`, false);
+            return newState;
+        }
+
+        case type.IS_SAVING_CONTRIBUTION: {
+            const { payload } = action;
+            const contributionIndex = dotProp
+                .get(state, 'contributions')
+                .map(c => c.id)
+                .indexOf(payload.id);
+            const newState = dotProp.set(state, `contributions.${contributionIndex}.isSaving`, true);
+            return newState;
+        }
+
+        case type.DONE_SAVING_CONTRIBUTION: {
+            const { payload } = action;
+            const contributionIndex = dotProp
+                .get(state, 'contributions')
+                .map(c => c.id)
+                .indexOf(payload.id);
+            const newState = dotProp.set(state, `contributions.${contributionIndex}.isSaving`, false);
+            return newState;
         }
 
         case type.SET_PAPER_AUTHORS: {
@@ -74,10 +101,13 @@ export default (state = initialState, action) => {
             return dotProp.set(state, 'authors', payload.authors);
         }
 
-        case type.UPDATE_RESEARCH_PROBLEMS: {
+        case type.SET_PAPER_OBSERVATORY: {
             const { payload } = action;
-
-            return dotProp.set(state, `researchProblems.${payload.contributionId}`, payload.problemsArray);
+            let newState = dotProp.set(state, 'paperResource.observatory_id', payload.observatory_id);
+            newState = dotProp.set(newState, 'paperResource.organization_id', payload.organization_id);
+            return {
+                ...newState
+            };
         }
 
         case type.LOAD_COMPARISON_FROM_LOCAL_STORAGE: {
@@ -92,13 +122,16 @@ export default (state = initialState, action) => {
         case type.ADD_TO_COMPARISON: {
             const { payload } = action;
 
-            const comparisonContributions = assign(state.comparison.byId, {
-                [payload.contributionId]: {
-                    paperId: payload.contributionData.paperId,
-                    paperTitle: payload.contributionData.paperTitle,
-                    contributionTitle: payload.contributionData.contributionTitle
+            const comparisonContributions = assign(
+                { ...state.comparison.byId },
+                {
+                    [payload.contributionId]: {
+                        paperId: payload.contributionData.paperId,
+                        paperTitle: payload.contributionData.paperTitle,
+                        contributionTitle: payload.contributionData.contributionTitle
+                    }
                 }
-            });
+            );
             const newComparison = {
                 allIds: [...state.comparison.allIds, payload.contributionId],
                 byId: comparisonContributions

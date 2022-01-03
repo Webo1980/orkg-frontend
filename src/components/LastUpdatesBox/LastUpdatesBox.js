@@ -6,6 +6,8 @@ import { StyledActivity } from './styled';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { getResourceLink, getResourceTypeLabel } from 'utils';
+import { reverse } from 'named-urls';
+import ROUTES from 'constants/routes';
 import { truncate } from 'lodash';
 import PropTypes from 'prop-types';
 import { Button } from 'reactstrap';
@@ -15,17 +17,26 @@ const LastUpdatesBox = ({ researchFieldId }) => {
     const [openModal, setOpenModal] = useState(false);
 
     return (
-        <div className="box rounded-lg p-3 flex-grow-1 d-flex flex-column">
+        <div className="box rounded-3 p-3 flex-grow-1 d-flex flex-column">
             <h5>Last updates</h5>
             <div className="mt-3 flex-grow-1">
                 <div>
                     {!isLoading &&
                         activities?.length > 0 &&
                         activities.slice(0, 3).map(activity => (
-                            <StyledActivity key={`log${activity.id}`} className="pl-3 pb-3">
+                            <StyledActivity key={`log${activity.id}`} className="ps-3 pb-3">
                                 <div className="time">{moment(activity.created_at).fromNow()}</div>
                                 <div className="action">
-                                    {activity.profile?.id ? activity.profile.display_name : <i>Anonymous user</i>} added
+                                    {activity.profile?.id ? (
+                                        <>
+                                            <Link to={reverse(ROUTES.USER_PROFILE, { userId: activity.profile.id })}>
+                                                {activity.profile.display_name}
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <i>Anonymous user</i>
+                                    )}{' '}
+                                    added
                                     {` ${getResourceTypeLabel(activity.classes?.length > 0 ? activity.classes[0] : '')} `}
                                     <Link to={getResourceLink(activity.classes?.length > 0 ? activity.classes[0] : '', activity.id)}>
                                         {truncate(activity.label, { length: 50 })}

@@ -9,11 +9,11 @@ import PropTypes from 'prop-types';
 import { Button } from 'reactstrap';
 
 const ContributorsBox = ({ researchFieldId }) => {
-    const { contributors, isLoading } = useContributors({ researchFieldId, pageSize: 5 });
+    const { contributors, isLoading } = useContributors({ researchFieldId, pageSize: 5, initialSort: 'top' });
     const [openModal, setOpenModal] = useState(false);
 
     return (
-        <div className="box rounded-lg p-3 flex-grow-1 d-flex flex-column">
+        <div className="box rounded-3 p-3 flex-grow-1 d-flex flex-column">
             <h5>
                 <Icon icon={faAward} className="text-primary" /> Top Contributors
             </h5>
@@ -21,11 +21,11 @@ const ContributorsBox = ({ researchFieldId }) => {
                 {!isLoading && contributors && contributors.length > 0 && (
                     <div className="mt-2">
                         {contributors.slice(0, 4).map((contributor, index) => (
-                            <div className="pt-1 pl-2 pr-2" key={`rp${index}`}>
+                            <div className="pt-1 ps-2 pe-2" key={`rp${index}`}>
                                 <ContributorCard
                                     contributor={{
                                         ...contributor.profile,
-                                        subTitle: `${contributor.contributions} contribution${contributor.contributions > 1 ? 's' : ''}`
+                                        subTitle: `${contributor.counts.total} contribution${contributor.counts.total > 1 ? 's' : ''}`
                                     }}
                                 />
                                 {contributors.slice(0, 4).length - 1 !== index && <hr className="mb-0 mt-1" />}

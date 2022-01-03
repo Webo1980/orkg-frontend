@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { Container, Alert, Row, ButtonGroup } from 'reactstrap';
+import { Container, Alert, Row } from 'reactstrap';
 import ROUTES from 'constants/routes';
 import FeaturedComparisonsItem from 'components/FeaturedComparisons/FeaturedComparisonsItem';
 import { getStatementsBySubjects } from 'services/backend/statements';
@@ -11,6 +11,7 @@ import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { kebabCase, isString } from 'lodash';
 import { useLocation, useHistory } from 'react-router';
 import styled from 'styled-components';
+import TitleBar from 'components/TitleBar/TitleBar';
 
 const Header = styled.h2`
     &:hover a {
@@ -86,7 +87,7 @@ const FeaturedComparisons = () => {
         const comparisons = responseJson.map(comparison => {
             let description = '';
             let icon = '';
-            let url = '';
+            let contributions = [];
             let type = '';
 
             for (const comparisonStatement of comparisonStatements) {
@@ -99,8 +100,10 @@ const FeaturedComparisons = () => {
                     const iconStatement = comparisonStatement.statements.filter(statement => statement.predicate.id === PREDICATES.ICON);
                     icon = iconStatement.length ? iconStatement[0].object.label : '';
 
-                    const urlStatement = comparisonStatement.statements.filter(statement => statement.predicate.id === PREDICATES.URL);
-                    url = urlStatement.length ? urlStatement[0].object.label : '';
+                    // contributions
+                    contributions = comparisonStatement.statements
+                        .filter(statement => statement.predicate.id === PREDICATES.COMPARE_CONTRIBUTION)
+                        .map(statement => statement.object);
 
                     const typeStatement = comparisonStatement.statements.filter(statement => statement.predicate.id === PREDICATES.TYPE);
                     type = typeStatement.length ? typeStatement[0].object.id : '';
@@ -111,7 +114,7 @@ const FeaturedComparisons = () => {
                 label: comparison.label,
                 id: comparison.id,
                 description,
-                url,
+                contributions,
                 icon,
                 type
             };
@@ -123,15 +126,16 @@ const FeaturedComparisons = () => {
 
     return (
         <div>
-            <Container className="p-0 d-flex align-items-center">
-                <h1 className="h4 mt-4 mb-4 flex-grow-1">Featured paper comparisons</h1>
-                <ButtonGroup className="flex-shrink-0">
+            <TitleBar
+                buttonGroup={
                     <Link to={ROUTES.COMPARISONS} className="btn btn-secondary flex-shrink-0 btn-sm">
                         View all comparisons
                     </Link>
-                </ButtonGroup>
-            </Container>
-            <Container className="box rounded pt-4 pb-4 pl-5 pr-5">
+                }
+            >
+                Featured paper comparisons
+            </TitleBar>
+            <Container className="box rounded pt-4 pb-4 ps-5 pe-5">
                 <Alert color="info" fade={false}>
                     With the paper data inside the ORKG, you can build powerful paper comparisons. On this page, we list the featured comparisons that
                     are created using the comparison functionality. The featured comparisons below are organized by category.
@@ -148,7 +152,7 @@ const FeaturedComparisons = () => {
                             <Fragment key={category.id}>
                                 <Header id={id} ref={scrollTo} className="h4 mt-4 mb-3">
                                     {category.label}
-                                    <a href={`#${id}`} className="ml-2 invisible" onClick={e => handleClick(e, id)}>
+                                    <a href={`#${id}`} className="ms-2 invisible" onClick={e => handleClick(e, id)}>
                                         <Icon icon={faLink} />
                                     </a>
                                 </Header>
@@ -163,7 +167,7 @@ const FeaturedComparisons = () => {
                                                 description={comparison.description}
                                                 icon={comparison.icon}
                                                 id={comparison.id}
-                                                link={comparison.url}
+                                                contributions={comparison.contributions}
                                             />
                                         ))}
                                 </Row>

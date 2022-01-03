@@ -7,7 +7,6 @@ import {
     Label,
     Input,
     InputGroup,
-    InputGroupAddon,
     Button,
     ButtonGroup,
     FormFeedback,
@@ -36,7 +35,7 @@ import { useLocation } from 'react-router';
 import queryString from 'query-string';
 import { getPaperData } from 'utils';
 import { getStatementsBySubject } from 'services/backend/statements';
-import { getPaperByDOI } from 'services/backend/misc';
+import { getPaperByDOI, getPaperByTitle } from 'services/backend/misc';
 import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
 import ExistingDoiModal from './ExistingDoiModal';
 import { parseCiteResult } from 'utils';
@@ -88,6 +87,7 @@ const GeneralData = () => {
     const [validation, setValidation] = useState(null);
     const [errors, setErrors] = useState(null);
     const [existingPaper, setExistingPaper] = useState(null);
+    const [continueNextStep, setContinueNextStep] = useState(false);
 
     const disableBody = target =>
         disableBodyScroll(target, {
@@ -139,19 +139,6 @@ const GeneralData = () => {
             entryParsed = lookDoi.trim();
         }
 
-        // If the entry is a DOI check if it exists in the database
-        if (entryParsed.includes('10.') && entryParsed.startsWith('10.')) {
-            getPaperByDOI(entryParsed)
-                .then(result => {
-                    getStatementsBySubject({ id: result.id }).then(paperStatements => {
-                        setExistingPaper({ ...getPaperData(result, paperStatements), title: result.title });
-                    });
-                })
-                .catch(() => {
-                    setExistingPaper(null);
-                });
-        }
-
         await Cite.async(entryParsed)
             .catch(e => {
                 let validationMessage;
@@ -167,7 +154,7 @@ const GeneralData = () => {
                         validationMessage = 'An error occurred, reload the page and try again';
                         break;
                 }
-
+                setIsFetching(false);
                 setValidation(validationMessage);
                 setErrors(null);
                 return null;
@@ -175,8 +162,27 @@ const GeneralData = () => {
             .then(paper => {
                 if (paper) {
                     const parseResult = parseCiteResult(paper);
-                    setIsFetching(false);
-                    setErrors(null);
+                    let checkDatabase;
+                    // If the paper DOI already exists in the database
+                    if (parseResult.doi.includes('10.') && parseResult.doi.startsWith('10.')) {
+                        checkDatabase = getPaperByDOI(parseResult.doi);
+                    } else {
+                        checkDatabase = getPaperByTitle(parseResult.paperTitle);
+                    }
+
+                    checkDatabase
+                        .then(result => {
+                            getStatementsBySubject({ id: result.id }).then(paperStatements => {
+                                setExistingPaper({ ...getPaperData(result, paperStatements), title: result.title });
+                                setIsFetching(false);
+                                setErrors(null);
+                            });
+                        })
+                        .catch(() => {
+                            setIsFetching(false);
+                            setErrors(null);
+                            setExistingPaper(null);
+                        });
                     dispatch(
                         updateGeneralData({
                             showLookupTable: true,
@@ -266,7 +272,22 @@ const GeneralData = () => {
                     url
                 })
             );
-            dispatch(nextStep());
+            // If the paper title already exists in the database and not checked yet!
+            if (!existingPaper) {
+                getPaperByTitle(title)
+                    .then(result => {
+                        getStatementsBySubject({ id: result.id }).then(paperStatements => {
+                            setExistingPaper({ ...getPaperData(result, paperStatements), title: result.title });
+                            setContinueNextStep(true);
+                        });
+                    })
+                    .catch(() => {
+                        setExistingPaper(null);
+                        dispatch(nextStep());
+                    });
+            } else {
+                dispatch(nextStep());
+            }
         } else {
             setErrors(errors);
         }
@@ -362,19 +383,17 @@ const GeneralData = () => {
                                         />
                                         <FormFeedback className="order-1">{validation}</FormFeedback>
                                         {/* Need to set order-1 here to fix Bootstrap bug of missing rounded borders */}
-                                        <InputGroupAddon addonType="append">
-                                            <Button
-                                                outline
-                                                color="primary"
-                                                innerRef={refLookup}
-                                                style={{ minWidth: 130 }}
-                                                onClick={() => handleLookupClick(entry)}
-                                                disabled={isFetching}
-                                                data-test="lookupDoi"
-                                            >
-                                                {!isFetching ? 'Lookup' : <FontAwesomeIcon icon={faSpinner} spin />}
-                                            </Button>
-                                        </InputGroupAddon>
+                                        <Button
+                                            outline
+                                            color="primary"
+                                            innerRef={refLookup}
+                                            style={{ minWidth: 130 }}
+                                            onClick={() => handleLookupClick(entry)}
+                                            disabled={isFetching}
+                                            data-test="lookupDoi"
+                                        >
+                                            {!isFetching ? 'Lookup' : <FontAwesomeIcon icon={faSpinner} spin />}
+                                        </Button>
                                     </InputGroup>
                                 </FormGroup>
                             </Form>
@@ -386,7 +405,7 @@ const GeneralData = () => {
                                             <div className="mt-5">
                                                 <h3 className="h4 mb-3">
                                                     Lookup result
-                                                    <Button className="pull-right ml-1" outline size="sm" onClick={() => setDataEntry('manually')}>
+                                                    <Button className="pull-right ms-1" outline size="sm" onClick={() => setDataEntry('manually')}>
                                                         Edit
                                                     </Button>
                                                 </h3>
@@ -424,7 +443,6 @@ const GeneralData = () => {
                                                     </Table>
                                                 </Card>
                                             </div>
-                                            {existingPaper && <ExistingDoiModal existingPaper={existingPaper} />}
                                         </>
                                     </Container>
                                 ) : (
@@ -434,9 +452,12 @@ const GeneralData = () => {
                         </div>
                     </Container>
                 )}
+                {existingPaper && (
+                    <ExistingDoiModal onContinue={() => (continueNextStep ? dispatch(nextStep()) : undefined)} existingPaper={existingPaper} />
+                )}
                 {dataEntry !== 'doi' && (
                     <Container key={2} classNames="fadeIn" timeout={{ enter: 500, exit: 0 }}>
-                        <Form className="mt-4" onSubmit={submitHandler}>
+                        <Form className="mt-4" onSubmit={submitHandler} id="manuelInputGroup">
                             <FormGroup>
                                 <Label for="paperTitle">
                                     <Tooltip message="The main title of the paper">Paper title</Tooltip>
@@ -444,8 +465,8 @@ const GeneralData = () => {
                                 <Input type="text" name="title" id="paperTitle" value={title} onChange={handleInputChange} />
                                 <FormFeedback />
                             </FormGroup>
-                            <Row form>
-                                <Col md={6} className="pr-3">
+                            <Row>
+                                <Col md={6} className="pe-3">
                                     <FormGroup>
                                         <Label for="paperAuthors">
                                             <Tooltip message="The author or authors of the paper. Enter both the first and last name">
@@ -455,14 +476,14 @@ const GeneralData = () => {
                                         <AuthorsInput handler={handleAuthorsChange} value={authors} />
                                     </FormGroup>
                                 </Col>
-                                <Col md={6} className="pl-md-3">
+                                <Col md={6} className="ps-md-3">
                                     <FormGroup>
                                         <Label for="paperCreationDate">
                                             <Tooltip message="The publication date of the paper, in the form of month and year">
                                                 Publication date
                                             </Tooltip>
                                         </Label>
-                                        <Row form>
+                                        <Row>
                                             <Col md={6}>
                                                 <Input
                                                     type="select"
@@ -525,72 +546,84 @@ const GeneralData = () => {
             </TransitionGroup>
             <hr className="mt-5 mb-3" />
             {errors && errors.length > 0 && (
-                <ul className="float-left mb-4 text-danger">
+                <ul className="float-start mb-4 text-danger">
                     {errors.map((e, index) => {
                         return <li key={index}>{e}</li>;
                     })}
                 </ul>
             )}
-            <Button color="primary" className="float-right mb-4" onClick={handleNextClick} data-test="nextStep">
+            <Button color="primary" className="float-end mb-4" onClick={handleNextClick} data-test="nextStep">
                 Next step
             </Button>
-            {!showHelpButton && (
-                <Tour
-                    onAfterOpen={disableBody}
-                    onBeforeClose={enableBody}
-                    steps={[
-                        ...(dataEntry === 'doi'
-                            ? [
-                                  {
-                                      selector: '#doiInputGroup',
-                                      content:
-                                          'Start by entering the DOI or the BibTeX of the paper you want to add. Then, click on "Lookup" to fetch paper meta-data automatically.',
-                                      style: { borderTop: '4px solid #E86161' },
-                                      action: node => (node ? node.focus() : null)
-                                  }
-                              ]
-                            : []),
-                        {
-                            selector: '#entryOptions',
-                            content:
-                                'In case you don\'t have the DOI, you can enter the general paper data manually. Do this by pressing the "Manually" button on the right.',
-                            style: { borderTop: '4px solid #E86161' }
-                        }
-                    ]}
-                    showNumber={false}
-                    accentColor={theme.primary}
-                    rounded={10}
-                    onRequestClose={requestCloseTour}
-                    isOpen={isTourOpen}
-                    startAt={tourStartAt}
-                    maskClassName="reactourMask"
-                />
-            )}
-            {showHelpButton && (
-                <Tour
-                    disableInteraction={false}
-                    onAfterOpen={disableBody}
-                    onBeforeClose={enableBody}
-                    steps={[
-                        {
-                            selector: '#helpIcon',
-                            content: 'If you want to start the tour again at a later point, you can do so from this button.',
-                            style: { borderTop: '4px solid #E86161' }
-                        }
-                    ]}
-                    showNumber={false}
-                    accentColor={theme.primary}
-                    rounded={10}
-                    onRequestClose={() => {
-                        setShowHelpButton(false);
-                    }}
-                    isOpen={showHelpButton}
-                    startAt={0}
-                    showButtons={false}
-                    showNavigation={false}
-                    maskClassName="reactourMask"
-                />
-            )}
+
+            <Tour
+                onAfterOpen={disableBody}
+                onBeforeClose={enableBody}
+                steps={[
+                    ...(dataEntry === 'doi'
+                        ? [
+                              {
+                                  selector: '#doiInputGroup',
+                                  content:
+                                      'Start by entering the DOI or the BibTeX of the paper you want to add. Then, click on "Lookup" to fetch paper meta-data automatically.',
+                                  style: { borderTop: '4px solid #E86161' },
+                                  action: node => (node ? node.focus() : null)
+                              },
+                              {
+                                  selector: '#entryOptions',
+                                  content:
+                                      'In case you don\'t have the DOI, you can enter the general paper data manually. Do this by pressing the "Manually" button on the right.',
+                                  style: { borderTop: '4px solid #E86161' }
+                              }
+                          ]
+                        : [
+                              {
+                                  selector: '#entryOptions',
+                                  content:
+                                      'In case you have the DOI, you can enter the doi to fetch paper meta-data automatically. Do this by pressing the "By DOI" button on the left.',
+                                  style: { borderTop: '4px solid #E86161' },
+                                  action: node => (node ? node.focus() : null)
+                              },
+                              {
+                                  selector: '#manuelInputGroup',
+                                  content: 'You can enter the general paper data manually using this form.',
+                                  style: { borderTop: '4px solid #E86161' },
+                                  action: node => (node ? node.focus() : null)
+                              }
+                          ])
+                ]}
+                showNumber={false}
+                accentColor={theme.primary}
+                rounded={10}
+                onRequestClose={requestCloseTour}
+                isOpen={isTourOpen}
+                startAt={tourStartAt}
+                maskClassName="reactourMask"
+            />
+
+            <Tour
+                disableInteraction={false}
+                onAfterOpen={disableBody}
+                onBeforeClose={enableBody}
+                steps={[
+                    {
+                        selector: '#helpIcon',
+                        content: 'If you want to start the tour again at a later point, you can do so from this button.',
+                        style: { borderTop: '4px solid #E86161' }
+                    }
+                ]}
+                showNumber={false}
+                accentColor={theme.primary}
+                rounded={10}
+                onRequestClose={() => {
+                    setShowHelpButton(false);
+                }}
+                isOpen={showHelpButton}
+                startAt={0}
+                showButtons={false}
+                showNavigation={false}
+                maskClassName="reactourMask"
+            />
         </div>
     );
 };

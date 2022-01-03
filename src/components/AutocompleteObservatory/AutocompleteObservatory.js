@@ -43,19 +43,19 @@ function AutocompleteObservatory(props) {
     }, []);
 
     const onChangeObservatory = selected => {
-        props.onChangeObservatory(selected);
-        props.onChangeOrganization(selected.organizations[0]);
-        setOptionsOrganizations(selected.organizations);
+        props.onChangeObservatory(selected ?? null);
+        props.onChangeOrganization(selected?.organizations[0] ?? null);
+        setOptionsOrganizations(selected?.organizations ?? null);
     };
 
     const onChangeOrganization = selected => {
-        props.onChangeOrganization(selected);
+        props.onChangeOrganization(selected ?? null);
     };
 
     useEffect(() => {
         if (options.length && props.observatory) {
             const selected = options.find(o => props.observatory.id === o.id);
-            props.onChangeObservatory(selected);
+            props.onChangeObservatory(selected ?? null);
             setOptionsOrganizations(selected.organizations);
         }
     }, [options, props, props.observatory]);
@@ -74,7 +74,7 @@ function AutocompleteObservatory(props) {
     const CustomOptionOrganization = innerProps => (
         <components.Option {...innerProps}>
             <div className="d-flex">
-                <LogoContainer className="mr-2">
+                <LogoContainer className="me-2">
                     <img alt={innerProps.data.name} src={innerProps.data.logo} />
                 </LogoContainer>
 
@@ -94,6 +94,7 @@ function AutocompleteObservatory(props) {
                 getOptionValue={({ id }) => id}
                 getOptionLabel={({ name }) => name}
                 inputId={props.inputId}
+                isClearable={true}
             />
 
             <br />
@@ -106,6 +107,7 @@ function AutocompleteObservatory(props) {
                 getOptionValue={({ id }) => id}
                 getOptionLabel={({ name }) => name}
                 inputId="select-organization"
+                isClearable={true}
             />
         </>
     );

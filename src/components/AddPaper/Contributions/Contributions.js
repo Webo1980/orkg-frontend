@@ -19,7 +19,7 @@ import {
     toggleAbstractDialog
 } from 'actions/addPaper';
 import Abstract from 'components/AddPaper/Abstract/Abstract';
-import Confirm from 'reactstrap-confirm';
+import Confirm from 'components/Confirmation/Confirmation';
 import Contribution from './Contribution';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -101,8 +101,7 @@ const Contributions = () => {
     const toggleDeleteContribution = async id => {
         const result = await Confirm({
             title: 'Are you sure?',
-            message: 'Are you sure you want to delete this contribution?',
-            cancelColor: 'light'
+            message: 'Are you sure you want to delete this contribution?'
         });
 
         if (result) {
@@ -161,7 +160,7 @@ const Contributions = () => {
                 </h2>
                 <div className="flex-shrink-0 ml-auto">
                     {BioassaysFieldsList.includes(selectedResearchField) && (
-                        <Button onClick={() => setIsOpenBioassays(v => !v)} outline size="sm" color="secondary" className="mr-1">
+                        <Button onClick={() => setIsOpenBioassays(v => !v)} outline size="sm" color="secondary" className="me-1">
                             <Icon icon={faFlask} /> Add Bioassay
                         </Button>
                     )}
@@ -176,7 +175,7 @@ const Contributions = () => {
                     semantified version of your assay text by our machine learning system.
                 </UncontrolledAlert>
             )}
-            <Row noGutters={true} className="mt-2">
+            <Row className="mt-2 g-0">
                 <Col md="9">
                     <StyledHorizontalContributionsList id="contributionsList">
                         {contributions.allIds.map((contributionId, index) => {
@@ -226,10 +225,10 @@ const Contributions = () => {
 
             <ContributionsHelpTour />
 
-            <Button color="primary" className="float-right mb-4" onClick={handleNextClick}>
+            <Button color="primary" className="float-end mb-4" onClick={handleNextClick}>
                 Finish
             </Button>
-            <Button color="light" className="float-right mb-4 mr-2" onClick={() => dispatch(previousStep())}>
+            <Button color="light" className="float-end mb-4 me-2" onClick={() => dispatch(previousStep())}>
                 Previous step
             </Button>
         </div>

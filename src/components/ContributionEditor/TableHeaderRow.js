@@ -3,14 +3,15 @@ import TableCellButtons from 'components/ContributionEditor/TableCellButtons';
 import { Properties, PropertiesInner } from 'components/Comparison/styled';
 import PropTypes from 'prop-types';
 import { memo, useState } from 'react';
-import Confirm from 'reactstrap-confirm';
+import Confirm from 'components/Confirmation/Confirmation';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteProperty, updateProperty } from 'actions/contributionEditor';
+import { deleteProperty, updateProperty } from 'slices/contributionEditorSlice';
 import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
 import { upperFirst } from 'lodash';
 import { Button } from 'reactstrap';
 import useConfirmPropertyModal from 'components/StatementBrowser/AddProperty/hooks/useConfirmPropertyModal';
 import { PREDICATES, ENTITIES } from 'constants/graphSettings';
+import env from '@beam-australia/react-env';
 
 const TableHeaderRow = ({ property }) => {
     const [isOpenStatementBrowser, setIsOpenStatementBrowser] = useState(false);
@@ -18,6 +19,9 @@ const TableHeaderRow = ({ property }) => {
     const [inputValue, setInputValue] = useState(property.label);
     const statements = useSelector(state => state.contributionEditor.statements);
     const statementIds = Object.keys(statements).filter(statementId => statements[statementId].propertyId === property.id);
+    const pwcStatementIds = Object.keys(statements).filter(
+        statementId => statements[statementId].propertyId === property.id && statements[statementId].created_by === env('PWC_USER_ID')
+    );
     const dispatch = useDispatch();
     const { confirmProperty } = useConfirmPropertyModal();
 
@@ -37,8 +41,7 @@ const TableHeaderRow = ({ property }) => {
                     The property <strong>{property.label}</strong> and its corresponding values will be deleted for <strong>all contributions</strong>{' '}
                     currently in the editor
                 </span>
-            ),
-            cancelColor: 'light'
+            )
         });
 
         if (result) {
@@ -76,14 +79,16 @@ const TableHeaderRow = ({ property }) => {
             <Properties className="columnProperty" onDoubleClick={handleStartEdit}>
                 <PropertiesInner cellPadding={10}>
                     <div className="position-relative">
-                        <Button onClick={() => setIsOpenStatementBrowser(true)} color="link" className="text-light m-0 p-0 text-left">
+                        <Button onClick={() => setIsOpenStatementBrowser(true)} color="link" className="text-light m-0 p-0 text-start">
                             {upperFirst(property.label)}
                         </Button>
-                        <TableCellButtons
-                            onEdit={!isResearchProblem ? handleStartEdit : null}
-                            onDelete={!isResearchProblem ? handleDelete : null}
-                            backgroundColor="rgba(139, 145, 165, 0.8)"
-                        />
+                        {pwcStatementIds.length === 0 && (
+                            <TableCellButtons
+                                onEdit={!isResearchProblem ? handleStartEdit : null}
+                                onDelete={!isResearchProblem ? handleDelete : null}
+                                backgroundColor="rgba(139, 145, 165, 0.8)"
+                            />
+                        )}
                     </div>
                 </PropertiesInner>
             </Properties>

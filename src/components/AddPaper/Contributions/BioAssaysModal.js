@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { isArray, isObject, invert } from 'lodash';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { prefillStatements } from 'actions/addPaper';
+import { fillStatements } from 'actions/statementBrowser';
 import { useDispatch, useSelector } from 'react-redux';
 
 const BioAssaysModal = props => {
@@ -99,7 +99,7 @@ const BioAssaysModal = props => {
         const statements = createStatementIdObject();
         // insert into statement Browser
         dispatch(
-            prefillStatements({
+            fillStatements({
                 statements,
                 resourceId: resourceId
             })

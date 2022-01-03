@@ -1,34 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getStatementsBySubject, getStatementsBySubjectAndPredicate, getStatementsByObjectAndPredicate } from 'services/backend/statements';
+import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { getContributorInformationById } from 'services/backend/contributors';
 import { getObservatoryAndOrganizationInformation } from 'services/backend/observatories';
 import { getResource } from 'services/backend/resources';
-import { getComparison } from 'services/similarity/index';
+import { getComparison, getResourceData } from 'services/similarity/index';
 import {
     extendPropertyIds,
     similarPropertiesByLabel,
-    filterObjectOfStatementsByPredicate,
-    filterSubjectOfStatementsByPredicate,
+    filterObjectOfStatementsByPredicateAndClass,
     getArrayParamFromQueryString,
     getParamFromQueryString,
     get_error_message,
     applyRule,
-    getRuleByProperty
+    getRuleByProperty,
+    getComparisonData,
+    isPredicatesListCorrect
 } from 'utils';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
 import { PREDICATES, CLASSES, MISC } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
-import { flattenDepth, flatten, groupBy, intersection, findIndex, cloneDeep, isEmpty } from 'lodash';
+import { flatten, groupBy, intersection, findIndex, cloneDeep, isEmpty, uniq, without } from 'lodash';
 import arrayMove from 'array-move';
 import ROUTES from 'constants/routes.js';
 import queryString from 'query-string';
 import { usePrevious } from 'react-use';
-import Confirm from 'reactstrap-confirm';
+import Confirm from 'components/Confirmation/Confirmation';
 
-function useComparison() {
+const DEFAULT_COMPARISON_METHOD = 'path';
+
+function useComparison({ id }) {
     const location = useLocation();
     const history = useHistory();
-    const { comparisonId } = useParams();
+    const params = useParams();
+    const comparisonId = id || params.comparisonId;
 
     /**
      * @typedef {Object} MetaData
@@ -41,6 +45,7 @@ function useComparison() {
      * @property {Array[Object]} resources Comparison related resources
      * @property {Array[Object]} figures Comparison related figures
      * @property {Array[Object]} visualizations Comparison visualizations
+     * @property {Array[Object]} authors Comparison authors
      */
     /**
      * @typedef {Function} MetaDataSetter Set Metadata
@@ -50,26 +55,13 @@ function useComparison() {
      */
     const [metaData, setMetaData] = useState({});
     const [properties, setProperties] = useState([]);
-    /**
-     * @typedef {Object} Author
-     * @property {String} id Author ID
-     * @property {String} label Author name
-     * @property {String} orcid Author ORCID
-     */
-    /**
-     * @typedef {Function} AuthorSetter Set Authors
-     */
-    /**
-     * @type {[[Author], AuthorSetter]} Loading
-     */
-    const [authors, setAuthors] = useState([]);
+
     const [contributions, setContributions] = useState([]);
     const [data, setData] = useState({});
     const [filterControlData, setFilterControlData] = useState([]);
     const [errors, setErrors] = useState([]);
     const [matrixData, setMatrixData] = useState([]);
 
-    const [hasNextVersions, setHasNextVersions] = useState([]);
     const [createdBy, setCreatedBy] = useState(null);
     const [provenance, setProvenance] = useState(null);
 
@@ -84,7 +76,7 @@ function useComparison() {
 
     // comparison config
     const [transpose, setTranspose] = useState(false);
-    const [comparisonType, setComparisonType] = useState('merge');
+    const [comparisonType, setComparisonType] = useState(DEFAULT_COMPARISON_METHOD);
     const [responseHash, setResponseHash] = useState(null);
     const [contributionsList, setContributionsList] = useState([]);
     const [predicatesList, setPredicatesList] = useState([]);
@@ -92,6 +84,8 @@ function useComparison() {
 
     // reference to previous comparison type
     const prevComparisonType = usePrevious(comparisonType);
+    // reference to previous comparison id
+    const prevComparisonId = usePrevious(comparisonId);
 
     // loading indicators
     const [isLoadingMetaData, setIsLoadingMetaData] = useState(false);
@@ -115,7 +109,12 @@ function useComparison() {
 
     const loadVisualizations = comparisonID => {
         getStatementsBySubjectAndPredicate({ subjectId: comparisonID, predicateId: PREDICATES.HAS_VISUALIZATION }).then(statements => {
-            const visualizations = filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_VISUALIZATION, false);
+            const visualizations = filterObjectOfStatementsByPredicateAndClass(
+                statements,
+                PREDICATES.HAS_VISUALIZATION,
+                false,
+                CLASSES.VISUALIZATION
+            );
             setMetaData({ ...metaData, visualizations: visualizations });
         });
     };
@@ -127,77 +126,68 @@ function useComparison() {
     const loadComparisonMetaData = useCallback(cId => {
         if (cId) {
             setIsLoadingMetaData(true);
-            // Get the comparison resource
-            getResource(cId)
-                .then(comparisonResource => {
+            // Get the comparison resource and comparison config
+            Promise.all([getResource(cId), getResourceData(cId)])
+                .then(([comparisonResource, configurationData]) => {
                     // Make sure that this resource is a comparison
                     if (!comparisonResource.classes.includes(CLASSES.COMPARISON)) {
                         throw new Error(`The requested resource is not of class "${CLASSES.COMPARISON}".`);
                     }
-                    // Update browser title
-                    document.title = `${comparisonResource.label} - Comparison - ORKG`;
-                    return comparisonResource;
+                    return [comparisonResource, configurationData];
                 })
-                .then(comparisonResource => {
+                .then(([comparisonResource, configurationData]) => {
                     // Get meta data and config of a comparison
                     getStatementsBySubject({ id: cId }).then(statements => {
-                        const description = filterObjectOfStatementsByPredicate(statements, PREDICATES.DESCRIPTION, true);
-                        const doi = filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_DOI, true);
-                        const references = filterObjectOfStatementsByPredicate(statements, PREDICATES.REFERENCE, false);
-                        const hasPreviousVersion = filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_PREVIOUS_VERSION, true);
-                        const resources = filterObjectOfStatementsByPredicate(statements, PREDICATES.RELATED_RESOURCES, false);
-                        const figures = filterObjectOfStatementsByPredicate(statements, PREDICATES.RELATED_FIGURE, false);
-                        const visualizations = filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_VISUALIZATION, false);
-                        const subject = filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_SUBJECT, true);
-
-                        // Load authors
-                        let creators = filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_AUTHOR, false);
-                        if (creators) {
-                            creators = creators.reverse(); // statements are ordered desc, so first author is last => thus reverse
-                            loadAuthorsORCID(creators);
-                        }
-
+                        const comparisonObject = getComparisonData(comparisonResource, statements);
                         setMetaData({
-                            id: cId,
-                            title: comparisonResource.label,
-                            createdAt: comparisonResource.created_at ?? '',
-                            createdBy: comparisonResource.created_by ?? '',
-                            description: description?.label,
-                            doi: doi?.label,
-                            references: references ? references.map(r => r.label) : [],
-                            hasPreviousVersion: hasPreviousVersion,
-                            resources: resources ? resources : [],
-                            figures: figures ? figures : [],
-                            visualizations: visualizations ? visualizations : [],
-                            subject: subject
+                            ...comparisonObject,
+                            title: comparisonObject.label,
+                            createdAt: comparisonObject.created_at,
+                            createdBy: comparisonObject.created_by
                         });
 
-                        // TODO: replace this with ordered feature
-                        // Load comparison config
-                        const url = filterObjectOfStatementsByPredicate(statements, PREDICATES.URL, true);
+                        const url = configurationData.data.url;
                         if (url) {
-                            setResponseHash(getParamFromQueryString(url?.label.substring(url?.label.indexOf('?')), 'response_hash'));
-                            setComparisonType(getParamFromQueryString(url?.label.substring(url?.label.indexOf('?')), 'type') ?? 'merge');
-                            setTranspose(getParamFromQueryString(url?.label.substring(url?.label.indexOf('?')), 'transpose', true));
-                            setPredicatesList(getArrayParamFromQueryString(url?.label.substring(url?.label.indexOf('?')), 'properties'));
-                            setContributionsList(getArrayParamFromQueryString(url?.label.substring(url?.label.indexOf('?')), 'contributions'));
+                            setResponseHash(getParamFromQueryString(url.substring(url.indexOf('?')), 'response_hash'));
+                            setComparisonType(getParamFromQueryString(url.substring(url.indexOf('?')), 'type') ?? DEFAULT_COMPARISON_METHOD);
+                            setTranspose(getParamFromQueryString(url.substring(url.indexOf('?')), 'transpose', true));
+                            setPredicatesList(getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'properties'));
+                            const contributionsIDs =
+                                without(uniq(getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'contributions')), undefined, null, '') ??
+                                [];
+                            setContributionsList(contributionsIDs);
                         } else {
-                            setPredicatesList(filterObjectOfStatementsByPredicate(statements, PREDICATES.HAS_PROPERTY, false)?.map(p => p.id));
-                            setContributionsList(
-                                filterObjectOfStatementsByPredicate(statements, PREDICATES.COMPARE_CONTRIBUTION, false)?.map(c => c.id) ?? []
+                            setPredicatesList(
+                                filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_PROPERTY, false)?.map(p => p.id)
                             );
+                            const contributionsIDs =
+                                without(
+                                    uniq(
+                                        filterObjectOfStatementsByPredicateAndClass(
+                                            statements,
+                                            PREDICATES.COMPARE_CONTRIBUTION,
+                                            false,
+                                            CLASSES.CONTRIBUTION
+                                        )?.map(c => c.id) ?? []
+                                    ),
+                                    undefined,
+                                    null,
+                                    ''
+                                ) ?? [];
+                            setContributionsList(contributionsIDs);
                         }
-                        if (!filterObjectOfStatementsByPredicate(statements, PREDICATES.COMPARE_CONTRIBUTION, false)?.map(c => c.id)) {
+                        if (
+                            !filterObjectOfStatementsByPredicateAndClass(
+                                statements,
+                                PREDICATES.COMPARE_CONTRIBUTION,
+                                false,
+                                CLASSES.CONTRIBUTION
+                            )?.map(c => c.id)
+                        ) {
                             setIsLoadingComparisonResult(false);
                         }
                         setIsLoadingMetaData(false);
                         setIsFailedLoadingMetaData(false);
-                    });
-
-                    // Get the next versions
-                    getStatementsByObjectAndPredicate({ objectId: cId, predicateId: PREDICATES.HAS_PREVIOUS_VERSION }).then(statements => {
-                        const hasNextVersion = filterSubjectOfStatementsByPredicate(statements, PREDICATES.HAS_PREVIOUS_VERSION, false);
-                        setHasNextVersions(hasNextVersion);
                     });
 
                     // Get Provenance data
@@ -220,28 +210,6 @@ function useComparison() {
             setIsFailedLoadingMetaData(true);
         }
     }, []);
-
-    /**
-     * Loading comparison Authors ORCIDs
-     * Set the authors of the comparison
-     * @param {Array[Object]} creators Creators
-     */
-    const loadAuthorsORCID = async creators => {
-        return Promise.all(
-            creators.map(author => getStatementsBySubjectAndPredicate({ subjectId: author.id, predicateId: PREDICATES.HAS_ORCID }))
-        ).then(authorsORCID => {
-            const authorsArray = [];
-            for (const author of creators) {
-                const orcid = flattenDepth(authorsORCID, 2).find(a => a !== undefined && a.subject.id === author.id);
-                if (orcid) {
-                    authorsArray.push({ orcid: orcid.object.label, label: author.label, id: author.id });
-                } else {
-                    authorsArray.push({ orcid: '', label: author.label, id: author.id });
-                }
-            }
-            setAuthors(authorsArray);
-        });
-    };
 
     /**
      * Load creator user
@@ -271,9 +239,13 @@ function useComparison() {
      */
     const loadProvenanceInfos = (observatory_id, organization_id) => {
         if (observatory_id && observatory_id !== MISC.UNKNOWN_ID) {
-            getObservatoryAndOrganizationInformation(observatory_id, organization_id).then(observatory => {
-                setProvenance(observatory);
-            });
+            getObservatoryAndOrganizationInformation(observatory_id, organization_id)
+                .then(observatory => {
+                    setProvenance(observatory);
+                })
+                .catch(() => {
+                    setProvenance(null);
+                });
         } else {
             setProvenance(null);
         }
@@ -286,11 +258,17 @@ function useComparison() {
      * @return {Array} list of properties extended and sorted
      */
     const extendAndSortProperties = useCallback(
-        comparisonData => {
+        (comparisonData, _comparisonType) => {
             // if there are properties in the query string
             if (predicatesList.length > 0) {
                 // Create an extended version of propertyIds (ADD the IDs of similar properties)
-                const extendedPropertyIds = extendPropertyIds(predicatesList, comparisonData.data);
+                // Only use this on the 'merge' method because the if it's used in 'path' method, it will show properties that are not activated
+                let extendedPropertyIds = predicatesList;
+                if (!isPredicatesListCorrect(predicatesList, _comparisonType) || _comparisonType === 'merge') {
+                    extendedPropertyIds = extendPropertyIds(predicatesList, comparisonData.data);
+                } else {
+                    extendedPropertyIds = predicatesList;
+                }
                 // sort properties based on query string (is not presented in query string, sort at the bottom)
                 // TODO: sort by label when is not active
                 comparisonData.properties.sort((a, b) => {
@@ -435,7 +413,7 @@ function useComparison() {
                     }
                 });
 
-                comparisonData.properties = extendAndSortProperties(comparisonData);
+                comparisonData.properties = extendAndSortProperties(comparisonData, comparisonType);
 
                 setContributions(comparisonData.contributions);
                 setProperties(comparisonData.properties);
@@ -448,6 +426,13 @@ function useComparison() {
                     setResponseHash(comparisonData.response_hash);
                 } else {
                     setResponseHash(responseHash);
+                }
+            })
+            .then(() => {
+                if (!comparisonId && queryString.parse(location.search)?.hasPreviousVersion) {
+                    getResource(queryString.parse(location.search).hasPreviousVersion).then(prevVersion =>
+                        setMetaData({ ...metaData, hasPreviousVersion: prevVersion })
+                    );
                 }
             })
             .catch(error => {
@@ -504,7 +489,7 @@ function useComparison() {
             }
             newData[property].splice(cIndex, 1);
         }
-        newProperties = extendAndSortProperties({ data: newData, properties: newProperties });
+        newProperties = extendAndSortProperties({ data: newData, properties: newProperties }, comparisonType);
         setContributionsList(activatedContributionsToList(newContributions));
         setContributions(newContributions);
         setData(newData);
@@ -542,7 +527,8 @@ function useComparison() {
     const addContributions = newContributionIds => {
         setUrlNeedsToUpdate(true);
         setResponseHash(null);
-        setContributionsList(contributionsList.concat(newContributionIds));
+        const contributionsIDs = without(uniq(contributionsList.concat(newContributionIds)), undefined, null, '') ?? [];
+        setContributionsList(contributionsIDs);
     };
 
     /**
@@ -587,7 +573,7 @@ function useComparison() {
         const params = queryString.stringify(
             {
                 contributions: contributionsList.join(','),
-                properties: predicatesList.join(','),
+                properties: predicatesList.map(predicate => encodeURIComponent(predicate)).join(','),
                 type: comparisonType,
                 transpose: transpose
             },
@@ -638,31 +624,26 @@ function useComparison() {
     };
 
     const handleEditContributions = async () => {
-        if (metaData?.id) {
-            const isConfirmed = await Confirm({
-                title: 'This is a published comparison',
-                message: `The comparison you are viewing is published, which means it cannot be modified. To make changes, fetch the live comparison data and try this action again`,
-                cancelColor: 'light',
-                confirmText: 'Fetch live data'
-            });
+        const isConfirmed = await Confirm({
+            title: 'Edit contribution data',
+            message: `You are about the edit the contributions displayed in the comparison. Changing this data does not only affect this comparison, but also other parts of the ORKG`,
+            proceedLabel: 'Continue'
+        });
 
-            if (isConfirmed) {
-                setUrlNeedsToUpdate(true);
-                setResponseHash(null);
-                setShouldFetchLiveComparison(true);
-            }
-        } else {
-            const isConfirmed = await Confirm({
-                title: 'Edit contribution data',
-                message: `You are about the edit the contributions displayed in the comparison. Changing this data does not only affect this comparison, but also other parts of the ORKG`,
-                cancelColor: 'light',
-                confirmText: 'Continue'
-            });
-
-            if (isConfirmed) {
-                history.push(reverse(ROUTES.CONTRIBUTION_EDITOR) + `?contributions=${contributionsList.join(',')}`);
-            }
+        if (isConfirmed) {
+            history.push(
+                reverse(ROUTES.CONTRIBUTION_EDITOR) +
+                    `?contributions=${contributionsList.join(',')}${
+                        metaData?.hasPreviousVersion ? `&hasPreviousVersion=${metaData?.hasPreviousVersion.id}` : ''
+                    }`
+            );
         }
+    };
+
+    const fetchLiveData = () => {
+        setUrlNeedsToUpdate(true);
+        setResponseHash(null);
+        setShouldFetchLiveComparison(true);
     };
 
     useEffect(() => {
@@ -679,10 +660,13 @@ function useComparison() {
         } else {
             // Update browser title
             document.title = 'Comparison - ORKG';
-            setResponseHash(getParamFromQueryString(location.search, 'response_hash'));
-            setComparisonType(getParamFromQueryString(location.search, 'type') ?? 'merge');
+            setResponseHash(
+                metaData?.hasPreviousVersion?.id && responseHash ? responseHash : getParamFromQueryString(location.search, 'response_hash')
+            );
+            setComparisonType(getParamFromQueryString(location.search, 'type') ?? DEFAULT_COMPARISON_METHOD);
             setTranspose(getParamFromQueryString(location.search, 'transpose', true));
-            setContributionsList(getArrayParamFromQueryString(location.search, 'contributions'));
+            const contributionsIDs = without(uniq(getArrayParamFromQueryString(location.search, 'contributions')), undefined, null, '') ?? [];
+            setContributionsList(contributionsIDs);
             setPredicatesList(getArrayParamFromQueryString(location.search, 'properties'));
         }
         updateComparisonPublicURL();
@@ -693,16 +677,19 @@ function useComparison() {
      * Update comparison if:
      *  1/ Contribution list changed
      *  2/ Comparison type changed
+     *  3/ Comparison id changed and is not undefined
      */
     useEffect(() => {
         if (
             contributionsList.length > 0 &&
-            (prevComparisonType !== comparisonType || !contributionsList.every(id => contributions.map(c => c.id).includes(id)))
+            ((prevComparisonId !== comparisonId && comparisonId) ||
+                prevComparisonType !== comparisonType ||
+                !contributionsList.every(id => contributions.map(c => c.id).includes(id)))
         ) {
             getComparisonResult();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [comparisonType, contributionsList.length]);
+    }, [comparisonId, comparisonType, contributionsList.length]);
 
     /**
      * Update URL if
@@ -717,7 +704,7 @@ function useComparison() {
                 setMetaData({
                     ...metaData,
                     doi: '',
-                    hasPreviousVersion: { id: metaData.id, created_at: metaData.createdAt, createdBy: metaData.createdBy },
+                    hasPreviousVersion: { id: metaData.id, created_at: metaData.createdAt, created_by: metaData.created_by },
                     id: null,
                     visualizations: []
                 });
@@ -738,7 +725,6 @@ function useComparison() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingComparisonResult]);
-
     return {
         metaData,
         contributions,
@@ -746,7 +732,6 @@ function useComparison() {
         data,
         filterControlData,
         matrixData,
-        authors,
         errors,
         transpose,
         comparisonType,
@@ -760,12 +745,12 @@ function useComparison() {
         isFailedLoadingMetaData,
         isLoadingComparisonResult,
         isFailedLoadingComparisonResult,
-        hasNextVersions,
         createdBy,
         provenance,
         researchField,
         setMetaData,
         setComparisonType,
+        setPredicatesList,
         toggleProperty,
         onSortPropertiesEnd,
         toggleTranspose,
@@ -778,11 +763,11 @@ function useComparison() {
         setResponseHash,
         setUrlNeedsToUpdate,
         setShortLink,
-        setAuthors,
         loadCreatedBy,
         loadProvenanceInfos,
         loadVisualizations,
-        handleEditContributions
+        handleEditContributions,
+        fetchLiveData
     };
 }
 export default useComparison;

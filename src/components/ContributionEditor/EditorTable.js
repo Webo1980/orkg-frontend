@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { ScrollSyncPane } from 'react-scroll-sync';
 import { useFlexLayout, useTable } from 'react-table';
 import { useSticky } from 'react-table-sticky';
+import FlipMove from 'react-flip-move';
 
 const EditorTable = ({ scrollContainerBody }) => {
     const { contributions, papers, statements, properties, resources, literals } = useSelector(state => state.contributionEditor);
@@ -39,13 +40,13 @@ const EditorTable = ({ scrollContainerBody }) => {
     );
 
     return (
-        <div role="table" id="comparisonTable" {...getTableProps()} className="table sticky mb-0" style={{ height: 'max-content' }}>
+        <div role="table" id="comparisonTable" {...getTableProps()} className="table sticky mb-0 p-0" style={{ height: 'max-content' }}>
             <ScrollSyncPane group="one">
                 <div style={{ overflow: 'auto', top: '71px', position: 'sticky', zIndex: '3' }} className="disable-scrollbars">
                     {headerGroups.map(headerGroup => (
                         <div className="header" {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map(column => (
-                                <div {...column.getHeaderProps()} className="th">
+                                <div {...column.getHeaderProps()} className="th p-0">
                                     {column.render('Header')}
                                 </div>
                             ))}
@@ -56,21 +57,21 @@ const EditorTable = ({ scrollContainerBody }) => {
             <ScrollSyncPane group="one">
                 {/* paddingBottom for the 'add value' bottom, which is positioned partially below the table */}
                 <div ref={scrollContainerBody} style={{ overflow: 'auto', paddingBottom: 15 }}>
-                    <div {...getTableBodyProps()} className="comparisonBody" style={{ width: '100%' }}>
-                        {rows.map((row, i) => {
-                            prepareRow(row);
-                            return (
-                                <div {...row.getRowProps()} className="tr">
-                                    {row.cells.map(cell => {
-                                        return (
-                                            <div {...cell.getCellProps()} className="td">
+                    <div {...getTableBodyProps()} className="comparisonBody" style={{ ...getTableProps().style }}>
+                        <FlipMove duration={700} enterAnimation="accordionVertical" leaveAnimation="accordionVertical" className="p-0">
+                            {rows.map(row => {
+                                prepareRow(row);
+                                return (
+                                    <div {...row.getRowProps()} className="tr d-flex p-0" style={{ zIndex: 100 - row.index }}>
+                                        {row.cells.map(cell => (
+                                            <div {...cell.getCellProps()} className="td p-0">
                                                 {cell.render('Cell')}
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        })}
+                                        ))}
+                                    </div>
+                                );
+                            })}
+                        </FlipMove>
                     </div>
                 </div>
             </ScrollSyncPane>

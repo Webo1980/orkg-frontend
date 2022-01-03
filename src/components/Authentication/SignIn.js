@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword, getUserInformation } from 'services/backend
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Cookies } from 'react-cookie';
+import { checkCookie } from 'utils';
 import env from '@beam-australia/react-env';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'redux';
@@ -74,6 +75,8 @@ class SignIn extends Component {
                     error = 'Wrong email address or password';
                 } else if (e.error_description) {
                     error = e.error_description;
+                } else if (!checkCookie()) {
+                    error = 'Cookies must be enabled to sign in';
                 }
 
                 this.setState({ loading: false, errors: error });
@@ -83,7 +86,7 @@ class SignIn extends Component {
     render() {
         return (
             <>
-                <Form className="pl-3 pr-3 pt-2" onSubmit={this.signIn}>
+                <Form className="ps-3 pe-3 pt-2" onSubmit={this.signIn}>
                     {this.state.errors && <Alert color="danger">{this.state.errors}</Alert>}
 
                     {this.props.signInRequired && <Alert color="info">You need to be signed in to use this functionality</Alert>}

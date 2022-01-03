@@ -1,12 +1,13 @@
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Tippy from '@tippyjs/react';
-import { updatePaper } from 'actions/contributionEditor';
+import { paperUpdated } from 'slices/contributionEditorSlice';
 import useContributionEditor from 'components/ContributionEditor/hooks/useContributionEditor';
 import { Contribution, Delete, ItemHeader, ItemHeaderInner } from 'components/Comparison/styled';
 import EditPaperDialog from 'components/ViewPaper/EditDialog/EditPaperDialog';
 import useEditPaper from 'components/ViewPaper/EditDialog/hooks/useEditPaper';
 import PropTypes from 'prop-types';
+import env from '@beam-australia/react-env';
 import { memo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Button } from 'reactstrap';
@@ -32,7 +33,7 @@ const TableHeaderColumn = ({ contribution, paper }) => {
         setData(newData);
         setIsOpenEditModal(false);
         dispatch(
-            updatePaper({
+            paperUpdated({
                 id: paper.id,
                 title: newData.paper?.label
             })
@@ -42,9 +43,13 @@ const TableHeaderColumn = ({ contribution, paper }) => {
     return (
         <ItemHeader key={contribution.id}>
             <ItemHeaderInner className="position-relative contribution-editor">
-                <Tippy content="Edit paper's metadata">
+                <Tippy content="Edit paper's metadata" disabled={env('PWC_USER_ID') === contribution.created_by}>
                     <span>
-                        <Button color="link" className="text-secondary-darker p-0 text-left" onClick={handleEditPaper}>
+                        <Button
+                            color="link"
+                            className="text-secondary-darker p-0 text-start text-decoration-none"
+                            onClick={env('PWC_USER_ID') !== contribution.created_by ? handleEditPaper : undefined}
+                        >
                             {paper.label || <em>No title</em>}
                         </Button>
                     </span>

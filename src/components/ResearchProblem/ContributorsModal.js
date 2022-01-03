@@ -7,7 +7,7 @@ import ContributorCard from 'components/ContributorCard/ContributorCard';
 import PropTypes from 'prop-types';
 
 const ContributorsModal = ({ researchProblemId, openModal, setOpenModal }) => {
-    const { contributors, isLoading } = useResearchProblemContributors({
+    const { contributors, isLoading, isLoadingFailed } = useResearchProblemContributors({
         researchProblemId,
         pageSize: 19
     });
@@ -15,17 +15,17 @@ const ContributorsModal = ({ researchProblemId, openModal, setOpenModal }) => {
     return (
         <Modal isOpen={openModal} toggle={() => setOpenModal(v => !v)} size="lg">
             <ModalHeader toggle={() => setOpenModal(v => !v)}>
-                <Icon icon={faAward} className="text-primary mr-2" />
+                <Icon icon={faAward} className="text-primary me-2" />
                 Top 30 Contributors
             </ModalHeader>
             <ModalBody>
-                <div className="pl-3 pr-3">
+                <div className="ps-3 pe-3">
                     {!isLoading &&
                         contributors.map((contributor, index) => {
                             return (
                                 <div className="pt-2 pb-2" key={`rp${index}`}>
                                     <div className="d-flex">
-                                        <div className="pl-4 pr-4 pt-2">{index + 1}.</div>
+                                        <div className="ps-4 pe-4 pt-2">{index + 1}.</div>
                                         <div>
                                             <ContributorCard
                                                 contributor={{
@@ -41,12 +41,13 @@ const ContributorsModal = ({ researchProblemId, openModal, setOpenModal }) => {
                                 </div>
                             );
                         })}
-                    {!isLoading && contributors?.length === 0 && (
+                    {!isLoading && !isLoadingFailed && contributors?.length === 0 && (
                         <div className="mt-4 mb-4">
                             No contributors yet.
                             <i> Be the first contributor!</i>
                         </div>
                     )}
+                    {!isLoading && isLoadingFailed && <div className="mt-4 mb-4 text-danger">Something went wrong while loading contributors.</div>}
                     {isLoading && (
                         <div className="mt-4 mb-4">
                             <ContentLoader height={130} width={200} foregroundColor="#d9d9d9" backgroundColor="#ecebeb">
