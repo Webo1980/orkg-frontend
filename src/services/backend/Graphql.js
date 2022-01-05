@@ -233,3 +233,51 @@ export const getPapersbyProblem = input => {
   }`;
     return submitGetRequest(`${graphql}?query=${g}`);
 };
+
+export const getResearcherDetails = input => {
+    const g = `{
+      person(id: "${input}") {
+        id
+        type
+        name
+        employment {
+          organizationName
+          organizationId
+          startDate
+          endDate
+        }
+        publications(first: 50) {
+          totalCount
+          nodes {
+            id
+            type
+            titles {
+              title
+            }
+          }
+        }
+        datasets(first: 50) {
+          totalCount
+          nodes {
+            id
+            type
+            titles {
+              title
+            }
+          }
+        }
+        softwares {
+          totalCount
+          nodes {
+            id
+            type
+            titles {
+              title
+            }
+          }
+        }
+      }
+    }`;
+
+    return submitGetRequest(`${federatedGraphql}?query=${g}`);
+};

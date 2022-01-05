@@ -60,6 +60,7 @@ const routes = {
     ADD_COMPARISON: '/add-comparison',
     PAPER_DETAIL: '/paper-details/:doi',
     FEDRATED_UI: '/orkg-commons',
+    RESEARCHER_DETAIL: '/researcher-details/:orcid',
     /* Legacy routes */
     PREDICATES: '/predicates',
     PREDICATE: '/predicate/:id',

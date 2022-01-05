@@ -1,0 +1,128 @@
+import { useState } from 'react';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import styled from 'styled-components';
+import Tippy from '@tippyjs/react';
+import PropTypes from 'prop-types';
+import Publications from './Publications';
+import Project from './Project';
+import CitationsReferences from './CitationsReferences';
+
+const AnimationContainer = styled(CSSTransition)`
+    &.fadeIn-enter {
+        opacity: 0;
+    }
+
+    &.fadeIn-enter.fadeIn-enter-active {
+        opacity: 1;
+        transition: 1s opacity;
+    }
+`;
+
+const FeaturedTabs = styled.div`
+    .tab {
+        margin-bottom: 0;
+        padding: 15px;
+        color: #4f4f4f;
+        cursor: pointer;
+        border-bottom: 2px solid ${props => props.theme.lightDarker};
+        -webkit-transition: border 500ms ease-out;
+        -moz-transition: border 500ms ease-out;
+        -o-transition: border 500ms ease-out;
+        transition: border 500ms ease-out;
+        &.active,
+        &:hover {
+            border-bottom: 2px solid #e86161;
+            color: white;
+            background-color: #e86161;
+        }
+    }
+`;
+
+const SidebarStyledBox = styled.div`
+    flex-grow: 1;
+    @media (max-width: 768px) {
+        margin-top: 20px;
+    }
+`;
+
+const ResearcherDetailsTabs = ({ objectInformation }) => {
+    const [activeTab, setActiveState] = useState(2);
+
+    return (
+        <SidebarStyledBox className="box rounded-lg mt-3">
+            <FeaturedTabs className="clearfix d-flex">
+                <div
+                    role="button"
+                    tabIndex="0"
+                    onKeyDown={e => e.keyCode === 13 && setActiveState(1)}
+                    className={`h6 col-md-2 text-center tab ${activeTab === 1 ? 'active' : ''}`}
+                    onClick={() => setActiveState(1)}
+                >
+                    {console.log(objectInformation)}
+                    Publications
+                </div>
+                <div
+                    role="button"
+                    tabIndex="0"
+                    onKeyDown={e => e.keyCode === 13 && setActiveState(2)}
+                    className={`h6 col-md-2 text-center tab ${activeTab === 2 ? 'active' : ''}`}
+                    onClick={() => setActiveState(2)}
+                >
+                    Datasets
+                </div>
+                <div
+                    role="button"
+                    tabIndex="0"
+                    onKeyDown={e => e.keyCode === 13 && setActiveState(3)}
+                    className={`h6 col-md-2 text-center tab ${activeTab === 3 ? 'active' : ''}`}
+                    onClick={() => setActiveState(3)}
+                >
+                    Softwares
+                </div>
+                <div
+                    role="button"
+                    tabIndex="0"
+                    onKeyDown={e => e.keyCode === 13 && setActiveState(4)}
+                    className={`h6 col-md-2 text-center tab ${activeTab === 4 ? 'active' : ''}`}
+                    onClick={() => setActiveState(4)}
+                >
+                    SmartReviews
+                </div>
+            </FeaturedTabs>
+            <TransitionGroup exit={false}>
+                {activeTab === 1 ? (
+                    <AnimationContainer key={1} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        {/* <Datasets objectInformation={objectInformation.citations} /> */}
+                        <div style={{ minHeight: '300px' }}>
+                            <Publications objectInformation={objectInformation.publications} />
+                        </div>
+                    </AnimationContainer>
+                ) : activeTab === 2 ? (
+                    <AnimationContainer key={2} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div style={{ minHeight: '300px' }}>
+                            <Publications objectInformation={objectInformation.datasets} />
+                        </div>
+                    </AnimationContainer>
+                ) : activeTab === 3 ? (
+                    <AnimationContainer key={3} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div style={{ minHeight: '300px' }}>
+                            <Publications objectInformation={objectInformation.softwares} />
+                        </div>
+                    </AnimationContainer>
+                ) : (
+                    <AnimationContainer key={4} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div style={{ minHeight: '300px' }}>
+                            <CitationsReferences objectInformation={objectInformation.datasets} />
+                        </div>
+                    </AnimationContainer>
+                )}
+            </TransitionGroup>
+        </SidebarStyledBox>
+    );
+};
+
+ResearcherDetailsTabs.propTypes = {
+    objectInformation: PropTypes.object
+};
+
+export default ResearcherDetailsTabs;
