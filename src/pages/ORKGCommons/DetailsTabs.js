@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import Tippy from '@tippyjs/react';
 import PropTypes from 'prop-types';
 import Datasets from './Datasets';
+import Project from './Project';
+import CitationsReferences from './CitationsReferences';
 
 const AnimationContainer = styled(CSSTransition)`
     &.fadeIn-enter {
@@ -20,7 +22,7 @@ const FeaturedTabs = styled.div`
     .tab {
         margin-bottom: 0;
         padding: 15px;
-        color: #bebbac;
+        color: #4f4f4f;
         cursor: pointer;
         border-bottom: 2px solid ${props => props.theme.lightDarker};
         -webkit-transition: border 500ms ease-out;
@@ -30,8 +32,8 @@ const FeaturedTabs = styled.div`
         &.active,
         &:hover {
             border-bottom: 2px solid #e86161;
-            color: #646464;
-            background-color: grey;
+            color: white;
+            background-color: #e86161;
         }
     }
 `;
@@ -95,9 +97,23 @@ const DetailsTabs = ({ objectInformation }) => {
                             <Datasets objectInformation={objectInformation.citations} />
                         </div>
                     </AnimationContainer>
-                ) : (
+                ) : activeTab === 2 ? (
                     <AnimationContainer key={2} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
-                        <div> 2 </div>
+                        <div style={{ minHeight: '300px' }}>
+                            <Project objectInformation={objectInformation.project} />
+                        </div>
+                    </AnimationContainer>
+                ) : activeTab === 3 ? (
+                    <AnimationContainer key={3} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div style={{ minHeight: '300px' }}>
+                            <CitationsReferences objectInformation={objectInformation.metadata.citations} />
+                        </div>
+                    </AnimationContainer>
+                ) : (
+                    <AnimationContainer key={4} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
+                        <div style={{ minHeight: '300px' }}>
+                            <CitationsReferences objectInformation={objectInformation.metadata.references} />
+                        </div>
                     </AnimationContainer>
                 )}
             </TransitionGroup>

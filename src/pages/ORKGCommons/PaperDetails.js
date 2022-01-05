@@ -43,6 +43,7 @@ import { NavLink } from 'reactstrap';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { Badge } from 'reactstrap';
 import DetailsTabs from './DetailsTabs';
+import { faGlobe, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 
 const GlobalStyle = createGlobalStyle`
     // ensure printing only prints the contents and no other elements
@@ -92,10 +93,10 @@ const PaperDetails = () => {
     const [abstract, setAbstract] = useState(null);
     const [publisher, setPublisher] = useState(null);
     const [isLoading, setIsLoading] = useState(null);
-    const [isLoadingContent, setIsLoadingContent] = useState(false);
-    const [text, setText] = useState('');
+    const [project, setProject] = useState(null);
+    const [orkgId, setOrkgId] = useState('');
     const { doi } = useParams();
-    const [search, setSearch] = useState(false);
+    const [otherMetadata, setOtherMetadata] = useState(null);
     useEffect(() => {
         document.title = 'Paper Details';
         const getPaperData = async id => {
@@ -114,6 +115,9 @@ const PaperDetails = () => {
                     setAuthors(authors);
                     setCitations(data.citations.nodes);
                     setAbstract(data.descriptions[0].description ? r.data.work.descriptions[0].description : '');
+                    setProject(data.project ? data.project : '');
+                    setOrkgId(data.paper);
+                    setOtherMetadata(data.semanticScholarMetadata);
                     //setPublisher(data.publisher ? data.publisher : '');
                     //result.push({
                     //title: r.data.work.titles[0].title,
@@ -135,7 +139,6 @@ const PaperDetails = () => {
 
     const getValue = e => {
         console.log(e);
-        setText(e);
     };
 
     return (
@@ -154,16 +157,24 @@ const PaperDetails = () => {
                                             <a href={`${ROUTES.PAPER_DETAIL}/${id}`} target="_blank" rel="noopener noreferrer">
                                                 {title ? title : <em>No title</em>}
                                             </a>
+                                            <div>
+                                                <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: 'R531' })}>
+                                                    <small>
+                                                        <Icon size="sm" icon={faGlobe} /> ORKG description {''}
+                                                        {id && <Icon size="sm" icon={faExternalLinkAlt} />}
+                                                    </small>
+                                                </Link>
+                                            </div>
                                         </>
                                     )}
                                     <br />
-                                    <small>
-                                        {authors && (
-                                            <>
-                                                {authors.map((r, index) => {
-                                                    if (r.name) {
-                                                        return (
-                                                            <>
+                                    {authors && (
+                                        <>
+                                            {authors.map((r, index) => {
+                                                if (r.name) {
+                                                    return (
+                                                        <>
+                                                            {r.id ? (
                                                                 <NavLink
                                                                     className="p-0"
                                                                     style={{ display: 'contents' }}
@@ -172,25 +183,30 @@ const PaperDetails = () => {
                                                                     rel="noopener noreferrer"
                                                                 >
                                                                     <Badge color="light" className="mr-2 mb-2" key={index}>
-                                                                        <Icon size="sm" icon={faUser} /> {''}
+                                                                        <Icon size="sm" icon={faUser} className="text-primary" /> {''}
                                                                         {r.name} {''}
                                                                     </Badge>
                                                                 </NavLink>
-                                                            </>
-                                                        );
-                                                    }
-                                                })}
-                                            </>
-                                        )}
-                                    </small>
+                                                            ) : (
+                                                                <Badge color="light" className="mr-2 mb-2" key={index}>
+                                                                    <Icon size="sm" icon={faUser} className="text-secondary" /> {''}
+                                                                    {r.name} {''}
+                                                                </Badge>
+                                                            )}
+                                                        </>
+                                                    );
+                                                }
+                                            })}
+                                        </>
+                                    )}
                                     <br />
-                                    {abstract && abstract}
+                                    <small>{abstract && abstract}</small>
                                 </div>
                             </div>
                         )}
                     </div>
                 </PaperCardStyled>
-                {citations && <DetailsTabs objectInformation={{ citations: citations }} />}
+                {citations && <DetailsTabs objectInformation={{ citations: citations, project: project, metadata: otherMetadata }} />}
             </Container>
         </>
     );

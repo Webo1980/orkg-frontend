@@ -64,6 +64,25 @@ export const getWorksDataWithCitations = input => {
         titles {
           title
         }
+        Paper {
+          resource_id
+        }
+        project {
+          funder
+          project
+        }
+        semanticScholarMetadata {
+          citations {
+            title
+            doi
+            year
+          }
+          references {
+            title
+            doi
+            year
+          }
+        }
         descriptions {
           description
         }
@@ -72,6 +91,8 @@ export const getWorksDataWithCitations = input => {
           familyName
           id
         }
+        publisher
+        publicationYear
         citations {
           nodes {
             doi
@@ -84,10 +105,12 @@ export const getWorksDataWithCitations = input => {
               id
             }
             publisher
+            type
           }
         }
       }
-    }`;
+    }
+    `;
     return submitGetRequest(`${federatedGraphql}?query=${query}`);
 };
 
