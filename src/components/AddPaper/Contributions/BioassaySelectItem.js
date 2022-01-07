@@ -15,7 +15,7 @@ export default function BioassaySelectItem(props) {
                 <div>
                     {Object.keys(props.data.labels).map(labelKey => (
                         <StatementsGroupStyle key={`p${props.data.properties[labelKey]}`} className="noTemplate">
-                            <div className="row no-gutters">
+                            <div className="row g-0">
                                 <PropertyStyle className="col-4" tabIndex="0">
                                     <div className="propertyLabel">
                                         <Label className=" mr-2">
