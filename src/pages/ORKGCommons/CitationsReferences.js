@@ -33,13 +33,14 @@ const CitationsReferences = props => {
 
     return (
         <>
-            <Container className="pb-8 mt-4 mb-4">
+            <Container className="pb-4 mt-2 mb-4">
                 <>
                     {props.objectInformation && (
                         <ListGroup>
                             {props.objectInformation ? (
                                 <>
                                     {props.objectInformation.map(o => {
+                                        console.log(o);
                                         return (
                                             <ContentCard
                                                 objectInformation={{

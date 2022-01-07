@@ -146,7 +146,7 @@ const PaperDetails = () => {
             <Container className="d-flex align-items-center mt-4 mb-4">
                 <h1 className="h5 flex-shrink-0 mb-0">Paper Details</h1>
             </Container>
-            <Container className="mt-4 mb-4">
+            <Container className="box rounded p-4 clearfix">
                 <PaperCardStyled className="mt-2 pl-4 list-group-item list-group-item-action pr-2">
                     <div className="row">
                         {!isLoading && (

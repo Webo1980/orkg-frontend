@@ -173,11 +173,11 @@ const ResearcherDetails = () => {
                                 </AuthorMetaInfo>
                             )}
                         </div>
+                        {name && !isLoading && (
+                            <ResearcherDetailsTabs objectInformation={{ publications: publications, datasets: datasets, softwares: softwares }} />
+                        )}
                     </Container>
                 </div>
-            )}
-            {name && !isLoading && (
-                <ResearcherDetailsTabs objectInformation={{ publications: publications, datasets: datasets, softwares: softwares }} />
             )}
         </>
     );

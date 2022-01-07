@@ -24,7 +24,6 @@ const PaperCardStyled = styled.div`
 const Datasets = props => {
     useEffect(() => {
         document.title = 'Paper Details';
-        console.log(props);
     }, []);
 
     const getValue = e => {
@@ -33,13 +32,15 @@ const Datasets = props => {
 
     return (
         <>
-            <Container className="pb-8 mt-4 mb-4">
+            <Container className="pb-2 mt-2 mb-2">
                 <>
                     {props.objectInformation && (
                         <ListGroup>
                             {props.objectInformation ? (
                                 <>
                                     {props.objectInformation.map(o => {
+                                        console.log('------------');
+                                        console.log(o);
                                         return (
                                             <ContentCard
                                                 objectInformation={{

@@ -34,14 +34,13 @@ const ContentCard = props => {
     //const comparison = useSelector(state => state.viewPaper.comparison);
 
     return (
-        <PaperCardStyled className="list-group-item list-group-item-action pr-2">
+        <PaperCardStyled className="list-group-item list-group-item-action">
             <div className="row">
                 <div className="d-flex">
                     <div className="d-block">
                         {console.log(props.objectInformation)}
                         {props.objectInformation && (
                             <>
-                                {console.log(encodeURIComponent(props.objectInformation.doi))}
                                 {/* <a href={`${ROUTES.PAPER_DETAIL}/${props.objectInformation.id}`} target="_blank" rel="noopener noreferrer"> */}
                                 {/* {props.objectInformation.title ? props.objectInformation.title : <em>No title</em>} */}
                                 {/* </a> */}
