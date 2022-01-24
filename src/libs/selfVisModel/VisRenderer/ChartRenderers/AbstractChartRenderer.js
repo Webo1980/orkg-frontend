@@ -54,7 +54,7 @@ class AbstractChartRenderer extends Component {
         }
         // addLabels to charts
         return (
-            <div style={{ padding: '10px' }}>
+            <div style={{ padding: '10px', textTransform: 'capitalize' }}>
                 {renderingData ? (
                     <Chart
                         controls={this.state.fakeControls}
