@@ -43,7 +43,7 @@ import { NavLink } from 'reactstrap';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { Badge } from 'reactstrap';
 import DetailsTabs from './DetailsTabs';
-import { faGlobe, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faExternalLinkAlt, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const GlobalStyle = createGlobalStyle`
     // ensure printing only prints the contents and no other elements
@@ -95,6 +95,9 @@ const PaperDetails = () => {
     const [isLoading, setIsLoading] = useState(null);
     const [project, setProject] = useState(null);
     const [orkgId, setOrkgId] = useState('');
+    const [orkgData, setOrkgData] = useState('');
+    const [topics, setTopics] = useState('');
+    const [contribution, setContribution] = useState('');
     const { doi } = useParams();
     const [otherMetadata, setOtherMetadata] = useState(null);
     useEffect(() => {
@@ -102,37 +105,49 @@ const PaperDetails = () => {
         const getPaperData = async id => {
             console.log(id);
             setIsLoading(true);
-            let result = [];
-            await getWorksDataWithCitations(id).then(r => {
+            await getWorksDataWithCitations(id, 'paper').then(r => {
                 if (r.data) {
-                    const data = r.data.work;
+                    const data = r.data.semanticScholarPaper;
                     console.log(r.data);
-                    setTitle(data.titles[0].title);
-                    setId(data.id);
-                    let authors = data.creators.map(c => {
-                        return { name: c.givenName !== null ? c.givenName + ' ' + c.familyName : '', id: c.id };
+                    setTitle(data.title);
+                    setId(data.doi);
+                    const authors = data.authors.map(c => {
+                        return { name: c, id: '' };
                     });
                     setAuthors(authors);
-                    setCitations(data.citations.nodes);
-                    setAbstract(data.descriptions[0].description ? r.data.work.descriptions[0].description : '');
+                    setCitations(data.work.citations.nodes);
+                    setAbstract(data.abstract ? data.abstract : '');
                     setProject(data.project ? data.project : '');
-                    setOrkgId(data.paper);
-                    setOtherMetadata(data.semanticScholarMetadata);
-                    //setPublisher(data.publisher ? data.publisher : '');
-                    //result.push({
-                    //title: r.data.work.titles[0].title,
-                    //id: r.data.work.id,
-                    //authors: r.data.work.creators.map(c => {
-                    //return { name: c.givenName !== null ? c.givenName + ' ' + c.familyName : '', id: c.id };
-                    //}),
-                    //citations: r.data.work.citations.nodes,
-                    //abstract: r.data.work.descriptions[0].description ? r.data.work.descriptions[0].description : ''
-                    //});
+                    console.log(data.project.length);
+                    setOrkgId(data.Paper && data.Paper.resource_id ? data.Paper.resource_id : '');
+                    setOtherMetadata({ citations: data.citations ? data.citations : '', references: data.references ? data.references : '' });
+                    let p = [];
+                    let ct = 0;
+                    if (data.Paper && data.Paper.contributions && data.Paper.contributions.length > 0) {
+                        const contributions = data.Paper.contributions;
+                        if (contributions.length > 0) {
+                            ct = contributions.length;
+                            setContribution(contributions[1]);
+                            for (let j = 0; j < 1; j++) {
+                                if (contributions[j].details.length > 0) {
+                                    const details = contributions[j].details;
+                                    for (let k = 0; k < details.length; k++) {
+                                        if (details[k].property.includes('research problem')) {
+                                            console.log(p.indexOf(details[k].label));
+                                            if (p.indexOf(details[k].label) === -1) {
+                                                p.push(details[k].label);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    setOrkgData({ ct: ct, rp: p });
+                    setTopics(data.topics ? data.topics : '');
                 }
                 setIsLoading(false);
             });
-            //setData(result);
-            //console.log(result);
         };
         getPaperData(doi);
     }, [doi]);
@@ -147,9 +162,14 @@ const PaperDetails = () => {
                 <h1 className="h5 flex-shrink-0 mb-0">Paper Details</h1>
             </Container>
             <Container className="box rounded p-4 clearfix">
-                <PaperCardStyled className="mt-2 pl-4 list-group-item list-group-item-action pr-2">
-                    <div className="row">
-                        {!isLoading && (
+                {isLoading && (
+                    <div className="text-center mt-4 mb-4">
+                        <Icon icon={faSpinner} spin /> Loading
+                    </div>
+                )}
+                {!isLoading && (
+                    <PaperCardStyled className="mt-2 pl-4 pr-4 list-group-item list-group-item-action">
+                        <div className="row">
                             <div className="d-flex">
                                 <div className="d-block">
                                     {title && (
@@ -157,14 +177,16 @@ const PaperDetails = () => {
                                             <a href={`${ROUTES.PAPER_DETAIL}/${id}`} target="_blank" rel="noopener noreferrer">
                                                 {title ? title : <em>No title</em>}
                                             </a>
-                                            <div>
-                                                <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: 'R531' })}>
-                                                    <small>
-                                                        <Icon size="sm" icon={faGlobe} /> ORKG description {''}
-                                                        {id && <Icon size="sm" icon={faExternalLinkAlt} />}
-                                                    </small>
-                                                </Link>
-                                            </div>
+                                            {orkgId && (
+                                                <div>
+                                                    <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: orkgId })}>
+                                                        <small>
+                                                            <Icon size="sm" icon={faGlobe} /> ORKG description {''}
+                                                            {id && <Icon size="sm" icon={faExternalLinkAlt} />}
+                                                        </small>
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </>
                                     )}
                                     <br />
@@ -175,18 +197,16 @@ const PaperDetails = () => {
                                                     return (
                                                         <>
                                                             {r.id ? (
-                                                                <NavLink
-                                                                    className="p-0"
-                                                                    style={{ display: 'contents' }}
-                                                                    href={r.id ? `https://orcid/${r.id}` : ''}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
+                                                                <Link
+                                                                    to={reverse(ROUTES.RESEARCHER_DETAIL, {
+                                                                        orcid: r.id.replace('https://orcid.org/', '')
+                                                                    })}
                                                                 >
                                                                     <Badge color="light" className="mr-2 mb-2" key={index}>
                                                                         <Icon size="sm" icon={faUser} className="text-primary" /> {''}
                                                                         {r.name} {''}
                                                                     </Badge>
-                                                                </NavLink>
+                                                                </Link>
                                                             ) : (
                                                                 <Badge color="light" className="mr-2 mb-2" key={index}>
                                                                     <Icon size="sm" icon={faUser} className="text-secondary" /> {''}
@@ -200,13 +220,29 @@ const PaperDetails = () => {
                                         </>
                                     )}
                                     <br />
-                                    <small>{abstract && abstract}</small>
+                                    <small>
+                                        {abstract && abstract}
+                                        {orkgId && orkgData && (
+                                            <div>
+                                                <br />
+                                                <b>Research contributions</b>: {orkgData.ct}
+                                                <br />
+                                                <b>Research problem</b>:
+                                                {orkgData.rp.map(r => {
+                                                    return <>{r}</>;
+                                                })}
+                                            </div>
+                                        )}
+                                    </small>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </PaperCardStyled>
-                {citations && <DetailsTabs objectInformation={{ citations: citations, project: project, metadata: otherMetadata }} />}
+                        </div>
+                    </PaperCardStyled>
+                )}
+                <br />
+                {!isLoading && citations && (
+                    <DetailsTabs objectInformation={{ citations: citations, project: project, metadata: otherMetadata, topics: topics }} />
+                )}
             </Container>
         </>
     );

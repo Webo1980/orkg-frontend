@@ -23,7 +23,7 @@ const PaperCardStyled = styled.div`
 
 const Publications = props => {
     useEffect(() => {
-        document.title = 'Paper Details';
+        //document.title = 'Paper Details';
         console.log(props);
     }, []);
 
@@ -35,25 +35,28 @@ const Publications = props => {
         <>
             <Container className="pb-8 mt-4 mb-4">
                 <>
-                    {props.objectInformation && (
+                    {props.objectInformation && props.objectInformation.length > 0 ? (
                         <ListGroup>
-                            {props.objectInformation ? (
+                            {props.objectInformation && (
                                 <>
                                     {props.objectInformation.map(o => {
                                         return (
                                             <ContentCard
                                                 objectInformation={{
                                                     id: o.id,
-                                                    title: o.titles[0].title
+                                                    title: o.titles[0].title,
+                                                    authors: o.creators.map(c => {
+                                                        return { name: c.givenName !== null ? c.givenName + ' ' + c.familyName : '', id: c.id };
+                                                    })
                                                 }}
                                             />
                                         );
                                     })}
                                 </>
-                            ) : (
-                                <div className="text-center mt-4 mb-4">No Datasets</div>
                             )}
                         </ListGroup>
+                    ) : (
+                        <div className="text-center mt-4 mb-4">No information</div>
                     )}
                 </>
             </Container>

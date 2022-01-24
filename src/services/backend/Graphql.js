@@ -25,13 +25,7 @@ export const getWorksData = input => {
             }
         }
     `;
-    //const g =
-    //'query {work(id: "https://doi.org/10.1101/2020.03.08.20030643") {id titles {title} creators { id name familyName } citations { totalCount nodes { id titles {title}publisher}}}}';
-
     return submitGetRequest(`${federatedGraphql}?query=${query}`);
-    //return GET_PETS;
-    //const { data, loading, error } = useQuery(GET_PETS);
-    //console.log(useQuery(GET_PETS));
 };
 
 export const getWorksDatabyLabel = input => {
@@ -56,60 +50,67 @@ export const getWorksDatabyLabel = input => {
     return submitGetRequest(`${federatedGraphql}?query=${query}`);
 };
 
-export const getWorksDataWithCitations = input => {
+export const getWorksDataWithCitations = (input, type) => {
+    let orkg_query = '';
+    if (type === 'paper') {
+        orkg_query = `Paper {
+      resource_id
+      contributions {
+        details {
+          property
+          label
+        }
+      }
+    }`;
+    }
     const query = `
     {
-      work(id: "${input}") {
-        id
-        titles {
+      semanticScholarPaper(doi: "${input}") {
+        doi
+        title
+        abstract
+        authors
+        citations {
           title
+          doi
+        }
+        references {
+          title
+          doi
         }
         Paper {
           resource_id
+          contributions {
+            details {
+              property
+              label
+            }
+          }
         }
         project {
           funder
           project
         }
-        semanticScholarMetadata {
+        work {
           citations {
-            title
-            doi
-            year
-          }
-          references {
-            title
-            doi
-            year
-          }
-        }
-        descriptions {
-          description
-        }
-        creators {
-          givenName
-          familyName
-          id
-        }
-        publisher
-        publicationYear
-        citations {
-          nodes {
-            doi
-            titles {
-              title
+            nodes {
+              doi
+              titles {
+                title
+              }
+              creators {
+                familyName
+                givenName
+                id
+              }
             }
-            creators {
-              givenName
-              familyName
-              id
-            }
-            publisher
-            type
           }
+        }
+        topics {
+          topic
         }
       }
-    }
+    }    
     `;
     return submitGetRequest(`${federatedGraphql}?query=${query}`);
 };
@@ -118,24 +119,6 @@ export const getPapersbyLabelfromORKG = input => {
     const c = [];
     c.push({ label_contains: input });
     c.push({ label_contains: input === input.toLowerCase() ? input.toUpperCase() : input.toLowerCase() });
-    //c.push({ label_contains: 'covid-19' });
-    //let c = [{ label_contains: 'covid-19' }, { label_contains: 'COVID-19' }, { label_contains: 'corona' }];
-    //const g = `{ findPaperByLabel(filter: { OR: [
-    //${c.map(r => {
-    //return `{label_contains:"${r.label_contains}"}`;
-    //})}
-    //]}) { label authors { label id { label } } contributions { label contribution_details { property { label } label contribution_details { property { label } label contribution_details { property { label } label } } } } } }`;
-    //console.log(g);
-
-    //const g = `{Resource(filter: { OR: [
-    //${c.map(r => {
-    //return `{label_contains:"${r.label_contains}"}`;
-    //})} ]}) { relatedPapers { label paper { label resource_id } details(value: "${value}") { label details { label } average } work { id citationCount } } } }`;
-
-    //if value.length> 0
-    //then include this value in query
-    //for example
-    //papers(where: {}, problem: '')
 
     const g = `{
             papers(
@@ -165,46 +148,7 @@ export const getPapersbyLabelfromORKG = input => {
             }
           }`;
 
-    /*const g = `{
-            problems(
-              where: {
-                OR: [${c.map(r => {
-                    return `{label_CONTAINS:"${r.label_contains}"}`;
-                })}]
-              }
-            ) {
-              label
-              papers {
-                label
-                doi {
-                  label
-                }
-                authors {
-                  label
-                id {
-                  label
-                }
-              }
-                contributions {
-                  details {
-                    property
-                    label
-                  }
-                }
-              }
-            }
-      }`;*/
-
-    //const g =
-    //'{ Resource(label: "Determination of the COVID-19 basic reproduction number") { relatedPapers { label paper { label resource_id } details(value: "Confidence interval") { label details { label } average } work { id citationCount } } } }';
-    //const g =
-    //'query {work(id: "https://doi.org/10.1101/2020.03.08.20030643") {id titles {title} creators { id name familyName } citations { totalCount nodes { id titles {title}publisher}}}}';
-
-    //const g = '{ Paper(doi: "10.1109/TITS.2013.2296697") { label resource_id authors { label id { label } } } }';
     return submitGetRequest(`${graphql}?query=${g}`);
-    //return GET_PETS;
-    //const { data, loading, error } = useQuery(GET_PETS);
-    //console.log(useQuery(GET_PETS));
 };
 
 export const getPapersbyProblem = input => {
@@ -254,6 +198,11 @@ export const getResearcherDetails = input => {
             titles {
               title
             }
+            creators {
+              givenName
+              familyName
+              id
+            }
           }
         }
         datasets(first: 50) {
@@ -264,6 +213,11 @@ export const getResearcherDetails = input => {
             titles {
               title
             }
+            creators {
+              givenName
+              familyName
+              id
+            }
           }
         }
         softwares {
@@ -273,6 +227,11 @@ export const getResearcherDetails = input => {
             type
             titles {
               title
+            }
+            creators {
+              givenName
+              familyName
+              id
             }
           }
         }

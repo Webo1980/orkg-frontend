@@ -283,31 +283,30 @@ const Content = input => {
         <>
             <Container className="mt-4">
                 <Row>
-                    <Col className="col-4">
-                        <div className="box p-4">
-                            {!isLoadingPapers && researchProblems && researchProblems.length > 0 && (
-                                <>
-                                    {/* Research problem: <Input id="problem_content" onChange={e => getValue(e.target.value)} value={text} /> */}
-                                    Research Problem:
-                                    <Select
-                                        value={rp}
-                                        onChange={v => getValue(v)}
-                                        onClick={v => getValue(v)}
-                                        options={researchProblems}
-                                        blurInputOnSelect
-                                        openMenuOnFocus
-                                        className="flex-grow-1 mr-1 focus-primary"
-                                        classNamePrefix="react-select"
-                                        placeholder="Select research problem"
-                                    />
-                                    <br />
-                                    {console.log(facets)}
-                                    {facets && facets.length > 0 && <DisplayFacets facets={facets} getFacetsData={getFacetsData} />}
-                                </>
-                            )}
-                        </div>
-                    </Col>
-                    <Col className="col-8">
+                    {/* <Col className="col-4"> */}
+                    {/* <div className="box p-4"> */}
+                    {/* {!isLoadingPapers && researchProblems && researchProblems.length > 0 && ( */}
+                    {/* <> */}
+                    {/* Research Problem: */}
+                    {/* <Select */}
+                    {/* value={rp} */}
+                    {/* onChange={v => getValue(v)} */}
+                    {/* onClick={v => getValue(v)} */}
+                    {/* options={researchProblems} */}
+                    {/* blurInputOnSelect */}
+                    {/* openMenuOnFocus */}
+                    {/* className="flex-grow-1 mr-1 focus-primary" */}
+                    {/* classNamePrefix="react-select" */}
+                    {/* placeholder="Select research problem" */}
+                    {/* /> */}
+                    {/* <br /> */}
+                    {/* {console.log(facets)} */}
+                    {/* {facets && facets.length > 0 && <DisplayFacets facets={facets} getFacetsData={getFacetsData} />} */}
+                    {/* </> */}
+                    {/* )} */}
+                    {/* </div> */}
+                    {/* </Col>*/}
+                    <Col className="col-12">
                         <div className="box p-4">
                             {!isLoadingPapers && data && (
                                 <ListGroup>

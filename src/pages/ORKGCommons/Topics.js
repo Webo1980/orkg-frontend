@@ -21,7 +21,7 @@ const PaperCardStyled = styled.div`
     }
 `;
 
-const Project = props => {
+const Topics = props => {
     useEffect(() => {
         document.title = 'Paper Details';
         console.log(props);
@@ -35,20 +35,24 @@ const Project = props => {
         <>
             <Container className="pb-8 mt-4 mb-4">
                 <>
-                    {props.objectInformation && props.objectInformation.funder ? (
-                        <ListGroup>
+                    {props.objectInformation && props.objectInformation ? (
+                        <div>
                             {props.objectInformation ? (
-                                <div>
-                                    Funder: {props.objectInformation.funder}
-                                    <br />
-                                    Project: {props.objectInformation.project}
-                                </div>
+                                <>
+                                    {props.objectInformation.topic.map(o => {
+                                        return (
+                                            <PaperCardStyled className="list-group-item list-group-item-action">
+                                                {o.slice(0, 1).toUpperCase() + o.slice(1, o.length)}
+                                            </PaperCardStyled>
+                                        );
+                                    })}
+                                </>
                             ) : (
-                                <div className="text-center mt-4 mb-4">No project</div>
+                                <div className="text-center mt-4 mb-4">No topics</div>
                             )}
-                        </ListGroup>
+                        </div>
                     ) : (
-                        <div className="text-center mt-4 mb-4">No project</div>
+                        <div className="text-center mt-4 mb-4">No topics</div>
                     )}
                 </>
             </Container>
@@ -56,8 +60,8 @@ const Project = props => {
     );
 };
 
-Project.propTypes = {
-    objectInformation: PropTypes.object
+Topics.propTypes = {
+    objectInformation: PropTypes.array
 };
 
-export default Project;
+export default Topics;

@@ -23,7 +23,7 @@ const PaperCardStyled = styled.div`
 
 const Datasets = props => {
     useEffect(() => {
-        document.title = 'Paper Details';
+        //document.title = 'Dataset Details';
     }, []);
 
     const getValue = e => {
@@ -34,7 +34,7 @@ const Datasets = props => {
         <>
             <Container className="pb-2 mt-2 mb-2">
                 <>
-                    {props.objectInformation && (
+                    {props.objectInformation && props.objectInformation.length > 0 ? (
                         <ListGroup>
                             {props.objectInformation ? (
                                 <>
@@ -55,9 +55,11 @@ const Datasets = props => {
                                     })}
                                 </>
                             ) : (
-                                <div className="text-center mt-4 mb-4">No Datasets</div>
+                                <div className="text-center mt-4 mb-4">No information</div>
                             )}
                         </ListGroup>
+                    ) : (
+                        <div className="text-center mt-4 mb-4">No information</div>
                     )}
                 </>
             </Container>

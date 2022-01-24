@@ -44,7 +44,11 @@ const ContentCard = props => {
                                 {/* <a href={`${ROUTES.PAPER_DETAIL}/${props.objectInformation.id}`} target="_blank" rel="noopener noreferrer"> */}
                                 {/* {props.objectInformation.title ? props.objectInformation.title : <em>No title</em>} */}
                                 {/* </a> */}
-                                <Link to={reverse(ROUTES.PAPER_DETAIL, { doi: encodeURIComponent(props.objectInformation.id) })}>
+                                <Link
+                                    to={reverse(ROUTES.PAPER_DETAIL, {
+                                        doi: encodeURIComponent(props.objectInformation.id.replace('https://doi.org/', ''))
+                                    })}
+                                >
                                     {props.objectInformation.title ? props.objectInformation.title : <em>No title</em>}
                                 </Link>{' '}
                             </>
@@ -57,18 +61,21 @@ const ContentCard = props => {
                                         if (r.name) {
                                             return (
                                                 <>
-                                                    <NavLink
-                                                        className="p-0"
-                                                        style={{ display: 'contents' }}
-                                                        href={r.id ? `https://orcid/${r.id}` : ''}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
+                                                    {r.id ? (
+                                                        <Link
+                                                            to={reverse(ROUTES.RESEARCHER_DETAIL, { orcid: r.id.replace('https://orcid.org/', '') })}
+                                                        >
+                                                            <Badge color="light" className="mr-2 mb-2" key={index}>
+                                                                <Icon size="sm" icon={faUser} className="text-primary" /> {''}
+                                                                {r.name} {''}
+                                                            </Badge>
+                                                        </Link>
+                                                    ) : (
                                                         <Badge color="light" className="mr-2 mb-2" key={index}>
-                                                            <Icon size="sm" icon={faUser} /> {''}
+                                                            <Icon size="sm" icon={faUser} className="text-secondary" /> {''}
                                                             {r.name} {''}
                                                         </Badge>
-                                                    </NavLink>
+                                                    )}
                                                 </>
                                             );
                                         }

@@ -23,7 +23,7 @@ const PaperCardStyled = styled.div`
 
 const CitationsReferences = props => {
     useEffect(() => {
-        document.title = 'Paper Details';
+        //document.title = 'Researcher Details';
         console.log(props);
     }, []);
 
@@ -35,7 +35,7 @@ const CitationsReferences = props => {
         <>
             <Container className="pb-4 mt-2 mb-4">
                 <>
-                    {props.objectInformation && (
+                    {props.objectInformation && props.objectInformation.length > 0 ? (
                         <ListGroup>
                             {props.objectInformation ? (
                                 <>
@@ -55,6 +55,8 @@ const CitationsReferences = props => {
                                 <div className="text-center mt-4 mb-4">No Datasets</div>
                             )}
                         </ListGroup>
+                    ) : (
+                        <div className="text-center mt-4 mb-4">No Information</div>
                     )}
                 </>
             </Container>

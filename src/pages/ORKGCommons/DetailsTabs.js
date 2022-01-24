@@ -5,6 +5,7 @@ import Tippy from '@tippyjs/react';
 import PropTypes from 'prop-types';
 import Datasets from './Datasets';
 import Project from './Project';
+import Topics from './Topics';
 import CitationsReferences from './CitationsReferences';
 import { Col, Row } from 'reactstrap';
 import { TabContent, TabPane, NavLink } from 'reactstrap';
@@ -97,25 +98,31 @@ const DetailsTabs = ({ objectInformation }) => {
                 <StyledResearchFieldList>
                     <li key="dataset">
                         <StyledResearchFieldItem onClick={() => setActiveState(1)} className={activeTab === 1 ? 'active' : ''} href="#1">
-                            Related Dataset
+                            Related Dataset ({objectInformation.citations ? objectInformation.citations.length : 0})
                         </StyledResearchFieldItem>
                     </li>
 
                     <li key="project">
                         <StyledResearchFieldItem onClick={() => setActiveState(2)} className={activeTab === 2 ? 'active' : ''} href="#2">
-                            Project
+                            Project (1)
+                        </StyledResearchFieldItem>
+                    </li>
+
+                    <li key="project">
+                        <StyledResearchFieldItem onClick={() => setActiveState(3)} className={activeTab === 3 ? 'active' : ''} href="#2">
+                            Topics ({objectInformation.topics.topic ? objectInformation.topics.topic.length : 0})
                         </StyledResearchFieldItem>
                     </li>
 
                     <li key="citations">
-                        <StyledResearchFieldItem onClick={() => setActiveState(3)} className={activeTab === 3 ? 'active' : ''} href="#3">
-                            Citations
+                        <StyledResearchFieldItem onClick={() => setActiveState(4)} className={activeTab === 4 ? 'active' : ''} href="#3">
+                            Citations ({objectInformation.metadata.citations ? objectInformation.metadata.citations.length : 0})
                         </StyledResearchFieldItem>
                     </li>
 
                     <li key="references">
-                        <StyledResearchFieldItem onClick={() => setActiveState(4)} className={activeTab === 4 ? 'active' : ''} href="#4">
-                            References
+                        <StyledResearchFieldItem onClick={() => setActiveState(5)} className={activeTab === 5 ? 'active' : ''} href="#4">
+                            References ({objectInformation.metadata.references ? objectInformation.metadata.references.length : 0})
                         </StyledResearchFieldItem>
                     </li>
                 </StyledResearchFieldList>
@@ -138,6 +145,13 @@ const DetailsTabs = ({ objectInformation }) => {
                                 </Row>
                             </TabPaneStyled>
                         ) : activeTab === 3 ? (
+                            <TabPaneStyled key="dataset" tabId="3">
+                                <Row>
+                                    {console.log(objectInformation.topics)}
+                                    <Topics objectInformation={objectInformation.topics} />
+                                </Row>
+                            </TabPaneStyled>
+                        ) : activeTab === 4 ? (
                             <TabPaneStyled key="dataset" tabId="3">
                                 <Row>
                                     <CitationsReferences objectInformation={objectInformation.metadata.citations} />

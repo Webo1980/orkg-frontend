@@ -46,7 +46,7 @@ const SidebarStyledBox = styled.div`
 `;
 
 const ResearcherDetailsTabs = ({ objectInformation }) => {
-    const [activeTab, setActiveState] = useState(2);
+    const [activeTab, setActiveState] = useState(1);
 
     return (
         <SidebarStyledBox className="box rounded-lg mt-3">
@@ -55,7 +55,7 @@ const ResearcherDetailsTabs = ({ objectInformation }) => {
                     role="button"
                     tabIndex="0"
                     onKeyDown={e => e.keyCode === 13 && setActiveState(1)}
-                    className={`h6 col-md-2 text-center tab ${activeTab === 1 ? 'active' : ''}`}
+                    className={`h6 col-md-3 text-center tab ${activeTab === 1 ? 'active' : ''}`}
                     onClick={() => setActiveState(1)}
                 >
                     {console.log(objectInformation)}
@@ -65,7 +65,7 @@ const ResearcherDetailsTabs = ({ objectInformation }) => {
                     role="button"
                     tabIndex="0"
                     onKeyDown={e => e.keyCode === 13 && setActiveState(2)}
-                    className={`h6 col-md-2 text-center tab ${activeTab === 2 ? 'active' : ''}`}
+                    className={`h6 col-md-3 text-center tab ${activeTab === 2 ? 'active' : ''}`}
                     onClick={() => setActiveState(2)}
                 >
                     Datasets
@@ -74,7 +74,7 @@ const ResearcherDetailsTabs = ({ objectInformation }) => {
                     role="button"
                     tabIndex="0"
                     onKeyDown={e => e.keyCode === 13 && setActiveState(3)}
-                    className={`h6 col-md-2 text-center tab ${activeTab === 3 ? 'active' : ''}`}
+                    className={`h6 col-md-3 text-center tab ${activeTab === 3 ? 'active' : ''}`}
                     onClick={() => setActiveState(3)}
                 >
                     Softwares
@@ -83,7 +83,7 @@ const ResearcherDetailsTabs = ({ objectInformation }) => {
                     role="button"
                     tabIndex="0"
                     onKeyDown={e => e.keyCode === 13 && setActiveState(4)}
-                    className={`h6 col-md-2 text-center tab ${activeTab === 4 ? 'active' : ''}`}
+                    className={`h6 col-md-3 text-center tab ${activeTab === 4 ? 'active' : ''}`}
                     onClick={() => setActiveState(4)}
                 >
                     SmartReviews
@@ -112,7 +112,7 @@ const ResearcherDetailsTabs = ({ objectInformation }) => {
                 ) : (
                     <AnimationContainer key={4} classNames="fadeIn" timeout={{ enter: 700, exit: 0 }}>
                         <div style={{ minHeight: '300px' }}>
-                            <CitationsReferences objectInformation={objectInformation.datasets} />
+                            <Publications objectInformation={objectInformation.smartReviews} />
                         </div>
                     </AnimationContainer>
                 )}

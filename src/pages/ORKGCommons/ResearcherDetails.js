@@ -109,20 +109,21 @@ const ResearcherDetails = () => {
     const { orcid } = useParams();
     const [otherMetadata, setOtherMetadata] = useState(null);
     useEffect(() => {
-        document.title = 'Paper Details';
+        document.title = 'Researcher Details';
         const getResearcherData = async id => {
             console.log(id);
             setIsLoading(true);
             let result = [];
             await getResearcherDetails(`https://orcid.org/${id}`).then(r => {
                 if (r.data) {
+                    console.log(r.data);
                     const data = r.data.person;
                     setName(data.name);
                     setId(data.id);
                     console.log(data.publications.totalCount > 0 ? data.publications.nodes : ['']);
-                    setPublications(data.publications.totalCount > 0 ? data.publications.nodes : ['']);
-                    setDatasets(data.datasets.totalCount > 0 ? data.datasets.nodes : ['']);
-                    setSoftwares(data.softwares.totalCount > 0 ? data.softwares.nodes : ['']);
+                    setPublications(data.publications.totalCount > 0 ? data.publications.nodes : '');
+                    setDatasets(data.datasets.totalCount > 0 ? data.datasets.nodes : '');
+                    setSoftwares(data.softwares.totalCount > 0 ? data.softwares.nodes : '');
                     //setPublisher(data.publisher ? data.publisher : '');
                     //result.push({
                     //title: r.data.work.titles[0].title,
