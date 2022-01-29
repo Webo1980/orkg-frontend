@@ -1,13 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import ColoredStatsBox from 'components/Stats/ColoredStatsBox';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Label, ListGroup } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ListGroup } from 'reactstrap';
 import PropTypes from 'prop-types';
 import ContentCard from './ContentCard';
 
 const Citations = props => {
-    useEffect(() => {}, []);
-
     return (
         <Modal size="lg" isOpen={props.showDialog} toggle={props.toggle}>
             <ModalHeader toggle={props.toggle}>Citations</ModalHeader>
