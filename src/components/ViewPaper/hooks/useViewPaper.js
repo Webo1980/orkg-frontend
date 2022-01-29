@@ -7,6 +7,7 @@ import { resetStatementBrowser } from 'actions/statementBrowser';
 import { loadPaper, setPaperAuthors } from 'actions/viewPaper';
 import { getPaperData_ViewPaper, filterObjectOfStatementsByPredicateAndClass } from 'utils';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
+import { getWorksDataWithCitations } from 'services/GraphQL/index';
 
 const useViewPaper = ({ paperId }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -52,9 +53,36 @@ const useViewPaper = ({ paperId }) => {
                 Promise.all([
                     getStatementsBundleBySubject({ id: paperId, maxLevel: 2, blacklist: [CLASSES.RESEARCH_FIELD, CLASSES.CONTRIBUTION] }),
                     getIsVerified(paperId).catch(() => false)
-                ]).then(([paperStatements, verified]) => {
+                ]).then(async ([paperStatements, verified]) => {
                     const paperData = getPaperData_ViewPaper(paperResource, paperStatements.statements?.filter(s => s.subject.id === paperId));
-                    dispatch(loadPaper({ ...paperData, verified: verified }));
+                    let abstract = '';
+                    let project = '';
+                    let citations = '';
+                    let references = [];
+                    let topics = [];
+                    if (paperData.doi.label) {
+                        await getWorksDataWithCitations(paperData.doi.label).then(r => {
+                            if (r.data) {
+                                const data = r.data.semanticScholarPaper;
+                                abstract = data.abstract ? data.abstract : '';
+                                project = data.project ? data.project : '';
+                                citations = data.citations ? data.citations : '';
+                                references = data.references ? data.references : '';
+                                topics = data.topics && data.topics.topic ? data.topics.topic : '';
+                            }
+                        });
+                    }
+                    dispatch(
+                        loadPaper({
+                            ...paperData,
+                            verified: verified,
+                            abstract: abstract,
+                            project: project,
+                            citations: citations,
+                            references: references,
+                            topics: topics
+                        })
+                    );
                     setIsLoading(false);
                     setAuthorsORCID(paperStatements.statements, paperId);
                 });

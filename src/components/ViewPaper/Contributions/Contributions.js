@@ -19,6 +19,7 @@ import Tippy from '@tippyjs/react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import useContributions from './hooks/useContributions';
+import OtherMetadata from 'components/ViewPaper/OtherMetadata/OtherMetadata';
 
 const Title = styled.div`
     font-size: 18px;
@@ -223,6 +224,7 @@ const Contributions = props => {
                             <AddToComparison showLabel={true} paper={{ id: resourceId, label: paperTitle, contributions }} />
                         </div>
                         <ProvenanceBox />
+                        <OtherMetadata />
                     </div>
                 </Row>
             </Container>

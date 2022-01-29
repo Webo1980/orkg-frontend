@@ -48,7 +48,6 @@ const ViewPaper = () => {
             ? 'https://doi.org/' + state.viewPaper.doi.label
             : ''
     );
-
     const {
         isLoading,
         isLoadingFailed,

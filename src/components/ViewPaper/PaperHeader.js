@@ -107,6 +107,8 @@ const PaperHeader = props => {
                     </div>
                 )}
             </div>
+            {viewPaper.abstract && <div>Abstract: {viewPaper.abstract}</div>}
+            {console.log(viewPaper)}
             <div className="d-flex">
                 <div className="flex-grow-1">
                     {props.editMode && (
