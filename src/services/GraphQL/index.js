@@ -1,4 +1,3 @@
-import { url } from 'constants/misc';
 import { submitGetRequest } from 'network';
 
 export const federatedGraphql = `http://localhost:4001/graphql/`;
@@ -24,7 +23,6 @@ export const getWorksData = input => {
 };
 
 export const getWorksDatabyLabel = input => {
-    console.log(input);
     const query = `{
       works(query: "${input}", resourceType:"Text", first:25) {
         totalCount
