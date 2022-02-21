@@ -1,0 +1,229 @@
+{ 
+  "Length": [
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Angstrom" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "Ao" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "astronomical-unit" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "AU" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "British Thermal Unit (international Table) Per Pound of Force" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[Btu_IT].[lbf_av]-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "British Thermal Unit (international Table) Per Pound of Force" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[Btu_IT]/[lbf_av]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "chain" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[ch_br]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Centimeter" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "cm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Centimetre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "cm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Decameter" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "dam" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Decametre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "dam" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Decimeter" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "dm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Decimetre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "dm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Fathom" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[fth_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Foot" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[ft_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "US Survey Foot" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[ft_us]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Furlong" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[fur_us]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Femtometer" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "fm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Femtometre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "fm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "French Gauge" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[Ch]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Hectometer" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "hm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Hectometre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "hm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Inch" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[in_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Kilometer" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "km" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Kilometre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "km" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Light Year" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[ly]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Meter" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "m" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Metre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "m" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "International Mile" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[mi_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Nautical Mile" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[nmi_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Mile US Statute" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[mi_us]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Microinch" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "u[in_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Micrometer" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "um" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Micrometre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "um" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Mil Length" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[mil_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Milli-inch" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "m[in_i]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Millimeter" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Millimetre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Nanometer" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "nm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Nanometre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "nm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Parsec" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "pc" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Pica" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[pca]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Point" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[pnt]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en-us" , "value": "Picometer" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "pm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Picometre" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "pm" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Rod" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[rd_br]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Length" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Yard" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[yd_i]" }
+      }
+	]
+}

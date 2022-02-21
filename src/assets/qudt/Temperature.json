@@ -1,0 +1,28 @@
+{ "Temperature": [
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Temperature" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Degree Celsius" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "Cel" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Temperature" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Degree Fahrenheit" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[degF]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Temperature" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Degree Rankine" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "[degR]" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Temperature" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Kelvin" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "K" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Temperature" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Millidegree Celsius" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mCel" }
+      }
+    ]
+}

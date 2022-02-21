@@ -1,0 +1,163 @@
+{ "Time": [
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Centipoise Per Bar" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "cP.bar-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Centipoise Per Bar" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "cP/bar" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Day" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "d" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Sidereal Day" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "d" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Henry Per Kiloohm" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "H.kOhm-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Henry Per Ohm" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "H.Ohm-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Hour" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "h" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Sidereal Hour" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "h" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "kilosecond" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "ks" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Minute" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "min" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Sidereal Minute" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "min" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Month" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mo" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Mean Gregorian Month" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mo_g" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Mean Julian Month" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mo_j" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Synodic month" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mo_s" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Million Years" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "Ma" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Microhenry Per Kiloohm" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "uH.kOhm-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Microhenry Per Ohm" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "uH.Ohm-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "microsecond" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "us" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Millihenry Per Kiloohm" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mH.kOhm-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Millihenry Per Ohm" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mH.Ohm-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Millipascal Second Per Bar" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "mPa.s.bar-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "millisecond" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "ms" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "nanosecond" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "ns" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Pascal Second Per Bar" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "Pa.s.bar-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Poise Per Bar" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "P.bar-1" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Picosecond" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "ps" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Second" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "s" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Shake" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "10.ns" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Week" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "wk" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Year" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "a" }
+      } ,
+      { 
+        "qkl": { "type": "literal" , "xml:lang": "en" , "value": "Time" } ,
+        "qkul": { "type": "literal" , "xml:lang": "en" , "value": "Tropical Year" } ,
+        "ucumCode": { "type": "literal" , "datatype": "http://qudt.org/schema/qudt/UCUMcs" , "value": "a_t" }
+      }
+   ]
+}
