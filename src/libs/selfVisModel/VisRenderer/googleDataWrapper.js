@@ -1,3 +1,5 @@
+import { upperFirst } from 'lodash';
+
 export default class DataForChart {
     constructor() {
         this.header = [];
@@ -29,7 +31,7 @@ export default class DataForChart {
         // create headers;
         let xSelectorIndex;
         const ySelectorIndices = [];
-        const newHeaders = [];
+        let newHeaders = [];
 
         const headerMap = {};
         oldHeaders.forEach((oh, index) => {
@@ -63,6 +65,9 @@ export default class DataForChart {
                 }
             }
         });
+
+        // capitalize first letter of legend labels
+        newHeaders = newHeaders.map(col => ({ ...col, label: upperFirst(col.label) }));
 
         const newRows = [];
 
