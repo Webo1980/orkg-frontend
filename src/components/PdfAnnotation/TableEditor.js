@@ -1,19 +1,22 @@
 import PropTypes from 'prop-types';
-import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import 'handsontable/dist/handsontable.full.css';
 import { HotTable } from '@handsontable/react';
-import { updateTableData } from 'actions/pdfAnnotation';
+import { updateTableData } from 'slices/pdfAnnotationSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import EditorComponent from './EditorComponent';
 import Handsontable from 'handsontable';
 import { isString } from 'lodash';
+import { registerAllModules } from 'handsontable/registry';
 import useTableEditor from './hooks/useTableEditor';
+
+// register Handsontable's modules
+registerAllModules();
 
 const TableEditor = props => {
     const dispatch = useDispatch();
     const tableData = useSelector(state => state.pdfAnnotation.tableData[props.id]);
     const cachedLabels = useSelector(state => state.pdfAnnotation.cachedLabels);
-    const { removeEmptyRows, mergeCellValues, splitIntoSeveralColumns, renderTable } = useTableEditor(props.id, props.setRef);
+    const { removeEmptyRows, mergeCellValues, renderTable } = useTableEditor(props.id, props.setRef);
 
     const renderer = function(instance, td, row, col, prop, value, cellProperties) {
         // I tried it with a nice RendererComponent, but after a lot of trying this just isn't supported well in Hansontable
@@ -52,6 +55,7 @@ const TableEditor = props => {
             renderer={renderer}
             contextMenu={{
                 items: [
+                    /*
                     'row_above',
                     'row_below',
                     '---------',
@@ -63,14 +67,15 @@ const TableEditor = props => {
                     '---------',
                     'undo',
                     'redo',
+                    */
                     {
                         name: 'Merge cell values',
                         callback: mergeCellValues
                     },
-                    {
+                    /*{
                         name: 'Split into several columns',
                         callback: splitIntoSeveralColumns
-                    },
+                    },*/
                     {
                         name: 'Remove empty rows',
                         callback: removeEmptyRows
@@ -79,7 +84,7 @@ const TableEditor = props => {
             }}
             stretchH="all"
             ref={props.setRef}
-            beforeChange={changes => dispatch(updateTableData(props.id, changes))}
+            beforeChange={changes => dispatch(updateTableData({ id: props.id, dataChanges: changes }))}
             afterRemoveCol={() => renderTable()}
         >
             <EditorComponent hot-editor id={props.id} />

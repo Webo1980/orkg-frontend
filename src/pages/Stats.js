@@ -1,96 +1,80 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row } from 'reactstrap';
-import { faStream, faBars, faHeading, faTag } from '@fortawesome/free-solid-svg-icons';
+import { CLASSES } from 'constants/graphSettings';
 import ColoredStatsBox from 'components/Stats/ColoredStatsBox';
-import InlineStatsBox from 'components/Stats/InlineStatsBox';
 import { toast } from 'react-toastify';
 import { getStats } from 'services/backend/stats';
+import ROUTES from 'constants/routes';
+import { reverse } from 'named-urls';
+import TitleBar from 'components/TitleBar/TitleBar';
 
-class Stats extends Component {
-    constructor(props) {
-        super(props);
+const Stats = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [stats, setStats] = useState({});
 
-        this.state = {
-            isLoading: false,
-            stats: {}
-        };
-    }
-
-    componentDidMount = () => {
+    useEffect(() => {
         document.title = 'Stats - ORKG';
-        this.setState({ isLoading: true });
-        getStats()
+        setIsLoading(true);
+        getStats([CLASSES.BENCHMARK])
             .then(stats => {
-                this.setState({
-                    stats,
-                    isLoading: false
-                });
+                setIsLoading(false);
+                setStats(stats);
             })
             .catch(e => {
-                this.setState({ isLoading: false });
+                setIsLoading(false);
                 toast.error('Failed loading statistics data');
             });
-    };
+    }, []);
 
-    render() {
-        return (
-            <div>
-                <Container>
-                    <h1 className="h4 mt-4 mb-4">General statistics</h1>
-                </Container>
+    return (
+        <div>
+            <TitleBar>General statistics</TitleBar>
 
-                <Container>
-                    <Row>
-                        <ColoredStatsBox
-                            number={this.state.stats.papers}
-                            label="Papers"
-                            icon={faStream}
-                            color="blue"
-                            className="mr-3"
-                            isLoading={this.state.isLoading}
-                        />
-                        <ColoredStatsBox
-                            number={this.state.stats.contributions}
-                            label="Contributions"
-                            icon={faBars}
-                            color="green"
-                            className="mr-3"
-                            isLoading={this.state.isLoading}
-                        />
-                        <ColoredStatsBox
-                            number={this.state.stats.fields}
-                            label="Research fields"
-                            icon={faHeading}
-                            color="orange"
-                            className="mr-3"
-                            isLoading={this.state.isLoading}
-                        />
-                        <ColoredStatsBox
-                            number={this.state.stats.problems}
-                            label="Research problems"
-                            icon={faTag}
-                            color="black"
-                            isLoading={this.state.isLoading}
-                        />
-                    </Row>
-                </Container>
+            <Container>
+                <Row>
+                    <ColoredStatsBox link={reverse(ROUTES.PAPERS)} number={stats.papers} label="Papers" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.COMPARISONS)} number={stats.comparisons} label="Comparisons" isLoading={isLoading} />
+                    <ColoredStatsBox
+                        link={reverse(ROUTES.VISUALIZATIONS)}
+                        number={stats.visualizations}
+                        label="Visualizations"
+                        isLoading={isLoading}
+                    />
+                    <ColoredStatsBox number={stats.problems} label="Research problems" isLoading={isLoading} />
+                </Row>
+                <Row>
+                    <ColoredStatsBox number={stats.contributions} label="Contributions" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.RESEARCH_FIELDS)} number={stats.fields} label="Research fields" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.TEMPLATES)} number={stats.templates} label="Templates" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.REVIEWS)} number={stats.smart_reviews} label="Reviews" isLoading={isLoading} />
+                </Row>
+                <Row>
+                    <ColoredStatsBox number={stats.users} label="Users" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.ORGANIZATIONS)} number={stats.organizations} label="Organizations" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.OBSERVATORIES)} number={stats.observatories} label="Observatories" isLoading={isLoading} />
+                    <ColoredStatsBox
+                        link={reverse(ROUTES.BENCHMARKS)}
+                        number={stats.extras?.[CLASSES.BENCHMARK]}
+                        label="Benchmarks"
+                        isLoading={isLoading}
+                    />
+                </Row>
+            </Container>
+            <Container>
+                <h1 className="h4 mt-4 mb-4">Technical values</h1>
+            </Container>
 
-                <Container>
-                    <h1 className="h4 mt-4 mb-4">Technical values</h1>
-                </Container>
-
-                <Container className="box rounded pt-4 pb-4 pl-5 pr-5">
-                    <Row>
-                        <InlineStatsBox number={this.state.stats.resources} label="Resources" isLoading={this.state.isLoading} />
-                        <InlineStatsBox number={this.state.stats.predicates} label="Properties" isLoading={this.state.isLoading} />
-                        <InlineStatsBox number={this.state.stats.statements} label="Statements" isLoading={this.state.isLoading} />
-                        <InlineStatsBox number={this.state.stats.literals} label="Literals" isLoading={this.state.isLoading} />
-                        <InlineStatsBox number={this.state.stats.classes} label="Classes" hideBorder isLoading={this.state.isLoading} />
-                    </Row>
-                </Container>
-            </div>
-        );
-    }
-}
+            <Container>
+                <Row>
+                    <ColoredStatsBox link={reverse(ROUTES.BENCHMARKS)} number={stats.resources} label="Resources" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.PROPERTIES)} number={stats.predicates} label="Properties" isLoading={isLoading} />
+                    <ColoredStatsBox number={stats.statements} label="Statements" isLoading={isLoading} />
+                    <ColoredStatsBox number={stats.literals} label="Literals" isLoading={isLoading} />
+                    <ColoredStatsBox link={reverse(ROUTES.CLASSES)} number={stats.classes} label="Classes" isLoading={isLoading} />
+                </Row>
+            </Container>
+        </div>
+    );
+};
 
 export default Stats;

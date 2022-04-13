@@ -73,13 +73,14 @@ const ProvenanceBox = () => {
 
     const [activeTab, setActiveTab] = useState(1);
 
-    if (env('PWC_USER_ID') === createdBy) {
-        return <PWCProvenanceBox />;
-    }
-
     return (
-        <div className="col-md-3">
-            <SidebarStyledBox className="box rounded-lg" style={{ minHeight: 430, backgroundColor: '#f8f9fb' }}>
+        <div>
+            {env('PWC_USER_ID') === paperResource.created_by && (
+                <div className="mb-2">
+                    <PWCProvenanceBox />
+                </div>
+            )}
+            <SidebarStyledBox className="box rounded-3" style={{ minHeight: 430, backgroundColor: '#f8f9fb' }}>
                 <ProvenanceBoxTabs className="clearfix d-flex">
                     <div
                         id="div1"

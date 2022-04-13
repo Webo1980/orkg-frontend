@@ -90,7 +90,7 @@ const ObjectStatements = props => {
                                         <td>
                                             {getLinkByEntityType(statement.subject._class, statement.subject.id) ? (
                                                 <Link to={getLinkByEntityType(statement.subject._class, statement.subject.id)}>
-                                                    {statement.subject.label}123123
+                                                    {statement.subject.label}
                                                 </Link>
                                             ) : (
                                                 statement.subject.label
@@ -104,7 +104,7 @@ const ObjectStatements = props => {
                                 ))}
                                 {!isLoading && hasNextPage && (
                                     <tr className="text-center">
-                                        <td colspan="3">
+                                        <td colSpan="3">
                                             <Button color="light" size="sm" onClick={handleLoadMore}>
                                                 Load more statements
                                             </Button>

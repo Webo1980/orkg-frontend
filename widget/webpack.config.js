@@ -20,8 +20,8 @@ module.exports = (env, argv) => {
             },
             plugins: [
                 new webpack.DefinePlugin({
-                    'process.env.SERVER_URL': isDevBuild
-                        ? JSON.stringify('http://localhost:8000/api/')
+                    'process.env.BACKEND_URL': isDevBuild
+                        ? JSON.stringify('http://localhost:8080/api/')
                         : JSON.stringify('https://www.orkg.org/orkg/api/'),
                     'process.env.FRONTEND_SERVER_URL': isDevBuild
                         ? JSON.stringify('http://localhost:3000/')

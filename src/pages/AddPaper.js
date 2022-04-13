@@ -1,23 +1,25 @@
 import { Component } from 'react';
 import { Container, Button } from 'reactstrap';
 import { compose } from 'redux';
-import ProgressBar from '../components/AddPaper/ProgressBar';
-import GeneralData from '../components/AddPaper/GeneralData/GeneralData';
-import ResearchField from '../components/AddPaper/ResearchField/ResearchField';
-import Contributions from '../components/AddPaper/Contributions/Contributions';
+import ProgressBar from 'components/AddPaper/ProgressBar';
+import GeneralData from 'components/AddPaper/GeneralData/GeneralData';
+import ResearchField from 'components/AddPaper/ResearchField/ResearchField';
+import Contributions from 'components/AddPaper/Contributions/Contributions';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faQuestion, faProjectDiagram } from '@fortawesome/free-solid-svg-icons';
-import Finish from '../components/AddPaper/Finish/Finish';
+import Finish from 'components/AddPaper/Finish/Finish';
 import { withCookies } from 'react-cookie';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import PropTypes from 'prop-types';
-import { resetStatementBrowser } from '../actions/statementBrowser';
-import { openTour, closeTour, blockNavigation, loadPaperData } from '../actions/addPaper';
+import { resetStatementBrowser } from 'slices/statementBrowserSlice';
+import { openTour, closeTour, blockNavigation, loadPaperDataAction as loadPaperData } from 'slices/addPaperSlice';
 import { Prompt } from 'react-router';
-import GizmoGraphViewModal from '../components/ViewPaper/GraphView/GizmoGraphViewModal';
+import GizmoGraphViewModal from 'components/ViewPaper/GraphView/GizmoGraphViewModal';
 import env from '@beam-australia/react-env';
+import TitleBar from 'components/TitleBar/TitleBar';
+import { SubTitle, SubtitleSeparator } from 'components/styled';
 
 const Help = styled.div`
     box-sizing: border-box;
@@ -81,24 +83,6 @@ const AnimationContainer = styled(CSSTransition)`
     }
 `;
 
-const SubtitleSeparator = styled.div`
-    background: ${props => props.theme.secondary};
-    width: 2px;
-    height: 30px;
-    margin: 0 15px;
-    content: '';
-    display: block;
-    opacity: 0.7;
-`;
-
-const PaperTitle = styled.div`
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    margin-right: 20px;
-    color: #62687d;
-`;
-
 class AddPaper extends Component {
     constructor(props) {
         super(props);
@@ -129,7 +113,7 @@ class AddPaper extends Component {
         }
 
         if (!this.props.addPaper.shouldBlockNavigation && this.props.currentStep > 1 && !this.props.addPaper.paperNewResourceId) {
-            this.props.blockNavigation();
+            this.props.blockNavigation({ status: true });
             window.onbeforeunload = () => true;
         }
         if (!this.props.addPaper.shouldBlockNavigation && prevProps.addPaper.shouldBlockNavigation !== this.props.addPaper.shouldBlockNavigation) {
@@ -194,39 +178,33 @@ class AddPaper extends Component {
         return (
             <div>
                 <Prompt when={this.props.addPaper.shouldBlockNavigation} message="You have unsaved changes, are you sure you want to leave?" />
-                <Container className="p-0 mt-4 mb-4 d-flex align-items-center">
-                    <h1 className="h4 flex-shrink-0 mb-0">Add paper</h1>
 
-                    {this.props.currentStep > 1 && (
-                        <>
-                            <SubtitleSeparator />
+                <TitleBar
+                    titleAddition={
+                        this.props.currentStep > 1 && (
+                            <>
+                                <SubtitleSeparator />
+                                <SubTitle>{this.props.addPaper.title}</SubTitle>
+                            </>
+                        )
+                    }
+                    buttonGroup={
+                        <Button
+                            color="secondary"
+                            size="sm"
+                            className="flex-shrink-0"
+                            style={{ marginLeft: 'auto' }}
+                            onClick={() => this.toggle('showGraphModal')}
+                        >
+                            <Icon icon={faProjectDiagram} className="me-1" /> View graph
+                        </Button>
+                    }
+                    wrap={false}
+                >
+                    Add paper
+                </TitleBar>
 
-                            <PaperTitle>{this.props.addPaper.title}</PaperTitle>
-                        </>
-                    )}
-
-                    {/*<Dropdown isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown} className="mb-4 mt-4 float-right" style={{ marginLeft: 'auto' }}>
-                        <DropdownToggle color="secondary" size="sm">
-                            <Icon icon={faBars} className="mr-2" /> Options
-                        </DropdownToggle>
-                        <DropdownMenu>
-                            <DropdownItem onClick={() => this.toggle('showGraphModal')}>Show graph visualization</DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>*/}
-
-                    <Button
-                        color="secondary"
-                        size="sm"
-                        className="flex-shrink-0"
-                        style={{ marginLeft: 'auto' }}
-                        onClick={() => this.toggle('showGraphModal')}
-                    >
-                        <Icon icon={faProjectDiagram} className="mr-1" /> View graph
-                    </Button>
-
-                    <div className="clearfix" />
-                </Container>
-                <Container className="box rounded pt-4 pb-4 pl-md-5 pr-md-5 clearfix ">
+                <Container className="box rounded pt-4 pb-4 ps-md-5 pe-md-5 clearfix ">
                     <ProgressBar currentStep={currentStep} />
 
                     <hr />
@@ -279,7 +257,7 @@ const mapDispatchToProps = dispatch => ({
     resetStatementBrowser: () => dispatch(resetStatementBrowser()),
     openTour: () => dispatch(openTour()),
     closeTour: () => dispatch(closeTour()),
-    blockNavigation: () => dispatch(blockNavigation()),
+    blockNavigation: data => dispatch(blockNavigation(data)),
     loadPaperData: data => dispatch(loadPaperData(data))
 });
 

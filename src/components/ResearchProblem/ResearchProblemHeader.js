@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Container,
     Button,
-    ButtonGroup,
     ButtonDropdown,
     DropdownToggle,
     DropdownMenu,
@@ -27,17 +26,20 @@ import useResearchProblemResearchFields from 'components/ResearchProblem/hooks/u
 import AuthorsBox from 'components/TopAuthors/AuthorsBox';
 import ResearchFieldsBox from './ResearchFieldBox/ResearchFieldsBox';
 import SuperResearchProblemBox from './SuperResearchProblemBox/SuperResearchProblemBox';
+import FeaturedMark from 'components/MarkFeaturedUnlisted/MarkFeatured/MarkFeatured';
+import MarkUnlisted from 'components/MarkFeaturedUnlisted/MarkUnlisted/MarkUnlisted';
+import useMarkFeaturedUnlisted from 'components/MarkFeaturedUnlisted/hooks/useMarkFeaturedUnlisted';
 import { NavLink } from 'react-router-dom';
 import ContentLoader from 'react-content-loader';
 import ROUTES from 'constants/routes.js';
 import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
-import { usePrevious } from 'react-use';
 import PropTypes from 'prop-types';
 import CheckSlug from 'components/CheckSlug/CheckSlug';
 import { reverseWithSlug } from 'utils';
 import CheckClasses from 'components/CheckClasses/CheckClasses';
 import { CLASSES } from 'constants/graphSettings';
+import TitleBar from 'components/TitleBar/TitleBar';
 
 const ResearchProblemHeader = ({ id }) => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -45,14 +47,11 @@ const ResearchProblemHeader = ({ id }) => {
     const [showMoreFields, setShowMoreFields] = useState(false);
     const { researchProblemData, superProblems, isLoading, isFailedLoading, loadResearchProblemData } = useResearchProblem({ id });
     const [researchFields, isLoadingResearchFields] = useResearchProblemResearchFields({ researchProblemId: id });
-    const prevEditMode = usePrevious({ editMode });
-
-    useEffect(() => {
-        if (!editMode && prevEditMode && prevEditMode.editMode !== editMode) {
-            loadResearchProblemData(id);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [editMode]);
+    const { isFeatured, isUnlisted, handleChangeStatus } = useMarkFeaturedUnlisted({
+        resourceId: id,
+        unlisted: researchProblemData?.unlisted,
+        featured: researchProblemData?.featured
+    });
 
     return (
         <>
@@ -76,7 +75,7 @@ const ResearchProblemHeader = ({ id }) => {
                         </ContentLoader>
                     </div>
                     <div className="text-center mt-4 mb-4 p-5 container box rounded">
-                        <div className="text-left">
+                        <div className="text-start">
                             <ContentLoader
                                 speed={2}
                                 width={400}
@@ -96,44 +95,58 @@ const ResearchProblemHeader = ({ id }) => {
             <Breadcrumbs researchFieldId={!isLoadingResearchFields && researchFields.length ? researchFields[0].field.id : null} disableLastField />
             {!isLoading && !isFailedLoading && (
                 <>
-                    <Container className="d-flex align-items-center mt-4 mb-4">
-                        <h1 className="h4 flex-shrink-0 mb-0">Research problem</h1>
-                        <>
-                            <SubtitleSeparator />
-                            <SubTitle className="h5 mb-0"> {researchProblemData.label}</SubTitle>
-                        </>
-                        {editMode && (
-                            <StatementBrowserDialog
-                                show={editMode}
-                                toggleModal={() => setEditMode(v => !v)}
-                                id={id}
-                                label={researchProblemData.label}
-                                enableEdit={true}
-                                syncBackend={true}
-                            />
-                        )}
-                        <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
-                            <RequireAuthentication
-                                component={Button}
-                                size="sm"
-                                color="secondary"
-                                className="float-right"
-                                onClick={() => setEditMode(v => !v)}
-                            >
-                                <Icon icon={faPen} /> Edit
-                            </RequireAuthentication>
-                            <ButtonDropdown isOpen={menuOpen} toggle={() => setMenuOpen(v => !v)} nav inNavbar>
-                                <DropdownToggle size="sm" color="secondary" className="px-3 rounded-right" style={{ marginLeft: 2 }}>
-                                    <Icon icon={faEllipsisV} />
-                                </DropdownToggle>
-                                <DropdownMenu right>
-                                    <DropdownItem tag={NavLink} exact to={reverse(ROUTES.RESOURCE, { id })}>
-                                        View resource
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </ButtonDropdown>
-                        </ButtonGroup>
-                    </Container>
+                    <TitleBar
+                        titleAddition={
+                            <>
+                                <SubtitleSeparator />
+                                <SubTitle>Research problem</SubTitle>
+                                <>
+                                    <FeaturedMark size="sm" featured={isFeatured} handleChangeStatus={handleChangeStatus} />{' '}
+                                    <div className="d-inline-block ms-1">
+                                        <MarkUnlisted size="sm" resourceId={id} unlisted={isUnlisted} handleChangeStatus={handleChangeStatus} />
+                                    </div>
+                                </>
+                            </>
+                        }
+                        buttonGroup={
+                            <>
+                                <RequireAuthentication
+                                    component={Button}
+                                    size="sm"
+                                    color="secondary"
+                                    className="float-end"
+                                    onClick={() => setEditMode(v => !v)}
+                                    style={{ marginRight: 2 }}
+                                >
+                                    <Icon icon={faPen} /> Edit
+                                </RequireAuthentication>
+                                <ButtonDropdown isOpen={menuOpen} toggle={() => setMenuOpen(v => !v)}>
+                                    <DropdownToggle size="sm" color="secondary" className="px-3 rounded-end">
+                                        <Icon icon={faEllipsisV} />
+                                    </DropdownToggle>
+                                    <DropdownMenu end>
+                                        <DropdownItem tag={NavLink} exact to={reverse(ROUTES.RESOURCE, { id })}>
+                                            View resource
+                                        </DropdownItem>
+                                    </DropdownMenu>
+                                </ButtonDropdown>
+                            </>
+                        }
+                        wrap={false}
+                    >
+                        {researchProblemData.label}
+                    </TitleBar>
+                    {editMode && (
+                        <StatementBrowserDialog
+                            show={editMode}
+                            toggleModal={() => setEditMode(v => !v)}
+                            id={id}
+                            label={researchProblemData.label}
+                            enableEdit={true}
+                            syncBackend={true}
+                            onCloseModal={() => loadResearchProblemData(id)}
+                        />
+                    )}
                     <Container className="p-0">
                         <Card>
                             <CardBody>
@@ -151,7 +164,7 @@ const ResearchProblemHeader = ({ id }) => {
                                 <>
                                     <hr className="m-0" />
                                     <CardBody>
-                                        <CardTitle tag="h5">Subfields</CardTitle>
+                                        <CardTitle tag="h5">Subproblems</CardTitle>
                                         <div>
                                             {researchProblemData.subProblems.slice(0, 9).map(subfield => (
                                                 <Link
@@ -161,13 +174,13 @@ const ResearchProblemHeader = ({ id }) => {
                                                         slug: subfield.label
                                                     })}
                                                 >
-                                                    <Badge color="light" className="mr-2 mb-2">
+                                                    <Badge color="light" className="me-2 mb-2">
                                                         {subfield.label}
                                                     </Badge>
                                                 </Link>
                                             ))}
                                             {researchProblemData.subProblems.length > 9 &&
-                                                researchProblemData.subProblems &&
+                                                showMoreFields &&
                                                 researchProblemData.subProblems.slice(9).map(subfield => (
                                                     <Link
                                                         key={`index${subfield.id}`}
@@ -176,7 +189,7 @@ const ResearchProblemHeader = ({ id }) => {
                                                             slug: subfield.label
                                                         })}
                                                     >
-                                                        <Badge color="light" className="mr-2 mb-2">
+                                                        <Badge color="light" className="me-2 mb-2">
                                                             {subfield.label}
                                                         </Badge>
                                                     </Link>

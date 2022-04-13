@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { InputGroup, InputGroupAddon, Button } from 'reactstrap';
+import { InputGroup, Button } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faClipboard, faLink, faAtom } from '@fortawesome/free-solid-svg-icons';
 import ConditionalWrapper from 'components/Utils/ConditionalWrapper';
@@ -23,6 +23,7 @@ import REGEX from 'constants/regex';
 import NativeListener from 'react-native-listener';
 import CustomOption from './CustomOption';
 import { ENTITIES } from 'constants/graphSettings';
+import { SelectGlobalStyle } from 'components/Autocomplete/styled';
 
 export const StyledAutoCompleteInputFormControl = styled.div`
     padding-top: 0 !important;
@@ -54,8 +55,7 @@ function Autocomplete(props) {
     // Pagination params
     const PAGE_SIZE = 10;
     const defaultAdditional = {
-        page: 0,
-        pageOLS: undefined
+        page: 0
     };
 
     /**
@@ -97,6 +97,35 @@ function Autocomplete(props) {
         }
     }, [props.inputValue]);
 
+    // reset the value input if the selected value is null
+    useEffect(() => {
+        if (props.value === null) {
+            setInputValue('');
+        }
+    }, [props.value]);
+
+    // Support home and end keys for text Input
+    const handleKeyDown = evt => {
+        if (evt.key === 'Home') {
+            evt.preventDefault();
+            if (evt.shiftKey) {
+                evt.target.selectionStart = 0;
+            } else {
+                evt.target.setSelectionRange(0, 0);
+            }
+        }
+        if (evt.key === 'End') {
+            evt.preventDefault();
+            const len = evt.target.value.length;
+            if (evt.shiftKey) {
+                evt.target.selectionEnd = len;
+            } else {
+                evt.target.setSelectionRange(len, len);
+            }
+        }
+        props.onKeyDown?.(evt);
+    };
+
     /**
      * Lookup in ORKG backend
      *
@@ -111,7 +140,7 @@ function Autocomplete(props) {
         }
         let responseJson;
         if (props.optionsClass) {
-            responseJson = await getResourcesByClass({ id: props.optionsClass, q: value.trim(), page: page, items: PAGE_SIZE });
+            responseJson = await getResourcesByClass({ id: props.optionsClass, q: value.trim(), page: page, items: PAGE_SIZE, exact });
         } else {
             const isURI = new RegExp(REGEX.URL).test(value.trim());
             if (props.entityType === ENTITIES.CLASS && isURI) {
@@ -244,7 +273,7 @@ function Autocomplete(props) {
      * @return {Boolean} Object.hasMore To detect end of options list for current search
      * @return {Number} Object.Object.page Next page number
      */
-    const loadOptions = async (value, prevOptions, { page, pageOLS }) => {
+    const loadOptions = async (value, prevOptions, { page }) => {
         try {
             const defaultOpts = props.defaultOptions ?? true;
             if ((!value || value === '' || value.trim() === '') && (!defaultOpts || !props.autoLoadOption)) {
@@ -253,8 +282,7 @@ function Autocomplete(props) {
                     options: [],
                     hasMore: false,
                     additional: {
-                        page: 0,
-                        pageOLS: undefined
+                        page: 0
                     }
                 };
             }
@@ -263,10 +291,10 @@ function Autocomplete(props) {
             let hasMore = false;
             if (props.requestUrl === olsBaseUrl) {
                 responseJson = await OntologyLookup(value, page);
-            } else if (pageOLS === undefined && selectedOntologies.length === 0) {
+            } else if (selectedOntologies.length === 0) {
                 responseJson = await InternalORKGLookup(value, page);
             } else if (props.ols) {
-                responseJson = await GetExternalClasses(value, pageOLS);
+                responseJson = await GetExternalClasses(value, page);
             }
 
             hasMore = !responseJson.last;
@@ -303,36 +331,21 @@ function Autocomplete(props) {
                 options = await getExternalData(value, options, props.optionsClass);
             }
 
-            if (!hasMore && pageOLS === undefined) {
-                hasMore = !props.ols ? hasMore : true; // when there is no more item in ORKG continue loading from OLS
-                return {
-                    options,
-                    hasMore,
+            return {
+                options,
+                hasMore,
 
-                    additional: {
-                        page: page + 1,
-                        pageOLS: 0
-                    }
-                };
-            } else {
-                return {
-                    options,
-                    hasMore,
-
-                    additional: {
-                        page: page + 1,
-                        pageOLS: pageOLS === undefined ? undefined : pageOLS + 1
-                    }
-                };
-            }
+                additional: {
+                    page: page + 1
+                }
+            };
         } catch (err) {
             console.error(err);
             return {
                 options: prevOptions,
                 hasMore: false,
                 additional: {
-                    page: 0,
-                    pageOLS: undefined
+                    page: 0
                 }
             };
         }
@@ -365,9 +378,8 @@ function Autocomplete(props) {
                 foundIndex = selected.findIndex(x => x.id === action.option.id);
             }
             try {
-                const internalClass = await await getClasses({
-                    uri: encodeURIComponent(props.isMulti ? action.option.uri.trim() : selected.uri.trim()),
-                    returnContent: true
+                const internalClass = await getClasses({
+                    uri: props.isMulti ? action.option.uri.trim() : selected.uri.trim()
                 });
                 if (props.isMulti) {
                     selected[foundIndex] = internalClass;
@@ -616,22 +628,18 @@ function Autocomplete(props) {
             whiteSpace: 'normal',
             padding: 0
         }),
-        input: provided => ({
-            ...provided, // custom style to fix when the input field doesn't get the full width
-            display: 'flex',
-            visibility: 'visible',
-            flex: '1',
-            '& > div': {
-                flex: '1',
-                display: 'flex !important'
-            },
-            '& input': {
-                flex: '1'
-            }
-        }),
-        multiValueRemove: provided => ({
+        multiValueLabel: (provided, state) => ({
             ...provided,
+            ...(state.data.isFixed ? { paddingRight: '6px' } : {})
+        }),
+        multiValueRemove: (provided, state) => ({
+            ...provided,
+            ...(state.data.isFixed ? { display: 'none' } : {}),
             cursor: 'pointer'
+        }),
+        input: provided => ({
+            ...provided,
+            visibility: 'visible'
         })
     };
 
@@ -645,7 +653,7 @@ function Autocomplete(props) {
                 <ConditionalWrapper condition={props.inputGroup} wrapper={children => <InputGroup size="sm">{children}</InputGroup>}>
                     {children}
                     {props.copyValueButton && props.value && props.value.id && (
-                        <InputGroupAddon addonType="append">
+                        <>
                             <Button disabled={!props.value || !props.value.label} onClick={handleCopyClick} outline>
                                 <Tippy content="Copy the label to clipboard">
                                     <span>
@@ -662,7 +670,7 @@ function Autocomplete(props) {
                                     </Tippy>
                                 </Link>
                             )}
-                        </InputGroupAddon>
+                        </>
                     )}
                 </ConditionalWrapper>
             )}
@@ -674,9 +682,14 @@ function Autocomplete(props) {
                 showDialog={ontologySelectorIsOpen}
             />
             <StyledAutoCompleteInputFormControl className={`form-control ${props.cssClasses ? props.cssClasses : 'default'} border-0`}>
+                <SelectGlobalStyle />
                 <Select
                     key={JSON.stringify(selectedOntologies.map(o => o.id))}
-                    value={props.value}
+                    value={
+                        props.isMulti && props.fixedOptions?.length
+                            ? props.value?.map?.(v => ({ ...v, isFixed: props.fixedOptions.includes(v.id) }))
+                            : props.value
+                    }
                     loadOptions={loadOptions}
                     additional={defaultAdditional}
                     noOptionsMessage={noResults}
@@ -695,11 +708,10 @@ function Autocomplete(props) {
                     aria-label={props.placeholder}
                     autoFocus={props.autoFocus}
                     cacheOptions={false}
-                    cache={false}
                     defaultOptions={props.defaultOptions ?? true}
                     openMenuOnFocus={props.openMenuOnFocus}
                     onBlur={props.onBlur}
-                    onKeyDown={props.onKeyDown}
+                    onKeyDown={handleKeyDown}
                     selectRef={props.innerRef}
                     createOptionPosition="first"
                     menuPortalTarget={props.menuPortalTarget}
@@ -718,13 +730,16 @@ function Autocomplete(props) {
                     isDisabled={props.isDisabled}
                     isMulti={props.isMulti}
                     inputId={props.inputId}
+                    classNamePrefix="react-select"
                     isValidNewOption={(inputValue, selectValue, selectOptions) => {
                         if (props.handleCreateExistingLabel) {
                             // to disable the create button
                             props.handleCreateExistingLabel(inputValue, selectOptions);
                         }
-                        if (!props.allowCreate) {
+                        if (!props.allowCreate && !props.allowCreateDuplicate) {
                             return false;
+                        } else if (inputValue && props.allowCreateDuplicate) {
+                            return true;
                         } else {
                             return !(
                                 !inputValue ||
@@ -748,6 +763,7 @@ Autocomplete.propTypes = {
     onItemSelected: PropTypes.func,
     onChange: PropTypes.func,
     allowCreate: PropTypes.bool,
+    allowCreateDuplicate: PropTypes.bool,
     defaultOptions: PropTypes.array,
     additionalData: PropTypes.array,
     onNewItemSelected: PropTypes.func,
@@ -776,7 +792,9 @@ Autocomplete.propTypes = {
     inputId: PropTypes.string,
     onChangeInputValue: PropTypes.func,
     inputValue: PropTypes.string,
-    menuPortalTarget: PropTypes.object
+    menuPortalTarget: PropTypes.object,
+    cacheOptions: PropTypes.bool,
+    fixedOptions: PropTypes.array
 };
 
 Autocomplete.defaultProps = {
@@ -793,6 +811,9 @@ Autocomplete.defaultProps = {
     inputGroup: true,
     inputId: null,
     inputValue: null,
-    menuPortalTarget: null
+    menuPortalTarget: null,
+    allowCreateDuplicate: false,
+    cacheOptions: false,
+    fixedOptions: []
 };
 export default withTheme(Autocomplete);

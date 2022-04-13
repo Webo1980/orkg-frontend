@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { updateAnnotationClass, removeAnnotation, toggleEditAnnotation } from 'actions/addPaper';
+import { updateAnnotationClass, removeAnnotation, toggleEditAnnotation } from 'slices/addPaperSlice';
 import Tippy from '@tippyjs/react';
 import { ENTITIES } from 'constants/graphSettings';
 import capitalize from 'capitalize';
@@ -77,14 +77,18 @@ class AbstractRangesList extends Component {
                                         {!range.isEditing ? (
                                             <>
                                                 {capitalize(range.text)}{' '}
-                                                <Badge pill style={{ color: '#333', background: this.props.getClassColor(range.class.label) }}>
+                                                <Badge
+                                                    color={null}
+                                                    pill
+                                                    style={{ color: '#333', background: this.props.getClassColor(range.class.label) }}
+                                                >
                                                     {range.class.label}
                                                 </Badge>
-                                                <RangeItemOption className="float-right">
+                                                <RangeItemOption className="float-end">
                                                     <Button
                                                         color="link"
                                                         size="sm"
-                                                        className="rangeOption p-0 mr-3"
+                                                        className="rangeOption p-0 me-3"
                                                         onClick={() => this.props.toggleEditAnnotation(range.id)}
                                                     >
                                                         <Tippy content="Edit label">
@@ -96,7 +100,7 @@ class AbstractRangesList extends Component {
                                                     <Button
                                                         color="link"
                                                         size="sm"
-                                                        className="rangeOption p-0 mr-2"
+                                                        className="rangeOption p-0 me-2"
                                                         onClick={() => this.props.removeAnnotation(range)}
                                                     >
                                                         <Tippy content="Delete Annotation">

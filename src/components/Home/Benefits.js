@@ -6,9 +6,10 @@ import { ReactComponent as IconFeedback } from 'assets/img/benefits/feedback.svg
 import { ReactComponent as IconReputation } from 'assets/img/benefits/reputation.svg';
 import { ReactComponent as IconVisibility } from 'assets/img/benefits/visibility.svg';
 import { useState } from 'react';
-import UserService from 'userService';
 import { useSelector } from 'react-redux';
-import { Button, Card, CardBody, CardSubtitle, CardTitle, Carousel, CarouselIndicators, CarouselItem } from 'reactstrap';
+import { Button, Card, CardBody, CardSubtitle, CardTitle, Carousel, CarouselItem } from 'reactstrap';
+import { CarouselIndicatorsStyled } from 'components/styled';
+import UserService from 'userService';
 import styled from 'styled-components';
 
 const CarouselContainer = styled.div`
@@ -37,14 +38,6 @@ const ObservatoryCardStyled = styled.div`
             text-decoration: underline;
         }
     }
-`;
-
-const CarouselIndicatorsStyled = styled(CarouselIndicators)`
-    && {
-        margin: 0;
-    }
-
-    background: ${props => props.theme.lightLighter};
 `;
 
 const ITEMS = [
@@ -140,7 +133,7 @@ export default function Benefits() {
 
     return (
         <>
-            <div className="d-flex align-items-center pt-3 pl-3 pr-3 pb-0">
+            <div className="d-flex align-items-center pt-3 ps-3 pe-3 pb-0">
                 <div className="flex-grow-1">
                     <h2 className="h6 mb-1 mt-0">{!!user ? 'Start contributing!' : 'Join ORKG!'}</h2>
                 </div>

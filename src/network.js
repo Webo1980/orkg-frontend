@@ -1,8 +1,4 @@
-import env from '@beam-australia/react-env';
 import UserService from 'userService';
-
-export const crossrefUrl = env('CROSSREF_URL');
-export const semanticScholarUrl = env('SEMANTICSCHOLAR_URL');
 
 const addTokenToHeader = (header, send_token) => {
     if (send_token) {
@@ -66,16 +62,25 @@ export const submitPostRequest = (url, headers, data, jsonStringify = true, send
                     if (!response.ok) {
                         const json = response.json();
                         if (json.then) {
-                            json.then(reject);
+                            return json.then(reject);
                         } else {
-                            reject(new Error(`Error response. (${response.status}) ${response.statusText}`));
+                            return reject({
+                                error: new Error(`Error response. (${response.status}) ${response.statusText}`),
+                                statusCode: response.status,
+                                statusText: response.statusText
+                            });
                         }
                     } else {
                         const json = response.json();
                         if (json.then) {
                             json.then(resolve).catch(reject);
                         } else {
-                            return resolve(json);
+                            const json = response.json();
+                            if (json.then) {
+                                json.then(resolve).catch(reject);
+                            } else {
+                                return resolve(json);
+                            }
                         }
                     }
                 })
@@ -94,6 +99,7 @@ export const submitPutRequest = (url, headers, data, jsonStringify = true) => {
     if (jsonStringify) {
         data = JSON.stringify(data);
     }
+
     return addTokenToHeader(header, true).then(myHeaders => {
         return new Promise((resolve, reject) => {
             fetch(url, { method: 'PUT', headers: myHeaders, body: data })
@@ -101,9 +107,13 @@ export const submitPutRequest = (url, headers, data, jsonStringify = true) => {
                     if (!response.ok) {
                         const json = response.json();
                         if (json.then) {
-                            json.then(reject);
+                            return json.then(reject);
                         } else {
-                            reject(new Error(`Error response. (${response.status}) ${response.statusText}`));
+                            return reject({
+                                error: new Error(`Error response. (${response.status}) ${response.statusText}`),
+                                statusCode: response.status,
+                                statusText: response.statusText
+                            });
                         }
                     } else {
                         if (response.status === 204) {

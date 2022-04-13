@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Card, CardBody } from 'reactstrap';
-import { ButtonGroup } from 'reactstrap';
 import { getOrganization } from 'services/backend/organizations';
 import InternalServerError from 'pages/InternalServerError';
 import Members from 'components/Organization/Members';
@@ -16,6 +15,8 @@ import { faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
 import EditOrganization from 'components/Organization/EditOrganization';
 import { SubTitle, SubtitleSeparator } from 'components/styled';
 import { reverse } from 'named-urls';
+import TitleBar from 'components/TitleBar/TitleBar';
+import { ORGANIZATIONS_MISC } from 'constants/organizationsTypes';
 
 const StyledOrganizationHeader = styled.div`
     .logoContainer {
@@ -48,10 +49,14 @@ const OrganizationDetails = () => {
     const [error, setError] = useState(null);
     const [label, setLabel] = useState(null);
     const [url, setURL] = useState(null);
+    const [organizationId, setOrganizationId] = useState(null);
     const [isLoading, setIsLoading] = useState(null);
     const [logo, setLogo] = useState(null);
     const [createdBy, setCreatedBy] = useState(null);
-    const [showEditDialog, setShowEditDialog] = useState(null);
+    const [showEditDialog, setShowEditDialog] = useState(false);
+    const [type, setType] = useState(null);
+    const [date, setDate] = useState(null);
+    const [isDoubleBlind, setIsDoubleBlind] = useState(false);
     const { id } = useParams();
     const user = useSelector(state => state.auth.user);
 
@@ -61,11 +66,15 @@ const OrganizationDetails = () => {
             getOrganization(id)
                 .then(responseJson => {
                     document.title = `${responseJson.name} - Organization - ORKG`;
+                    setOrganizationId(responseJson.id);
                     setLabel(responseJson.name);
                     setURL(responseJson.homepage);
                     setLogo(responseJson.logo);
                     setIsLoading(false);
                     setCreatedBy(responseJson.created_by);
+                    setType(responseJson.type);
+                    setDate(responseJson.metadata && responseJson.metadata.date ? responseJson.metadata.date : '');
+                    setIsDoubleBlind(responseJson.metadata && responseJson.metadata.is_double_blind && responseJson.metadata.is_double_blind);
                 })
                 .catch(error => {
                     setIsLoading(false);
@@ -75,35 +84,51 @@ const OrganizationDetails = () => {
         findOrg();
     }, [id]);
 
-    const updateOrganizationMetadata = (label, url, logo) => {
+    const updateOrganizationMetadata = (label, url, logo, type, date, isDoubleBlind) => {
         setLabel(label);
         setURL(url);
         setLogo(logo);
+        setType(type);
+        setDate(date);
+        setIsDoubleBlind(isDoubleBlind);
     };
 
     return (
         <>
-            {isLoading && <Container className="box rounded pt-4 pb-4 pl-5 pr-5 mt-5 clearfix">Loading ...</Container>}
+            {isLoading && <Container className="box rounded pt-4 pb-4 ps-5 pe-5 mt-5 clearfix">Loading ...</Container>}
             {!isLoading && error && <>{error.statusCode === 404 ? <NotFound /> : <InternalServerError />}</>}
             {!isLoading && !error && label && (
                 <>
-                    <Container className="d-flex align-items-center mt-4 mb-4">
-                        <h1 className="h5 flex-shrink-0 mb-0">Organization</h1>
-                        <>
-                            <SubtitleSeparator />
-                            <SubTitle className="h5 mb-0"> {label}</SubTitle>
-                        </>
-                        {!!user && (user.id === createdBy || user.isCurationAllowed) && (
-                            <ButtonGroup className="flex-shrink-0" style={{ marginLeft: 'auto' }}>
-                                <Button size="sm" color="secondary" tag={Link} to={reverse(ROUTES.ADD_OBSERVATORY, { id: id })}>
-                                    <Icon icon={faPlus} /> Create new observatory
-                                </Button>
-                                <Button color="secondary" size="sm" onClick={() => setShowEditDialog(v => !v)}>
-                                    <Icon icon={faPen} /> Edit
-                                </Button>
-                            </ButtonGroup>
-                        )}
-                    </Container>
+                    <TitleBar
+                        titleAddition={
+                            <>
+                                <SubtitleSeparator />
+                                <SubTitle>{label}</SubTitle>
+                            </>
+                        }
+                        buttonGroup={
+                            !!user &&
+                            (user.id === createdBy || user.isCurationAllowed) && (
+                                <>
+                                    <Button
+                                        size="sm"
+                                        color="secondary"
+                                        tag={Link}
+                                        to={reverse(ROUTES.ADD_OBSERVATORY, { id: organizationId })}
+                                        style={{ marginRight: 2 }}
+                                    >
+                                        <Icon icon={faPlus} /> Create new observatory
+                                    </Button>
+                                    <Button color="secondary" size="sm" onClick={() => setShowEditDialog(v => !v)}>
+                                        <Icon icon={faPen} /> Edit
+                                    </Button>
+                                </>
+                            )
+                        }
+                        wrap={false}
+                    >
+                        Organization
+                    </TitleBar>
                     <Container className="p-0">
                         <Card>
                             <StyledOrganizationHeader className="mb-2  py-4 px-3">
@@ -126,24 +151,33 @@ const OrganizationDetails = () => {
                                         </Col>
                                     )}
                                 </Row>
+                                {type === ORGANIZATIONS_MISC.CONFERENCE && date && (
+                                    <>
+                                        <b>Conference date</b>: {date} <br />
+                                        <b>Review Process</b>: {isDoubleBlind ? 'Double-blind' : 'Single-blind'}
+                                    </>
+                                )}
                             </StyledOrganizationHeader>
                             <hr className="m-0" />
                             <CardBody>
-                                <Members organizationsId={id} />
+                                <Members organizationsId={organizationId} />
                             </CardBody>
                         </Card>
                     </Container>
-                    <Observatories organizationsId={id} />
+                    <Observatories organizationsId={organizationId} />
                 </>
             )}
             <EditOrganization
                 showDialog={showEditDialog}
                 toggle={() => setShowEditDialog(v => !v)}
-                label={label}
-                id={id}
+                label={label ?? ''}
+                id={organizationId}
                 url={url}
                 previewSrc={logo}
                 updateOrganizationMetadata={updateOrganizationMetadata}
+                type={type ? type : ''}
+                date={date ? date : ''}
+                isDoubleBlind={isDoubleBlind ? isDoubleBlind : false}
             />
         </>
     );

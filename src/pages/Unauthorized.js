@@ -6,6 +6,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
 import UserService from 'userService';
+import TitleBar from 'components/TitleBar/TitleBar';
 
 /**
  * Unauthorized can mean both unauthenticated and unauthorized. So when a user is not signed in,
@@ -20,10 +21,8 @@ const Unauthorized = () => {
 
     return (
         <>
-            <Container className="p-0">
-                <h1 className="h4 mt-4 mb-4">Authentication required</h1>
-            </Container>
-            <Container className="box rounded pt-4 pb-4 pl-5 pr-5">
+            <TitleBar>Authentication required</TitleBar>
+            <Container className="box rounded pt-4 pb-4 ps-5 pe-5">
                 <div className="container">
                     <div className="row justify-content-center">
                         <div className="col-md-12 text-center">
@@ -33,13 +32,13 @@ const Unauthorized = () => {
                             ) : (
                                 <>
                                     <h2 className="mb-4 h4">You need to sign in to continue</h2>
-                                    <Button color="primary" className="mr-3" onClick={() => UserService.doLogin()}>
+                                    <Button color="primary" className="me-3" onClick={() => UserService.doLogin()}>
                                         Sign In
                                     </Button>
                                 </>
                             )}
                             <Link to={ROUTES.HOME}>
-                                <Button color="primary" outline className="mr-3">
+                                <Button color="primary" outline className="me-3">
                                     Go to home
                                 </Button>
                             </Link>

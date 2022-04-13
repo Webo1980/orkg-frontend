@@ -1,20 +1,16 @@
-import { createProperty } from 'actions/contributionEditor';
 import TableCell from 'components/ContributionEditor/TableCell';
 import TableHeaderColumn from 'components/ContributionEditor/TableHeaderColumn';
 import TableHeaderColumnFirst from 'components/ContributionEditor/TableHeaderColumnFirst';
 import TableHeaderRow from 'components/ContributionEditor/TableHeaderRow';
-import { PREDICATES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
 import { sortBy, uniq, without } from 'lodash';
 import queryString from 'query-string';
 import { useCallback } from 'react';
-import { useDispatch } from 'react-redux';
 import { useHistory, useLocation } from 'react-router';
 
 const useContributionEditor = () => {
     const location = useLocation();
     const history = useHistory();
-    const dispatch = useDispatch();
 
     const getContributionIds = useCallback(() => {
         const { contributions } = queryString.parse(location.search, { arrayFormat: 'comma' });
@@ -22,16 +18,22 @@ const useContributionEditor = () => {
         return without(uniq(contributionIds), undefined, null, '') ?? [];
     }, [location.search]);
 
+    const hasPreviousVersion = queryString.parse(location.search).hasPreviousVersion;
+
     const handleAddContributions = ids => {
         const idsQueryString = [...getContributionIds(), ...ids].join(',');
-        history.push(`${ROUTES.CONTRIBUTION_EDITOR}?contributions=${idsQueryString}`);
+        history.push(
+            `${ROUTES.CONTRIBUTION_EDITOR}?contributions=${idsQueryString}${hasPreviousVersion ? `&hasPreviousVersion=${hasPreviousVersion}` : ''}`
+        );
     };
 
     const handleRemoveContribution = id => {
         const idsQueryString = getContributionIds()
             .filter(_id => _id !== id)
             .join(',');
-        history.push(`${ROUTES.CONTRIBUTION_EDITOR}?contributions=${idsQueryString}`);
+        history.push(
+            `${ROUTES.CONTRIBUTION_EDITOR}?contributions=${idsQueryString}${hasPreviousVersion ? `&hasPreviousVersion=${hasPreviousVersion}` : ''}`
+        );
     };
 
     // make an object that supports retrieving statements by propertyId and contributionId
@@ -57,11 +59,6 @@ const useContributionEditor = () => {
     const generateTableMatrix = useCallback(
         ({ contributions, papers, statements, properties, resources, literals }) => {
             const statementsByPropertyIdAndContributionId = getStatementsByPropertyIdAndContributionId(statements);
-
-            // ensure there is always a research problem row
-            if (Object.keys(contributions).length && !(PREDICATES.HAS_RESEARCH_PROBLEM in properties)) {
-                dispatch(createProperty({ action: 'select-option', id: PREDICATES.HAS_RESEARCH_PROBLEM }));
-            }
 
             let data = [];
             let columns = [];
@@ -105,7 +102,7 @@ const useContributionEditor = () => {
 
             return { data, columns };
         },
-        [Cell, dispatch]
+        [Cell]
     );
 
     return {

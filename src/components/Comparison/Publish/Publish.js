@@ -1,22 +1,14 @@
 import { useState, useEffect } from 'react';
-import {
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Input,
-    Button,
-    Label,
-    FormGroup,
-    Alert,
-    CustomInput,
-    InputGroupAddon,
-    InputGroup
-} from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Input, Button, Label, FormGroup, Alert, InputGroup } from 'reactstrap';
 import { toast } from 'react-toastify';
 import ROUTES from 'constants/routes.js';
 import PropTypes from 'prop-types';
-import { createLiteralStatement, createResourceStatement, getStatementsByPredicateAndLiteral } from 'services/backend/statements';
+import {
+    createLiteralStatement,
+    createResourceStatement,
+    getStatementsByPredicateAndLiteral,
+    getStatementsBySubjectAndPredicate
+} from 'services/backend/statements';
 import { generateDOIForComparison, createObject } from 'services/backend/misc';
 import { createLiteral } from 'services/backend/literals';
 import { createResource } from 'services/backend/resources';
@@ -34,14 +26,18 @@ import { reverse } from 'named-urls';
 import { useHistory } from 'react-router-dom';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
-import { getPropertyObjectFromData } from 'utils';
+import { getPropertyObjectFromData, filterObjectOfStatementsByPredicateAndClass } from 'utils';
 import styled from 'styled-components';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
 import { slugify } from 'utils';
 import { PREDICATES, CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
 import env from '@beam-australia/react-env';
+import Select from 'react-select';
+import { getConferences } from 'services/backend/organizations';
+import { SelectGlobalStyle } from 'components/Autocomplete/styled';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
-const StyledCustomInput = styled(CustomInput)`
+const StyledCustomInput = styled(Input)`
     margin-right: 0;
 `;
 
@@ -88,6 +84,9 @@ function Publish(props) {
     );
     const [subject, setSubject] = useState(props.metaData && props.metaData.subject ? props.metaData.subject : undefined);
     const [comparisonCreators, setComparisonCreators] = useState(props.authors ?? []);
+    const [conferencesList, setConferencesList] = useState([]);
+    const [conference, setConference] = useState(null);
+    const { trackEvent } = useMatomo();
 
     const handleCreatorsChange = creators => {
         creators = creators ? creators : [];
@@ -97,10 +96,19 @@ function Publish(props) {
     useEffect(() => {
         setTitle(props.metaData && props.metaData.title ? props.metaData.title : '');
         setDescription(props.metaData && props.metaData.description ? props.metaData.description : '');
-        setReferences(props.metaData?.references && props.metaData.references.length > 0 ? props.metaData.references : ['']);
+        setReferences(props.metaData?.references?.length > 0 ? props.metaData.references.map(r => r.label) : ['']);
         setSubject(props.metaData && props.metaData.subject ? props.metaData.subject : undefined);
         setComparisonCreators(props.authors ? props.authors : []);
     }, [props.metaData, props.authors]);
+
+    useEffect(() => {
+        const getConferencesList = () => {
+            getConferences().then(response => {
+                setConferencesList(response);
+            });
+        };
+        getConferencesList();
+    }, []);
 
     // TODO: improve code by using reduce function and unify code with paper edit dialog
     const saveCreators = async (creators, resourceId) => {
@@ -217,8 +225,19 @@ function Publish(props) {
                                             '@id': props.metaData.hasPreviousVersion.id
                                         }
                                     ]
-                                })
-                            }
+                                }),
+                                ...(conference &&
+                                    conference.metadata?.is_double_blind && {
+                                        [PREDICATES.IS_ANONYMIZED]: [
+                                            {
+                                                text: true,
+                                                datatype: 'xsd:boolean'
+                                            }
+                                        ]
+                                    })
+                            },
+                            observatoryId: MISC.UNKNOWN_ID,
+                            organizationId: conference ? conference.id : MISC.UNKNOWN_ID
                         }
                     };
                     const createdComparison = await createObject(comparison_obj);
@@ -227,6 +246,7 @@ function Publish(props) {
                         resourceId: createdComparison.id,
                         data: { url: `${props.comparisonURLConfig}&response_hash=${response_hash}` }
                     });
+                    trackEvent({ category: 'data-entry', action: 'publish-comparison' });
                     toast.success('Comparison saved successfully');
                     // Assign a DOI
                     if (assignDOI) {
@@ -251,23 +271,41 @@ function Publish(props) {
             if (props.comparisonId && props.authors.length === 0) {
                 await saveCreators(comparisonCreators, props.comparisonId);
             }
+            // Load ORCID of curators
+            let comparisonCreatorsORCID = comparisonCreators.map(async curator => {
+                if (!curator.orcid && curator._class === ENTITIES.RESOURCE) {
+                    const statements = await getStatementsBySubjectAndPredicate({ subjectId: curator.id, predicateId: PREDICATES.HAS_ORCID });
+                    return { ...curator, orcid: filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_ORCID, true)?.label };
+                } else {
+                    return curator;
+                }
+            });
+            comparisonCreatorsORCID = await Promise.all(comparisonCreatorsORCID);
             if (title && title.trim() !== '' && description && description.trim() !== '') {
-                const response = await generateDOIForComparison(
+                generateDOIForComparison(
                     comparisonId,
                     title,
                     subject ? subject.label : '',
                     description,
                     props.contributionsList,
-                    comparisonCreators.map(c => ({ creator: c.label, orcid: c.orcid })),
+                    comparisonCreatorsORCID.map(c => ({ creator: c.label, orcid: c.orcid })),
                     `${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: comparisonId })}`
-                );
-                props.setMetaData(prevMetaData => ({
-                    ...prevMetaData,
-                    doi: response.data.attributes.doi
-                }));
-                const doiResponse = await createLiteral(response.data.attributes.doi);
-                createResourceStatement(comparisonId, PREDICATES.HAS_DOI, doiResponse.id);
-                toast.success('DOI has been registered successfully');
+                )
+                    .then(doiResponse => {
+                        props.setMetaData(prevMetaData => ({
+                            ...prevMetaData,
+                            doi: doiResponse.data.attributes.doi
+                        }));
+                        createLiteral(doiResponse.data.attributes.doi).then(doiLiteral => {
+                            createResourceStatement(comparisonId, PREDICATES.HAS_DOI, doiLiteral.id);
+                            setIsLoading(false);
+                            toast.success('DOI has been registered successfully');
+                        });
+                    })
+                    .catch(error => {
+                        toast.error(`Error publishing a DOI`);
+                        setIsLoading(false);
+                    });
             } else {
                 throw Error('Please enter a title and a description');
             }
@@ -337,19 +375,17 @@ function Publish(props) {
                                 value={`${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: props.comparisonId })}`}
                                 disabled
                             />
-                            <InputGroupAddon addonType="append">
-                                <CopyToClipboard
-                                    text={`${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: props.comparisonId })}`}
-                                    onCopy={() => {
-                                        toast.dismiss();
-                                        toast.success(`Comparison link copied!`);
-                                    }}
-                                >
-                                    <Button color="primary" className="pl-3 pr-3" style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}>
-                                        <Icon icon={faClipboard} />
-                                    </Button>
-                                </CopyToClipboard>
-                            </InputGroupAddon>
+                            <CopyToClipboard
+                                text={`${props.publicURL}${reverse(ROUTES.COMPARISON, { comparisonId: props.comparisonId })}`}
+                                onCopy={() => {
+                                    toast.dismiss();
+                                    toast.success(`Comparison link copied!`);
+                                }}
+                            >
+                                <Button color="primary" className="ps-3 pe-3" style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}>
+                                    <Icon icon={faClipboard} />
+                                </Button>
+                            </CopyToClipboard>
                         </InputGroup>
                     </FormGroup>
                 )}
@@ -358,23 +394,21 @@ function Publish(props) {
                         <Label for="doi_link">DOI</Label>
                         <InputGroup>
                             <Input id="doi_link" value={`https://doi.org/${props.doi}`} disabled />
-                            <InputGroupAddon addonType="append">
-                                <CopyToClipboard
-                                    text={`https://doi.org/${props.doi}`}
-                                    onCopy={() => {
-                                        toast.dismiss();
-                                        toast.success(`DOI link copied!`);
-                                    }}
-                                >
-                                    <Button color="primary" className="pl-3 pr-3" style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}>
-                                        <Icon icon={faClipboard} />
-                                    </Button>
-                                </CopyToClipboard>
-                            </InputGroupAddon>
+                            <CopyToClipboard
+                                text={`https://doi.org/${props.doi}`}
+                                onCopy={() => {
+                                    toast.dismiss();
+                                    toast.success(`DOI link copied!`);
+                                }}
+                            >
+                                <Button color="primary" className="ps-3 pe-3" style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}>
+                                    <Icon icon={faClipboard} />
+                                </Button>
+                            </CopyToClipboard>
                         </InputGroup>
                     </FormGroup>
                 )}
-                {props.comparisonId && !props.doi && (
+                {props.comparisonId && !props.doi && !props.anonymized && (
                     <FormGroup>
                         <div>
                             <Tooltip
@@ -390,8 +424,10 @@ function Publish(props) {
                                     type="switch"
                                     name="customSwitch"
                                     inline
-                                    label="Assign a DOI to the comparison"
-                                />
+                                />{' '}
+                                <Label for="switchAssignDoi" className="mb-0">
+                                    Assign a DOI to the comparison
+                                </Label>
                             </Tooltip>
                         </div>
                     </FormGroup>
@@ -449,12 +485,12 @@ function Publish(props) {
                                                 onChange={e => handleReferenceChange(e, i)}
                                             />
                                             {!Boolean(props.comparisonId) && (
-                                                <InputGroupAddon addonType="append">
+                                                <>
                                                     {references.length !== 1 && (
                                                         <Button
                                                             color="light"
                                                             onClick={() => handleRemoveReferenceClick(i)}
-                                                            className="pl-3 pr-3"
+                                                            className="ps-3 pe-3"
                                                             style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                                         >
                                                             <Icon icon={faTrash} />
@@ -464,14 +500,14 @@ function Publish(props) {
                                                         <Button
                                                             color="secondary"
                                                             onClick={() => setReferences([...references, ''])}
-                                                            className="pl-3 pr-3"
+                                                            className="ps-3 pe-3"
                                                             outline
                                                             style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                                         >
                                                             <Icon icon={faPlus} />
                                                         </Button>
                                                     )}
-                                                </InputGroupAddon>
+                                                </>
                                             )}
                                         </InputGroup>
                                     );
@@ -497,6 +533,23 @@ function Publish(props) {
                             />
                         </FormGroup>
                         <FormGroup>
+                            <Label for="conference">
+                                <Tooltip message="Select a conference">Conference</Tooltip>
+                            </Label>
+                            <Select
+                                options={conferencesList}
+                                onChange={e => {
+                                    setConference(e);
+                                }}
+                                getOptionValue={({ id }) => id}
+                                isSearchable={true}
+                                getOptionLabel={({ name }) => name}
+                                isClearable={true}
+                                classNamePrefix="react-select"
+                            />
+                            <SelectGlobalStyle />
+                        </FormGroup>
+                        <FormGroup>
                             <Label for="Creator">
                                 <Tooltip message="The creator or creators of the comparison. Enter both the first and last name">Creators</Tooltip>
                             </Label>
@@ -520,7 +573,7 @@ function Publish(props) {
                                     </AuthorTag>
                                 ))}
                         </FormGroup>
-                        {!props.comparisonId && (
+                        {!props.comparisonId && (!conference || !conference.metadata.is_double_blind) && (
                             <FormGroup>
                                 <div>
                                     <Tooltip message="A DOI will be assigned to published comparison and it cannot be changed in future.">
@@ -534,7 +587,10 @@ function Publish(props) {
                                             name="customSwitch"
                                             inline
                                             label="Assign a DOI to the comparison"
-                                        />
+                                        />{' '}
+                                        <Label for="switchAssignDoi" className="mb-0">
+                                            Assign a DOI to the comparison
+                                        </Label>
                                     </Tooltip>
                                 </div>
                             </FormGroup>
@@ -583,7 +639,8 @@ Publish.propTypes = {
     loadCreatedBy: PropTypes.func.isRequired,
     loadProvenanceInfos: PropTypes.func.isRequired,
     data: PropTypes.object.isRequired,
-    nextVersions: PropTypes.array.isRequired
+    nextVersions: PropTypes.array.isRequired,
+    anonymized: PropTypes.bool
 };
 
 export default Publish;

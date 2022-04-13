@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Carousel, CarouselItem, CarouselIndicators, Card, CardBody, CardFooter, CardTitle, CardSubtitle } from 'reactstrap';
+import { Carousel, CarouselItem, Card, CardBody, CardFooter, CardTitle, CardSubtitle } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes';
 import Dotdotdot from 'react-dotdotdot';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faFile, faCubes } from '@fortawesome/free-solid-svg-icons';
+import { CarouselIndicatorsStyled } from 'components/styled';
 import Tippy from '@tippyjs/react';
 import styled from 'styled-components';
 import Gravatar from 'react-gravatar';
@@ -38,14 +39,6 @@ const ObservatoryCardStyled = styled.div`
             text-decoration: underline;
         }
     }
-`;
-
-const CarouselIndicatorsStyled = styled(CarouselIndicators)`
-    && {
-        margin: 0;
-    }
-
-    background: ${props => props.theme.lightLighter};
 `;
 
 const StyledGravatar = styled(Gravatar)`
@@ -98,7 +91,7 @@ function ObservatoriesCarousel(props) {
                     <ObservatoryCardStyled className="">
                         {!observatory.logo && (
                             <Card style={{ border: 0 }}>
-                                <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.id })} style={{ textDecoration: 'none' }}>
+                                <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })} style={{ textDecoration: 'none' }}>
                                     <CardBody className="pt-0 mb-0">
                                         <CardTitle tag="h5">{observatory.name}</CardTitle>
                                         <CardSubtitle tag="h6" style={{ height: '20px' }} className="mb-1 text-muted">
@@ -106,10 +99,10 @@ function ObservatoriesCarousel(props) {
                                         </CardSubtitle>
                                     </CardBody>
                                 </Link>
-                                <div className="mt-3 mb-3 pl-2 pr-2">
+                                <div className="mt-3 mb-3 ps-2 pe-2">
                                     <Link
                                         className="text-center d-flex"
-                                        to={reverse(ROUTES.OBSERVATORY, { id: observatory.id })}
+                                        to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })}
                                         style={{ textDecoration: 'none', height: '80px', width: '100%', overflow: 'hidden' }}
                                     >
                                         {observatory.orgs.slice(0, 2).map((
@@ -123,14 +116,14 @@ function ObservatoriesCarousel(props) {
                                 </div>
                                 <CardFooterStyled className="text-muted">
                                     <small>
-                                        <Icon icon={faCubes} className="mr-1" /> {observatory.comparisons ?? 0} comparisons
-                                        <Icon icon={faFile} className="mr-1 ml-2" />
+                                        <Icon icon={faCubes} className="me-1" /> {observatory.comparisons ?? 0} comparisons
+                                        <Icon icon={faFile} className="me-1 ms-2" />
                                         {observatory.resources ?? 0} papers
                                     </small>
-                                    <div className="float-right" style={{ height: '25px' }}>
+                                    <div className="float-end" style={{ height: '25px' }}>
                                         {observatory.contributors.slice(0, 5).map(contributor => (
                                             <Tippy key={`contributor${contributor.id}`} content={contributor.display_name}>
-                                                <Link className="ml-1" to={reverse(ROUTES.USER_PROFILE, { userId: contributor.id })}>
+                                                <Link className="ms-1" to={reverse(ROUTES.USER_PROFILE, { userId: contributor.id })}>
                                                     <StyledGravatar className="rounded-circle" md5={contributor.gravatar_id} size={24} />
                                                 </Link>
                                             </Tippy>
@@ -155,23 +148,23 @@ function ObservatoriesCarousel(props) {
                         <CarouselIndicatorsStyled items={props.observatories} activeIndex={activeIndex} onClickHandler={goToIndex} />
                     </Carousel>
                 ) : (
-                    <div className="pt-4 pb-4 pl-4 pr-4">
+                    <div className="pt-4 pb-4 ps-4 pe-4">
                         No observatories yet!
                         <br />
                         <small className="text-muted">
                             How observatories are managed?{' '}
                             <a
-                                href="https://gitlab.com/TIBHannover/orkg/orkg-frontend/-/wikis/Observatories"
+                                href="https://www.orkg.org/orkg/help-center/article/8/Observatories_for_specific_research_fields"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                ORKG wiki
+                                ORKG help center
                             </a>
                         </small>
                     </div>
                 )
             ) : (
-                <div style={{ height: '130px' }} className="pt-4 pb-1 pl-4 pr-4">
+                <div style={{ height: '130px' }} className="pt-4 pb-1 ps-4 pe-4">
                     <ContentLoader
                         width={300}
                         height={50}

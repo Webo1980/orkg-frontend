@@ -1,8 +1,8 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import DbpediaAbstract from 'pages/DbpediaAbstract';
-import WikidataDescription from 'pages/WikidataDescription';
-import WikipediaSummary from 'pages/WikipediaSummary';
+import DbpediaAbstract from 'components/ExternalDescription/DbpediaAbstract';
+import WikidataDescription from 'components/ExternalDescription/WikidataDescription';
+import WikipediaSummary from 'components/ExternalDescription/WikipediaSummary';
 
 class ExternalDescription extends Component {
     constructor(props) {
@@ -23,7 +23,7 @@ class ExternalDescription extends Component {
         if (this.props.query.match(this.expressionWikipedia)) {
             return <WikipediaSummary externalResource={this.props.query} />;
         }
-        return <>No description available</>;
+        return null;
     }
 }
 

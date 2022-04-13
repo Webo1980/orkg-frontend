@@ -7,9 +7,10 @@ import { truncate } from 'lodash';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import { useState } from 'react';
-import { Button, Input, InputGroup, InputGroupAddon } from 'reactstrap';
+import { Button, Input, InputGroup } from 'reactstrap';
 import { createResource } from 'services/backend/resources';
 import { range } from 'utils';
+import Textarea from 'react-textarea-autosize';
 
 const EditItem = props => {
     const [isOpenResearchFieldModal, setIsOpenResearchFieldModal] = useState(false);
@@ -22,9 +23,15 @@ const EditItem = props => {
     if (props.type === 'text') {
         input = <Input value={props.value ? props.value : ''} onChange={props.onChange} />;
         stringValue = truncate(props.value ? props.value : '', { length: 60 });
+    } else if (props.type === 'textarea') {
+        input = <Textarea value={props.value ? props.value : ''} onChange={props.onChange} className="form-control" maxLength="3900" minRows="3" />;
+        stringValue = truncate(props.value ? props.value : '', { length: 60 });
     } else if (props.type === 'month') {
         input = (
             <Input type="select" value={props.value} onChange={props.onChange}>
+                <option value="" key="">
+                    Month
+                </option>
                 {moment.months().map((el, index) => {
                     return (
                         <option value={index + 1} key={index + 1}>
@@ -38,6 +45,9 @@ const EditItem = props => {
     } else if (props.type === 'year') {
         input = (
             <Input type="select" value={props.value} onChange={props.onChange}>
+                <option value="" key="">
+                    Year
+                </option>
                 {range(1900, moment().year())
                     .reverse()
                     .map(year => (
@@ -106,11 +116,10 @@ const EditItem = props => {
                     onChangeInputValue={e => setInputValue(e)}
                     inputValue={inputValue}
                 />
-                <InputGroupAddon addonType="append">
-                    <Button color="secondary" onClick={() => setIsOpenResearchFieldModal(true)}>
-                        Choose
-                    </Button>
-                </InputGroupAddon>
+
+                <Button color="secondary" onClick={() => setIsOpenResearchFieldModal(true)}>
+                    Choose
+                </Button>
 
                 {isOpenResearchFieldModal && (
                     <ResearchFieldSelectorModal isOpen toggle={v => setIsOpenResearchFieldModal(v => !v)} onSelectField={handleSelectField} />
@@ -139,7 +148,7 @@ EditItem.propTypes = {
     toggleItem: PropTypes.func.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.array, PropTypes.object]),
     onChange: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['text', 'month', 'year', 'authors', 'publishedIn', 'researchField']).isRequired,
+    type: PropTypes.oneOf(['text', 'month', 'year', 'authors', 'publishedIn', 'researchField', 'textarea']).isRequired,
     isLastItem: PropTypes.bool
 };
 

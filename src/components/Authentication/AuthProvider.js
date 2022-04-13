@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { firstLoad } from 'actions/auth';
+import { firstLoad } from 'slices/authSlice';
 
 import UserService from 'userService';
 

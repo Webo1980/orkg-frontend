@@ -1,5 +1,5 @@
 import { FormGroup, Label, Col, Input, FormText } from 'reactstrap';
-import { setComponents } from 'actions/addTemplate';
+import { updateComponents } from 'slices/templateEditorSlice';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -12,7 +12,7 @@ function ValidationRules(props) {
             }
             return item;
         });
-        props.setComponents(templateComponents);
+        props.updateComponents(templateComponents);
     };
 
     return (
@@ -20,7 +20,7 @@ function ValidationRules(props) {
             {props.value && props.value.id === 'String' && (
                 <>
                     <FormGroup row>
-                        <Label className="text-right text-muted" for="patternInput" sm={3}>
+                        <Label className="text-end text-muted" for="patternInput" sm={3}>
                             <small>Pattern</small>
                         </Label>
                         <Col sm={9}>
@@ -39,10 +39,10 @@ function ValidationRules(props) {
                     </FormGroup>
                 </>
             )}
-            {props.value && props.value.id === 'Number' && (
+            {props.value && (props.value.id === 'Number' || props.value.id === 'Integer') && (
                 <>
                     <FormGroup row>
-                        <Label className="text-right text-muted" for="minimumValueInput" sm={3}>
+                        <Label className="text-end text-muted" for="minimumValueInput" sm={3}>
                             <small>Minimum value</small>
                         </Label>
                         <Col sm={9}>
@@ -59,7 +59,7 @@ function ValidationRules(props) {
                         </Col>
                     </FormGroup>
                     <FormGroup row>
-                        <Label className="text-right text-muted" for="maximumValueInput" sm={3}>
+                        <Label className="text-end text-muted" for="maximumValueInput" sm={3}>
                             <small>Maximum value</small>
                         </Label>
                         <Col sm={9}>
@@ -87,18 +87,18 @@ ValidationRules.propTypes = {
     validationRules: PropTypes.object,
     enableEdit: PropTypes.bool.isRequired,
     components: PropTypes.array.isRequired,
-    setComponents: PropTypes.func.isRequired
+    updateComponents: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => {
     return {
-        components: state.addTemplate.components,
-        editMode: state.addTemplate.editMode
+        components: state.templateEditor.components,
+        editMode: state.templateEditor.editMode
     };
 };
 
 const mapDispatchToProps = dispatch => ({
-    setComponents: data => dispatch(setComponents(data))
+    updateComponents: data => dispatch(updateComponents(data))
 });
 
 export default connect(

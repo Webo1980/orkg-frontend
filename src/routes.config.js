@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { lazy } from 'react';
 import { Redirect } from 'react-router-dom';
 import ResourceDetails from 'pages/Resources/Resource';
@@ -8,9 +9,6 @@ import AddResource from 'pages/Resources/AddResource';
 import Comparison from 'pages/Comparisons/Comparison';
 import ComparisonDiff from 'pages/Comparisons/ComparisonDiff';
 import Home from 'pages/Home';
-import License from 'pages/License';
-import DataProtection from 'pages/DataProtection';
-import TermsOfUse from 'pages/TermsOfUse';
 import Changelog from 'pages/Changelog/Changelog';
 import NotFound from 'pages/NotFound';
 import Papers from 'pages/Papers';
@@ -37,7 +35,6 @@ import OrganizationDetails from 'pages/Organizations/OrganizationDetails';
 import AddOrganization from 'pages/Organizations/AddOrganization';
 import AddObservatory from 'pages/Observatories/AddObservatory';
 import Observatory from 'pages/Observatories/Observatory';
-import OrganizationObservatories from 'pages/Observatories/OrganizationObservatories';
 import SearchResults from 'pages/Search';
 import ViewPaper from 'pages/ViewPaper';
 import Stats from 'pages/Stats';
@@ -46,11 +43,10 @@ import FeaturedComparisons from 'pages/FeaturedComparisons';
 import Data from 'pages/Data';
 import Contribution from 'pages/Contribution';
 import CsvImport from 'pages/CsvImport';
-import SmartReview from 'pages/SmartReview/SmartReview';
-import SmartReviews from 'pages/SmartReview/SmartReviews';
-import UserUnpublishedArticles from 'pages/SmartReview/UserUnpublishedArticles';
-import SmartReviewNew from 'pages/SmartReview/SmartReviewNew';
-import SmartReviewDiff from 'pages/SmartReview/SmartReviewDiff';
+import Review from 'pages/Reviews/Review';
+import Reviews from 'pages/Reviews/Reviews';
+import ReviewNew from 'pages/Reviews/ReviewNew';
+import ReviewDiff from 'pages/Reviews/ReviewDiff';
 import Tools from 'pages/Tools';
 import AddComparison from 'pages/AddComparison';
 import requireAuthentication from 'requireAuthentication';
@@ -58,8 +54,20 @@ import Benchmarks from 'pages/Benchmarks/Benchmarks';
 import Benchmark from 'pages/Benchmarks/Benchmark';
 import { reverse } from 'named-urls';
 import ContributionEditor from 'pages/ContributionEditor';
-import CurationCall from 'pages/CurationCall';
+import Page from 'pages/Page';
+import About from 'pages/About';
+import HelpCenter from 'pages/HelpCenter/HelpCenter';
+import HelpCenterCategory from 'pages/HelpCenter/HelpCenterCategory';
+import HelpCenterArticle from 'pages/HelpCenter/HelpCenterArticle';
+import HelpCenterSearch from 'pages/HelpCenter/HelpCenterSearch';
 import WebinarMay11 from 'pages/WebinarMay11';
+import Lists from 'pages/Lists/Lists';
+import ListNew from 'pages/Lists/ListNew';
+import List from 'pages/Lists/List';
+import ListDiff from 'pages/Lists/ListDiff';
+import ContentTypeNew from 'pages/ContentType/ContentTypeNew';
+import ContentType from 'pages/ContentType/ContentType';
+import ContentTypes from 'pages/ContentType/ContentTypes';
 
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -168,12 +176,9 @@ const routes = [
         /* TODO: Remove this route (it's temporarily backward compatibility for moving contributions ids from view args to query string) */
         path: ROUTES.COMPARISON + '*',
         exact: true,
-        // eslint-disable-next-line react/prop-types
         component: ({ match, location }) => (
             <Redirect
-                // eslint-disable-next-line react/prop-types
                 to={`${reverse(ROUTES.COMPARISON)}?contributions=${match.params[0].split('/').join(',')}${
-                    // eslint-disable-next-line react/prop-types
                     location.search ? '&' + (location.search.charAt(0) === '?' ? location.search.substr(1) : location.search) : ''
                 }`}
             />
@@ -189,7 +194,6 @@ const routes = [
         /* TODO: Remove this route (it's temporarily backward compatibility for moving predicates to properties naming */
         path: ROUTES.PREDICATE + '*',
         exact: true,
-        // eslint-disable-next-line react/prop-types
         component: ({ match }) => <Redirect to={{ pathname: reverse(ROUTES.PROPERTY, { id: match.params.id }), state: { status: 301 } }} />
     },
     {
@@ -233,18 +237,6 @@ const routes = [
         component: AuthorPage
     },
     {
-        path: ROUTES.LICENSE,
-        component: License
-    },
-    {
-        path: ROUTES.DATA_PROTECTION,
-        component: DataProtection
-    },
-    {
-        path: ROUTES.TERMS_OF_USE,
-        component: TermsOfUse
-    },
-    {
         path: ROUTES.CHANGELOG,
         component: Changelog
     },
@@ -280,11 +272,6 @@ const routes = [
         path: ROUTES.OBSERVATORY,
         exact: true,
         component: Observatory
-    },
-    {
-        path: ROUTES.ORGANIZATION_OBSERVATORIES,
-        exact: true,
-        component: OrganizationObservatories
     },
     {
         path: ROUTES.PDF_TEXT_ANNOTATION,
@@ -325,24 +312,20 @@ const routes = [
         component: Benchmark
     },
     {
-        path: ROUTES.SMART_REVIEW_NEW,
-        component: requireAuthentication(SmartReviewNew)
+        path: ROUTES.REVIEW_NEW,
+        component: requireAuthentication(ReviewNew)
     },
     {
-        path: ROUTES.SMART_REVIEW_DIFF,
-        component: SmartReviewDiff
+        path: ROUTES.REVIEW_DIFF,
+        component: ReviewDiff
     },
     {
-        path: ROUTES.SMART_REVIEW,
-        component: SmartReview
+        path: ROUTES.REVIEW,
+        component: Review
     },
     {
-        path: ROUTES.SMART_REVIEWS,
-        component: SmartReviews
-    },
-    {
-        path: ROUTES.USER_UNPUBLISHED_REVIEWS,
-        component: requireAuthentication(UserUnpublishedArticles)
+        path: ROUTES.REVIEWS,
+        component: Reviews
     },
     {
         path: ROUTES.CONTRIBUTION_EDITOR,
@@ -357,17 +340,125 @@ const routes = [
         component: Tools
     },
     {
+        path: ROUTES.PAGE,
+        component: Page
+    },
+    {
+        path: ROUTES.ABOUT,
+        component: About
+    },
+    {
+        path: ROUTES.HELP_CENTER_CATEGORY,
+        component: HelpCenterCategory
+    },
+    {
+        path: ROUTES.HELP_CENTER_ARTICLE,
+        component: HelpCenterArticle
+    },
+    {
+        path: ROUTES.HELP_CENTER_SEARCH,
+        component: HelpCenterSearch
+    },
+    {
+        path: ROUTES.LISTS,
+        component: Lists
+    },
+    {
+        path: ROUTES.LIST_NEW,
+        component: ListNew
+    },
+    {
+        path: ROUTES.LIST_DIFF,
+        component: ListDiff
+    },
+    {
+        path: ROUTES.LIST,
+        component: List
+    },
+    // redirect legacy route
+    {
         path: ROUTES.CURATION_CALL,
-        component: CurationCall
+        component: () => {
+            window.location.replace('https://www.orkg.org/orkg/about/28/Curation_Grants');
+            return null;
+        }
+    },
+    {
+        path: ROUTES.HELP_CENTER,
+        component: HelpCenter
     },
     {
         path: ROUTES.WEBINAR_MAY_11,
         component: WebinarMay11
     },
-    /* Don't add routes below this line */
+    {
+        path: ROUTES.USER_UNPUBLISHED_REVIEWS,
+        component: () => <Redirect to={{ pathname: reverse(ROUTES.USER_SETTINGS, { tab: 'draft-reviews' }), state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.CONTENT_TYPE_NEW,
+        component: ContentTypeNew
+    },
+    {
+        path: ROUTES.CONTENT_TYPE,
+        component: ContentType
+    },
+    {
+        path: ROUTES.CONTENT_TYPES,
+        component: ContentTypes
+    }
+];
+
+const legacyRoutes = [
+    {
+        path: ROUTES.SMART_REVIEW_NEW,
+        component: () => <Redirect to={{ pathname: ROUTES.REVIEW_NEW, state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.SMART_REVIEW_DIFF,
+        component: ({ match }) => (
+            <Redirect
+                to={{ pathname: reverse(ROUTES.REVIEW_DIFF, { oldId: match.params.oldId, newId: match.params.newId }), state: { status: 301 } }}
+            />
+        )
+    },
+    {
+        path: ROUTES.SMART_REVIEW,
+        component: ({ match }) => <Redirect to={{ pathname: reverse(ROUTES.REVIEW, { id: match.params.id }), state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.SMART_REVIEWS,
+        component: () => <Redirect to={{ pathname: ROUTES.REVIEWS, state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.LITERATURE_LISTS,
+        component: () => <Redirect to={{ pathname: ROUTES.LISTS, state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.LITERATURE_LIST,
+        component: ({ match }) => <Redirect to={{ pathname: reverse(ROUTES.LIST, { id: match.params.id }), state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.LITERATURE_LIST_NEW,
+        component: () => <Redirect to={{ pathname: ROUTES.LIST_NEW, state: { status: 301 } }} />
+    },
+    {
+        path: ROUTES.LITERATURE_LIST_DIFF,
+        component: ({ match }) => (
+            <Redirect
+                to={{ pathname: reverse(ROUTES.LIST_DIFF, { oldId: match.params.oldId, newId: match.params.newId }), state: { status: 301 } }}
+            />
+        )
+    }
+];
+
+const allRoutes = [
+    ...routes,
+    ...legacyRoutes,
+    // NotFound must be the last route
     {
         component: NotFound
     }
 ];
 
-export default routes;
+export default allRoutes;

@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { Label, FormFeedback, Alert } from 'reactstrap';
 import Textarea from 'react-textarea-autosize';
-import { updateAbstract } from 'actions/addPaper';
+import { updateAbstract } from 'slices/addPaperSlice';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Tooltip from 'components/Utils/Tooltip';
@@ -41,7 +41,7 @@ class AbstractInputView extends Component {
                 </Label>
                 <Textarea
                     id="paperAbstract"
-                    className={`form-control pl-2 pr-2 ${!this.props.validation ? 'is-invalid' : ''}`}
+                    className={`form-control ps-2 pe-2 ${!this.props.validation ? 'is-invalid' : ''}`}
                     minRows={8}
                     value={this.props.abstract}
                     onChange={this.handleChange}

@@ -1,14 +1,14 @@
-import { deleteStatement, updateLiteral, updateResource } from 'actions/contributionEditor';
-import Autocomplete from 'components/Autocomplete/Autocomplete';
+import { deleteStatement } from 'slices/contributionEditorSlice';
 import { ItemInnerSeparator } from 'components/Comparison/TableCell';
 import TableCellButtons from 'components/ContributionEditor/TableCellButtons';
 import TableCellValueResource from 'components/ContributionEditor/TableCellValueResource';
+import TableCellForm from 'components/ContributionEditor/TableCellForm/TableCellForm';
 import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
-import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
+import { ENTITIES } from 'constants/graphSettings';
 import PropTypes from 'prop-types';
-import { memo, useState } from 'react';
+import { forwardRef, memo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import Textarea from 'react-textarea-autosize';
+import env from '@beam-australia/react-env';
 import styled from 'styled-components';
 
 const Value = styled.div`
@@ -17,9 +17,8 @@ const Value = styled.div`
     }
 `;
 
-const TableCellValue = ({ value, index, setDisableCreate, propertyId }) => {
+const TableCellValue = forwardRef(({ value, index, setDisableCreate }, ref) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [inputValue, setInputValue] = useState(value.label);
     const dispatch = useDispatch();
 
     const handleStartEdit = () => {
@@ -31,94 +30,34 @@ const TableCellValue = ({ value, index, setDisableCreate, propertyId }) => {
         setDisableCreate(false);
     };
 
-    const handleUpdate = () => {
-        handleStopEdit();
-
-        // check if input is dirty
-        if (value.label !== inputValue) {
-            dispatch(
-                updateLiteral({
-                    id: value.id,
-                    label: inputValue
-                })
-            );
-        }
-    };
-
     const handleDelete = () => {
         dispatch(deleteStatement(value.statementId));
     };
 
-    const handleChangeAutocomplete = async (selected, { action }) => {
-        if (action !== 'create-option' && action !== 'select-option') {
-            return;
-        }
-        handleStopEdit();
+    return (
+        <div ref={ref}>
+            {!isEditing ? (
+                <>
+                    {index > 0 && <ItemInnerSeparator className="my-0" />}
+                    <Value className="position-relative">
+                        {value._class === ENTITIES.RESOURCE && <TableCellValueResource value={value} />}
+                        {value._class === ENTITIES.LITERAL && (
+                            <div role="textbox" tabIndex="0" onDoubleClick={env('PWC_USER_ID') !== value.created_by ? handleStartEdit : undefined}>
+                                <ValuePlugins type={value._class} options={{ inModal: true }}>
+                                    {value.label || <i>No label</i>}
+                                </ValuePlugins>
+                            </div>
+                        )}
 
-        dispatch(
-            updateResource({
-                statementId: value.statementId,
-                resourceId: selected.id ?? null,
-                resourceLabel: inputValue,
-                action
-            })
-        );
-    };
-
-    const handleKeyPress = e => {
-        if (e.key === 'Enter') {
-            handleUpdate();
-        }
-    };
-
-    return !isEditing ? (
-        <>
-            {index > 0 && <ItemInnerSeparator className="my-0" />}
-            <Value className="position-relative">
-                <ValuePlugins type={value._class} options={{ inModal: true }}>
-                    {value._class === 'resource' && <TableCellValueResource value={value} />}
-                    {value._class === 'literal' && (
-                        <div role="textbox" tabIndex="0" onDoubleClick={handleStartEdit}>
-                            {value.label}
-                        </div>
-                    )}
-                </ValuePlugins>
-                <TableCellButtons onEdit={handleStartEdit} onDelete={handleDelete} backgroundColor="rgba(240, 242, 247, 0.8)" />
-            </Value>
-        </>
-    ) : (
-        <div>
-            {value._class === 'resource' && (
-                <Autocomplete
-                    optionsClass={propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? CLASSES.PROBLEM : undefined}
-                    entityType={ENTITIES.RESOURCE}
-                    excludeClasses={`${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE}`}
-                    menuPortalTarget={document.body} // use a portal to ensure the menu isn't blocked by other elements
-                    placeholder={propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? 'Enter a research problem' : 'Enter a resource'}
-                    onChange={handleChangeAutocomplete}
-                    onInput={(e, value) => setInputValue(e ? e.target.value : value)}
-                    value={inputValue}
-                    onBlur={handleStopEdit}
-                    openMenuOnFocus={true}
-                    cssClasses="form-control-sm"
-                    allowCreate
-                />
-            )}
-            {value._class === 'literal' && (
-                <Textarea
-                    value={inputValue}
-                    autoFocus
-                    onChange={e => setInputValue(e.target.value)}
-                    onBlur={handleUpdate}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Enter a literal"
-                    className="form-control text-center"
-                    style={{ margin: '-7px 0' }}
-                />
+                        <TableCellButtons value={value} onEdit={handleStartEdit} onDelete={handleDelete} backgroundColor="rgba(240, 242, 247, 0.8)" />
+                    </Value>
+                </>
+            ) : (
+                <TableCellForm value={value} closeForm={handleStopEdit} />
             )}
         </div>
     );
-};
+});
 
 TableCellValue.propTypes = {
     value: PropTypes.object.isRequired,

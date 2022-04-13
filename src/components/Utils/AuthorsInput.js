@@ -4,7 +4,7 @@ import { sortableContainer, sortableElement, sortableHandle } from 'react-sortab
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTimes, faSpinner, faSort, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
-import styled, { withTheme } from 'styled-components';
+import styled, { withTheme, createGlobalStyle } from 'styled-components';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
 import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import { getPersonFullNameByORCID } from 'services/ORCID/index';
@@ -80,6 +80,12 @@ const AuthorTag = styled.div`
     }
 `;
 
+const GlobalStyle = createGlobalStyle`
+    .sortable-helper{
+        z-index: 10000 !important;
+    }
+`;
+
 const SortableItem = sortableElement(({ author, index, authorIndex, editAuthor, removeAuthor, itemLabel }) => (
     <AuthorTag>
         <DragHandle />
@@ -116,7 +122,7 @@ const SortableItem = sortableElement(({ author, index, authorIndex, editAuthor, 
 ));
 
 const DragHandle = sortableHandle(() => (
-    <StyledDragHandle className="ml-2 mr-2">
+    <StyledDragHandle className="ms-2 me-2">
         <Icon icon={faSort} />
     </StyledDragHandle>
 ));
@@ -158,7 +164,7 @@ class AuthorsInput extends Component {
         /** Regular expression to check whether an input string is a valid ORCID id.  */
         const ORCID_REGEX = '^\\s*(?:(?:https?://)?orcid.org/)?([0-9]{4})-?([0-9]{4})-?([0-9]{4})-?(([0-9]{4})|([0-9]{3}X))\\s*$';
         const supportedORCID = new RegExp(ORCID_REGEX);
-        return Boolean(value && value.match(supportedORCID));
+        return Boolean(value && value.replaceAll('−', '-').match(supportedORCID));
     };
 
     saveAuthor = authorInput => {
@@ -166,7 +172,7 @@ class AuthorsInput extends Component {
             if (this.isORCID(authorInput.label)) {
                 this.setState({ authorNameLoading: true });
                 // Get the full name from ORCID API
-                const orcid = authorInput.label.match(/([0-9]{4})-?([0-9]{4})-?([0-9]{4})-?(([0-9]{4})|([0-9]{3}X))/g)[0];
+                const orcid = authorInput.label.replaceAll('−', '-').match(/([0-9]{4})-?([0-9]{4})-?([0-9]{4})-?(([0-9]{4})|([0-9]{3}X))/g)[0];
                 getPersonFullNameByORCID(orcid)
                     .then(authorFullName => {
                         const newAuthor = {
@@ -252,11 +258,12 @@ class AuthorsInput extends Component {
     render() {
         return (
             <div className=" clearfix">
+                <GlobalStyle />
                 <div>
                     {this.props.value.length > 0 && (
                         <SortableContainer
                             useDragHandle
-                            helperClass="sortableHelperAuthors"
+                            helperClass="sortable-helper"
                             onSortEnd={this.onSortEnd}
                             className="clearfix"
                             onClick={this.props.value.length === 0 ? () => this.toggle('showAuthorForm') : undefined}
@@ -288,7 +295,7 @@ class AuthorsInput extends Component {
                             this.toggle('showAuthorForm');
                         }}
                     >
-                        <Icon icon={faPlus} className="mr-2" /> Add {this.props.itemLabel}
+                        <Icon icon={faPlus} className="me-2" /> Add {this.props.itemLabel}
                     </AddAuthor>
                 </div>
                 <Modal onOpened={() => this.inputRef.current.focus()} isOpen={this.state.showAuthorForm} toggle={() => this.toggle('showAuthorForm')}>

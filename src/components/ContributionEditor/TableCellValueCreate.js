@@ -1,17 +1,11 @@
-import { faBars, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { createLiteralValue, createResourceValue } from 'actions/contributionEditor';
-import Autocomplete from 'components/Autocomplete/Autocomplete';
-import StatementOptionButton from 'components/StatementBrowser/StatementOptionButton/StatementOptionButton';
-import { StyledDropdownItem, StyledDropdownToggle } from 'components/StatementBrowser/styled';
-import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
-import { upperFirst } from 'lodash';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
+import StatementActionButton from 'components/StatementBrowser/StatementActionButton/StatementActionButton';
+import { ENTITIES } from 'constants/graphSettings';
+import TableCellForm from 'components/ContributionEditor/TableCellForm/TableCellForm';
+import useTableCellForm from 'components/ContributionEditor/TableCellForm/hooks/useTableCellForm';
 import PropTypes from 'prop-types';
-import { memo, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import Textarea from 'react-textarea-autosize';
-import { useClickAway } from 'react-use';
-import { DropdownMenu, InputGroup, InputGroupButtonDropdown } from 'reactstrap';
+import { memo, useState } from 'react';
 import styled from 'styled-components';
 
 const CreateButtonContainer = styled.div`
@@ -24,118 +18,68 @@ const CreateButtonContainer = styled.div`
 `;
 
 const TableCellValueCreate = ({ isVisible, contributionId, propertyId, isEmptyCell }) => {
-    const [value, setValue] = useState('');
-    const [type, setType] = useState(propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? 'resource' : 'literal');
     const [isCreating, setIsCreating] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const refContainer = useRef(null);
-    const dispatch = useDispatch();
 
-    useClickAway(refContainer, () => {
-        setIsCreating(false);
-        createValue();
+    const {
+        createBlankNode,
+        isModelOpen,
+        dialogResourceId,
+        dialogResourceLabel,
+        setIsModalOpen,
+        isBlankNode,
+        entityType,
+        canAddValue,
+        updateResourceStatements
+    } = useTableCellForm({
+        value: null,
+        contributionId,
+        propertyId
     });
-
-    const createValue = () => {
-        if (type === 'literal' && value.trim()) {
-            handleCreateLiteral();
-        }
-    };
-
-    const handleChangeAutocomplete = async (selected, { action }) => {
-        if (action !== 'create-option' && action !== 'select-option') {
-            return;
-        }
-
-        dispatch(
-            createResourceValue({
-                contributionId,
-                propertyId,
-                resourceId: selected.id ?? null,
-                resourceLabel: value,
-                action,
-                classes: propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? [CLASSES.PROBLEM] : []
-            })
-        );
-        closeCreate();
-    };
-
-    const handleCreateLiteral = () => {
-        dispatch(
-            createLiteralValue({
-                contributionId,
-                propertyId,
-                label: value
-            })
-        );
-        closeCreate();
-    };
-
-    const handleKeyPress = e => {
-        if (e.key === 'Enter') {
-            createValue();
-        }
-    };
-
-    const closeCreate = () => {
-        setIsCreating(false);
-        setType(propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? 'resource' : 'literal');
-        setValue('');
-    };
 
     return (
         <>
             {!isCreating && isVisible && (
-                <div className={isEmptyCell ? 'h-100' : ''} role="button" tabIndex="0" onDoubleClick={() => setIsCreating(true)}>
+                <div
+                    className={isEmptyCell ? 'h-100' : ''}
+                    role="button"
+                    tabIndex="0"
+                    onDoubleClick={() => {
+                        if (isBlankNode && entityType !== ENTITIES.LITERAL) {
+                            createBlankNode(entityType);
+                        } else {
+                            setIsCreating(true);
+                        }
+                    }}
+                >
                     <CreateButtonContainer className="create-button">
-                        <StatementOptionButton title="Add value" icon={faPlus} action={() => setIsCreating(true)} />
+                        <StatementActionButton
+                            isDisabled={!canAddValue}
+                            title={canAddValue ? 'Add value' : 'This property reached the maximum number of values set by template'}
+                            icon={faPlus}
+                            appendTo={document.body}
+                            action={() => {
+                                if (isBlankNode && entityType !== ENTITIES.LITERAL) {
+                                    createBlankNode(entityType);
+                                } else {
+                                    setIsCreating(true);
+                                }
+                            }}
+                        />
                     </CreateButtonContainer>
                 </div>
             )}
-            {isCreating && (
-                <div ref={refContainer} style={{ height: 35 }}>
-                    <InputGroup size="sm" style={{ width: 295 }}>
-                        {type === 'resource' ? (
-                            <Autocomplete
-                                optionsClass={propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? CLASSES.PROBLEM : undefined}
-                                entityType={ENTITIES.RESOURCE}
-                                excludeClasses={`${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE}`}
-                                placeholder={propertyId === PREDICATES.HAS_RESEARCH_PROBLEM ? 'Enter a research problem' : 'Enter a resource'}
-                                onChange={handleChangeAutocomplete}
-                                menuPortalTarget={document.body}
-                                onInput={(e, value) => setValue(e ? e.target.value : value)}
-                                value={value}
-                                openMenuOnFocus
-                                allowCreate
-                                cssClasses="form-control-sm"
-                            />
-                        ) : (
-                            <Textarea
-                                placeholder="Enter a value"
-                                name="literalValue"
-                                type="text"
-                                value={value}
-                                onChange={e => setValue(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                autoFocus
-                                className="form-control text-center"
-                            />
-                        )}
-                        {propertyId !== PREDICATES.HAS_RESEARCH_PROBLEM && (
-                            <InputGroupButtonDropdown addonType="append" isOpen={isDropdownOpen} toggle={() => setIsDropdownOpen(v => !v)}>
-                                <StyledDropdownToggle disableBorderRadiusLeft={true}>
-                                    <small>{upperFirst(type)} </small>
-                                    <Icon size="xs" icon={faBars} />
-                                </StyledDropdownToggle>
-                                <DropdownMenu>
-                                    <StyledDropdownItem onClick={() => setType('resource')}>Resource</StyledDropdownItem>
-                                    <StyledDropdownItem onClick={() => setType('literal')}>Literal</StyledDropdownItem>
-                                </DropdownMenu>
-                            </InputGroupButtonDropdown>
-                        )}
-                    </InputGroup>
-                </div>
+            {isModelOpen && (
+                <StatementBrowserDialog
+                    toggleModal={v => setIsModalOpen(!v)}
+                    id={dialogResourceId}
+                    label={dialogResourceLabel}
+                    show
+                    enableEdit={true}
+                    syncBackend
+                    onCloseModal={() => updateResourceStatements(dialogResourceId)}
+                />
             )}
+            {isCreating && <TableCellForm closeForm={setIsCreating} contributionId={contributionId} propertyId={propertyId} />}
         </>
     );
 };

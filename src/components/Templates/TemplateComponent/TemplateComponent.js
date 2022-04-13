@@ -61,8 +61,8 @@ function TemplateComponent(props) {
     preview(drop(ref));
 
     return (
-        <StatementsGroupStyle className="noTemplate" style={{ opacity }}>
-            <div ref={ref} className="row no-gutters">
+        <StatementsGroupStyle className="noTemplate list-group-item" style={{ opacity }}>
+            <div ref={ref} className="row gx-0">
                 <TemplateComponentProperty
                     handleDeleteTemplateComponent={props.handleDeleteTemplateComponent}
                     id={props.id}
@@ -88,7 +88,7 @@ function TemplateComponent(props) {
 TemplateComponent.propTypes = {
     id: PropTypes.number.isRequired,
     property: PropTypes.object.isRequired,
-    value: PropTypes.object.isRequired,
+    value: PropTypes.object,
     minOccurs: PropTypes.string.isRequired,
     maxOccurs: PropTypes.string,
     validationRules: PropTypes.object,

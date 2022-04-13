@@ -11,22 +11,22 @@ import { reverseWithSlug } from 'utils';
 import Tippy from '@tippyjs/react';
 
 const ResearchProblemsBox = ({ researchFieldId }) => {
-    const { problems, isLoading, totalElements } = useResearchFieldProblems({ researchFieldId, pageSize: 5 });
+    const { problems, isLoading, totalElements } = useResearchFieldProblems({ initialSort: 'combined', researchFieldId, pageSize: 10 });
     const [openModal, setOpenModal] = useState(false);
 
     return (
-        <div className="box rounded-lg p-3 flex-grow-1 d-flex flex-column">
+        <div className="box rounded-3 p-3 flex-grow-1 d-flex flex-column">
             <h5>Research problems</h5>
             <div className="flex-grow-1">
                 {!isLoading && totalElements > 0 && (
-                    <div className="pl-3 pt-2">
-                        {problems.map(rp => (
+                    <div className="ps-3 pt-2">
+                        {problems.slice(0, 5).map(rp => (
                             <li key={`rp${rp.id}`}>
                                 <Tippy content={rp.label} disabled={rp.label?.length <= 70}>
                                     <Link to={reverseWithSlug(ROUTES.RESEARCH_PROBLEM, { researchProblemId: rp.id, slug: rp.label })}>
                                         {truncate(rp.label, { length: 70 })}
                                         {/** <small>
-                                            <Badge className="ml-1" color="info" pill>
+                                            <Badge className="ms-1" color="info" pill>
                                                 {rp.papers}
                                             </Badge>
                                         </small>*/}
