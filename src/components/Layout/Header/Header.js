@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import {
     Button,
     UncontrolledButtonDropdown as ButtonDropdown,
@@ -247,6 +247,10 @@ const Header = () => {
         setIsHomePageStyle(location.pathname === ROUTES.HOME ? true : false);
     }, [location.pathname]);
 
+    const toggleUserTooltip = useCallback(() => {
+        setUserTooltipOpen(v => !userTooltipOpen);
+    }, [userTooltipOpen]);
+
     useEffect(() => {
         const handleScroll = () => {
             if (window.pageYOffset > 0) {
@@ -272,28 +276,24 @@ const Header = () => {
             document.removeEventListener('mousedown', handleClickOutside);
             window.removeEventListener('scroll', handleScroll);
         };
-    }, [isHomePageStyle, location.pathname, userTooltipOpen]);
+    }, [isHomePageStyle, location.pathname, toggleUserTooltip, userTooltipOpen]);
 
     const toggleNavBar = () => {
-        setIsOpenNavBar(v => !v);
+        setIsOpenNavBar(v => !isOpenNavBar);
     };
 
     const toggleAboutMenu = () => {
-        setIsOpenAboutMenu(v => !v);
+        setIsOpenAboutMenu(v => !isOpenAboutMenu);
     };
 
     const toggleViewMenu = () => {
-        setIsOpenViewMenu(v => !v);
+        setIsOpenViewMenu(v => !isOpenViewMenu);
     };
 
     const closeMenu = () => {
+        setIsOpenViewMenu(false);
         setIsOpenNavBar(false);
         setIsOpenAboutMenu(false);
-        setIsOpenViewMenu(false);
-    };
-
-    const toggleUserTooltip = () => {
-        setUserTooltipOpen(v => !v);
     };
 
     const requireAuthentication = e => {
@@ -361,15 +361,6 @@ const Header = () => {
                                 </DropdownItem>
                                 <DropdownItem tag={RouterNavLink} exact to={ROUTES.LISTS} onClick={closeMenu}>
                                     Lists{' '}
-                                    <small>
-                                        <Badge color="info">Beta</Badge>
-                                    </small>
-                                </DropdownItem>
-                                <DropdownItem tag={RouterNavLink} exact to={ROUTES.RESEARCH_FIELDS} onClick={closeMenu}>
-                                    Research fields
-                                </DropdownItem>
-                                <DropdownItem tag={RouterNavLink} exact to={ROUTES.SMART_REVIEWS} onClick={closeMenu}>
-                                    SmartReviews{' '}
                                     <small>
                                         <Badge color="info">Beta</Badge>
                                     </small>
