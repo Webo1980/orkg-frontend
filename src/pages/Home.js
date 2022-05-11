@@ -5,7 +5,6 @@ import ObservatoriesBox from 'components/Home/ObservatoriesBox';
 import FeaturedItemsBox from 'components/Home/FeaturedItemsBox';
 import LastUpdatesBox from 'components/LastUpdatesBox/LastUpdatesBox';
 import Benefits from 'components/Home/Benefits';
-import News from 'components/Home/News';
 import ContributorsBox from 'components/TopContributors/ContributorsBox';
 import useResearchFieldSelector from 'components/Home/hooks/useResearchFieldSelector';
 import { MISC } from 'constants/graphSettings';
@@ -14,6 +13,7 @@ import { Helmet } from 'react-helmet';
 import env from '@beam-australia/react-env';
 import HomeAlerts from 'components/HomeAlerts/HomeAlerts';
 import { useEffect } from 'react';
+import { Timeline } from 'react-twitter-widgets';
 
 export default function Home() {
     const location = useLocation();
@@ -65,8 +65,16 @@ export default function Home() {
                     </div>
                 </Col>
                 <Col md="4">
-                    <div className="mt-3 box rounded d-flex flex-column overflow-hidden">
-                        <News />
+                    <div className="mt-3 box rounded">
+                        <Timeline
+                            dataSource={{
+                                sourceType: 'profile',
+                                screenName: 'orkg_org'
+                            }}
+                            options={{
+                                height: '400'
+                            }}
+                        />
                     </div>
 
                     <div className="mt-3 box rounded d-flex flex-column overflow-hidden">
