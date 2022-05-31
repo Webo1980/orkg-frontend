@@ -275,6 +275,28 @@ export const getListData = (resource, statements) => {
 };
 
 /**
+ * Parse dataset and software statements and return the object
+ * @param {Object} resource List resource
+ * @param {Array} statements List  Statements
+ * @param {String} classType Predicate resource
+ */
+export const getContentData = (resource, statements, classType) => {
+    const description = filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.DESCRIPTION, true);
+    const contentId = filterObjectOfStatementsByPredicateAndClass(statements, classType, true)?.id;
+    const researchField = filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_RESEARCH_FIELD, true, CLASSES.RESEARCH_FIELD);
+    const authors = filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_AUTHOR, false);
+    return {
+        ...resource,
+        id: resource.id,
+        label: resource.label ? resource.label : 'No Title',
+        description: description?.label ?? '',
+        researchField,
+        authors,
+        contentId
+    };
+};
+
+/**
  * Parse author statements and return an author object
  * @param {Object} resource Author resource
  * @param {Array} statements Author Statements
@@ -1397,6 +1419,12 @@ export const getDataBasedOnType = (resource, statements) => {
     }
     if (resource?.classes?.includes(CLASSES.LITERATURE_LIST) || resource?.classes?.includes(CLASSES.LITERATURE_LIST_PUBLISHED)) {
         return getListData(resource, statements);
+    }
+    if (resource?.classes?.includes(CLASSES.DATASET)) {
+        return getContentData(resource, statements, CLASSES.DATASET);
+    }
+    if (resource?.classes?.includes(CLASSES.SOFTWARE)) {
+        return getContentData(resource, statements, CLASSES.SOFTWARE);
     } else {
         return undefined;
     }

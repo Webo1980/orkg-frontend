@@ -3,6 +3,8 @@ import PaperCard from 'components/PaperCard/PaperCard';
 import VisualizationCard from 'components/VisualizationCard/VisualizationCard';
 import ReviewCard from 'components/ReviewCard/ReviewCard';
 import ListCard from 'components/List/ListCard';
+import DatasetCard from 'components/DatasetCard/DatasetCard';
+import SoftwareCard from 'components/SoftwareCard/SoftwareCard';
 import PropTypes from 'prop-types';
 import { useCallback } from 'react';
 import { CLASSES } from 'constants/graphSettings';
@@ -46,6 +48,32 @@ const CardFactory = ({ item, showBadge, showCurationFlags, showAddToComparison }
         return (
             <VisualizationCard
                 visualization={{
+                    id: item.id,
+                    title: item.label,
+                    ...item
+                }}
+                showBadge={showBadge}
+                showCurationFlags={showCurationFlags}
+            />
+        );
+    }
+    if (findClass(CLASSES.DATASET)) {
+        return (
+            <DatasetCard
+                dataset={{
+                    id: item.id,
+                    title: item.label,
+                    ...item
+                }}
+                showBadge={showBadge}
+                showCurationFlags={showCurationFlags}
+            />
+        );
+    }
+    if (findClass(CLASSES.SOFTWARE)) {
+        return (
+            <SoftwareCard
+                software={{
                     id: item.id,
                     title: item.label,
                     ...item
