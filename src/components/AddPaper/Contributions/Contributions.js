@@ -37,6 +37,7 @@ const Contributions = () => {
         selectedResearchField,
         contributions,
         selectedContribution,
+        initialData,
     } = useSelector(state => state.addPaper);
     const { resources, properties, values } = useSelector(state => state.statementBrowser);
 
@@ -48,8 +49,9 @@ const Contributions = () => {
             dispatch(
                 createContribution({
                     selectAfterCreation: true,
-                    prefillStatements: true,
+                    fillStatements: true,
                     researchField: selectedResearchField,
+                    statements: initialData ?? undefined,
                 }),
             );
             dispatch(

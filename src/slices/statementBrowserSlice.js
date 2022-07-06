@@ -426,6 +426,10 @@ export const statementBrowserSlice = createSlice({
             }
             state.templates[templateID].isFetching = status;
         },
+        setManualData: (state, { payload }) => ({
+            ...state,
+            ...payload,
+        }),
     },
     extraReducers: {
         [LOCATION_CHANGE]: (state, { payload }) => {
@@ -510,6 +514,7 @@ export const {
     createTemplate,
     setIsFetchingTemplatesOfClass,
     setIsFetchingTemplateData,
+    setManualData,
 } = statementBrowserSlice.actions;
 
 export default statementBrowserSlice.reducer;

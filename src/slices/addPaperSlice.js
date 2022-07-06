@@ -15,6 +15,7 @@ import {
     clearResourceHistory,
     fillStatements,
 } from 'slices/statementBrowserSlice';
+import { getPredicate } from 'services/backend/predicates';
 
 const initialState = {
     isTourOpen: false,
@@ -42,6 +43,7 @@ const initialState = {
         byId: {},
         allIds: [],
     },
+    initialData: {},
 };
 
 export const addPaperSlice = createSlice({
@@ -190,6 +192,9 @@ export const addPaperSlice = createSlice({
         saveAddPaper: (state, { payload }) => {
             state.paperNewResourceId = payload;
         },
+        setInitialData: (state, { payload }) => {
+            state.initialData = payload;
+        },
     },
     extraReducers: {
         [LOCATION_CHANGE]: () => initialState,
@@ -219,6 +224,7 @@ export const {
     selectContribution,
     updateContributionLabel,
     saveAddPaper,
+    setInitialData,
 } = addPaperSlice.actions;
 
 export default addPaperSlice.reducer;
@@ -229,7 +235,7 @@ export const loadPaperDataAction = data => dispatch => {
     dispatch(loadStatementBrowserData(data.statementBrowser));
 };
 
-export const createContributionAction = ({ selectAfterCreation = false, fillStatements: performPrefill = false, statements = null }) => (
+export const createContributionAction = ({ selectAfterCreation = false, fillStatements: performPrefill = false, statements = null }) => async (
     dispatch,
     getState,
 ) => {
@@ -267,12 +273,89 @@ export const createContributionAction = ({ selectAfterCreation = false, fillStat
     dispatch(fetchTemplatesOfClassIfNeeded(CLASSES.CONTRIBUTION));
 
     if (performPrefill && statements) {
+        const standardProperty = await getPredicate('P16');
+        const propertyId = guid();
+        const valueId = guid();
+        const resourceId = guid();
+
         dispatch(
             fillStatements({
-                statements,
+                statements: {
+                    values: [
+                        {
+                            valueId,
+                            propertyId,
+                            _class: 'resource',
+                            label: statements[0]['http://www.w3.org/2000/01/rdf-schema#label'][0]['@value'],
+                            isExistingValue: false,
+                            existingResourceId: resourceId,
+                            classes: statements[0]['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
+                        },
+                    ],
+                    properties: [
+                        {
+                            propertyId,
+                            label: standardProperty.label,
+                            existingPredicateId: standardProperty.id,
+                        },
+                    ],
+                },
                 resourceId: newResourceId,
             }),
         );
+
+        dispatch(parseJsonJdLevel(statements[0], resourceId));
+    }
+};
+
+const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
+    const level = jsonLd;
+    const orkgProperties = Object.keys(level).filter(key => key.startsWith('https://orkg.org/property/'));
+    if (orkgProperties.length === 0) {
+        return [];
+    }
+    const propertyIds = [];
+
+    for (const orkgProperty of orkgProperties) {
+        propertyIds.push(orkgProperty.replace('https://orkg.org/property/', ''));
+    }
+
+    const values = [];
+    const properties = [];
+    for (const property of orkgProperties) {
+        const propertyId = guid();
+        const getProperty = await getPredicate(property.replace('https://orkg.org/property/', ''));
+        properties.push({
+            propertyId,
+            label: getProperty.label,
+            existingPredicateId: getProperty.id,
+        });
+        for (const value of level[property]) {
+            const valueId = guid();
+            const resourceId = guid();
+            values.push({
+                valueId,
+                propertyId,
+                _class: value['@value'] ? 'literal' : 'resource',
+                label: value['@value'] ?? value['http://www.w3.org/2000/01/rdf-schema#label']?.[0]?.['@value'],
+                classes: value['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
+                isExistingValue: false,
+                existingResourceId: resourceId,
+                jsonLd: value,
+            });
+        }
+    }
+    dispatch(
+        fillStatements({
+            statements: {
+                values,
+                properties,
+            },
+            resourceId: newResourceId,
+        }),
+    );
+    for (const value of values) {
+        dispatch(parseJsonJdLevel(value.jsonLd, value.existingResourceId));
     }
 };
 
@@ -400,4 +483,8 @@ export const saveAddPaperAction = data => async dispatch => {
         toast.error('Something went wrong while saving this paper.');
         dispatch(previousStep());
     }
+};
+
+export const setInitialDataAction = data => dispatch => {
+    dispatch(setInitialData(data));
 };

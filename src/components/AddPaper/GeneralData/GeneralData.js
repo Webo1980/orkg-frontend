@@ -24,7 +24,7 @@ import Tooltip from 'components/Utils/Tooltip';
 import AuthorsInput from 'components/Utils/AuthorsInput';
 import Joi from 'joi';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateGeneralData, nextStep, openTour, closeTour } from 'slices/addPaperSlice';
+import { updateGeneralData, nextStep, openTour, closeTour, setInitialDataAction } from 'slices/addPaperSlice';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { useCookies } from 'react-cookie';
 import styled, { ThemeContext } from 'styled-components';
@@ -39,6 +39,9 @@ import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'bo
 import env from '@beam-australia/react-env';
 import AutocompleteContentTypeTitle from 'components/AutocompleteContentTypeTitle/AutocompleteContentTypeTitle';
 import Confirm from 'components/Confirmation/Confirmation';
+import { submitGetRequest } from 'network';
+import { toast } from 'react-toastify';
+import * as jsonld from 'jsonld';
 import ExistingDoiModal from './ExistingDoiModal';
 
 const Container = styled(CSSTransition)`
@@ -131,6 +134,40 @@ const GeneralData = () => {
 
         setIsFetching(true);
         setValidation(null);
+
+        if (lookDoi.startsWith('https://api.test.datacite.org')) {
+            const paper = await submitGetRequest(lookDoi);
+            const attributes = paper?.data?.attributes;
+            const title = attributes?.titles?.[0]?.title;
+            const url = attributes?.relatedIdentifiers?.filter(identifier => identifier?.relationType === 'IsSupplementedBy')?.[0]?.relatedIdentifier;
+
+            if (url.startsWith('http')) {
+                const structuredPaperData = await submitGetRequest(url);
+                const expandedJsonLd = await jsonld.expand(structuredPaperData);
+
+                // basic check to see if this looks like a json-ld file
+                if (expandedJsonLd?.[0]?.['@id']) {
+                    dispatch(setInitialDataAction(expandedJsonLd));
+                    toast.info('Contribution data automatically fetched');
+                }
+            }
+            dispatch(
+                updateGeneralData({
+                    showLookupTable: true,
+                    title,
+                    authors: attributes?.creators.map(author => ({
+                        label: author.name,
+                        id: author.name,
+                    })),
+                    // publicationMonth: parseResult.paperPublicationMonth,
+                    // publicationYear: parseResult.paperPublicationYear,
+                    doi: attributes?.doi,
+                    publishedIn: attributes?.publisher,
+                }),
+            );
+            setIsFetching(false);
+            return;
+        }
 
         let entryParsed;
         if (lookDoi.startsWith('http')) {

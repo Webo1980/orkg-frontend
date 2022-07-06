@@ -33,6 +33,7 @@
         "immutability-helper": "^3.0.2",
         "indefinite": "^2.4.1",
         "joi": "^17.6.0",
+        "jsonld": "^6.0.0",
         "jspdf": "^2.5.1",
         "lodash": "^4.17.21",
         "make-latex": "^0.1.0",
