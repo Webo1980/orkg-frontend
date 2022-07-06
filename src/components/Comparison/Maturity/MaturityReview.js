@@ -227,7 +227,7 @@ const MaturityReview = () => {
                                 </span>
                             </div>
                         </div>
-                        {comparisonCreator != userId ? (
+                        {comparisonCreator == userId ? (
                         <Table bordered hover className="m-0">
                             <thead>
                                 <tr>
