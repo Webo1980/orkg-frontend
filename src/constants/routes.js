@@ -84,6 +84,7 @@ const routes = {
     CONTENT_TYPE: '/content-type/:type/:id/:mode',
     CONTENT_TYPE_NO_MODE: '/content-type/:type/:id',
     CONTENT_TYPES: '/content-type/:type',
+    CONFERENCE: '/conference/:id',
 };
 /**
  * Legacy routes are used to redirect old URLs to new ones

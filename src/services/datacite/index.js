@@ -33,3 +33,5 @@ export const getCitationByDOI = (DOI, style = '', header = 'text/x-bibliography'
             .catch(reject);
     });
 };
+
+export const getConferenceEventsByDoi = doi => submitGetRequest(`https://api.datacite.org/dois/${doi}`);

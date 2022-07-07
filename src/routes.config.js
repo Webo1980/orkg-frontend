@@ -68,8 +68,8 @@ import ListDiff from 'pages/Lists/ListDiff';
 import ContentTypeNew from 'pages/ContentType/ContentTypeNew';
 import ContentType from 'pages/ContentType/ContentType';
 import ContentTypes from 'pages/ContentType/ContentTypes';
+import ConferenceDetails from 'pages/Organizations/ConferenceDetails';
 import ResearchProblem from './pages/ResearchProblem';
-
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
 const PdfTextAnnotation = lazy(() => import('pages/PdfTextAnnotation')); // for dependency "react-pdf-highlighter" ~1.16MB
@@ -233,6 +233,10 @@ const routes = [
     {
         path: ROUTES.STATS,
         element: Stats,
+    },
+    {
+        path: ROUTES.CONFERENCE,
+        element: ConferenceDetails,
     },
     /* Legacy routes, only used for debugging now */
     {
