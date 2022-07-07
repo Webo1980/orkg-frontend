@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import { submitGetRequest } from 'network';
 
 export const getCitationByDOI = (DOI, style = '', header = 'text/x-bibliography') => {
     let headers = '';
@@ -29,4 +30,4 @@ export const getCitationByDOI = (DOI, style = '', header = 'text/x-bibliography'
     });
 };
 
-export default getCitationByDOI;
+export const getConferenceEventsByDoi = doi => submitGetRequest(`https://api.datacite.org/dois/${doi}`);
