@@ -292,11 +292,12 @@ export const createContributionAction = ({ selectAfterCreation = false, fillStat
 ) => {
     const newResourceId = guid();
     const newContributionId = guid();
-    const newContributionLabel = `Contribution ${getState().addPaper.contributions.allIds.length + 1}`;
+    let newContributionLabel = `Contribution ${getState().addPaper.contributions.allIds.length + 1}`;
     const additionalContributionClasses = [];
 
     if (performPrefill && statements) {
         additionalContributionClasses.push(...(statements?.[0]?.['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? []));
+        newContributionLabel = statements?.[0]?.['http://www.w3.org/2000/01/rdf-schema#label']?.[0]?.['@value'];
     }
 
     dispatch(
