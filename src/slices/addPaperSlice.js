@@ -235,79 +235,6 @@ export const loadPaperDataAction = data => dispatch => {
     dispatch(loadStatementBrowserData(data.statementBrowser));
 };
 
-export const createContributionAction = ({ selectAfterCreation = false, fillStatements: performPrefill = false, statements = null }) => async (
-    dispatch,
-    getState,
-) => {
-    const newResourceId = guid();
-    const newContributionId = guid();
-    const newContributionLabel = `Contribution ${getState().addPaper.contributions.allIds.length + 1}`;
-
-    dispatch(
-        createContribution({
-            id: newContributionId,
-            resourceId: newResourceId,
-            label: newContributionLabel,
-        }),
-    );
-
-    dispatch(
-        createResource({
-            resourceId: newResourceId,
-            label: newContributionLabel,
-            classes: [CLASSES.CONTRIBUTION],
-        }),
-    );
-
-    if (selectAfterCreation) {
-        dispatch(
-            selectResource({
-                increaseLevel: false,
-                resourceId: newResourceId,
-                label: newContributionLabel,
-            }),
-        );
-    }
-
-    // Dispatch loading template of classes
-    dispatch(fetchTemplatesOfClassIfNeeded(CLASSES.CONTRIBUTION));
-
-    if (performPrefill && statements) {
-        const standardProperty = await getPredicate('P16');
-        const propertyId = guid();
-        const valueId = guid();
-        const resourceId = guid();
-
-        dispatch(
-            fillStatements({
-                statements: {
-                    values: [
-                        {
-                            valueId,
-                            propertyId,
-                            _class: 'resource',
-                            label: statements[0]['http://www.w3.org/2000/01/rdf-schema#label'][0]['@value'],
-                            isExistingValue: false,
-                            existingResourceId: resourceId,
-                            classes: statements[0]['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
-                        },
-                    ],
-                    properties: [
-                        {
-                            propertyId,
-                            label: standardProperty.label,
-                            existingPredicateId: standardProperty.id,
-                        },
-                    ],
-                },
-                resourceId: newResourceId,
-            }),
-        );
-
-        dispatch(parseJsonJdLevel(statements[0], resourceId));
-    }
-};
-
 const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
     const level = jsonLd;
     const orkgProperties = Object.keys(level).filter(key => key.startsWith('https://orkg.org/property/'));
@@ -356,6 +283,53 @@ const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
     );
     for (const value of values) {
         dispatch(parseJsonJdLevel(value.jsonLd, value.existingResourceId));
+    }
+};
+
+export const createContributionAction = ({ selectAfterCreation = false, fillStatements: performPrefill = false, statements = null }) => async (
+    dispatch,
+    getState,
+) => {
+    const newResourceId = guid();
+    const newContributionId = guid();
+    const newContributionLabel = `Contribution ${getState().addPaper.contributions.allIds.length + 1}`;
+    const additionalContributionClasses = [];
+
+    if (performPrefill && statements) {
+        additionalContributionClasses.push(...(statements?.[0]?.['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? []));
+    }
+
+    dispatch(
+        createContribution({
+            id: newContributionId,
+            resourceId: newResourceId,
+            label: newContributionLabel,
+        }),
+    );
+
+    dispatch(
+        createResource({
+            resourceId: newResourceId,
+            label: newContributionLabel,
+            classes: [CLASSES.CONTRIBUTION, ...additionalContributionClasses],
+        }),
+    );
+
+    if (selectAfterCreation) {
+        dispatch(
+            selectResource({
+                increaseLevel: false,
+                resourceId: newResourceId,
+                label: newContributionLabel,
+            }),
+        );
+    }
+
+    // Dispatch loading template of classes
+    dispatch(fetchTemplatesOfClassIfNeeded(CLASSES.CONTRIBUTION));
+
+    if (performPrefill && statements?.length > 0) {
+        dispatch(parseJsonJdLevel(statements[0], newResourceId));
     }
 };
 
