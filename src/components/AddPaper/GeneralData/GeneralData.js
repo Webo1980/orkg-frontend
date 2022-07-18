@@ -18,7 +18,7 @@ import {
     ModalFooter
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faCalculator } from '@fortawesome/free-solid-svg-icons';
 import { range } from 'utils';
 import Tooltip from 'components/Utils/Tooltip';
 import AuthorsInput from 'components/Utils/AuthorsInput';
@@ -340,7 +340,7 @@ const GeneralData = () => {
                 <div className="col-md-4 mb-2" style={{ textAlign: 'right' }}>
                     <ButtonGroup id="entryOptions">
                         <Button size="sm" color={dataEntry === 'doi' ? 'primary' : 'light'} onClick={() => setDataEntry('doi')}>
-                            By DOI
+                            By DOI <FontAwesomeIcon icon={faCalculator} />
                         </Button>
                         <Button size="sm" color={dataEntry === 'manually' ? 'primary' : 'light'} onClick={() => setDataEntry('manually')}>
                             Manually

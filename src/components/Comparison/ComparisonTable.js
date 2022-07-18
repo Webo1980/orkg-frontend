@@ -1,10 +1,10 @@
-import { memo, useRef, useMemo } from 'react';
-import { Alert } from 'reactstrap';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { memo, useRef, useMemo, useEffect, useState } from 'react';
+import { Alert, Modal, ModalHeader } from 'reactstrap';
+import { faTimes, faCalculator } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import PropertyValue from 'components/Comparison/PropertyValue';
 import ROUTES from 'constants/routes';
-import { functions, isEqual, omit } from 'lodash';
+import { functions, isEqual, omit, property } from 'lodash';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import { ScrollSyncPane } from 'react-scroll-sync';
@@ -25,7 +25,9 @@ const ComparisonTable = props => {
     const scrollContainerHead = useRef(null);
     const smallerFontSize = props.viewDensity === 'compact';
     const isSmallScreen = useMedia('(max-width: 576px)');
-
+    const [showCalculator, setShowCalculator] = useState(false);
+    const [showFilterDialog, setShowFilterDialog] = useState(false);
+    const toggleFilterDialog = () => setShowFilterDialog(v => !v);
     let cellPadding = 10;
     if (props.viewDensity === 'normal') {
         cellPadding = 5;
@@ -137,6 +139,10 @@ const ComparisonTable = props => {
                                     group={info.value.group ?? false}
                                     grouped={info.value.grouped ?? false}
                                     property={props.comparisonType === 'merge' ? info.value : getPropertyObjectFromData(props.data, info.value)}
+                                    properties={props.properties}
+                                    data={props.data}
+                                    contributionsIds={props.contributions.map(c => c.id)}
+                                    addConversionRow={props.addConversionRow}
                                 />
                             </PropertiesInner>
                         </Properties>
@@ -317,6 +323,7 @@ ComparisonTable.propTypes = {
     data: PropTypes.object.isRequired,
     properties: PropTypes.array.isRequired,
     removeContribution: PropTypes.func.isRequired,
+    addConversionRow: PropTypes.func.isRequired,
     transpose: PropTypes.bool.isRequired,
     comparisonType: PropTypes.string.isRequired,
     viewDensity: PropTypes.oneOf(['spacious', 'normal', 'compact']),
