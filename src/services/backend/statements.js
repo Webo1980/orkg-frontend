@@ -1,6 +1,7 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPostRequest, submitDeleteRequest, submitPutRequest } from 'network';
 import queryString from 'query-string';
+import { uniq, uniqBy } from 'lodash';
 import { PREDICATES, MISC, CLASSES, RESOURCES } from 'constants/graphSettings';
 import { filterStatementsBySubjectId, getTemplateComponentData, filterObjectOfStatementsByPredicateAndClass, sortMethod } from 'utils';
 
@@ -253,12 +254,12 @@ export const getTemplateById = async templateId => {
     return {
         id: templateId,
         ...subject,
-        statements: statements.map(s => s.id),
+        statements: uniq(statements.map(s => s.id)),
         predicate: templatePredicate,
         labelFormat: templateFormatLabel ? templateFormatLabel.label : '',
         hasLabelFormat: !!templateFormatLabel,
         isStrict: !!templateIsStrict,
-        components: components?.length > 0 ? components.sort((c1, c2) => sortMethod(c1.order, c2.order)) : [],
+        components: components?.length > 0 ? uniqBy(components, 'id')?.sort((c1, c2) => sortMethod(c1.order, c2.order)) : [],
         class: templateClass
             ? {
                   id: templateClass.id,
