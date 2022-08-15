@@ -8,11 +8,11 @@ function Diagram(props) {
     const location = useLocation();
     const { id } = useParams();
     // 1) setup the diagram engine
-    const { engine, zoomIn, zoomOut } = useDiagram();
+    const { engine, zoomIn, zoomOut, addNode } = useDiagram();
 
     return (
         <Container className="p-2 box rounded" style={{ width: '100%', height: '500px' }}>
-            <CanvasWidget engine={engine} actions={{ zoomIn, zoomOut }} />
+            <CanvasWidget engine={engine} actions={{ zoomIn, zoomOut, addNode }} />
         </Container>
     );
 }

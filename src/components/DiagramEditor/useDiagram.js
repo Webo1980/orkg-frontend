@@ -64,8 +64,23 @@ function useDiagram() {
             currentTarget: event.currentTarget,
         });
 
+    const addNode = ({ event }) => {
+        const boundingRect = engine.getCanvas().getBoundingClientRect();
+        const clientWidth = boundingRect.width;
+        const clientHeight = boundingRect.height;
+
+        // Compute mouse coords relative to canvas
+        const clientX = event.clientX - boundingRect.left;
+        const clientY = event.clientY - boundingRect.top;
+
+        const node = new DefaultNodeModel('New', 'rgb(0,192,255)');
+        node.setPosition(clientX, clientY);
+        model.addAll(node);
+        engine.repaintCanvas();
+    };
+
     engine.setModel(model);
 
-    return { engine, zoomIn, zoomOut };
+    return { engine, zoomIn, zoomOut, addNode };
 }
 export default useDiagram;
