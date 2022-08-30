@@ -63,6 +63,11 @@ export const PREDICATES = {
     HAS_LIST: 'HasList',
     HAS_ENTRY: 'HasEntry',
     HAS_HEADING_LEVEL: 'HasHeadingLevel',
+    METHOD: 'METHOD',
+    LANGUAGE: 'Language',
+    RESOURCE: 'Resource',
+    TOOL: 'Tool',
+    SOLUTION: 'Solution',
     HAS_VIDEO: 'HasVideo',
     IS_ANONYMIZED: 'IsAnonymized',
 };
@@ -90,7 +95,7 @@ export const CLASSES = {
     QB_DATASET_CLASS: 'QBDataset',
     LOCATION: 'DCLocation',
     SENTENCE: 'Sentence',
-    BENCHMARK: 'Benchmark',
+    BENCHMARK: 'C14022',
     MODEL: 'Model',
     DATASET: 'Dataset',
     EVALUATION: 'Evaluation',
@@ -118,10 +123,16 @@ export const CLASSES = {
     BOOLEAN: 'Boolean',
     URI: 'URI',
     SOFTWARE: 'Software',
+    EXTERNAL: 'External',
+};
+
+export const RESOURCES = {
+    RESEARCH_FIELD_MAIN: 'R11',
+    RESEARCH_FIELD_COMPUTER_SCIENCE: 'R132',
+    EMPTY_RESOURCE: 'empty',
 };
 
 export const MISC = {
-    RESEARCH_FIELD_MAIN: 'R11',
     DEFAULT_LITERAL_DATATYPE: 'xsd:string',
     UNKNOWN_ID: '00000000-0000-0000-0000-000000000000',
 };

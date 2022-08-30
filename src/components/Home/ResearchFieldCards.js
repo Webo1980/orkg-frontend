@@ -4,7 +4,7 @@ import { faStream } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components/macro';
 import { getResearchFieldsStats } from 'services/backend/stats';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
-import { MISC, CLASSES } from 'constants/graphSettings';
+import { CLASSES, RESOURCES } from 'constants/graphSettings';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
 import { resourcesUrl } from 'services/backend/resources';
 import { has } from 'lodash';
@@ -132,15 +132,16 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                                 rfAutocompleteRef.current && rfAutocompleteRef.current.blur();
                                 handleFieldSelect(selected);
                             }}
-                            value={selectedResearchField.id !== MISC.RESEARCH_FIELD_MAIN ? selectedResearchField : null}
+                            value={selectedResearchField.id !== RESOURCES.RESEARCH_FIELD_MAIN ? selectedResearchField : null}
                             allowCreate={false}
+                            ols={false}
                             autoLoadOption={true}
                             cssClasses="form-control-sm"
                             isDisabled={isLoading}
                             innerRef={rfAutocompleteRef}
                         />
                     </div>
-                    {selectedResearchField.id !== MISC.RESEARCH_FIELD_MAIN && (
+                    {selectedResearchField.id !== RESOURCES.RESEARCH_FIELD_MAIN && (
                         <Button
                             tag={Link}
                             to={reverseWithSlug(ROUTES.RESEARCH_FIELD, {
@@ -157,7 +158,7 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                 </div>
             </div>
             <hr className="mt-3 mb-1" />
-            {MISC.RESEARCH_FIELD_MAIN !== selectedResearchField.id && (
+            {RESOURCES.RESEARCH_FIELD_MAIN !== selectedResearchField.id && (
                 <>
                     <Breadcrumbs backgroundWhite researchFieldId={selectedResearchField.id} onFieldClick={handleFieldSelect} disableLastField />
                     <hr className="mt-1 mb-1" />
@@ -204,7 +205,7 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                     </div>
                 </div>
             )}
-            {selectedResearchField.id !== MISC.RESEARCH_FIELD_MAIN && <ArrowCards />}
+            {selectedResearchField.id !== RESOURCES.RESEARCH_FIELD_MAIN && <ArrowCards />}
             {isLoading && (
                 <div className="mt-3">
                     <div>

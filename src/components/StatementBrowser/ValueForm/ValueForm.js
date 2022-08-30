@@ -33,6 +33,8 @@ const ValueForm = props => {
         disabledCreate,
         handleCreateExistingLabel,
         commitChangeLabel,
+        inputFormType,
+        setInputFormType,
     } = useValueForm({
         valueId: props.id,
         resourceId: props.resourceId,
@@ -56,10 +58,12 @@ const ValueForm = props => {
     const [suggestionType, setSuggestionType] = useState(null);
 
     /* Select component reference can be used to check if menu is opened */
-    const isMenuOpen = () => autocompleteInputRef.current.state.menuIsOpen && autocompleteInputRef.current.props.options.length > 0;
-
+    const isMenuOpen = () => autocompleteInputRef.current.props.menuIsOpen && autocompleteInputRef.current.props.options.length > 0;
     const onSubmit = () => {
-        const { error } = schema.validate(inputValue);
+        let error;
+        if (schema) {
+            error = schema.validate(inputValue).error;
+        }
         if (error) {
             setFormFeedback(error.message);
             setIsValid(false);
@@ -117,10 +121,11 @@ const ValueForm = props => {
         setFormFeedback(null);
         setIsValid(true);
         setEntityType(getConfigByType(inputDataType)._class);
+        setInputFormType(getConfigByType(inputDataType).inputFormType);
         if (inputDataType === 'xsd:boolean') {
             setInputValue(v => Boolean(v === 'true').toString());
         }
-    }, [inputDataType, setEntityType, setInputValue]);
+    }, [inputDataType, setEntityType, setInputFormType, setInputValue]);
 
     return (
         <div>
@@ -128,11 +133,13 @@ const ValueForm = props => {
                 {((!editMode && !valueClass) || (editMode && !valueClass && value._class === ENTITIES.LITERAL)) && (
                     <DatatypeSelector entity={editMode ? value._class : null} valueType={inputDataType} setValueType={setInputDataType} />
                 )}
-                {!editMode && entityType !== ENTITIES.LITERAL ? (
+                {!editMode && inputFormType === 'autocomplete' ? (
                     <AutoComplete
                         entityType={entityType}
                         excludeClasses={
-                            entityType === ENTITIES.RESOURCE && valueClass ? `${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE}` : null
+                            entityType === ENTITIES.RESOURCE && !valueClass
+                                ? `${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE},${CLASSES.TEMPLATE_COMPONENT},${CLASSES.PAPER_DELETED},${CLASSES.CONTRIBUTION_DELETED},${CLASSES.EXTERNAL}`
+                                : null
                         }
                         optionsClass={entityType === ENTITIES.RESOURCE && valueClass ? valueClass.id : undefined}
                         placeholder={`Enter a ${entityType}`}
@@ -140,7 +147,7 @@ const ValueForm = props => {
                             handleAddValue(entityType, { ...i, label: i.value, selected: true });
                             props.setShowAddValue?.(false);
                         }}
-                        ols={entityType === ENTITIES.CLASS}
+                        ols={!valueClass}
                         onInput={(e, value) => setInputValue(e ? e.target.value : value)}
                         value={inputValue}
                         additionalData={newResources}
@@ -154,7 +161,7 @@ const ValueForm = props => {
                                 // escape
                                 props.setShowAddValue?.(false);
                             } else if (e.keyCode === 13 && !isMenuOpen()) {
-                                handleAddValue(entityType, { label: inputValue, selected: true });
+                                inputValue && handleAddValue(entityType, { label: inputValue, selected: false });
                                 props.setShowAddValue?.(false);
                             }
                         }}
@@ -194,7 +201,7 @@ const ValueForm = props => {
                 >
                     Cancel
                 </StyledButton>
-                <StyledButton outline disabled={!inputValue?.toString() || disabledCreate} onClick={() => onSubmit()}>
+                <StyledButton outline disabled={inputFormType !== 'empty' && (!inputValue?.toString() || disabledCreate)} onClick={() => onSubmit()}>
                     {disabledCreate ? (
                         <Tippy hideOnClick={false} content="Please use the existing research problem that has this label." arrow={true}>
                             <span>Create</span>

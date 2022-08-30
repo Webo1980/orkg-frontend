@@ -362,6 +362,7 @@ function Benchmark() {
                             <Table {...getTableProps()}>
                                 <thead>
                                     {headerGroups.map(headerGroup => (
+                                        // eslint-disable-next-line react/jsx-key
                                         <tr {...headerGroup.getHeaderGroupProps()}>
                                             {headerGroup.headers.map(column => (
                                                 <th key={column.getHeaderProps(column.getSortByToggleProps()).key}>
@@ -390,8 +391,10 @@ function Benchmark() {
                                         rows.map((row, i) => {
                                             prepareRow(row);
                                             return (
+                                                // eslint-disable-next-line react/jsx-key
                                                 <tr {...row.getRowProps()}>
                                                     {row.cells.map(cell => (
+                                                        // eslint-disable-next-line react/jsx-key
                                                         <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                                     ))}
                                                 </tr>
@@ -406,7 +409,7 @@ function Benchmark() {
                                 No papers that addresses {problemData.label} on {resourceData.label} yet.
                                 <div className="pt-3">
                                     Add your benchmark dataset and its evaluations to the ORKG by following the steps found in the{' '}
-                                    <a href="https://www.orkg.org/orkg/help-center/article/21/Benchmarks" target="_blank" rel="noopener noreferrer">
+                                    <a href="https://orkg.org/about/18/Benchmarks" target="_blank" rel="noopener noreferrer">
                                         ORKG help center
                                     </a>
                                     .

@@ -217,11 +217,13 @@ function Publish(props) {
                                 [PREDICATES.COMPARE_CONTRIBUTION]: props.contributionsList.map(contributionID => ({
                                     '@id': contributionID,
                                 })),
+                                /*
                                 [PREDICATES.HAS_PROPERTY]: props.predicatesList.map(predicateID => {
                                     const property =
                                         props.comparisonType === 'merge' ? predicateID : getPropertyObjectFromData(props.data, { id: predicateID });
                                     return { '@id': property.id };
                                 }),
+                                */
                                 ...(props.metaData.hasPreviousVersion && {
                                     [PREDICATES.HAS_PREVIOUS_VERSION]: [
                                         {
@@ -495,6 +497,7 @@ function Publish(props) {
                                     onBlur={() => setInputValue('')}
                                     onChangeInputValue={e => setInputValue(e)}
                                     inputValue={inputValue}
+                                    ols={false}
                                 />
                                 <Button color="secondary" onClick={() => setIsOpenResearchFieldModal(true)}>
                                     Choose

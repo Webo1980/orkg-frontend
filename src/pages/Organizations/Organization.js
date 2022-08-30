@@ -45,7 +45,7 @@ const StyledOrganizationHeader = styled.div`
     }
 `;
 
-const OrganizationDetails = () => {
+const Organization = () => {
     const [error, setError] = useState(null);
     const [label, setLabel] = useState(null);
     const [url, setURL] = useState(null);
@@ -102,7 +102,7 @@ const OrganizationDetails = () => {
             {!isLoading && !error && label && (
                 <>
                     <TitleBar
-                        titleAddition={<SubTitle>{label}</SubTitle>}
+                        titleAddition={<SubTitle>Organization</SubTitle>}
                         buttonGroup={
                             !!user &&
                             (user.id === createdBy || user.isCurationAllowed) && (
@@ -124,7 +124,7 @@ const OrganizationDetails = () => {
                         }
                         wrap={false}
                     >
-                        Organization
+                        {label}
                     </TitleBar>
                     <Container className="p-3 box rounded">
                         <StyledOrganizationHeader className="mb-2 py-2">
@@ -172,4 +172,4 @@ const OrganizationDetails = () => {
     );
 };
 
-export default OrganizationDetails;
+export default Organization;

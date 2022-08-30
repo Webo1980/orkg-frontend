@@ -178,11 +178,7 @@ const Templates = () => {
                 <Alert color="info" fade={false}>
                     Templates allows to specify the structure of content types, and they can be used when describing research contributions. Further
                     information about templates can be also found in the{' '}
-                    <a
-                        href="https://www.orkg.org/orkg/help-center/article/9/Templates_for_structuring_contribution_descriptions"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <a href="https://orkg.org/about/19/Templates" target="_blank" rel="noopener noreferrer">
                         ORKG help center
                     </a>
                 </Alert>
@@ -203,6 +199,7 @@ const Templates = () => {
                                     isClearable
                                     autoFocus={false}
                                     inputId="filter-research-field"
+                                    ols={false}
                                 />
                             </FormGroup>
                         </Col>
@@ -218,6 +215,7 @@ const Templates = () => {
                                     autoLoadOption={true}
                                     openMenuOnFocus={true}
                                     allowCreate={false}
+                                    ols={false}
                                     isClearable
                                     autoFocus={false}
                                     inputId="filter-research-problem"
@@ -243,6 +241,7 @@ const Templates = () => {
                                     autoLoadOption={true}
                                     openMenuOnFocus={true}
                                     allowCreate={false}
+                                    ols={false}
                                     isClearable
                                     autoFocus={false}
                                     inputId="filter-class"

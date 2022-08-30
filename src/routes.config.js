@@ -30,7 +30,7 @@ import ResearchFields from 'pages/ResearchFields/ResearchFields';
 import Resources from 'pages/Resources/Resources';
 import Organizations from 'pages/Organizations/Organizations';
 import Observatories from 'pages/Observatories/Observatories';
-import OrganizationDetails from 'pages/Organizations/OrganizationDetails';
+import Organization from 'pages/Organizations/Organization';
 import AddOrganization from 'pages/Organizations/AddOrganization';
 import AddObservatory from 'pages/Observatories/AddObservatory';
 import Observatory from 'pages/Observatories/Observatory';
@@ -245,7 +245,7 @@ const routes = [
     },
     {
         path: ROUTES.ORGANIZATION,
-        element: OrganizationDetails,
+        element: Organization,
     },
     {
         path: ROUTES.ADD_ORGANIZATION,
@@ -375,7 +375,7 @@ const routes = [
     {
         path: ROUTES.CURATION_CALL,
         element: () => {
-            window.location.replace('https://www.orkg.org/orkg/about/28/Curation_Grants');
+            window.location.replace('https://www.orkg.org/about/28/Curation_Grants');
             return null;
         },
     },

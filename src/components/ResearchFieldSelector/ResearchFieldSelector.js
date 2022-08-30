@@ -4,11 +4,12 @@ import { faMinusSquare, faPlusSquare, faSpinner } from '@fortawesome/free-solid-
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Autocomplete from 'components/Autocomplete/Autocomplete';
 import PreviouslySelectedResearchField from 'components/PreviouslySelectedResearchField/PreviouslySelectedResearchField';
-import { CLASSES, MISC, ENTITIES } from 'constants/graphSettings';
+import { CLASSES, RESOURCES, ENTITIES } from 'constants/graphSettings';
 import { sortBy, find, set, cloneDeep } from 'lodash';
 import { getParentResearchFields, getStatementsBySubjects } from 'services/backend/statements';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
+import ContentLoader from 'react-content-loader';
 
 const FieldItem = styled(Button)`
     &&& {
@@ -158,8 +159,8 @@ const ResearchFieldSelector = ({
             const initializeFields = async () => {
                 setIsLoading(true);
 
-                let fields = await getFieldsByIds([MISC.RESEARCH_FIELD_MAIN]);
-                fields = await getChildFields(MISC.RESEARCH_FIELD_MAIN, fields);
+                let fields = await getFieldsByIds([RESOURCES.RESEARCH_FIELD_MAIN]);
+                fields = await getChildFields(RESOURCES.RESEARCH_FIELD_MAIN, fields);
 
                 updateResearchField({
                     researchFields: fields,
@@ -236,8 +237,9 @@ const ResearchFieldSelector = ({
                     optionsClass={CLASSES.RESEARCH_FIELD}
                     placeholder="Search for fields..."
                     onItemSelected={handleFieldSelect}
-                    value={selectedResearchField !== MISC.RESEARCH_FIELD_MAIN ? { id: selectedResearchField, label: researchFieldLabel } : null}
+                    value={selectedResearchField !== RESOURCES.RESEARCH_FIELD_MAIN ? { id: selectedResearchField, label: researchFieldLabel } : null}
                     allowCreate={false}
+                    ols={false}
                     autoLoadOption={true}
                 />
             </div>
@@ -248,11 +250,7 @@ const ResearchFieldSelector = ({
                         <PreviouslySelectedResearchField selectedResearchField={selectedResearchField} handleFieldSelect={handleFieldSelect} />
                     </div>
                 )}
-                {isLoading && (
-                    <div className="mb-2">
-                        <Icon icon={faSpinner} spin /> Loading
-                    </div>
-                )}
+
                 <div className={`${insideModal || !showPreviouslySelected ? 'col-12' : 'col-md-8 order-md-1'}`}>
                     <CollapseButton
                         size="sm"
@@ -268,7 +266,25 @@ const ResearchFieldSelector = ({
                     >
                         <Icon icon={faMinusSquare} /> <span className="text-decoration-underline">Collapse all</span>
                     </CollapseButton>
-                    <List>{fieldList(MISC.RESEARCH_FIELD_MAIN)}</List>
+                    {isLoading && (
+                        <div>
+                            <ContentLoader
+                                width="100%"
+                                speed={2}
+                                viewBox="0 0 100 30"
+                                style={{ width: '100% !important' }}
+                                backgroundColor="#f3f3f3"
+                                foregroundColor="#ecebeb"
+                            >
+                                <rect x="0" y="0" rx="1" ry="1" width="100" height="5" />
+                                <rect x="0" y="6" rx="1" ry="1" width="100" height="5" />
+                                <rect x="0" y="12" rx="1" ry="1" width="100" height="5" />
+                                <rect x="0" y="18" rx="1" ry="1" width="100" height="5" />
+                                <rect x="0" y="24" rx="1" ry="1" width="100" height="5" />
+                            </ContentLoader>
+                        </div>
+                    )}
+                    <List>{fieldList(RESOURCES.RESEARCH_FIELD_MAIN)}</List>
                 </div>
             </div>
         </>
