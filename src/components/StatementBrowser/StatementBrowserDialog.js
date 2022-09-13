@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Statements from 'components/StatementBrowser/StatementBrowser';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { updateSettings } from 'actions/statementBrowser';
+import { updateSettings } from 'slices/statementBrowserSlice';
 import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes';
@@ -16,7 +16,7 @@ class StatementBrowserDialog extends Component {
         super(props);
         this.state = {
             // clone the original value of openExistingResourcesInDialog
-            previousOpenExistingResourcesInDialog: Boolean(JSON.stringify(props.openExistingResourcesInDialog))
+            previousOpenExistingResourcesInDialog: Boolean(JSON.stringify(props.openExistingResourcesInDialog)),
         };
     }
 
@@ -42,9 +42,10 @@ class StatementBrowserDialog extends Component {
                 toggle={this.props.toggleModal}
                 size="lg"
                 onExit={() => {
+                    this.props.onCloseModal();
                     // return the original value of openExistingResourcesInDialog
                     this.props.updateSettings({
-                        openExistingResourcesInDialog: this.state.previousOpenExistingResourcesInDialog
+                        openExistingResourcesInDialog: this.state.previousOpenExistingResourcesInDialog,
                     });
                 }}
             >
@@ -80,6 +81,7 @@ class StatementBrowserDialog extends Component {
                         openExistingResourcesInDialog={false}
                         newStore={this.props.newStore}
                         showExternalDescriptions={this.props.showExternalDescriptions}
+                        canEditSharedRootLevel={this.props.canEditSharedRootLevel}
                     />
                 </ModalBody>
             </Modal>
@@ -92,6 +94,7 @@ StatementBrowserDialog.propTypes = {
     id: PropTypes.string.isRequired,
     show: PropTypes.bool.isRequired,
     toggleModal: PropTypes.func.isRequired,
+    onCloseModal: PropTypes.func,
     newStore: PropTypes.bool.isRequired,
     enableEdit: PropTypes.bool.isRequired,
     syncBackend: PropTypes.bool.isRequired,
@@ -102,9 +105,10 @@ StatementBrowserDialog.propTypes = {
     initialPath: PropTypes.arrayOf(
         PropTypes.shape({
             id: PropTypes.string.isRequired,
-            label: PropTypes.string.isRequired
-        })
-    )
+            label: PropTypes.string.isRequired,
+        }),
+    ),
+    canEditSharedRootLevel: PropTypes.bool.isRequired,
 };
 
 StatementBrowserDialog.defaultProps = {
@@ -113,18 +117,18 @@ StatementBrowserDialog.defaultProps = {
     syncBackend: false,
     type: ENTITIES.RESOURCE,
     initialPath: [],
-    showExternalDescriptions: true
+    showExternalDescriptions: true,
+    canEditSharedRootLevel: true,
+    onCloseModal: () => {},
 };
 
-const mapStateToProps = state => {
-    return { openExistingResourcesInDialog: state.statementBrowser.openExistingResourcesInDialog };
-};
+const mapStateToProps = state => ({ openExistingResourcesInDialog: state.statementBrowser.openExistingResourcesInDialog });
 
 const mapDispatchToProps = dispatch => ({
-    updateSettings: data => dispatch(updateSettings(data))
+    updateSettings: data => dispatch(updateSettings(data)),
 });
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
 )(StatementBrowserDialog);

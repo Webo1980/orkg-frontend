@@ -4,6 +4,7 @@ import { FontAwesome as Icon } from '@fortawesome/react-fontawesome';
 import { SortableContainer } from 'react-sortable-hoc';
 import Comparison from 'components/Comparison/Comparison';
 import styled from 'styled-components';
+
 const ButtonsContainer = styled.div`
     right: 0;
     top: 20px;
@@ -26,27 +27,25 @@ const TableContainerStyled = styled.div`
 `;
 
 function ShowComparison(props) {
-    const MaturityTable = SortableContainer(({ items }) => {
-        return (
-            <Modal isOpen={props.ShowComparisonDialog} toggle={props.toggleShowComparisonDialog} size="lg">
-                <ModalHeader toggle={props.toggleShowComparisonDialog}>Resource/ Property values for comparison: {props.title}</ModalHeader>
-                <ModalBody>
-                    <Comparison
-                        data={props.data}
-                        properties={props.properties}
-                        contributions={props.contributions}
-                        removeContribution={() => {}}
-                        transpose={false}
-                        viewDensity="compact"
-                        comparisonType={props.comparisonType}
-                        filterControlData={props.filterControlData}
-                        updateRulesOfProperty={props.updateRulesOfProperty}
-                        embeddedMode={true}
-                    />
-                </ModalBody>
-            </Modal>
-        );
-    });
+    const MaturityTable = SortableContainer(({ items }) => (
+        <Modal isOpen={props.ShowComparisonDialog} toggle={props.toggleShowComparisonDialog} size="lg">
+            <ModalHeader toggle={props.toggleShowComparisonDialog}>Resource/ Property values for comparison: {props.title}</ModalHeader>
+            <ModalBody>
+                <Comparison
+                    data={props.data}
+                    properties={props.properties}
+                    contributions={props.contributions}
+                    removeContribution={() => {}}
+                    transpose={false}
+                    viewDensity="compact"
+                    comparisonType={props.comparisonType}
+                    filterControlData={props.filterControlData}
+                    updateRulesOfProperty={props.updateRulesOfProperty}
+                    embeddedMode={true}
+                />
+            </ModalBody>
+        </Modal>
+    ));
 
     return (
         <Modal isOpen={props.ShowComparisonDialog} toggle={props.toggleShowComparisonDialog}>
@@ -66,7 +65,7 @@ ShowComparison.propTypes = {
     contributions: PropTypes.string.isRequired,
     comparisonType: PropTypes.string.isRequired,
     filterControlData: PropTypes.string.isRequired,
-    updateRulesOfProperty: PropTypes.string.isRequired
+    updateRulesOfProperty: PropTypes.string.isRequired,
 };
 
 export default ShowComparison;

@@ -1,4 +1,4 @@
-import { faEnvelope, faInfo, faTrash, faComments, faChartBar, faLessThanEqual, faQuestionCircle  } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faInfo, faTrash, faComments, faChartBar, faLessThanEqual, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Input, Label, InputGroup, Table, Alert } from 'reactstrap';
 import StatementActionButton from 'components/StatementBrowser/StatementActionButton/StatementActionButton';
 import { useState, Component } from 'react';
@@ -6,10 +6,10 @@ import PropTypes from 'prop-types';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { SortableContainer } from 'react-sortable-hoc';
 import { useTable, useSortBy } from 'react-table';
-//import Tooltip from 'components/Utils/Tooltip';
+// import Tooltip from 'components/Utils/Tooltip';
 import styled from 'styled-components';
-//import pluralize from 'pluralize';
-//import UserAvatar from 'components/UserAvatar/UserAvatar';
+// import pluralize from 'pluralize';
+// import UserAvatar from 'components/UserAvatar/UserAvatar';
 import { useParams } from 'react-router-dom';
 import FormCheck from 'react-bootstrap/FormCheck';
 import ComparisonMetaData from 'components/Comparison/ComparisonMetaData';
@@ -27,7 +27,7 @@ import MaturityReport from 'components/Comparison/Maturity/MaturityReport';
 import MaturityReviewsReport from 'components/Comparison/Maturity/MaturityReviewsReport';
 import MaturityMinimumNeededReviews from 'components/Comparison/Maturity/MaturityMinimumNeededReviews';
 import ManageMaturityReviews from 'components/Comparison/Maturity/ManageMaturityReviews';
-import MaturityModelManual  from 'components/Comparison/Maturity/MaturityModelManual';
+import MaturityModelManual from 'components/Comparison/Maturity/MaturityModelManual';
 import SendEMail from 'components/Comparison/Maturity/SendEMail';
 import { createResourceData } from 'services/similarity/index';
 import { createResource } from 'services/backend/resources';
@@ -41,38 +41,39 @@ const TableContainerStyled = styled.div`
     border: 2px solid ${props => props.theme.secondary};
     border-radius: ${props => props.theme.borderRadius};
     margin: 30px 60px 30px 60px;
-    &::before, :after {
-      box-sizing: border-box;
+    &::before,
+    :after {
+        box-sizing: border-box;
     }
     @media (max-width: 650px) {
-      overflow-x: scroll
+        overflow-x: scroll;
     }
 `;
 
- async function handleSubmit(event, comparisonId) {
+async function handleSubmit(event, comparisonId) {
     event.preventDefault();
-    let target = event.target;
-    let data = {};
+    const { target } = event;
+    const data = {};
     for (let i = 0; i < target.length; i++) {
-        if(event.target[i].id != '' && !event.target[i].id.startsWith('react')){
-            data[event.target[i].id] =  event.target[i].value;
+        if (event.target[i].id != '' && !event.target[i].id.startsWith('react')) {
+            data[event.target[i].id] = event.target[i].value;
         }
     }
     try {
-          //console.log(data);
-          const id =  await createResource('review')
-          createResourceData({
-              resourceId: id.id,
-              data: data
-          });
-          toast.success('The review has been saved successfully');
-          await createResourceStatement(comparisonId, 'P39001', id.id); // when go online, you need to create a predicate and add the value instead of P39001
-          //console.log(statment);
-          // getStatementsBySubjectAndPredicate = ({ R133012, 'P39001', page = 0, items: size = 9999, sortBy = 'created_at', desc = true })
-          //console.log(id.id);
-        } catch (e) {
-            toast.error('An error occurred while adding the review');
-       }
+        // console.log(data);
+        const id = await createResource('review');
+        createResourceData({
+            resourceId: id.id,
+            data,
+        });
+        toast.success('The review has been saved successfully');
+        await createResourceStatement(comparisonId, 'P39001', id.id); // when go online, you need to create a predicate and add the value instead of P39001
+        // console.log(statment);
+        // getStatementsBySubjectAndPredicate = ({ R133012, 'P39001', page = 0, items: size = 9999, sortBy = 'created_at', desc = true })
+        // console.log(id.id);
+    } catch (e) {
+        toast.error('An error occurred while adding the review');
+    }
 }
 
 const MaturityReview = () => {
@@ -91,7 +92,7 @@ const MaturityReview = () => {
     const [visualizationStatus, setVisualizationStatus] = useState(false);
     const [contributionsAmountStatus, setContributionsAmountStatus] = useState(false);
     const [descriptionStatus, setDescriptionStatus] = useState(false);
-    const [commentsValue, setCommentsValue] = useState("Do you have any comments, or thoughts?");
+    const [commentsValue, setCommentsValue] = useState('Do you have any comments, or thoughts?');
 
     const handleDelete = async key => {
         const result = await Confirm({
@@ -100,15 +101,15 @@ const MaturityReview = () => {
                 <span>
                     The property <strong>{newPropertiesList[key].label}</strong> will be deleted. Are you sure?
                 </span>
-            )
+            ),
         });
         if (result) {
-            //const myObj = Object.values(newPropertiesList).filter(item => item.id !== key);
-            //setNewPropertiesList(myObj);
+            // const myObj = Object.values(newPropertiesList).filter(item => item.id !== key);
+            // setNewPropertiesList(myObj);
             // filter is not working becasue it returns the object index of 0,1..etc while the expected is string p1,p2..etc
-            let myObj = {};
-            for (let innerKey in newPropertiesList) {
-                myObj[innerKey] = {...newPropertiesList[innerKey]};
+            const myObj = {};
+            for (const innerKey in newPropertiesList) {
+                myObj[innerKey] = { ...newPropertiesList[innerKey] };
                 if (key === newPropertiesList[innerKey].id) {
                     delete myObj[innerKey];
                 }
@@ -126,13 +127,13 @@ const MaturityReview = () => {
     };
 
     const onExternalOntologiesClick = () => {
-      setExternalOntologiesItemValue("");
+        setExternalOntologiesItemValue('');
     };
-    const onCommentsChange = (e) => {
+    const onCommentsChange = e => {
         setCommentsValue(e.target.value);
     };
     const onCommentsClick = () => {
-      setCommentsValue("");
+        setCommentsValue('');
     };
     const onRatioOfLiteralAction = () => {
         setRatioOfLiteralStatus(!ratioOfLiteralStatus);
@@ -156,78 +157,83 @@ const MaturityReview = () => {
         filterControlData,
         comparisonType,
         metaData,
-        //matrixData,
+        // matrixData,
         properties,
         contributions,
         toggleProperty,
         publicURL,
         updateRulesOfProperty,
         createdBy,
-        responseHash
+        responseHash,
     } = useComparison({ id });
-    const isPublished = metaData?.id || responseHash ? true : false;
+    const isPublished = !!(metaData?.id || responseHash);
     console.log(metaData);
-    const { reviewsData, uniqueReviewsProperties, maturityReportMessage, maturityLevel, reviewsCount, mostSelectedReviewNumber, reviewsReportSummary } = ManageMaturityReviews({ data: data, metaData: metaData , isPublished: isPublished, url:publicURL });
+    const {
+        reviewsData,
+        uniqueReviewsProperties,
+        maturityReportMessage,
+        maturityLevel,
+        reviewsCount,
+        mostSelectedReviewNumber,
+        reviewsReportSummary,
+    } = ManageMaturityReviews({ data, metaData, isPublished, url: publicURL });
     const listProperties = properties.map(label => <li>{label.label}</li>);
     const listContributions = contributions.map(title => <li>{title.title}</li>);
-    //const listResources = matrixData.map(data => <li>{data + ' , '}</li>);
+    // const listResources = matrixData.map(data => <li>{data + ' , '}</li>);
     const comparisonURL = reverse(ROUTES.COMPARISON, { comparisonId: metaData?.id || metaData?.hasPreviousVersion?.id });
-    const { mailObject } = SendEMail({ url:publicURL , title:metaData.title  });
+    const { mailObject } = SendEMail({ url: publicURL, title: metaData.title });
     document.title = `Maturity review for the comparison:  ${metaData.title} - ORKG`;
     let comparisonCreator = '';
-    if(createdBy !== null && typeof createdBy !== 'object' && Array.isArray(createdBy) === false){
-     comparisonCreator = createdBy[Object.keys(createdBy)[0]];
+    if (createdBy !== null && typeof createdBy !== 'object' && Array.isArray(createdBy) === false) {
+        comparisonCreator = createdBy[Object.keys(createdBy)[0]];
     }
     const userId = useSelector(state => state.auth.user.id);
-    const MaturityTable = () => {
-        return (
-            <>
-                <Form onSubmit={e => handleSubmit(e, id)}>
-                    <TableContainerStyled>
-                        <ShareLinkMarker typeOfLink="Maturity Review" title={metaData?.title} rightEdgeValue="10" />
-                        <div style={{ padding: '10px' }}>
-                            <div className="flex-grow-1">
-                                <h2 className="h4 mb-4 mt-4">
-                                    Maturity review for the comparison:
-                                    <a href={comparisonURL} target="_blank">
-                                        {metaData.title}
-                                    </a>
-                                </h2>
-                                <ComparisonMetaData metaData={metaData} />
-                                <span style={{ float: 'right' }}>
-                                    <Tippy content="Maturity Model Manual">
-                                        <span onClick={() => setMaturityModelManualDialog(v => !v)}>
-                                            <Icon icon={faQuestionCircle} className="me-2" />
-                                        </span>
-                                    </Tippy>
-                                    <Tippy content="Click to tell us the minimum needed reviews to validate a comparison">
-                                        <span onClick={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}>
-                                            <Icon icon={faLessThanEqual} className="me-2" />
-                                        </span>
-                                    </Tippy>
-                                    <Tippy content={
-                                        <>
-                                            Comparison maturity level {maturityLevel}/5. Click to see the full report
-                                        </>
-                                    }>
-                                        <span onClick={() => setShowMaturityReportDialog(v => !v)}>
-                                            <Icon icon={faChartBar} className="me-2" />
-                                        </span>
-                                    </Tippy>
-                                    <Tippy content={
+    const MaturityTable = () => (
+        <>
+            <Form onSubmit={e => handleSubmit(e, id)}>
+                <TableContainerStyled>
+                    <ShareLinkMarker typeOfLink="Maturity Review" title={metaData?.title} rightEdgeValue="10" />
+                    <div style={{ padding: '10px' }}>
+                        <div className="flex-grow-1">
+                            <h2 className="h4 mb-4 mt-4">
+                                Maturity review for the comparison:
+                                <a href={comparisonURL} target="_blank" rel="noreferrer">
+                                    {metaData.title}
+                                </a>
+                            </h2>
+                            <ComparisonMetaData metaData={metaData} />
+                            <span style={{ float: 'right' }}>
+                                <Tippy content="Maturity Model Manual">
+                                    <span onClick={() => setMaturityModelManualDialog(v => !v)}>
+                                        <Icon icon={faQuestionCircle} className="me-2" />
+                                    </span>
+                                </Tippy>
+                                <Tippy content="Click to tell us the minimum needed reviews to validate a comparison">
+                                    <span onClick={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}>
+                                        <Icon icon={faLessThanEqual} className="me-2" />
+                                    </span>
+                                </Tippy>
+                                <Tippy content={<>Comparison maturity level {maturityLevel}/5. Click to see the full report</>}>
+                                    <span onClick={() => setShowMaturityReportDialog(v => !v)}>
+                                        <Icon icon={faChartBar} className="me-2" />
+                                    </span>
+                                </Tippy>
+                                <Tippy
+                                    content={
                                         <>
                                             {reviewsCount} Review(s) out of {mostSelectedReviewNumber} reviews. Click to see the full report
                                         </>
-                                    }>
-                                        <span onClick={() => setShowMaturityReviewsReportDialog(v => !v)}>
-                                            <Icon icon={faComments} className="me-2" />
-                                        </span>
-                                    </Tippy>
-                                    {mailObject}
-                                </span>
-                            </div>
+                                    }
+                                >
+                                    <span onClick={() => setShowMaturityReviewsReportDialog(v => !v)}>
+                                        <Icon icon={faComments} className="me-2" />
+                                    </span>
+                                </Tippy>
+                                {mailObject}
+                            </span>
                         </div>
-                        {comparisonCreator == userId ? (
+                    </div>
+                    {comparisonCreator == userId ? (
                         <Table bordered hover className="m-0">
                             <thead>
                                 <tr>
@@ -266,41 +272,39 @@ const MaturityReview = () => {
                                             style={{ color: numberOfPropertiesStatus == false ? 'black' : 'green' }}
                                             value={numberOfPropertiesStatus == false ? 'false' : 'true'}
                                         />
-                                        <span id="propertiesSpan" style={{ display: numberOfPropertiesStatus == false ? 'block' : 'none' }} >
-                                        <AutoComplete
-                                            entityType={ENTITIES.PREDICATE}
-                                            placeholder="Select or type to add a property"
-                                            onChange={(selected, action) => {
-                                                setNewPropertiesList(current => ({...current, [selected.id]: selected}))
-                                            }}
-                                            //isClearable
-                                            autoLoadOption={true}
-                                            //allowCreate={true}
-                                            autoFocus={false}
-                                        />
+                                        <span id="propertiesSpan" style={{ display: numberOfPropertiesStatus == false ? 'block' : 'none' }}>
+                                            <AutoComplete
+                                                entityType={ENTITIES.PREDICATE}
+                                                placeholder="Select or type to add a property"
+                                                onChange={(selected, action) => {
+                                                    setNewPropertiesList(current => ({ ...current, [selected.id]: selected }));
+                                                }}
+                                                // isClearable
+                                                autoLoadOption={true}
+                                                // allowCreate={true}
+                                                autoFocus={false}
+                                            />
                                             {propertiesCount > 0 && (
                                                 <>
                                                     <br />
                                                 </>
                                             )}
-                                            {Object.keys(newPropertiesList).map(function(key) {
-                                                return (
-                                                    <>
-                                                        <span id={'propertySpan_' + key} />
-                                                        <input
-                                                            key={key}
-                                                            id={'newProperty_' + key}
-                                                            value={newPropertiesList[key].label}
-                                                            className="form-control-sm"
-                                                            type="text"
-                                                            readonly
-                                                        />
-                                                        &nbsp;&nbsp;
-                                                        <Icon icon={faTrash} onClick={() => handleDelete(key)} />
-                                                        <br />
-                                                    </>
-                                                );
-                                            })}
+                                            {Object.keys(newPropertiesList).map(key => (
+                                                <>
+                                                    <span id={`propertySpan_${key}`} />
+                                                    <input
+                                                        key={key}
+                                                        id={`newProperty_${key}`}
+                                                        value={newPropertiesList[key].label}
+                                                        className="form-control-sm"
+                                                        type="text"
+                                                        readOnly
+                                                    />
+                                                    &nbsp;&nbsp;
+                                                    <Icon icon={faTrash} onClick={() => handleDelete(key)} />
+                                                    <br />
+                                                </>
+                                            ))}
                                         </span>
                                     </td>
                                 </tr>
@@ -320,21 +324,19 @@ const MaturityReview = () => {
                                         />
                                         <span style={{ display: externalOntologiesStatus == false ? 'none' : 'block' }}>
                                             <input
-                                                //onClick={onExternalOntologiesClick}
+                                                // onClick={onExternalOntologiesClick}
                                                 id="externalOntologiesItem"
                                                 name="externalOntologiesItem"
                                                 className="form-control"
                                                 type="text"
                                                 value={externalOntologiesItemValue}
-                                                onChange={(e) => setExternalOntologiesItemValue(e.target.value)}
+                                                onChange={e => setExternalOntologiesItemValue(e.target.value)}
                                             />
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
-                                        Do you think that the comparison outdated?
-                                    </td>
+                                    <td>Do you think that the comparison outdated?</td>
                                     <td>
                                         <FormCheck
                                             key="outDatedResults"
@@ -351,8 +353,7 @@ const MaturityReview = () => {
                                 <tr>
                                     <td>
                                         Do you think that the comparison has adequate resource/ property values? &nbsp;
-                                        <Tippy
-                                            content="Click to see the resource/ property values">
+                                        <Tippy content="Click to see the resource/ property values">
                                             <span>
                                                 <Icon icon={faInfo} onClick={() => setShowComparisonDialog(v => !v)} />
                                             </span>
@@ -451,12 +452,18 @@ const MaturityReview = () => {
                                             value={descriptionStatus == false ? 'false' : 'true'}
                                         />
                                         <span id="descriptionSpan" style={{ display: descriptionStatus == false ? 'none' : 'block' }}>
-                                            <textarea id="descriptionData" key="descriptionData" name="descriptionData" class="form-control" defaultValue={metaData.description} />
+                                            <textarea
+                                                id="descriptionData"
+                                                key="descriptionData"
+                                                name="descriptionData"
+                                                className="form-control"
+                                                defaultValue={metaData.description}
+                                            />
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2">&nbsp;</td>
+                                    <td colSpan="2">&nbsp;</td>
                                 </tr>
                                 <tr>
                                     <td>Comments</td>
@@ -465,7 +472,7 @@ const MaturityReview = () => {
                                             key="comments"
                                             id="comments"
                                             name="comments"
-                                            class="form-control"
+                                            className="form-control"
                                             onClick={onCommentsClick}
                                             onChange={onCommentsChange}
                                             defaultValue={commentsValue}
@@ -473,81 +480,80 @@ const MaturityReview = () => {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2">
+                                    <td colSpan="2">
                                         <Button color="btn btn-primary"> Send </Button>
                                     </td>
                                 </tr>
                             </tbody>
                         </Table>
-                        ) : (
-                          <Table bordered hover className="m-0">
-                              <tbody>
-                                  <tr>
-                                      <td>
-                                       <Alert color="primary">
-                                          You cannot add reviews to your own comparison. But you can ask someone to review it
-                                          {mailObject}
-                                      </Alert>
-                                      </td>
-                                  </tr>
-                                </tbody>
-                          </Table>
-                        )}
-                    </TableContainerStyled>
-                </Form>
-                <ShowComparison
-                    ShowComparisonDialog={ShowComparisonDialog}
-                    toggleShowComparisonDialog={() => setShowComparisonDialog(v => !v)}
-                    toggleShowComparison={toggleProperty}
-                    data={data}
-                    properties={properties}
-                    contributions={contributions}
-                    comparisonType={comparisonType}
-                    filterControlData={filterControlData}
-                    updateRulesOfProperty={updateRulesOfProperty}
-                    title={metaData.title}
-                />
-                <MaturityModelManual
-                    showMaturityModelManualDialog={showMaturityModelManualDialog}
-                    toggleMaturityModelManualDialog={() => setMaturityModelManualDialog(v => !v)}
-                    mostSelectedReviewNumber = {mostSelectedReviewNumber}
-                    metaData = {metaData}
-                    toggleProperty = {toggleProperty}
-                />
-                <MaturityReviewsReport
-                    showMaturityReviewsReportDialog={showMaturityReviewsReportDialog}
-                    toggleMaturityReviewsReportDialog={() => setShowMaturityReviewsReportDialog(v => !v)}
-                    reviewsCount = {reviewsCount}
-                    mostSelectedReviewNumber = {mostSelectedReviewNumber}
-                    reviewsReportSummary = {reviewsReportSummary}
-                    maturityLevel={maturityLevel}
-                />
-                <MaturityMinimumNeededReviews
-                    metaData = {metaData}
-                    properties={properties}
-                    showMaturityMinimumNeededReviewsDialog={showMaturityMinimumNeededReviewsDialog}
-                    toggleMaturityMinimumNeededReviewsDialog={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}
-                    toggleMaturityMinimumNeededReviews={toggleProperty}
-                />
-                <MaturityReport
-                    showMaturityReportDialog={showMaturityReportDialog}
-                    toggleMaturityReportDialog={() => setShowMaturityReportDialog(v => !v)}
-                    toggleMaturityReport={toggleProperty}
-                    reviewsCount = {reviewsCount}
-                    mostSelectedReviewNumber = {mostSelectedReviewNumber}
-                    reviewsData = {reviewsData}
-                    uniqueReviewsProperties = {uniqueReviewsProperties}
-                    maturityReportMessage = {maturityReportMessage}
-                    maturityLevel={maturityLevel}
-                />
-            </>
-        );
-    };
+                    ) : (
+                        <Table bordered hover className="m-0">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <Alert color="primary">
+                                            You cannot add reviews to your own comparison. But you can ask someone to review it
+                                            {mailObject}
+                                        </Alert>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    )}
+                </TableContainerStyled>
+            </Form>
+            <ShowComparison
+                ShowComparisonDialog={ShowComparisonDialog}
+                toggleShowComparisonDialog={() => setShowComparisonDialog(v => !v)}
+                toggleShowComparison={toggleProperty}
+                data={data}
+                properties={properties}
+                contributions={contributions}
+                comparisonType={comparisonType}
+                filterControlData={filterControlData}
+                updateRulesOfProperty={updateRulesOfProperty}
+                title={metaData.title}
+            />
+            <MaturityModelManual
+                showMaturityModelManualDialog={showMaturityModelManualDialog}
+                toggleMaturityModelManualDialog={() => setMaturityModelManualDialog(v => !v)}
+                mostSelectedReviewNumber={mostSelectedReviewNumber}
+                metaData={metaData}
+                toggleProperty={toggleProperty}
+            />
+            <MaturityReviewsReport
+                showMaturityReviewsReportDialog={showMaturityReviewsReportDialog}
+                toggleMaturityReviewsReportDialog={() => setShowMaturityReviewsReportDialog(v => !v)}
+                reviewsCount={reviewsCount}
+                mostSelectedReviewNumber={mostSelectedReviewNumber}
+                reviewsReportSummary={reviewsReportSummary}
+                maturityLevel={maturityLevel}
+            />
+            <MaturityMinimumNeededReviews
+                metaData={metaData}
+                properties={properties}
+                showMaturityMinimumNeededReviewsDialog={showMaturityMinimumNeededReviewsDialog}
+                toggleMaturityMinimumNeededReviewsDialog={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}
+                toggleMaturityMinimumNeededReviews={toggleProperty}
+            />
+            <MaturityReport
+                showMaturityReportDialog={showMaturityReportDialog}
+                toggleMaturityReportDialog={() => setShowMaturityReportDialog(v => !v)}
+                toggleMaturityReport={toggleProperty}
+                reviewsCount={reviewsCount}
+                mostSelectedReviewNumber={mostSelectedReviewNumber}
+                reviewsData={reviewsData}
+                uniqueReviewsProperties={uniqueReviewsProperties}
+                maturityReportMessage={maturityReportMessage}
+                maturityLevel={maturityLevel}
+            />
+        </>
+    );
     return <MaturityTable />;
-}
+};
 
 MaturityReview.propTypes = {
-    metaData: PropTypes.string.isRequired
+    metaData: PropTypes.string.isRequired,
 };
 
 export default MaturityReview;

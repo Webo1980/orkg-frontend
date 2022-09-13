@@ -1,9 +1,12 @@
 import { faCalendar, faCheckCircle, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { loadPaper } from 'actions/viewPaper';
 import AuthorBadges from 'components/Badges/AuthorBadges/AuthorBadges';
 import ResearchFieldBadge from 'components/Badges/ResearchFieldBadge/ResearchFieldBadge';
+import useMarkFeaturedUnlisted from 'components/MarkFeaturedUnlisted/hooks/useMarkFeaturedUnlisted';
+import MarkFeatured from 'components/MarkFeaturedUnlisted/MarkFeatured/MarkFeatured';
+import MarkUnlisted from 'components/MarkFeaturedUnlisted/MarkUnlisted/MarkUnlisted';
 import useDeletePapers from 'components/ViewPaper/hooks/useDeletePapers';
+import OpenCitations from 'components/ViewPaper/OpenCitations/OpenCitations';
 import ROUTES from 'constants/routes';
 import moment from 'moment';
 import { reverse } from 'named-urls';
@@ -11,8 +14,9 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Button } from 'reactstrap';
+import { Button, Alert } from 'reactstrap';
 import { getAltMetrics } from 'services/altmetric/index';
+import { loadPaper } from 'slices/viewPaperSlice';
 import EditPaperDialog from './EditDialog/EditPaperDialog';
 
 const PaperHeader = props => {
@@ -23,16 +27,22 @@ const PaperHeader = props => {
     const [deletePapers] = useDeletePapers({ paperIds: [viewPaper.paperResource.id], redirect: true });
     const [altMetrics, setAltMetrics] = useState(null);
     const dispatch = useDispatch();
-    const userCreatedThisPaper = viewPaper.paperResource.created_by && userId && viewPaper.paperResource.created_by === userId; // make sure a user is signed in (not null)
+    // make sure a user is signed in (not null)
+    const userCreatedThisPaper = viewPaper.paperResource.created_by && userId && viewPaper.paperResource.created_by === userId;
     const showDeleteButton = props.editMode && (isCurationAllowed || userCreatedThisPaper);
+    const { isFeatured, isUnlisted, handleChangeStatus } = useMarkFeaturedUnlisted({
+        resourceId: viewPaper.paperResource.id,
+        unlisted: viewPaper.paperResource.unlisted,
+        featured: viewPaper.paperResource.featured,
+    });
 
     useEffect(() => {
         if (!viewPaper.doi?.label) {
             return;
         }
         const loadAltMetrics = async () => {
-            const altMetrics = await getAltMetrics(viewPaper.doi?.label);
-            setAltMetrics(altMetrics);
+            const altM = await getAltMetrics(viewPaper.doi?.label);
+            setAltMetrics(altM);
         };
         loadAltMetrics();
     }, [viewPaper.doi?.label]);
@@ -42,23 +52,38 @@ const PaperHeader = props => {
         dispatch(
             loadPaper({
                 paperResource: { ...viewPaper.paperResource, label: data.paper.label },
-                publicationMonth: { ...viewPaper.publicationMonth, label: parseInt(data.month?.label) || 0, id: data.month?.id },
-                publicationYear: { ...viewPaper.publicationYear, label: parseInt(data.year?.label) || 0, id: data.year?.id },
+                publicationMonth: { ...viewPaper.publicationMonth, label: data.month?.label || null, id: data.month?.id },
+                publicationYear: { ...viewPaper.publicationYear, label: data.year?.label || null, id: data.year?.id },
                 doi: { ...viewPaper.doi, label: data.doi?.label, id: data.doi?.id },
                 authors: data.authors,
                 publishedIn: data.publishedIn,
                 url: { ...viewPaper.url, label: data.url?.label, id: data.url?.id },
                 researchField: data.researchField,
-                verified: data.isVerified
-            })
+                verified: data.isVerified,
+            }),
         );
         setIsOpenEditModal(false);
     };
+    const hasDoi = viewPaper.doi && viewPaper.doi.label?.startsWith('10.');
 
     return (
         <>
+            {viewPaper.hasVersion && (
+                <Alert color="warning" className="mt-1 container d-flex">
+                    <div className="flex-grow-1">
+                        A published version of this paper is available.{' '}
+                        <Link to={reverse(ROUTES.VIEW_PAPER, { resourceId: viewPaper.hasVersion.id })}>View published version</Link>
+                    </div>
+                </Alert>
+            )}
             <div className="d-flex align-items-start">
-                <h2 className="h4 mt-4 mb-3 flex-grow-1">{viewPaper.paperResource.label ? viewPaper.paperResource.label : <em>No title</em>}</h2>
+                <h2 className={`h4 ${viewPaper.hasVersion ? 'mt-1' : 'mt-4'} mb-3 flex-grow-1`}>
+                    {viewPaper.paperResource.label ? viewPaper.paperResource.label : <em>No title</em>}{' '}
+                    <MarkFeatured size="xs" featured={isFeatured} handleChangeStatus={handleChangeStatus} />
+                    <div className="d-inline-block ms-1">
+                        <MarkUnlisted size="xs" unlisted={isUnlisted} handleChangeStatus={handleChangeStatus} />
+                    </div>
+                </h2>
                 {altMetrics && (
                     <div className="flex-shrink-0 me-2">
                         <small>
@@ -72,13 +97,14 @@ const PaperHeader = props => {
 
             <div className="clearfix" />
 
-            {(viewPaper.publicationMonth || viewPaper.publicationYear) && (
+            {(viewPaper.publicationMonth?.label || viewPaper.publicationYear?.label) && (
                 <span className="badge bg-light me-2">
-                    <Icon icon={faCalendar} className="text-primary" />{' '}
-                    {viewPaper.publicationMonth ? moment(viewPaper.publicationMonth.label, 'M').format('MMMM') : ''}{' '}
-                    {viewPaper.publicationYear ? viewPaper.publicationYear.label : ''}
+                    <Icon icon={faCalendar} className="text-secondary" />{' '}
+                    {viewPaper.publicationMonth?.label ? moment(viewPaper.publicationMonth.label, 'M').format('MMMM') : ''}{' '}
+                    {viewPaper.publicationYear?.label ? viewPaper.publicationYear.label : ''}
                 </span>
             )}
+            {hasDoi && <OpenCitations doi={viewPaper.doi.label} />}
             <ResearchFieldBadge researchField={viewPaper.researchField} />
             <AuthorBadges authors={viewPaper.authors} />
             <br />
@@ -96,12 +122,12 @@ const PaperHeader = props => {
                         </small>
                     </div>
                 )}
-                {viewPaper.doi && viewPaper.doi.label?.startsWith('10.') && (
+                {hasDoi && (
                     <div className="flex-shrink-0">
                         <small>
                             DOI:{' '}
                             <a href={`https://doi.org/${viewPaper.doi.label}`} target="_blank" rel="noopener noreferrer">
-                                {viewPaper.doi.label}
+                                https://doi.org/{viewPaper.doi.label}
                             </a>
                         </small>
                     </div>
@@ -139,7 +165,7 @@ const PaperHeader = props => {
                         publishedIn: viewPaper.publishedIn,
                         researchField: viewPaper.researchField,
                         url: viewPaper.url,
-                        isVerified: viewPaper.verified
+                        isVerified: viewPaper.verified,
                     }}
                     afterUpdate={handleUpdatePaper}
                     isOpen={isOpenEditModal}
@@ -151,7 +177,7 @@ const PaperHeader = props => {
 };
 
 PaperHeader.propTypes = {
-    editMode: PropTypes.bool.isRequired
+    editMode: PropTypes.bool.isRequired,
 };
 
 export default PaperHeader;

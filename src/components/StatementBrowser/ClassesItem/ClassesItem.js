@@ -8,7 +8,7 @@ import { getClassById } from 'services/backend/classes';
 import { reverse } from 'named-urls';
 import { CSSTransition } from 'react-transition-group';
 import ROUTES from 'constants/routes.js';
-import { updateResourceClasses, removeEmptyPropertiesOfClass } from 'actions/statementBrowser';
+import { updateResourceClassesAction as updateResourceClasses, removeEmptyPropertiesOfClass } from 'slices/statementBrowserSlice';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
 import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
@@ -58,7 +58,6 @@ const ClassesItem = props => {
     const [isSaving, setIsSaving] = useState(false);
     const dispatch = useDispatch();
     const preferences = useSelector(state => state.statementBrowser.preferences);
-    const shared = resource?.shared ?? 0;
 
     useEffect(() => {
         let isMounted = true;
@@ -80,7 +79,7 @@ const ClassesItem = props => {
                     }
                 });
         };
-        if (preferences['showClasses'] && resource?._class === ENTITIES.RESOURCE) {
+        if (preferences.showClasses && resource?._class === ENTITIES.RESOURCE) {
             findClasses();
         }
         return () => {
@@ -93,7 +92,7 @@ const ClassesItem = props => {
         if (action.action === 'create-option') {
             const foundIndex = selected.findIndex(x => x.__isNew__);
             const newClass = await Confirm({
-                label: selected[foundIndex].label
+                label: selected[foundIndex].label,
             });
             if (newClass) {
                 const foundIndex = selected.findIndex(x => x.__isNew__);
@@ -123,7 +122,7 @@ const ClassesItem = props => {
     };
 
     return (
-        <AnimationContainer in={preferences['showClasses']} timeout={300} classNames="zoom" unmountOnExit>
+        <AnimationContainer in={preferences.showClasses} timeout={300} classNames="zoom" unmountOnExit>
             <div>
                 {selectedResource && resource._class === ENTITIES.RESOURCE && (
                     <ClassesStyle className="text-muted mb-2 d-flex align-items-center clearfix">
@@ -177,7 +176,7 @@ const ClassesItem = props => {
                                 </InputGroup>
                             </div>
                         )}
-                        {shared <= 1 && props.enableEdit && !editMode && (
+                        {props.enableEdit && !editMode && (
                             <StatementActionButton title="Edit classes" icon={faPen} action={() => setEditMode(true)} />
                         )}
                     </ClassesStyle>
@@ -189,12 +188,12 @@ const ClassesItem = props => {
 
 ClassesItem.propTypes = {
     enableEdit: PropTypes.bool.isRequired,
-    syncBackend: PropTypes.bool.isRequired
+    syncBackend: PropTypes.bool.isRequired,
 };
 
 ClassesItem.defaultProps = {
     enableEdit: false,
-    syncBackend: false
+    syncBackend: false,
 };
 
 export default ClassesItem;

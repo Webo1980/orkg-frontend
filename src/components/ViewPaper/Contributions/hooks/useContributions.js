@@ -1,26 +1,22 @@
 import { useEffect, useState } from 'react';
 import { createResourceStatement, deleteStatementById } from 'services/backend/statements';
-import { updateResource, createResource } from 'services/backend/resources';
+import { updateResource, createResource, getResource } from 'services/backend/resources';
 import { useSelector, useDispatch } from 'react-redux';
-import { useHistory } from 'react-router-dom';
-import { updateContributionLabel } from 'actions/statementBrowser';
+import { updateContributionLabel } from 'slices/statementBrowserSlice';
 import { toast } from 'react-toastify';
 import Confirm from 'components/Confirmation/Confirmation';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
-import { getResource } from 'services/backend/resources';
 import { getSimilarContribution } from 'services/similarity/index';
+import { useNavigate } from 'react-router-dom';
 import {
     selectContribution,
     setPaperContributions,
-    isAddingContribution,
-    doneAddingContribution,
-    isDeletingContribution,
-    doneDeletingContribution,
-    isSavingContribution,
-    doneSavingContribution
-} from 'actions/viewPaper';
+    setIsAddingContribution,
+    setIsDeletingContribution,
+    setIsSavingContribution,
+} from 'slices/viewPaperSlice';
 
 const useContributions = ({ paperId, contributionId }) => {
     const [similarContributions, setSimilarContributions] = useState([]);
@@ -35,27 +31,16 @@ const useContributions = ({ paperId, contributionId }) => {
     const [isLoadingContributionFailed, setLoadingContributionFailed] = useState(false);
 
     const [, setContributions] = useState([]);
-    const history = useHistory();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (contributions?.length && (selectedContribution !== contributionId || !contributionId)) {
             try {
                 // apply selected contribution
-                if (
-                    contributionId &&
-                    !contributions.some(el => {
-                        return el.id === contributionId;
-                    })
-                ) {
+                if (contributionId && !contributions.some(el => el.id === contributionId)) {
                     throw new Error('Contribution not found');
                 }
-                const selected =
-                    contributionId &&
-                    contributions.some(el => {
-                        return el.id === contributionId;
-                    })
-                        ? contributionId
-                        : contributions[0].id;
+                const selected = contributionId && contributions.some(el => el.id === contributionId) ? contributionId : contributions[0].id;
                 setSelectedContribution(selected);
             } catch (error) {
                 console.log(error);
@@ -65,7 +50,7 @@ const useContributions = ({ paperId, contributionId }) => {
     }, [contributionId, contributions, selectedContribution]);
 
     useEffect(() => {
-        const handleSelectContribution = contributionId => {
+        const handleSelectContribution = cId => {
             setIsSimilarContributionsLoading(true);
             setIsLoading(true);
             // get the contribution label
@@ -74,22 +59,22 @@ const useContributions = ({ paperId, contributionId }) => {
                 setLoadingContributionFailed(false);
                 dispatch(
                     selectContribution({
-                        contributionId,
-                        contributionLabel: contributionResource.label
-                    })
+                        contributionId: cId,
+                        contributionLabel: contributionResource.label,
+                    }),
                 );
             } else {
                 setLoadingContributionFailed(true);
             }
             getSimilarContribution(selectedContribution)
                 .then(sContributions => {
-                    const sContributionsData = sContributions.map(paper => {
+                    const sContributionsData = sContributions.map(paper =>
                         // Fetch the data of each paper
-                        return getResource(paper.paperId).then(paperResource => {
+                        getResource(paper.paperId).then(paperResource => {
                             paper.title = paperResource.label;
                             return paper;
-                        });
-                    });
+                        }),
+                    );
                     Promise.all(sContributionsData).then(results => {
                         setSimilarContributions(results);
                         setIsSimilarContributionsLoading(false);
@@ -106,40 +91,46 @@ const useContributions = ({ paperId, contributionId }) => {
         handleSelectContribution(selectedContribution);
     }, [contributions, dispatch, selectedContribution]);
 
-    const handleChangeContributionLabel = (contributionId, label) => {
-        //find the index of contribution
-        const objIndex = contributions.findIndex(obj => obj.id === contributionId);
+    const handleChangeContributionLabel = (cId, label) => {
+        // find the index of contribution
+        const objIndex = contributions.findIndex(obj => obj.id === cId);
         if (contributions[objIndex].label !== label) {
             // set the label of the contribution
-            const updatedObj = { ...contributions[objIndex], label: label };
+            const updatedObj = { ...contributions[objIndex], label };
             // update the contributions array
             const newContributions = [...contributions.slice(0, objIndex), updatedObj, ...contributions.slice(objIndex + 1)];
-            dispatch(isSavingContribution({ id: contributionId }));
-            updateResource(contributionId, label)
+            dispatch(setIsSavingContribution({ id: cId, status: true }));
+            updateResource(cId, label)
                 .then(() => {
                     dispatch(setPaperContributions(newContributions));
-                    dispatch(updateContributionLabel({ id: contributionId, label: label }));
-                    dispatch(doneSavingContribution({ id: contributionId }));
+                    dispatch(updateContributionLabel({ id: cId, label }));
+                    dispatch(setIsSavingContribution({ id: cId, status: false }));
                     toast.success('Contribution name updated successfully');
                 })
                 .catch(() => {
-                    dispatch(doneSavingContribution({ id: contributionId }));
+                    dispatch(setIsSavingContribution({ id: cId, status: false }));
                     toast.error('Something went wrong while updating contribution label.');
                 });
         }
     };
 
     const handleCreateContribution = () => {
-        dispatch(isAddingContribution());
+        dispatch(setIsAddingContribution(true));
         createResource(`Contribution ${contributions.length + 1}`, [CLASSES.CONTRIBUTION])
             .then(newContribution => createResourceStatement(paperId, PREDICATES.HAS_CONTRIBUTION, newContribution.id))
             .then(statement => {
                 dispatch(setPaperContributions([...contributions, { ...statement.object, statementId: statement.id }]));
-                dispatch(doneAddingContribution());
+                dispatch(setIsAddingContribution(false));
+                navigate(
+                    reverse(ROUTES.VIEW_PAPER_CONTRIBUTION, {
+                        resourceId: paperId,
+                        contributionId: statement.object.id,
+                    }),
+                );
                 toast.success('Contribution created successfully');
             })
             .catch(() => {
-                dispatch(doneAddingContribution());
+                dispatch(setIsAddingContribution(false));
                 toast.error('Something went wrong while creating a new contribution.');
             });
     };
@@ -147,31 +138,29 @@ const useContributions = ({ paperId, contributionId }) => {
     const toggleDeleteContribution = async contributionId => {
         const result = await Confirm({
             title: 'Are you sure?',
-            message: 'Are you sure you want to delete this contribution?'
+            message: 'Are you sure you want to delete this contribution?',
         });
 
         if (result) {
             const objIndex = contributions.findIndex(obj => obj.id === contributionId);
-            const statementId = contributions[objIndex].statementId;
-            const newContributions = contributions.filter(function(contribution) {
-                return contribution.id !== contributionId;
-            });
-            dispatch(isDeletingContribution({ id: contributionId }));
+            const { statementId } = contributions[objIndex];
+            const newContributions = contributions.filter(contribution => contribution.id !== contributionId);
+            dispatch(setIsDeletingContribution({ id: contributionId, status: true }));
             deleteStatementById(statementId)
                 .then(() => {
-                    history.push(
-                        reverse(ROUTES.VIEW_PAPER, {
+                    navigate(
+                        reverse(ROUTES.VIEW_PAPER_CONTRIBUTION, {
                             resourceId: paperId,
-                            contributionId: newContributions[0].id
-                        })
+                            contributionId: newContributions[0].id,
+                        }),
                     );
-                    dispatch(doneDeletingContribution({ id: contributionId }));
+                    dispatch(setIsDeletingContribution({ id: contributionId, status: false }));
                     dispatch(setPaperContributions(newContributions));
                     setContributions(newContributions);
                     toast.success('Contribution deleted successfully');
                 })
                 .catch(() => {
-                    dispatch(doneDeletingContribution({ id: contributionId }));
+                    dispatch(setIsDeletingContribution({ id: contributionId, status: false }));
                     toast.error('Something went wrong while deleting the contribution.');
                 });
         }
@@ -188,7 +177,8 @@ const useContributions = ({ paperId, contributionId }) => {
         paperTitle: paperResource.label,
         handleChangeContributionLabel,
         handleCreateContribution,
-        toggleDeleteContribution
+        toggleDeleteContribution,
+        navigate,
     };
 };
 

@@ -4,7 +4,6 @@ import ConfirmBulkImport from 'components/ConfirmBulkImport/ConfirmBulkImport';
 import CsvReader from 'react-csv-reader';
 import styled from 'styled-components';
 import StepContainer from 'components/StepContainer';
-import HelpModal from 'components/CsvImport/HelpModal';
 import Tippy from '@tippyjs/react';
 import checkDataValidation from 'components/ConfirmBulkImport/CSVSchema';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -21,7 +20,7 @@ const TableContainerStyled = styled.div`
 
 const PARSER_OPTIONS = {
     delimiter: ',',
-    skipEmptyLines: true
+    skipEmptyLines: true,
 };
 
 const CsvImport = () => {
@@ -30,7 +29,6 @@ const CsvImport = () => {
     const [error, setError] = useState(null);
     const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
-    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
     const handleOnFileLoaded = (_data, fileInfo) => {
         setData(_data.map(r => r.map(s => (s ? s.trim() : ''))));
@@ -51,18 +49,11 @@ const CsvImport = () => {
     const title = (
         <>
             CSV import
-            <Tippy content="Open help popup">
+            <Tippy content="Open help center">
                 <span className="ms-3">
-                    <Button
-                        color="link"
-                        outline
-                        size="sm"
-                        style={{ fontSize: 22, lineHeight: 1, marginTop: -4 }}
-                        className="p-0"
-                        onClick={() => setIsHelpModalOpen(true)}
-                    >
-                        <Icon icon={faQuestionCircle} className="text-secondary" />
-                    </Button>
+                    <a href="https://www.orkg.org/help-center/article/16/Import_CSV_files_in_ORKG" target="_blank" rel="noopener noreferrer">
+                        <Icon icon={faQuestionCircle} style={{ fontSize: 22, lineHeight: 1, marginTop: -4 }} className="text-secondary p-0" />
+                    </a>
                 </span>
             </Tippy>
         </>
@@ -73,9 +64,9 @@ const CsvImport = () => {
             <StepContainer step="1" title={title} bottomLine active>
                 <Alert color="info" fade={false}>
                     With this tool, you can import a CSV file with papers to the ORKG. Make sure to have a look at the{' '}
-                    <Button color="link" onClick={() => setIsHelpModalOpen(true)} className="p-0 align-baseline">
+                    <a href="https://www.orkg.org/help-center/article/16/Import_CSV_files_in_ORKG" target="_blank" rel="noopener noreferrer">
                         help guide
-                    </Button>{' '}
+                    </a>{' '}
                     for formatting your CSV file
                 </Alert>
                 <Form>
@@ -101,7 +92,7 @@ const CsvImport = () => {
                             <Alert color="danger" className="mt-3">
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: error
+                                        __html: error,
                                     }}
                                 />
                             </Alert>
@@ -157,7 +148,6 @@ const CsvImport = () => {
                     />
                 )}
             </StepContainer>
-            <HelpModal isOpen={isHelpModalOpen} toggle={() => setIsHelpModalOpen(o => !o)} />
         </div>
     );
 };

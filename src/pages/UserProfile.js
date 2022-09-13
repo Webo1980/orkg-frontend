@@ -4,6 +4,7 @@ import { getContributorInformationById } from 'services/backend/contributors';
 import Items from 'components/UserProfile/Items';
 import { getObservatoryById } from 'services/backend/observatories';
 import { getOrganization } from 'services/backend/organizations';
+import HeaderSearchButton from 'components/HeaderSearchButton/HeaderSearchButton';
 import NotFound from 'pages/NotFound';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
@@ -13,8 +14,7 @@ import { CLASSES, MISC } from 'constants/graphSettings';
 import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import ROUTES from 'constants/routes';
 import { reverse } from 'named-urls';
-import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import { Link, useParams } from 'react-router-dom';
 import TitleBar from 'components/TitleBar/TitleBar';
 
 const StyledGravatar = styled(Gravatar)`
@@ -87,7 +87,8 @@ const UserProfile = props => {
     const [organizationData, setOrganizationData] = useState(null);
     const [isLoadingUserData, setIsLoadingUserData] = useState(false);
     const [notFound, setNotFound] = useState(false);
-    const userId = props.match.params.userId;
+    const params = useParams();
+    const { userId } = params;
     const currentUserId = useSelector(state => state.auth.user?.id);
 
     useEffect(() => {
@@ -136,8 +137,10 @@ const UserProfile = props => {
                         setUserData(userData);
                         setIsLoadingUserData(false);
                     }
+                    document.title = `${userData.display_name} - ORKG`;
                 })
                 .catch(e => {
+                    document.title = 'User profile - ORKG';
                     setNotFound(true);
                 });
         };
@@ -152,6 +155,12 @@ const UserProfile = props => {
     return (
         <>
             <Container>
+                <Row className="justify-content-end">
+                    <div className="col-md-3 d-flex justify-content-end mb-3">
+                        <HeaderSearchButton placeholder="Search in this user content..." type={null} userId={userId} />
+                    </div>
+                </Row>
+
                 {!isLoadingUserData && (
                     <Row>
                         <div className="col-md-2 text-center d-flex align-items-center justify-content-center mb-3 mb-md-0">
@@ -238,17 +247,9 @@ const UserProfile = props => {
                 <div className={'time'}>5 JULY 2019</div>
                 <div>John Doe joined ORKG, welcome!</div>
             </StyledActivity>
-            </Container>*/}
+            </Container> */}
         </>
     );
-};
-
-UserProfile.propTypes = {
-    match: PropTypes.shape({
-        params: PropTypes.shape({
-            userId: PropTypes.string
-        }).isRequired
-    }).isRequired
 };
 
 export default UserProfile;

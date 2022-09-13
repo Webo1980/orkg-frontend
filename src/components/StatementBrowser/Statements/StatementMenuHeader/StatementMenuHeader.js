@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Button, ButtonGroup, UncontrolledAlert } from 'reactstrap';
+import { Button, ButtonGroup, UncontrolledAlert, Alert } from 'reactstrap';
 import SBEditorHelpModal from 'components/StatementBrowser/SBEditorHelpModal/SBEditorHelpModal';
 import TemplatesModal from 'components/StatementBrowser/TemplatesModal/TemplatesModal';
 import Tippy from '@tippyjs/react';
@@ -7,24 +7,27 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faQuestionCircle, faPuzzlePiece, faSlidersH, faTimes } from '@fortawesome/free-solid-svg-icons';
 import HELP_CENTER_ARTICLES from 'constants/helpCenterArticles';
 import { useDispatch, useSelector } from 'react-redux';
-import { setIsHelpModalOpen, setIsTemplateModalOpen, setIsPreferencesOpen } from 'actions/statementBrowser';
+import { setIsHelpModalOpen, setIsPreferencesOpen, setIsTemplateModalOpen } from 'slices/statementBrowserSlice';
 import { ENTITIES } from 'constants/graphSettings';
 import Preferences from 'components/StatementBrowser/Preferences/Preferences';
 import PropTypes from 'prop-types';
+
 export default function StatementMenuHeader(props) {
     const isPreferencesOpen = useSelector(state => state.statementBrowser.isPreferencesOpen);
     const isHelpModalOpen = useSelector(state => state.statementBrowser.isHelpModalOpen);
     const isTemplatesModalOpen = useSelector(state => state.statementBrowser.isTemplatesModalOpen);
     const dispatch = useDispatch();
     const preferencesTippy = useRef(null);
-    const shared = props.resource?.shared ?? 0;
+
+    // If the resource exist, all changes are synced to the backend automatically
+    const syncBackend = !props.syncBackend ? !!props.resource.isExistingValue : props.syncBackend;
 
     return (
         <>
             <div className="mb-2 text-end">
                 <ButtonGroup>
-                    {/* We have custom templates for predicates and classes*/}
-                    {props.enableEdit && props.resource._class === ENTITIES.RESOURCE && (
+                    {/* We have custom templates for predicates and classes */}
+                    {props.canEdit && props.enableEdit && props.resource._class === ENTITIES.RESOURCE && (
                         <Button
                             className="p-0"
                             outline
@@ -37,16 +40,16 @@ export default function StatementMenuHeader(props) {
                                     <Icon className="me-1" icon={faPuzzlePiece} /> Templates
                                 </div>
                             </Tippy>
-                            {isTemplatesModalOpen && <TemplatesModal syncBackend={props.syncBackend} />}
+                            {isTemplatesModalOpen && <TemplatesModal syncBackend={syncBackend} />}
                         </Button>
                     )}
-                    {props.enableEdit && (
+                    {props.canEdit && props.enableEdit && (
                         <Button outline color="secondary" size="sm" onClick={() => dispatch(setIsHelpModalOpen({ isOpen: true }))}>
                             <Icon className="me-1" icon={faQuestionCircle} /> Help
                         </Button>
                     )}
 
-                    <Button className="p-0" outline color={!props.enableEdit ? 'link' : 'secondary'} size="sm" onClick={() => null}>
+                    <Button className="p-0" outline color={!props.enableEdit || !props.canEdit ? 'link' : 'secondary'} size="sm" onClick={() => null}>
                         <Tippy
                             onCreate={instance => (preferencesTippy.current = instance)}
                             onShow={() => dispatch(setIsPreferencesOpen(true))}
@@ -64,7 +67,7 @@ export default function StatementMenuHeader(props) {
                 </ButtonGroup>
             </div>
 
-            {shared > 1 && props.enableEdit && (
+            {!props.canEdit && props.enableEdit && (
                 <UncontrolledAlert color="info">
                     A shared resource cannot be edited directly{' '}
                     <Button
@@ -77,6 +80,13 @@ export default function StatementMenuHeader(props) {
                 </UncontrolledAlert>
             )}
 
+            {!props.syncBackend && props.canEdit && props.enableEdit && props.resource.isExistingValue && (
+                <Alert color="info">
+                    Every change you make is automatically saved <br />
+                    <small>Because this is an already saved resource in ORKG.</small>
+                </Alert>
+            )}
+
             {isHelpModalOpen && <SBEditorHelpModal />}
         </>
     );
@@ -85,5 +95,6 @@ export default function StatementMenuHeader(props) {
 StatementMenuHeader.propTypes = {
     resource: PropTypes.object.isRequired,
     enableEdit: PropTypes.bool.isRequired,
-    syncBackend: PropTypes.bool.isRequired
+    canEdit: PropTypes.bool.isRequired,
+    syncBackend: PropTypes.bool.isRequired,
 };

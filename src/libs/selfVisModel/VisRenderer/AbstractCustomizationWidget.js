@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import { Alert } from 'reactstrap';
 import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
+import PropTypes from 'prop-types';
 import CustomizationColumnChart from './ChartRenderers/CustomizationColumnChart';
 import CustomizationBarChart from './ChartRenderers/CustomizationBarChart';
 import CustomizationScatterChart from './ChartRenderers/CustomizationScatterChart';
 import CustomizationLineChart from './ChartRenderers/CustomizationLineChart';
-import PropTypes from 'prop-types';
+import CustomizationPieChart from './ChartRenderers/CustomizationPieChart';
 
 export default class AbstractCustomizationWidget extends Component {
     constructor(props) {
@@ -66,6 +67,15 @@ export default class AbstractCustomizationWidget extends Component {
                     />
                 );
             }
+            case 'PieChart': {
+                return (
+                    <CustomizationPieChart
+                        propagateUpdates={this.props.propagateUpdates}
+                        createChartVisualization={this.props.createChartVisualization}
+                        restoreCustomizationState={keepCustomizationWidgetWhenChanged}
+                    />
+                );
+            }
             default: {
                 return <div>ERROR</div>;
             }
@@ -75,7 +85,8 @@ export default class AbstractCustomizationWidget extends Component {
     applySelectorMethod = () => {
         this.setState({ updateFlipFlop: !this.state.updateFlipFlop });
     };
-    /** component rendering entrance point **/
+
+    /** component rendering entrance point * */
     render() {
         return <div>{this.createCustomizationWidget()}</div>;
     }
@@ -83,5 +94,5 @@ export default class AbstractCustomizationWidget extends Component {
 
 AbstractCustomizationWidget.propTypes = {
     propagateUpdates: PropTypes.func.isRequired,
-    createChartVisualization: PropTypes.func.isRequired
+    createChartVisualization: PropTypes.func.isRequired,
 };

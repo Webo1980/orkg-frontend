@@ -3,9 +3,9 @@ import { getStatementsBundleBySubject } from 'services/backend/statements';
 import { getIsVerified } from 'services/backend/papers';
 import { getResource } from 'services/backend/resources';
 import { useDispatch } from 'react-redux';
-import { resetStatementBrowser } from 'actions/statementBrowser';
-import { loadPaper, setPaperAuthors } from 'actions/viewPaper';
-import { getPaperData_ViewPaper, filterObjectOfStatementsByPredicateAndClass } from 'utils';
+import { resetStatementBrowser } from 'slices/statementBrowserSlice';
+import { loadPaper, setPaperAuthors } from 'slices/viewPaperSlice';
+import { getPaperDataViewPaper, filterObjectOfStatementsByPredicateAndClass } from 'utils';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 
 const useViewPaper = ({ paperId }) => {
@@ -29,13 +29,9 @@ const useViewPaper = ({ paperId }) => {
                 }
             }
             authorsArray = authorsArray.length ? authorsArray.sort((a, b) => a.s_created_at.localeCompare(b.s_created_at)) : [];
-            dispatch(
-                setPaperAuthors({
-                    authors: authorsArray
-                })
-            );
+            dispatch(setPaperAuthors(authorsArray));
         },
-        [dispatch]
+        [dispatch],
     );
 
     const loadPaperData = useCallback(() => {
@@ -51,10 +47,10 @@ const useViewPaper = ({ paperId }) => {
                 // Load the paper metadata but skip the research field and contribution data
                 Promise.all([
                     getStatementsBundleBySubject({ id: paperId, maxLevel: 2, blacklist: [CLASSES.RESEARCH_FIELD, CLASSES.CONTRIBUTION] }),
-                    getIsVerified(paperId).catch(() => false)
+                    getIsVerified(paperId).catch(() => false),
                 ]).then(([paperStatements, verified]) => {
-                    const paperData = getPaperData_ViewPaper(paperResource, paperStatements.statements?.filter(s => s.subject.id === paperId));
-                    dispatch(loadPaper({ ...paperData, verified: verified }));
+                    const paperData = getPaperDataViewPaper(paperResource, paperStatements.statements?.filter(s => s.subject.id === paperId));
+                    dispatch(loadPaper({ ...paperData, verified }));
                     setIsLoading(false);
                     setAuthorsORCID(paperStatements.statements, paperId);
                 });
@@ -95,7 +91,7 @@ const useViewPaper = ({ paperId }) => {
         toggle,
         handleShowHeaderBar,
         setEditMode,
-        setShowGraphModal
+        setShowGraphModal,
     };
 };
 

@@ -1,26 +1,27 @@
 import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
 import { useSelector } from 'react-redux';
 import { Fragment } from 'react';
-import useValueItem from './hooks/useValueItem';
 import PropTypes from 'prop-types';
 import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import DATA_TYPES from 'constants/DataTypes';
 import { Button, Badge } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
-import { ValueItemStyle } from 'components/StatementBrowser/styled';
+import { faExternalLinkAlt, faClipboard } from '@fortawesome/free-solid-svg-icons';
+import { ValueItemStyle, PulsateIcon } from 'components/StatementBrowser/styled';
 import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
 import { Link } from 'react-router-dom';
-import { getResourceLink } from 'utils';
+import { getResourceLink, reverseWithSlug } from 'utils';
 import capitalize from 'capitalize';
 import Tippy from '@tippyjs/react';
-import { reverseWithSlug } from 'utils';
 import ROUTES from 'constants/routes';
 import DescriptionTooltip from 'components/DescriptionTooltip/DescriptionTooltip';
-import ValueItemOptions from './ValueItemOptions/ValueItemOptions';
 import ValueForm from 'components/StatementBrowser/ValueForm/ValueForm';
 import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import { toast } from 'react-toastify';
+import ValueItemOptions from './ValueItemOptions/ValueItemOptions';
+import useValueItem from './hooks/useValueItem';
 
 const cookies = new Cookies();
 
@@ -35,7 +36,7 @@ const ValueItem = props => {
         openExistingResourcesInDialog,
         handleExistingResourceClick,
         handleResourceClick,
-        formattedLabel
+        formattedLabel,
     } = useValueItem({ valueId: props.id, propertyId: props.propertyId, syncBackend: props.syncBackend, contextStyle: props.contextStyle });
 
     const resourcesAsLinks = useSelector(state => state.statementBrowser.resourcesAsLinks);
@@ -52,14 +53,12 @@ const ValueItem = props => {
     return (
         <>
             <ValueItemStyle>
-                {!value.isEditing ? (
+                {!value.isEditing || !props.enableEdit ? (
                     <div>
                         {!value.isSaving && (
                             <Tippy
                                 disabled={
-                                    !preferences['showValueInfo'] ||
-                                    (!value.id && !value.classes?.length) ||
-                                    value?.classes?.includes(CLASSES.PROBLEM)
+                                    !preferences.showValueInfo || (!value.id && !value.classes?.length) || value?.classes?.includes(CLASSES.PROBLEM)
                                 }
                                 delay={[500, 0]}
                                 interactive={true}
@@ -68,7 +67,26 @@ const ValueItem = props => {
                                         <ul className="p-0 mb-0" style={{ listStyle: 'none' }}>
                                             {value.id && (
                                                 <li className="mb-1">
-                                                    {capitalize(value._class)} id: {value.id}
+                                                    <span style={{ verticalAlign: 'middle' }}>
+                                                        {capitalize(value._class)} id: {value.id}
+                                                    </span>
+                                                    <CopyToClipboard
+                                                        text={props.id}
+                                                        onCopy={() => {
+                                                            toast.dismiss();
+                                                            toast.success('ID copied to clipboard');
+                                                        }}
+                                                    >
+                                                        <Button
+                                                            title="Click to copy id"
+                                                            onClick={e => e.stopPropagation()}
+                                                            className="py-0 px-0 ms-1"
+                                                            size="sm"
+                                                            color="link"
+                                                        >
+                                                            <Icon icon={faClipboard} size="xs" />
+                                                        </Button>
+                                                    </CopyToClipboard>
                                                 </li>
                                             )}
                                             {value.classes?.length > 0 && (
@@ -95,7 +113,7 @@ const ValueItem = props => {
                                                 <Link
                                                     to={reverseWithSlug(ROUTES.RESEARCH_PROBLEM, {
                                                         researchProblemId: existingResourceId,
-                                                        slug: resource.label
+                                                        slug: resource.label,
                                                     })}
                                                     target="_blank"
                                                 >
@@ -117,7 +135,7 @@ const ValueItem = props => {
                                                     {value._class === ENTITIES.PREDICATE && <div className="typeCircle">P</div>}
                                                     {props.showHelp && value._class === ENTITIES.RESOURCE ? (
                                                         <span style={{ position: 'relative' }}>
-                                                            <span className="pulsate-css" />
+                                                            <PulsateIcon />
                                                             <ValuePlugins type="resource">
                                                                 {formattedLabel !== '' ? formattedLabel.toString() : <i>No label</i>}
                                                             </ValuePlugins>
@@ -153,7 +171,7 @@ const ValueItem = props => {
                                             <ValuePlugins type={ENTITIES.LITERAL}>
                                                 {value.label !== '' ? value.label.toString() : <i>No label</i>}
                                             </ValuePlugins>
-                                            {preferences['showLiteralDataTypes'] && (
+                                            {preferences.showLiteralDataTypes && (
                                                 <small>
                                                     <Badge color="light" className="ms-2" title={value.datatype}>
                                                         {DATA_TYPES.find(dt => dt.type === value.datatype)?.name ?? value.datatype}
@@ -195,12 +213,12 @@ ValueItem.propTypes = {
     enableEdit: PropTypes.bool.isRequired,
     syncBackend: PropTypes.bool.isRequired,
     contextStyle: PropTypes.string.isRequired,
-    showHelp: PropTypes.bool
+    showHelp: PropTypes.bool,
 };
 
 ValueItem.defaultProps = {
     contextStyle: 'StatementBrowser',
-    showHelp: false
+    showHelp: false,
 };
 
 export default ValueItem;

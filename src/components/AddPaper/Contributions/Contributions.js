@@ -1,43 +1,37 @@
-import { useEffect } from 'react';
-import { Row, Col, Button } from 'reactstrap';
-import { useSelector, useDispatch } from 'react-redux';
-import ContributionItemList from './ContributionItemList';
-import ContributionsHelpTour from './ContributionsHelpTour';
-import Tooltip from 'components/Utils/Tooltip';
-import { AddContribution, StyledHorizontalContributionsList } from './styled';
-import {
-    nextStep,
-    previousStep,
-    createContribution,
-    deleteContribution,
-    selectContribution,
-    updateContributionLabel,
-    saveAddPaper,
-    openTour,
-    toggleAbstractDialog
-} from 'actions/addPaper';
-import Abstract from 'components/AddPaper/Abstract/Abstract';
-import Confirm from 'components/Confirmation/Confirmation';
-import Contribution from './Contribution';
-import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { faAngleDown, faExclamationTriangle, faMagic, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faMagic, faPlus } from '@fortawesome/free-solid-svg-icons';
-import styled from 'styled-components';
 import Tippy from '@tippyjs/react';
-import { updateSettings } from 'actions/statementBrowser';
-
-const AnimationContainer = styled(CSSTransition)`
-    transition: 0.3s background-color, 0.3s border-color;
-
-    &.fadeIn-enter {
-        opacity: 0;
-    }
-
-    &.fadeIn-enter-active {
-        opacity: 1;
-        transition: 0.7s opacity;
-    }
-`;
+import Abstract from 'components/AddPaper/Abstract/Abstract';
+import AbstractModal from 'components/AddPaper/AbstractModal/AbstractModal';
+import EntityRecognition from 'components/AddPaper/EntityRecognition/EntityRecognition';
+import useDetermineResearchField from 'components/AddPaper/EntityRecognition/useDetermineResearchField';
+import useEntityRecognition from 'components/AddPaper/hooks/useEntityRecognition';
+import useBioassays from 'components/AddPaper/hooks/useBioassays';
+import Confirm from 'components/Confirmation/Confirmation';
+import AddContributionButton from 'components/ContributionTabs/AddContributionButton';
+import ContributionTab from 'components/ContributionTabs/ContributionTab';
+import { StyledContributionTabs } from 'components/ContributionTabs/styled';
+import StatementBrowser from 'components/StatementBrowser/StatementBrowser';
+import Tooltip from 'components/Utils/Tooltip';
+import Tabs, { TabPane } from 'rc-tabs';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import BIOASSAYS_FIELDS_LIST from 'constants/bioassayFieldList';
+import BioAssaysModal from 'components/AddPaper/BioAssaysModal/BioAssaysModal';
+import { Button, Col, Row, UncontrolledAlert } from 'reactstrap';
+import {
+    createContributionAction as createContribution,
+    deleteContributionAction as deleteContribution,
+    nextStep,
+    openTour,
+    previousStep,
+    saveAddPaperAction as saveAddPaper,
+    selectContributionAction as selectContribution,
+    toggleAbstractDialog,
+    updateContributionLabelAction as updateContributionLabel,
+} from 'slices/addPaperSlice';
+import { updateSettings } from 'slices/statementBrowserSlice';
+import ContributionsHelpTour from './ContributionsHelpTour';
 
 const Contributions = () => {
     const {
@@ -50,11 +44,26 @@ const Contributions = () => {
         url,
         selectedResearchField,
         contributions,
-        selectedContribution
+        selectedContribution,
+        abstract,
     } = useSelector(state => state.addPaper);
+    const [isOpenAbstractModal, setIsOpenAbstractModal] = useState(false);
+    const [isComputerScienceField, setIsComputerScienceField] = useState(false);
     const { resources, properties, values } = useSelector(state => state.statementBrowser);
+    const { determineField } = useDetermineResearchField();
+
+    const isBioassayField = BIOASSAYS_FIELDS_LIST.includes(selectedResearchField);
+
+    const { handleSaveFeedback } = useEntityRecognition();
+    const { handleSaveBioassaysFeedback } = useBioassays();
+
+    const [isOpenBioassays, setIsOpenBioassays] = useState(false);
 
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        (async () => setIsComputerScienceField(await determineField({ field: selectedResearchField })))();
+    }, [determineField, selectedResearchField]);
 
     useEffect(() => {
         // if there is no contribution yet, create the first one
@@ -63,34 +72,40 @@ const Contributions = () => {
                 createContribution({
                     selectAfterCreation: true,
                     prefillStatements: true,
-                    researchField: selectedResearchField
-                })
+                    researchField: selectedResearchField,
+                }),
             );
             dispatch(
                 updateSettings({
-                    openExistingResourcesInDialog: true
-                })
+                    openExistingResourcesInDialog: true,
+                }),
             );
         }
     }, [contributions.allIds.length, dispatch, selectedResearchField]);
 
     const handleNextClick = async () => {
+        if (isComputerScienceField) {
+            handleSaveFeedback();
+        }
+        if (isBioassayField) {
+            handleSaveBioassaysFeedback();
+        }
         // save add paper
         dispatch(
             saveAddPaper({
-                title: title,
-                authors: authors,
-                publicationMonth: publicationMonth,
-                publicationYear: publicationYear,
-                doi: doi,
-                publishedIn: publishedIn,
-                url: url,
-                selectedResearchField: selectedResearchField,
-                contributions: contributions,
-                resources: resources,
-                properties: properties,
-                values: values
-            })
+                title,
+                authors,
+                publicationMonth,
+                publicationYear,
+                doi,
+                publishedIn,
+                url,
+                selectedResearchField,
+                contributions,
+                resources,
+                properties,
+                values,
+            }),
         );
         dispatch(nextStep());
     };
@@ -98,7 +113,7 @@ const Contributions = () => {
     const toggleDeleteContribution = async id => {
         const result = await Confirm({
             title: 'Are you sure?',
-            message: 'Are you sure you want to delete this contribution?'
+            message: 'Are you sure you want to delete this contribution?',
         });
 
         if (result) {
@@ -116,16 +131,27 @@ const Contributions = () => {
         const contribution = contributions.byId[contributionId];
         dispatch(
             updateContributionLabel({
-                label: label,
-                contributionId: contributionId,
-                resourceId: contribution.resourceId
-            })
+                label,
+                contributionId,
+                resourceId: contribution.resourceId,
+            }),
         );
     };
 
     const handleLearnMore = step => {
         dispatch(openTour(step));
     };
+
+    const showAbstractWarning = isComputerScienceField && !abstract;
+    const onTabChange = key => {
+        handleSelectContribution(key);
+    };
+
+    const renderTabBar = (props, DefaultTabBar) => (
+        <div id="contributionsList">
+            <DefaultTabBar {...props} />
+        </div>
+    );
 
     return (
         <div>
@@ -151,61 +177,103 @@ const Contributions = () => {
                                 </div>
                             </span>
                         }
+                        tippyProps={{ interactive: true }}
                     >
                         Specify research contributions
                     </Tooltip>
                 </h2>
                 <div className="flex-shrink-0 ms-auto">
-                    <Button onClick={() => dispatch(toggleAbstractDialog())} outline size="sm" color="secondary">
-                        <Icon icon={faMagic} /> Abstract annotator
-                    </Button>
+                    {isBioassayField && (
+                        <Button onClick={() => setIsOpenBioassays(v => !v)} outline size="sm" color="smart" className="me-1">
+                            <Icon icon={faFlask} /> Add Bioassay
+                        </Button>
+                    )}
+                    {!isComputerScienceField ? (
+                        <Button onClick={() => dispatch(toggleAbstractDialog())} outline size="sm" color="smart">
+                            {!showAbstractWarning ? <Icon icon={faMagic} /> : <Icon icon={faExclamationTriangle} className="text-warning" />} Abstract
+                            annotator
+                        </Button>
+                    ) : (
+                        <Tippy
+                            showOnCreate
+                            delay="1000"
+                            disabled={!showAbstractWarning}
+                            placement="right"
+                            content="We were unable to fetch the abstract of the paper. Click the button to manually add it, this improves the suggestions."
+                        >
+                            <span>
+                                <Button onClick={() => setIsOpenAbstractModal(true)} outline size="sm" color="smart">
+                                    {!showAbstractWarning ? <Icon icon={faMagic} /> : <Icon icon={faExclamationTriangle} className="text-warning" />}{' '}
+                                    Paper abstract
+                                </Button>
+                            </span>
+                        </Tippy>
+                    )}
                 </div>
             </div>
+            {isBioassayField && (
+                <UncontrolledAlert color="info">
+                    To add a Bioassay, please click the 'Add Bioassay' button above. This feature lets you insert and curate an automatically
+                    semantified version of your assay text by our machine learning system.
+                </UncontrolledAlert>
+            )}
             <Row className="mt-2 g-0">
                 <Col md="9">
-                    <StyledHorizontalContributionsList id="contributionsList">
-                        {contributions.allIds.map((contributionId, index) => {
-                            const contribution = contributions.byId[contributionId];
-
-                            return (
-                                <ContributionItemList
-                                    handleChangeContributionLabel={handleChange}
-                                    isSelected={contributionId === selectedContribution}
-                                    canDelete={contributions.allIds.length !== 1}
-                                    selectedContributionId={selectedContribution}
-                                    contribution={contribution}
-                                    key={contributionId}
-                                    toggleDeleteContribution={toggleDeleteContribution}
-                                    handleSelectContribution={handleSelectContribution}
-                                    enableEdit={true}
-                                />
-                            );
-                        })}
-
-                        <li>
-                            <AddContribution color="link" onClick={() => dispatch(createContribution({}))}>
-                                <Tippy content="Add contribution">
-                                    <span>
-                                        <Icon size="xs" icon={faPlus} />
-                                    </span>
-                                </Tippy>
-                            </AddContribution>
-                        </li>
-                    </StyledHorizontalContributionsList>
+                    <StyledContributionTabs>
+                        <Tabs
+                            renderTabBar={renderTabBar}
+                            tabBarExtraContent={<AddContributionButton onClick={() => dispatch(createContribution({ selectAfterCreation: true }))} />}
+                            moreIcon={<Icon size="lg" icon={faAngleDown} />}
+                            activeKey={selectedContribution}
+                            onChange={onTabChange}
+                            destroyInactiveTabPane={true}
+                        >
+                            {contributions.allIds.map(contributionId => {
+                                const contribution = contributions.byId[contributionId];
+                                return (
+                                    <TabPane
+                                        tab={
+                                            <ContributionTab
+                                                handleChangeContributionLabel={handleChange}
+                                                isSelected={contribution.id === selectedContribution}
+                                                canDelete={contributions.allIds.length !== 1}
+                                                contribution={contribution}
+                                                key={contribution.id}
+                                                toggleDeleteContribution={toggleDeleteContribution}
+                                                enableEdit={true}
+                                            />
+                                        }
+                                        key={contribution.id}
+                                    >
+                                        <div className="contributionData">
+                                            <StatementBrowser
+                                                enableEdit={true}
+                                                syncBackend={false}
+                                                openExistingResourcesInDialog={false}
+                                                initialSubjectId={contribution.resourceId}
+                                                initialSubjectLabel={contribution.label}
+                                                renderTemplateBox={true}
+                                            />
+                                        </div>
+                                    </TabPane>
+                                );
+                            })}
+                        </Tabs>
+                    </StyledContributionTabs>
                 </Col>
 
-                <TransitionGroup className="col-md-9" exit={false}>
-                    <AnimationContainer classNames="fadeIn" timeout={{ enter: 700, exit: 0 }} key={selectedContribution}>
-                        <div>
-                            <Contribution id={selectedContribution} />
-                        </div>
-                    </AnimationContainer>
-                </TransitionGroup>
+                <Col lg="3" className="ps-lg-3 mt-5">
+                    {isComputerScienceField && <EntityRecognition />}
+                </Col>
             </Row>
 
             <hr className="mt-5 mb-3" />
 
             <Abstract />
+
+            {isBioassayField && (
+                <BioAssaysModal selectedResource={selectedContribution} showDialog={isOpenBioassays} toggle={() => setIsOpenBioassays(v => !v)} />
+            )}
 
             <ContributionsHelpTour />
 
@@ -215,6 +283,7 @@ const Contributions = () => {
             <Button color="light" className="float-end mb-4 me-2" onClick={() => dispatch(previousStep())}>
                 Previous step
             </Button>
+            {isOpenAbstractModal && <AbstractModal toggle={() => setIsOpenAbstractModal(v => !v)} />}
         </div>
     );
 };

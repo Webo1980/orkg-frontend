@@ -2,7 +2,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader, Button } from 'reactstrap';
 import { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { openAuthDialog, toggleAuthDialog } from '../../actions/auth';
+import { openAuthDialog, toggleAuthDialog } from 'slices/authSlice';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import styled from 'styled-components';
 import ForgotPassword from './ForgotPassword';
@@ -79,7 +79,7 @@ class Authentication extends Component {
                             </>
                         )}
                         {/** Forgot password is currently not supported */}
-                        {/*this.props.action === 'forgotpassword' && (
+                        {/* this.props.action === 'forgotpassword' && (
                             <div>
                                 Remember you password again ?
                                 <b
@@ -96,7 +96,7 @@ class Authentication extends Component {
                                     Login now
                                 </b>
                             </div>
-                        )*/}
+                        ) */}
                     </ModalFooter>
                 </Modal>
             </>
@@ -106,22 +106,22 @@ class Authentication extends Component {
 
 const mapStateToProps = state => ({
     dialogIsOpen: state.auth.dialogIsOpen,
-    action: state.auth.action
+    action: state.auth.action,
 });
 
 const mapDispatchToProps = dispatch => ({
     openAuthDialog: payload => dispatch(openAuthDialog(payload)),
-    toggleAuthDialog: () => dispatch(toggleAuthDialog())
+    toggleAuthDialog: () => dispatch(toggleAuthDialog()),
 });
 
 Authentication.propTypes = {
     action: PropTypes.string.isRequired,
     dialogIsOpen: PropTypes.bool.isRequired,
     toggleAuthDialog: PropTypes.func.isRequired,
-    openAuthDialog: PropTypes.func.isRequired
+    openAuthDialog: PropTypes.func.isRequired,
 };
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
 )(Authentication);

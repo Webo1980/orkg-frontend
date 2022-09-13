@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { Button, Form, FormGroup, Input, Label, Alert, FormFeedback } from 'reactstrap';
-import { toggleAuthDialog, updateAuth } from 'actions/auth';
+import { toggleAuthDialog, updateAuth } from 'slices/authSlice';
 import { Link } from 'react-router-dom';
 import { registerWithEmailAndPassword, signInWithEmailAndPassword, getUserInformation } from 'services/backend/users';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
-import { get_error_message, checkCookie } from 'utils';
+import { getErrorMessage, checkCookie } from 'utils';
 import ROUTES_CMS from 'constants/routesCms';
 import ROUTES from 'constants/routes';
 import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
 import InfoSheet from 'assets/pdf/infosheet-data-protection.pdf';
 import { reverse } from 'named-urls';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 const cookies = new Cookies();
 
@@ -26,6 +27,7 @@ export default function SignUp() {
     const [errors, setErrors] = useState(null);
     const [termsConditionIsChecked, setTermsConditionIsChecked] = useState(false);
     const [dataProtectionIsChecked, setDataProtectionIsChecked] = useState(false);
+    const { trackEvent } = useMatomo();
 
     const signUp = async e => {
         e.preventDefault();
@@ -39,10 +41,10 @@ export default function SignUp() {
                         .then(token => {
                             userToken = token.access_token;
                             cookies.set('token', token.access_token, { path: env('PUBLIC_URL'), maxAge: token.expires_in });
-                            token_expires_in = new Date(Date.now() + token.expires_in * 1000);
-                            cookies.set('token_expires_in', token_expires_in.toUTCString(), { path: env('PUBLIC_URL'), maxAge: token.expires_in });
+                            token_expires_in = new Date(Date.now() + token.expires_in * 1000).toUTCString();
+                            cookies.set('token_expires_in', token_expires_in, { path: env('PUBLIC_URL'), maxAge: token.expires_in });
                             return getUserInformation();
-                            //window.location.reload();
+                            // window.location.reload();
                         })
                         .then(userData => {
                             dispatch(
@@ -53,13 +55,14 @@ export default function SignUp() {
                                         token: userToken,
                                         email: userData.email,
                                         tokenExpire: token_expires_in,
-                                        isCurationAllowed: userData.is_curation_allowed
-                                    }
-                                })
+                                        isCurationAllowed: userData.is_curation_allowed,
+                                    },
+                                }),
                             );
                             dispatch(toggleAuthDialog());
                             setIsLoading(false);
                             setErrors(null);
+                            trackEvent({ category: 'authentication', action: 'sign-up' });
                         })
                         .catch(e => {
                             if (checkCookie()) {
@@ -92,7 +95,7 @@ export default function SignUp() {
     return (
         <>
             <Form className="ps-3 pe-3 pt-2" onSubmit={signUp}>
-                {Boolean(get_error_message(errors)) && <Alert color="danger">{get_error_message(errors)}</Alert>}
+                {Boolean(getErrorMessage(errors)) && <Alert color="danger">{getErrorMessage(errors)}</Alert>}
                 <FormGroup>
                     <Label for="name">Display name</Label>
                     <Input
@@ -102,9 +105,9 @@ export default function SignUp() {
                         name="name"
                         id="name"
                         placeholder="Name"
-                        invalid={Boolean(get_error_message(errors, 'display_name'))}
+                        invalid={Boolean(getErrorMessage(errors, 'display_name'))}
                     />
-                    {Boolean(get_error_message(errors, 'display_name')) && <FormFeedback>{get_error_message(errors, 'display_name')}</FormFeedback>}
+                    {Boolean(getErrorMessage(errors, 'display_name')) && <FormFeedback>{getErrorMessage(errors, 'display_name')}</FormFeedback>}
                 </FormGroup>
                 <FormGroup>
                     <Label for="Email">Email address</Label>
@@ -115,9 +118,9 @@ export default function SignUp() {
                         name="email"
                         id="Email"
                         placeholder="Email address"
-                        invalid={Boolean(get_error_message(errors, 'email'))}
+                        invalid={Boolean(getErrorMessage(errors, 'email'))}
                     />
-                    {Boolean(get_error_message(errors, 'email')) && <FormFeedback>{get_error_message(errors, 'email')}</FormFeedback>}
+                    {Boolean(getErrorMessage(errors, 'email')) && <FormFeedback>{getErrorMessage(errors, 'email')}</FormFeedback>}
                 </FormGroup>
                 <FormGroup>
                     <Label for="Password">Password</Label>
@@ -128,9 +131,9 @@ export default function SignUp() {
                         name="password"
                         id="Password"
                         placeholder="Password"
-                        invalid={Boolean(get_error_message(errors, 'password'))}
+                        invalid={Boolean(getErrorMessage(errors, 'password'))}
                     />
-                    {Boolean(get_error_message(errors, 'password')) && <FormFeedback>{get_error_message(errors, 'password')}</FormFeedback>}
+                    {Boolean(getErrorMessage(errors, 'password')) && <FormFeedback>{getErrorMessage(errors, 'password')}</FormFeedback>}
                 </FormGroup>
                 <FormGroup>
                     <Label for="matching_password">Confirm Password</Label>
@@ -141,10 +144,10 @@ export default function SignUp() {
                         name="matching_password"
                         id="matching_password"
                         placeholder="Confirm password"
-                        invalid={Boolean(get_error_message(errors, 'matching_password'))}
+                        invalid={Boolean(getErrorMessage(errors, 'matching_password'))}
                     />
-                    {Boolean(get_error_message(errors, 'matching_password')) && (
-                        <FormFeedback>{get_error_message(errors, 'matching_password')}</FormFeedback>
+                    {Boolean(getErrorMessage(errors, 'matching_password')) && (
+                        <FormFeedback>{getErrorMessage(errors, 'matching_password')}</FormFeedback>
                     )}
                 </FormGroup>
                 <FormGroup check className="mb-0" style={{ fontSize: '90%' }}>

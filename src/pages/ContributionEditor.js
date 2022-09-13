@@ -2,6 +2,7 @@ import { faPlusCircle, faExternalLinkAlt, faComments } from '@fortawesome/free-s
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { contributionsRemoved, loadContributions } from 'slices/contributionEditorSlice';
 import CreateProperty from 'components/ContributionEditor/CreateProperty';
+import PropertySuggestions from 'components/ContributionEditor/PropertySuggestions/PropertySuggestions';
 import EditorTable from 'components/ContributionEditor/EditorTable';
 import useContributionEditor from 'components/ContributionEditor/hooks/useContributionEditor';
 import TableLoadingIndicator from 'components/ContributionEditor/TableLoadingIndicator';
@@ -13,10 +14,9 @@ import useComparison from 'components/Comparison/hooks/useComparison';
 import routes from 'constants/routes';
 import { reverse } from 'named-urls';
 import queryString from 'query-string';
-import { useLocation } from 'react-router';
+import { useLocation, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
 import env from '@beam-australia/react-env';
 import { Alert, Button, Container } from 'reactstrap';
 import TitleBar from 'components/TitleBar/TitleBar';
@@ -35,16 +35,15 @@ const ContributionEditor = () => {
     const dispatch = useDispatch();
     const location = useLocation();
     const contributionIds = getContributionIds();
-    const numPWCStatement = useSelector(state => {
-        return (
+    const numPWCStatement = useSelector(
+        state =>
             Object.keys(state.contributionEditor?.statements).filter?.(
-                statementId => state.contributionEditor?.statements[statementId]?.created_by === env('PWC_USER_ID')
-            )?.length ?? 0
-        );
-    });
-    const hasPreviousVersion = queryString.parse(location.search).hasPreviousVersion;
+                statementId => state.contributionEditor?.statements[statementId]?.created_by === env('PWC_USER_ID'),
+            )?.length ?? 0,
+    );
+    const { hasPreviousVersion } = queryString.parse(location.search);
 
-    const { properties, publicURL,toggleProperty, generateUrl, onSortPropertiesEnd } = useComparison({});
+    const { properties, publicURL, toggleProperty, generateUrl, onSortPropertiesEnd } = useComparison({});
 
     useEffect(() => {
         document.title = 'Contribution editor - ORKG';
@@ -102,7 +101,7 @@ const ContributionEditor = () => {
                     <>
                         <Button
                             tag={Link}
-                            to={`${reverse(routes.COMPARISON)}?contributions=${contributionIds.join(',')}${
+                            to={`${reverse(routes.COMPARISON_NOT_PUBLISHED)}?contributions=${contributionIds.join(',')}${
                                 hasPreviousVersion ? `&hasPreviousVersion=${hasPreviousVersion}` : ''
                             }`}
                             color="secondary"
@@ -146,6 +145,8 @@ const ContributionEditor = () => {
                         </TableScrollContainer>
 
                         <CreateProperty />
+
+                        <PropertySuggestions />
                     </>
                 )}
                 {hasFailed && <Alert color="danger">An error has occurred while loading the specified contributions</Alert>}

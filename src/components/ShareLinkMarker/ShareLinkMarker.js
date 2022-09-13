@@ -5,9 +5,9 @@ import { faLink } from '@fortawesome/free-solid-svg-icons';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { toast } from 'react-toastify';
 import Tippy, { useSingleton } from '@tippyjs/react';
-import { getFacebookSharerLink, getTwitterSharerLink, getLinkedInSharerLink } from './helpers';
 import PropTypes from 'prop-types';
 import { Button } from 'reactstrap';
+import { getFacebookSharerLink, getTwitterSharerLink, getLinkedInSharerLink } from './helpers';
 
 const ShareLinkMarker = ({ typeOfLink, title, rightEdgeValue }) => {
     const ShareSideBox = styled.div`
@@ -28,22 +28,22 @@ const ShareLinkMarker = ({ typeOfLink, title, rightEdgeValue }) => {
     `;
     const [source, target] = useSingleton();
     return (
-        <ShareSideBox className="pt-2 ps-2 pe-2 pb-2" style={{ right: rightEdgeValue + 'px' }}>
+        <ShareSideBox className="pt-2 ps-2 pe-2 pb-2" style={{ right: `${rightEdgeValue}px` }}>
             <Tippy placement="left" singleton={source} delay={500} />
             <div className="text-muted mb-1">
                 <small>Share</small>
             </div>
-            <Tippy singleton={target} content={`Share this ${typeOfLink ? typeOfLink : 'page'} on Facebook`}>
+            <Tippy singleton={target} content={`Share this ${typeOfLink || 'page'} on Facebook`}>
                 <a href={getFacebookSharerLink()} target="_blank" className="text-secondary" rel="noopener noreferrer">
                     <Icon icon={faFacebook} />
                 </a>
             </Tippy>
-            <Tippy singleton={target} content={`Share this  ${typeOfLink ? typeOfLink : 'page'} on Twitter`}>
+            <Tippy singleton={target} content={`Share this  ${typeOfLink || 'page'} on Twitter`}>
                 <a href={getTwitterSharerLink(title)} target="_blank" className="text-secondary" rel="noopener noreferrer">
                     <Icon icon={faTwitter} />
                 </a>
             </Tippy>
-            <Tippy singleton={target} content={`Share this  ${typeOfLink ? typeOfLink : 'page'} on Linkedin`}>
+            <Tippy singleton={target} content={`Share this  ${typeOfLink || 'page'} on Linkedin`}>
                 <a href={getLinkedInSharerLink()} target="_blank" className="text-secondary" rel="noopener noreferrer">
                     <Icon icon={faLinkedin} />
                 </a>

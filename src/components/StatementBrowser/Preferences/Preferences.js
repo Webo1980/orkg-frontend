@@ -1,7 +1,7 @@
 import { Input, Button, Label } from 'reactstrap';
 import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { updatePreferences, setIsHelpModalOpen } from 'actions/statementBrowser';
+import { setIsHelpModalOpen, updatePreferences } from 'slices/statementBrowserSlice';
 import HELP_CENTER_ARTICLES from 'constants/helpCenterArticles';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
@@ -44,7 +44,7 @@ export default function Preferences({ closeTippy }) {
                 </Button>
             </h5>
             <div className="mb-2">
-                <Input type="switch" id="showClasses" name="showClasses" onChange={settingsInputSwitched} checked={preferences['showClasses']} />{' '}
+                <Input type="switch" id="showClasses" name="showClasses" onChange={settingsInputSwitched} checked={preferences.showClasses} />{' '}
                 <Label for="showClasses" className="mb-0">
                     Show classes of resources
                 </Label>
@@ -55,20 +55,14 @@ export default function Preferences({ closeTippy }) {
                     id="showStatementInfo"
                     name="showStatementInfo"
                     onChange={settingsInputSwitched}
-                    checked={preferences['showStatementInfo']}
+                    checked={preferences.showStatementInfo}
                 />{' '}
                 <Label for="showStatementInfo" className="mb-0">
                     Show information about the statement
                 </Label>
             </div>
             <div className="mb-2">
-                <Input
-                    type="switch"
-                    id="showValueInfo"
-                    name="showValueInfo"
-                    onChange={settingsInputSwitched}
-                    checked={preferences['showValueInfo']}
-                />{' '}
+                <Input type="switch" id="showValueInfo" name="showValueInfo" onChange={settingsInputSwitched} checked={preferences.showValueInfo} />{' '}
                 <Label for="showValueInfo" className="mb-0">
                     Show information tooltip of values
                 </Label>
@@ -79,7 +73,7 @@ export default function Preferences({ closeTippy }) {
                     id="showLiteralDataTypes"
                     name="showLiteralDataTypes"
                     onChange={settingsInputSwitched}
-                    checked={preferences['showLiteralDataTypes']}
+                    checked={preferences.showLiteralDataTypes}
                 />{' '}
                 <Label for="showLiteralDataTypes" className="mb-0">
                     Show data type of literals
@@ -90,5 +84,5 @@ export default function Preferences({ closeTippy }) {
 }
 
 Preferences.propTypes = {
-    closeTippy: PropTypes.func.isRequired
+    closeTippy: PropTypes.func.isRequired,
 };

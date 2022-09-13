@@ -13,7 +13,7 @@ class DbpediaAbstract extends Component {
             abstract: '',
             collapsed: true,
             isLoading: false,
-            loadingFailed: false
+            loadingFailed: false,
         };
     }
 
@@ -31,23 +31,12 @@ class DbpediaAbstract extends Component {
         this.setState({ isLoading: true, loadingFailed: false });
         const resource = this.props.externalResource;
         const endpoint = 'http://dbpedia.org/sparql';
-        const query = `
-            SELECT
-                ?abstract
-            WHERE 
-                {
-                    <${resource}> <http://dbpedia.org/ontology/abstract> ?abstract .
-                    FILTER (lang(?abstract) = 'en')
-                }
-            LIMIT 500
-        `;
-        const url = endpoint + '?query=' + encodeURIComponent(query) + '&format=json';
+        const query = `SELECT ?abstract WHERE {<${resource}> <http://dbpedia.org/ontology/abstract> ?abstract . FILTER (lang(?abstract) = 'en')} LIMIT 500`;
+        const url = `${endpoint}?query=${encodeURIComponent(query)}&format=json`;
         const self = this;
 
         fetch(url)
-            .then(function(response) {
-                return response.json();
-            })
+            .then(response => response.json())
             .then(function(data) {
                 if (
                     data.results &&
@@ -59,7 +48,7 @@ class DbpediaAbstract extends Component {
                     self.setState({
                         abstract: data.results.bindings[0].abstract.value,
                         isLoading: false,
-                        loadingFailed: false
+                        loadingFailed: false,
                     });
                 } else {
                     this.setState({ isLoading: false, loadingFailed: true });
@@ -72,7 +61,7 @@ class DbpediaAbstract extends Component {
 
     handleReadMore = () => {
         this.setState(prevState => ({
-            collapsed: !prevState.collapsed
+            collapsed: !prevState.collapsed,
         }));
     };
 
@@ -97,7 +86,7 @@ class DbpediaAbstract extends Component {
                     {!this.state.isLoading && this.state.loadingFailed && <div className="text-primary">Failed loading abstract from DBpedia.</div>}
                     {!this.state.isLoading && !this.state.loadingFailed && (
                         <>
-                            {this.state.collapsed && this.state.abstract.length > 550 ? shortAbstract + '...' : this.state.abstract}
+                            {this.state.collapsed && this.state.abstract.length > 550 ? `${shortAbstract}...` : this.state.abstract}
                             {showReadMore && (
                                 <Button color="link" className="p-0" style={{ fontSize: 'inherit' }} onClick={this.handleReadMore}>
                                     {this.state.collapsed ? 'Read more' : 'Read less'}
@@ -112,7 +101,7 @@ class DbpediaAbstract extends Component {
 }
 
 DbpediaAbstract.propTypes = {
-    externalResource: PropTypes.string.isRequired
+    externalResource: PropTypes.string.isRequired,
 };
 
 export default DbpediaAbstract;

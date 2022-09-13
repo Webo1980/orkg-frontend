@@ -1,6 +1,6 @@
 import AutoComplete from 'components/Autocomplete/Autocomplete';
 import ResearchFieldSelectorModal from 'components/ResearchFieldSelector/ResearchFieldSelectorModal';
-import AuthorsInput from 'components/Utils/AuthorsInput';
+import AuthorsInput from 'components/AuthorsInput/AuthorsInput';
 import ListItem from 'components/ViewPaper/EditDialog/ListItem';
 import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import { truncate } from 'lodash';
@@ -29,19 +29,23 @@ const EditItem = props => {
     } else if (props.type === 'month') {
         input = (
             <Input type="select" value={props.value} onChange={props.onChange}>
-                {moment.months().map((el, index) => {
-                    return (
-                        <option value={index + 1} key={index + 1}>
-                            {el}
-                        </option>
-                    );
-                })}
+                <option value="" key="">
+                    Month
+                </option>
+                {moment.months().map((el, index) => (
+                    <option value={index + 1} key={index + 1}>
+                        {el}
+                    </option>
+                ))}
             </Input>
         );
         stringValue = props.value ? moment(props.value, 'M').format('MMMM') : EMPTY_LABEL;
     } else if (props.type === 'year') {
         input = (
             <Input type="select" value={props.value} onChange={props.onChange}>
+                <option value="" key="">
+                    Year
+                </option>
                 {range(1900, moment().year())
                     .reverse()
                     .map(year => (
@@ -62,13 +66,13 @@ const EditItem = props => {
                 const newVenue = await createResource(selected.label, [CLASSES.VENUE]);
                 props.onChange({
                     ...selected,
-                    id: newVenue.id
+                    id: newVenue.id,
                 });
             } else if (action.action === 'clear') {
                 props.onChange({
                     ...selected,
                     id: null,
-                    label: null
+                    label: null,
                 });
             }
         };
@@ -91,13 +95,14 @@ const EditItem = props => {
         const handleSelectField = ({ id, label }) => {
             props.onChange({
                 id,
-                label
+                label,
             });
         };
         input = (
             <InputGroup>
                 <AutoComplete
                     allowCreate={false}
+                    ols={false}
                     entityType={ENTITIES.RESOURCE}
                     optionsClass={CLASSES.RESEARCH_FIELD}
                     onChange={props.onChange}
@@ -142,13 +147,13 @@ EditItem.propTypes = {
     toggleItem: PropTypes.func.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.array, PropTypes.object]),
     onChange: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['text', 'month', 'year', 'authors', 'publishedIn', 'researchField']).isRequired,
-    isLastItem: PropTypes.bool
+    type: PropTypes.oneOf(['text', 'month', 'year', 'authors', 'publishedIn', 'researchField', 'textarea']).isRequired,
+    isLastItem: PropTypes.bool,
 };
 
 EditItem.defaultProps = {
     isLastItem: false,
-    value: ''
+    value: '',
 };
 
 export default EditItem;

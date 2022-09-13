@@ -7,6 +7,8 @@ import Header from 'components/Layout/Header/Header';
 import Footer from 'components/Layout/Footer';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
+import useOnLocationChange from 'components/Layout/hooks/useOnLocationChange';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import { useLocation } from 'react-router-dom';
@@ -70,41 +72,47 @@ const StyledAlertCookie = styled(Alert)`
     }
 `;
 
-const CloseToastButton = ({ closeToast }) => {
-    return (
-        <span
-            onClick={e => {
+const CloseToastButton = ({ closeToast }) => (
+    <span
+        onClick={e => {
+            e.stopPropagation();
+            closeToast(e);
+        }}
+        onKeyDown={e => {
+            if (e.keyCode === 13) {
                 e.stopPropagation();
                 closeToast(e);
-            }}
-            onKeyDown={e => {
-                if (e.keyCode === 13) {
-                    e.stopPropagation();
-                    closeToast(e);
-                }
-            }}
-            role="button"
-            tabIndex={0}
-        >
-            <Icon icon={faTimes} />
-        </span>
-    );
-};
+            }
+        }}
+        role="button"
+        tabIndex={0}
+    >
+        <Icon icon={faTimes} />
+    </span>
+);
 
 CloseToastButton.propTypes = {
-    closeToast: PropTypes.func
+    closeToast: PropTypes.func,
 };
 
 export default function DefaultLayout(props) {
     const location = useLocation();
     const showFooter = location.pathname !== ROUTES.PDF_TEXT_ANNOTATION && location.pathname !== ROUTES.PDF_ANNOTATION;
     const [cookies, setCookie] = useCookies(['cookieInfoDismissed']);
-    const [visible, setVisible] = useState(!Boolean(cookies.cookieInfoDismissed));
+    const [visible, setVisible] = useState(!cookies.cookieInfoDismissed);
+    const { trackPageView } = useMatomo();
 
     const onDismissCookieInfo = () => {
         setCookie('cookieInfoDismissed', true, { path: env('PUBLIC_URL'), maxAge: 365 * 24 * 60 * 60 * 1000 });
         setVisible(false);
     };
+
+    useOnLocationChange(() =>
+        setTimeout(() => {
+            // Track page view
+            trackPageView();
+        }, 1000),
+    );
 
     return (
         <StyledBody className="body">
@@ -127,7 +135,7 @@ export default function DefaultLayout(props) {
                     <Footer />
                 </StyledFooter>
             )}
-            <StyledAlertCookie color="info" isOpen={visible} className="d-flex justify-content-center align-items-center">
+            <StyledAlertCookie id="alertCookie" color="info" isOpen={visible} className="d-flex justify-content-center align-items-center">
                 This website uses cookies to ensure you get the best experience on our website. By using this site, you agree to this use.
                 <a href="https://projects.tib.eu/orkg/data-protection/" target="_blank" rel="noopener noreferrer" className="mx-2">
                     More Info
@@ -141,5 +149,5 @@ export default function DefaultLayout(props) {
 }
 
 DefaultLayout.propTypes = {
-    children: PropTypes.array.isRequired
+    children: PropTypes.array.isRequired,
 };

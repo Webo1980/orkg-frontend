@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Alert, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Badge } from 'reactstrap';
+import { Alert, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
     faEllipsisV,
     faLightbulb,
     faHistory,
-    faWindowMaximize,
     faChartBar,
     faExternalLinkAlt,
     faFilter,
+    faPlus,
+    faChevronRight,
     faComments,
-    faHandshake
+    faHandshake,
 } from '@fortawesome/free-solid-svg-icons';
 import ComparisonLoadingComponent from 'components/Comparison/ComparisonLoadingComponent';
 import ComparisonTable from 'components/Comparison/Comparison';
@@ -20,7 +21,7 @@ import SelectProperties from 'components/Comparison/SelectProperties';
 import MaturityReport from 'components/Comparison/Maturity/MaturityReport';
 import MaturityReviewsReport from 'components/Comparison/Maturity/MaturityReviewsReport';
 import ManageMaturityReviews from 'components/Comparison/Maturity/ManageMaturityReviews';
-import MaturityModelManual  from 'components/Comparison/Maturity/MaturityModelManual';
+import MaturityModelManual from 'components/Comparison/Maturity/MaturityModelManual';
 import MaturityMinimumNeededReviews from 'components/Comparison/Maturity/MaturityMinimumNeededReviews';
 import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
 import AddContribution from 'components/Comparison/AddContribution/AddContribution';
@@ -31,6 +32,7 @@ import RelatedResources from 'components/Comparison/RelatedResources/RelatedReso
 import RelatedFigures from 'components/Comparison/RelatedResources/RelatedFigures';
 import ExportCitation from 'components/Comparison/Export/ExportCitation';
 import ComparisonMetaData from 'components/Comparison/ComparisonMetaData';
+import MarkFeaturedUnlistedContainer from 'components/Comparison/MarkFeaturedUnlistedContainer';
 import Share from 'components/Comparison/Share.js';
 import HistoryModal from 'components/Comparison/HistoryModal/HistoryModal';
 import useComparisonVersions from 'components/Comparison/hooks/useComparisonVersions';
@@ -42,8 +44,8 @@ import ShareLinkMarker from 'components/ShareLinkMarker/ShareLinkMarker';
 import { getResource } from 'services/backend/resources';
 import moment from 'moment';
 import ROUTES from 'constants/routes.js';
-import { useHistory, Link, useParams } from 'react-router-dom';
-import { openAuthDialog } from 'actions/auth';
+import { useParams, useNavigate, Link, NavLink } from 'react-router-dom';
+import { openAuthDialog } from 'slices/authSlice';
 import { CSVLink } from 'react-csv';
 import { generateRdfDataVocabularyFile, areAllRulesEmpty } from 'utils';
 import Tippy from '@tippyjs/react';
@@ -55,14 +57,15 @@ import IntelligentMerge from 'assets/img/comparison-intelligent-merge.svg';
 import AddVisualizationModal from 'libs/selfVisModel/ComparisonComponents/AddVisualizationModal';
 import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
 import PreviewVisualizationComparison from 'libs/selfVisModel/ComparisonComponents/PreviewVisualizationComparison';
-import { NavLink } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import env from '@beam-australia/react-env';
 import { Helmet } from 'react-helmet';
 import AppliedRule from 'components/Comparison/Filters/AppliedRule';
 import TitleBar from 'components/TitleBar/TitleBar';
 import SaveDraft from 'components/Comparison/SaveDraft/SaveDraft';
-//import ProgressBar from '@ramonak/react-progress-bar';
+import Confirm from 'components/Confirmation/Confirmation';
+import pluralize from 'pluralize';
+import { SubTitle } from 'components/styled';
 
 function Comparison(props) {
     const {
@@ -89,6 +92,7 @@ function Comparison(props) {
         provenance,
         researchField,
         setMetaData,
+        hiddenGroups,
         setComparisonType,
         setPredicatesList,
         toggleProperty,
@@ -106,7 +110,8 @@ function Comparison(props) {
         loadProvenanceInfos,
         loadVisualizations,
         handleEditContributions,
-        fetchLiveData
+        fetchLiveData,
+        handleToggleGroupVisibility,
     } = useComparison({});
 
     const params = useParams();
@@ -122,10 +127,11 @@ function Comparison(props) {
             document.title = `${metaData.title} - Comparison - ORKG`;
         }
     }, [metaData]);
-    /** adding some additional state for meta data **/
+
+    /** adding some additional state for meta data * */
 
     const [cookies, setCookie] = useCookies();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [fullWidth, setFullWidth] = useState(cookies.useFullWidthForComparisonTable === 'true' ? cookies.useFullWidthForComparisonTable : false);
     const [hideScrollHint, setHideScrollHint] = useState(cookies.seenShiftMouseWheelScroll ? cookies.seenShiftMouseWheelScroll : false);
@@ -177,7 +183,7 @@ function Comparison(props) {
               `;
 
     const handleGoBack = () => {
-        history.goBack();
+        navigate(-1);
     };
 
     const closeOnExport = () => {
@@ -195,11 +201,18 @@ function Comparison(props) {
             setCookie('useFullWidthForComparisonTable', !v, { path: env('PUBLIC_URL'), maxAge: 315360000 }); // << TEN YEARS
             return !v;
         });
+        setDropdownOpen(false);
     };
 
     const handleViewDensity = density => {
         setCookie('viewDensityComparisonTable', density, { path: env('PUBLIC_URL'), maxAge: 315360000 }); // << TEN YEARS
         setViewDensity(density);
+        setDropdownOpen(false);
+    };
+
+    const handleTranspose = () => {
+        toggleTranspose(v => !v);
+        setDropdownOpen(false);
     };
 
     const containerStyle = fullWidth ? { maxWidth: 'calc(100% - 100px)' } : {};
@@ -242,18 +255,17 @@ function Comparison(props) {
 
     const removeRuleFactory = ({ propertyId, type, value }) => () => removeRule({ propertyId, type, value });
 
-    const displayRules = () => {
-        return []
+    const displayRules = () =>
+        []
             .concat(...filterControlData.map(item => item.rules))
             .map(({ propertyId, propertyName, type, value }) => (
                 <AppliedRule
                     key={`${propertyId}#${type}`}
-                    data={{ propertyId, propertyName, type: type, value, removeRule: removeRuleFactory({ propertyId, type, value }) }}
+                    data={{ propertyId, propertyName, type, value, removeRule: removeRuleFactory({ propertyId, type, value }) }}
                 />
             ));
-    };
 
-    const isPublished = metaData?.id || responseHash ? true : false;
+    const isPublished = !!(metaData?.id || responseHash);
     const publishedMessage = "Published comparisons cannot be edited, click 'Fetch live data' to reload the live comparison data";
 
     const ldJson = {
@@ -264,16 +276,49 @@ function Comparison(props) {
             author: metaData.authors?.map(author => ({
                 name: author.label,
                 ...(author.orcid ? { url: `http://orcid.org/${author.orcid}` } : {}),
-                '@type': 'Person'
+                '@type': 'Person',
             })),
             datePublished: metaData.createdAt ? moment(metaData.createdAt).format('DD MMMM YYYY') : '',
             about: researchField?.label,
-            '@type': 'ScholarlyArticle'
+            '@type': 'ScholarlyArticle',
         },
         '@context': 'https://schema.org',
-        '@type': 'WebPage'
+        '@type': 'WebPage',
     };
-    const { maturityLevel, mostSelectedReviewNumber, reviewsData, maturityReportMessage , reviewsCount, maturityStars , uniqueReviewsProperties, reviewsReportSummary, currentVisualizationsCount  } = ManageMaturityReviews({ data: data, metaData: metaData , isPublished: isPublished, url:reverse(ROUTES.MATURITY_REVIEW, { id: metaData?.id || metaData?.hasPreviousVersion?.id }) });
+
+    const handleAddContribution = async () => {
+        if (isPublished) {
+            const isConfirmed = await Confirm({
+                title: 'This is a published comparison',
+                message:
+                    'The comparison you are viewing is published, which means it cannot be modified. To make changes, fetch the live comparison data and try this action again',
+                cancelColor: 'light',
+                proceedLabel: 'Fetch live data',
+            });
+
+            if (isConfirmed) {
+                fetchLiveData();
+            }
+            return;
+        }
+        setShowAddContribution(v => !v);
+    };
+    const {
+        maturityLevel,
+        mostSelectedReviewNumber,
+        reviewsData,
+        maturityReportMessage,
+        reviewsCount,
+        maturityStars,
+        uniqueReviewsProperties,
+        reviewsReportSummary,
+        currentVisualizationsCount,
+    } = ManageMaturityReviews({
+        data,
+        metaData,
+        isPublished,
+        url: reverse(ROUTES.MATURITY_REVIEW, { id: metaData?.id || metaData?.hasPreviousVersion?.id }),
+    });
     console.log(currentVisualizationsCount);
     return (
         <div>
@@ -288,33 +333,14 @@ function Comparison(props) {
             </Helmet>
             <TitleBar
                 buttonGroup={
-                    contributionsList.length > 1 &&
+                    (contributionsList.length > 1 || (areAllRulesEmpty(filterControlData) && contributionsList.length > 0)) &&
                     !isLoadingComparisonResult &&
                     !isFailedLoadingComparisonResult && (
                         <>
-                            <Dropdown group isOpen={dropdownDensityOpen} toggle={() => setDropdownDensityOpen(v => !v)} style={{ marginRight: 2 }}>
-                                <DropdownToggle color="secondary" size="sm">
-                                    <Icon icon={faWindowMaximize} className="me-1" /> View
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    <DropdownItem onClick={handleFullWidth}>
-                                        <span className="me-2">{fullWidth ? 'Reduced width' : 'Full width'}</span>
-                                    </DropdownItem>
-                                    <DropdownItem onClick={() => toggleTranspose(v => !v)}>Transpose table</DropdownItem>
-                                    <DropdownItem divider />
-                                    <DropdownItem header>View density</DropdownItem>
-                                    <DropdownItem active={viewDensity === 'spacious'} onClick={() => handleViewDensity('spacious')}>
-                                        Spacious
-                                    </DropdownItem>
-                                    <DropdownItem active={viewDensity === 'normal'} onClick={() => handleViewDensity('normal')}>
-                                        Normal
-                                    </DropdownItem>
-                                    <DropdownItem active={viewDensity === 'compact'} onClick={() => handleViewDensity('compact')}>
-                                        Compact
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </Dropdown>
-                            {!!metaData.id ? (
+                            <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={handleAddContribution}>
+                                <Icon icon={faPlus} className="me-1" /> Add contribution
+                            </Button>
+                            {metaData.id ? (
                                 <Button
                                     color="secondary"
                                     size="sm"
@@ -340,19 +366,35 @@ function Comparison(props) {
                                 <DropdownToggle color="secondary" size="sm" className="rounded-end">
                                     <span className="me-2">Actions</span> <Icon icon={faEllipsisV} />
                                 </DropdownToggle>
-                                <DropdownMenu right style={{ zIndex: '1031' }}>
+                                <DropdownMenu end style={{ zIndex: '1031' }}>
+                                    <Dropdown isOpen={dropdownDensityOpen} toggle={() => setDropdownDensityOpen(v => !v)} direction="left">
+                                        <DropdownToggle className="dropdown-item pe-auto" tag="div" style={{ cursor: 'pointer' }}>
+                                            View <Icon style={{ marginTop: '4px' }} icon={faChevronRight} pull="right" />
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem onClick={handleFullWidth}>
+                                                <span className="me-2">{fullWidth ? 'Reduced width' : 'Full width'}</span>
+                                            </DropdownItem>
+                                            <DropdownItem onClick={handleTranspose}>Transpose table</DropdownItem>
+                                            <DropdownItem divider />
+                                            <DropdownItem header>View density</DropdownItem>
+                                            <DropdownItem active={viewDensity === 'spacious'} onClick={() => handleViewDensity('spacious')}>
+                                                Spacious
+                                            </DropdownItem>
+                                            <DropdownItem active={viewDensity === 'normal'} onClick={() => handleViewDensity('normal')}>
+                                                Normal
+                                            </DropdownItem>
+                                            <DropdownItem active={viewDensity === 'compact'} onClick={() => handleViewDensity('compact')}>
+                                                Compact
+                                            </DropdownItem>
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                    <DropdownItem divider />
                                     <DropdownItem header>Customize</DropdownItem>
                                     <Tippy disabled={isPublished} content="The comparison uses live data already">
                                         <span>
                                             <DropdownItem onClick={fetchLiveData} disabled={!isPublished}>
                                                 Fetch live data
-                                            </DropdownItem>
-                                        </span>
-                                    </Tippy>
-                                    <Tippy disabled={!isPublished} content={publishedMessage}>
-                                        <span>
-                                            <DropdownItem onClick={() => setShowAddContribution(v => !v)} disabled={isPublished}>
-                                                Add contribution
                                             </DropdownItem>
                                         </span>
                                     </Tippy>
@@ -368,11 +410,11 @@ function Comparison(props) {
                                             <Dropdown isOpen={dropdownMethodOpen} toggle={() => setDropdownMethodOpen(v => !v)} direction="left">
                                                 <DropdownToggle
                                                     tag="div"
-                                                    className={`dropdown-item ${isPublished ? 'disabled' : ''}`}
+                                                    className={`dropdown-item d-flex ${isPublished ? 'disabled' : ''}`}
                                                     style={{ cursor: 'pointer' }}
                                                     disabled={isPublished}
                                                 >
-                                                    Comparison method
+                                                    Comparison method <Icon style={{ marginTop: '4px' }} icon={faChevronRight} pull="right" />
                                                 </DropdownToggle>
                                                 <DropdownMenu>
                                                     <div className="d-flex px-2">
@@ -406,7 +448,7 @@ function Comparison(props) {
                                             </DropdownItem>
                                         </span>
                                     </Tippy>
-                                    {typeof metaData?.id!=undefined && typeof metaData?.hasPreviousVersion?.id!=undefined && (
+                                    {typeof metaData?.id !== undefined && typeof metaData?.hasPreviousVersion?.id !== undefined && (
                                         <>
                                             <DropdownItem divider />
                                             <DropdownItem header>Maturity</DropdownItem>
@@ -437,12 +479,16 @@ function Comparison(props) {
                                             </Tippy>
                                             <Tippy disabled={!isPublished} content={publishedMessage}>
                                                 <span>
-                                                    <DropdownItem onClick={() => setMaturityModelManualDialog(v => !v)}>Maturity Model Manual</DropdownItem>
+                                                    <DropdownItem onClick={() => setMaturityModelManualDialog(v => !v)}>
+                                                        Maturity Model Manual
+                                                    </DropdownItem>
                                                 </span>
                                             </Tippy>
                                             <Tippy disabled={!isPublished} content={publishedMessage}>
                                                 <span>
-                                                    <DropdownItem onClick={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}>Minimum Needed Reviews</DropdownItem>
+                                                    <DropdownItem onClick={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}>
+                                                        Minimum Needed Reviews
+                                                    </DropdownItem>
                                                 </span>
                                             </Tippy>
                                         </>
@@ -475,9 +521,9 @@ function Comparison(props) {
                                                           title: metaData.title,
                                                           description: metaData.description,
                                                           creator: metaData.createdBy,
-                                                          date: metaData.createdAt
+                                                          date: metaData.createdAt,
                                                       }
-                                                    : { title: '', description: '', creator: '', date: '' }
+                                                    : { title: '', description: '', creator: '', date: '' },
                                             )
                                         }
                                     >
@@ -509,17 +555,22 @@ function Comparison(props) {
                                     >
                                         Publish
                                     </DropdownItem>
-                                    <DropdownItem
-                                        onClick={() => {
-                                            if (!props.user) {
-                                                props.openAuthDialog({ action: 'signin', signInRequired: true });
-                                            } else {
-                                                setShowSaveDraftDialog(true);
-                                            }
-                                        }}
-                                    >
-                                        Save as draft
-                                    </DropdownItem>
+                                    <Tippy disabled={!isPublished} content="A published comparison cannot be saved as draft">
+                                        <span>
+                                            <DropdownItem
+                                                onClick={() => {
+                                                    if (!props.user) {
+                                                        props.openAuthDialog({ action: 'signin', signInRequired: true });
+                                                    } else {
+                                                        setShowSaveDraftDialog(true);
+                                                    }
+                                                }}
+                                                disabled={isPublished}
+                                            >
+                                                Save as draft
+                                            </DropdownItem>
+                                        </span>
+                                    </Tippy>
                                     {!isLoadingVersions && versions?.length > 1 && (
                                         <>
                                             <DropdownItem divider />
@@ -531,7 +582,7 @@ function Comparison(props) {
                                     {metaData?.id && (
                                         <>
                                             <DropdownItem divider />
-                                            <DropdownItem tag={NavLink} exact to={reverse(ROUTES.RESOURCE, { id: metaData.id })}>
+                                            <DropdownItem tag={NavLink} end to={reverse(ROUTES.RESOURCE, { id: metaData.id })}>
                                                 View resource
                                             </DropdownItem>
                                         </>
@@ -541,17 +592,12 @@ function Comparison(props) {
                         </>
                     )
                 }
+                titleAddition={
+                    !isFailedLoadingMetaData &&
+                    contributionsList.length > 1 && <SubTitle>{pluralize('contribution', contributionsList.length, true)}</SubTitle>
+                }
             >
-                Comparison{' '}
-                {!isFailedLoadingMetaData && contributionsList.length > 1 && (
-                    <Tippy content="The amount of compared contributions">
-                        <span>
-                            <Badge color="secondary" pill style={{ fontSize: '65%' }}>
-                                {contributionsList.length}
-                            </Badge>
-                        </span>
-                    </Tippy>
-                )}
+                Comparison
             </TitleBar>
 
             {!isLoadingVersions && hasNextVersion && (
@@ -596,59 +642,73 @@ function Comparison(props) {
                     {!isFailedLoadingMetaData && !isFailedLoadingComparisonResult && (
                         <div className="p-0 d-flex align-items-start">
                             <div className="flex-grow-1">
-                                <h2 className="h4 mb-4 mt-4">{metaData.title ? metaData.title : 'Compare'} </h2>
-
-                                {!isFailedLoadingMetaData && <ComparisonMetaData metaData={metaData} />}
+                                {(metaData.title || metaData.id) && (
+                                    <h2 className="h4 mb-4 mt-4">
+                                        {metaData.title}{' '}
+                                        {metaData.id && (
+                                            <MarkFeaturedUnlistedContainer
+                                                size="xs"
+                                                id={metaData?.id}
+                                                featured={metaData?.featured}
+                                                unlisted={metaData?.unlisted}
+                                            />
+                                        )}
+                                    </h2>
+                                )}
+                                {!isFailedLoadingMetaData && <ComparisonMetaData metaData={metaData} provenance={provenance} />}
                             </div>
                             <style scoped>{maturityCss}</style>
-                            {typeof metaData?.id!=undefined && typeof metaData?.hasPreviousVersion?.id!=undefined && (
-                              <div className="maturityDiv">
-                                  <span>
-                                      <Tippy content={
-                                                        <>
-                                                          {maturityLevel} /5 star(s) Mature. Click to see how to improve it<br />
-                                                        </>
-                                                     }
-                                      >
-                                          <span onClick={() => setShowMaturityReportDialog(v => !v)}>
-                                              {maturityStars}
-                                          </span>
-                                      </Tippy>
-                                  </span>
-                                  <span className="reviewsDiv">
-
-                                      <Tippy content={
-                                          <>
-                                              {reviewsCount} Review(s) out of {mostSelectedReviewNumber} reviews. Click to see the full report
-                                          </>
-                                      }>
-                                          <span onClick={() => setShowMaturityReviewsReportDialog(v => !v)}>
-                                              <Icon icon={faComments} className="me-1" />
-                                          </span>
-                                      </Tippy>
-                                      {metaData?.id!=undefined && (
-                                      <span>
-                                          <Tippy content="Please help me to review this comparison. Click here to go to the review page">
-                                              <span
-                                                  onClick={e => {
-                                                      if (!props.user) {
-                                                          props.openAuthDialog({ action: 'signin', signInRequired: true });
-                                                      } else {
-                                                          window.open(
-                                                              reverse(ROUTES.MATURITY_REVIEW, { id: metaData?.id || metaData?.hasPreviousVersion?.id })
-                                                          );
-                                                      }
-                                                  }}
-                                              >
-                                                  <Icon icon={faHandshake} className="me-1" />
-                                              </span>
-                                          </Tippy>
-                                      </span>
-                                    )}
-                                  </span>
-                              </div>
-                          )}
-                          {metaData.id && provenance && <ObservatoryBox provenance={provenance} />}
+                            {typeof metaData?.id !== undefined && typeof metaData?.hasPreviousVersion?.id !== undefined && (
+                                <div className="maturityDiv">
+                                    <span>
+                                        <Tippy
+                                            content={
+                                                <>
+                                                    {maturityLevel} /5 star(s) Mature. Click to see how to improve it
+                                                    <br />
+                                                </>
+                                            }
+                                        >
+                                            <span onClick={() => setShowMaturityReportDialog(v => !v)}>{maturityStars}</span>
+                                        </Tippy>
+                                    </span>
+                                    <span className="reviewsDiv">
+                                        <Tippy
+                                            content={
+                                                <>
+                                                    {reviewsCount} Review(s) out of {mostSelectedReviewNumber} reviews. Click to see the full report
+                                                </>
+                                            }
+                                        >
+                                            <span onClick={() => setShowMaturityReviewsReportDialog(v => !v)}>
+                                                <Icon icon={faComments} className="me-1" />
+                                            </span>
+                                        </Tippy>
+                                        {metaData?.id != undefined && (
+                                            <span>
+                                                <Tippy content="Please help me to review this comparison. Click here to go to the review page">
+                                                    <span
+                                                        onClick={e => {
+                                                            if (!props.user) {
+                                                                props.openAuthDialog({ action: 'signin', signInRequired: true });
+                                                            } else {
+                                                                window.open(
+                                                                    reverse(ROUTES.MATURITY_REVIEW, {
+                                                                        id: metaData?.id || metaData?.hasPreviousVersion?.id,
+                                                                    }),
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Icon icon={faHandshake} className="me-1" />
+                                                    </span>
+                                                </Tippy>
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            {metaData.id && <ObservatoryBox provenance={provenance} />}
                         </div>
                     )}
                     {!isFailedLoadingMetaData && !isFailedLoadingComparisonResult && (
@@ -676,7 +736,7 @@ function Comparison(props) {
                                 </div>
                             )}
                             {!isLoadingComparisonResult ? (
-                                contributionsList.length > 1 ? (
+                                contributionsList.length > 1 || (areAllRulesEmpty(filterControlData) && contributionsList.length > 0) ? (
                                     <div className="mt-1">
                                         {integrateData({
                                             metaData,
@@ -684,7 +744,7 @@ function Comparison(props) {
                                             properties,
                                             data,
                                             contributionsList,
-                                            predicatesList
+                                            predicatesList,
                                         }) && (
                                             <PreviewVisualizationComparison
                                                 comparisonId={metaData.id}
@@ -703,6 +763,8 @@ function Comparison(props) {
                                             filterControlData={filterControlData}
                                             updateRulesOfProperty={updateRulesOfProperty}
                                             comparisonType={comparisonType}
+                                            handleToggleGroupVisibility={handleToggleGroupVisibility}
+                                            hiddenGroups={hiddenGroups}
                                         />
                                     </div>
                                 ) : (
@@ -755,7 +817,7 @@ function Comparison(props) {
                 onSortEnd={onSortPropertiesEnd}
             />
             <MaturityMinimumNeededReviews
-                metaData = {metaData}
+                metaData={metaData}
                 properties={properties}
                 showMaturityMinimumNeededReviewsDialog={showMaturityMinimumNeededReviewsDialog}
                 toggleMaturityMinimumNeededReviewsDialog={() => setShowMaturityMinimumNeededReviewsDialog(v => !v)}
@@ -764,31 +826,31 @@ function Comparison(props) {
             <MaturityModelManual
                 showMaturityModelManualDialog={showMaturityModelManualDialog}
                 toggleMaturityModelManualDialog={() => setMaturityModelManualDialog(v => !v)}
-                reviewsCount = {reviewsCount}
-                metaData = {metaData}
-                toggleProperty = {toggleProperty}
-                mostSelectedReviewNumber = {mostSelectedReviewNumber}
+                reviewsCount={reviewsCount}
+                metaData={metaData}
+                toggleProperty={toggleProperty}
+                mostSelectedReviewNumber={mostSelectedReviewNumber}
             />
             <MaturityReport
                 showMaturityReportDialog={showMaturityReportDialog}
                 toggleMaturityReportDialog={() => setShowMaturityReportDialog(v => !v)}
                 toggleMaturityReport={toggleProperty}
-                reviewsCount = {reviewsCount}
-                mostSelectedReviewNumber = {mostSelectedReviewNumber}
-                reviewsData = {reviewsData}
-                reviewsReportSummary = {reviewsReportSummary}
-                uniqueReviewsProperties = {uniqueReviewsProperties}
-                maturityReportMessage = {maturityReportMessage}
+                reviewsCount={reviewsCount}
+                mostSelectedReviewNumber={mostSelectedReviewNumber}
+                reviewsData={reviewsData}
+                reviewsReportSummary={reviewsReportSummary}
+                uniqueReviewsProperties={uniqueReviewsProperties}
+                maturityReportMessage={maturityReportMessage}
                 maturityLevel={maturityLevel}
-                currentVisualizationsCount = {currentVisualizationsCount}
-                isPublished = {isPublished}
+                currentVisualizationsCount={currentVisualizationsCount}
+                isPublished={isPublished}
             />
             <MaturityReviewsReport
                 showMaturityReviewsReportDialog={showMaturityReviewsReportDialog}
                 toggleMaturityReviewsReportDialog={() => setShowMaturityReviewsReportDialog(v => !v)}
-                reviewsCount = {reviewsCount}
-                mostSelectedReviewNumber = {mostSelectedReviewNumber}
-                reviewsReportSummary = {reviewsReportSummary}
+                reviewsCount={reviewsCount}
+                mostSelectedReviewNumber={mostSelectedReviewNumber}
+                reviewsReportSummary={reviewsReportSummary}
                 maturityLevel={maturityLevel}
             />
             <Share
@@ -830,6 +892,7 @@ function Comparison(props) {
                 loadProvenanceInfos={loadProvenanceInfos}
                 data={data}
                 nextVersions={!isLoadingVersions && hasNextVersion ? versions : []}
+                anonymized={metaData?.anonymized}
             />
 
             {showSaveDraftDialog && (
@@ -874,7 +937,7 @@ function Comparison(props) {
                     properties,
                     data,
                     contributionsList,
-                    predicatesList
+                    predicatesList,
                 }}
                 closeOnExport={closeOnExport}
                 updatePreviewComponent={() => {
@@ -887,19 +950,19 @@ function Comparison(props) {
 }
 
 const mapStateToProps = state => ({
-    user: state.auth.user
+    user: state.auth.user,
 });
 
 const mapDispatchToProps = dispatch => ({
-    openAuthDialog: payload => dispatch(openAuthDialog(payload))
+    openAuthDialog: payload => dispatch(openAuthDialog(payload)),
 });
 
 Comparison.propTypes = {
     openAuthDialog: PropTypes.func.isRequired,
-    user: PropTypes.oneOfType([PropTypes.object, PropTypes.number])
+    user: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
 };
 
 export default connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
 )(Comparison);

@@ -10,11 +10,9 @@ import ImportCSVInstances from 'components/ClassInstances/ImportCSVInstances';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import InternalServerError from 'pages/InternalServerError';
 import NotFound from 'pages/NotFound';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes.js';
-import { useLocation } from 'react-router-dom';
 import { CLASSES, PREDICATES, ENTITIES } from 'constants/graphSettings';
 import TitleBar from 'components/TitleBar/TitleBar';
 
@@ -28,20 +26,21 @@ function ClassDetails(props) {
     const [isLoading, setIsLoading] = useState(true);
     const [modalImportIsOpen, setModalImportIsOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const params = useParams();
 
     useEffect(() => {
         const findClass = async () => {
             setIsLoading(true);
             try {
-                const responseJson = await getClassById(props.match.params.id);
+                const responseJson = await getClassById(params.id);
                 document.title = `${responseJson.label} - Class - ORKG`;
                 // Get the template of the class
                 getStatementsByObjectAndPredicate({
-                    objectId: props.match.params.id,
-                    predicateId: PREDICATES.TEMPLATE_OF_CLASS
+                    objectId: params.id,
+                    predicateId: PREDICATES.TEMPLATE_OF_CLASS,
                 })
                     .then(statements =>
-                        Promise.all(statements.filter(statement => statement.subject.classes?.includes(CLASSES.TEMPLATE)).map(st => st.subject))
+                        Promise.all(statements.filter(statement => statement.subject.classes?.includes(CLASSES.TEMPLATE)).map(st => st.subject)),
                     )
                     .then(templates => {
                         if (templates.length > 0) {
@@ -63,7 +62,7 @@ function ClassDetails(props) {
             }
         };
         findClass();
-    }, [location, props.match.params.id]);
+    }, [location, params.id]);
 
     return (
         <>
@@ -77,7 +76,7 @@ function ClassDetails(props) {
                                 {' '}
                                 <RequireAuthentication
                                     component={Link}
-                                    to={`${ROUTES.ADD_RESOURCE}?classes=${props.match.params.id}`}
+                                    to={`${ROUTES.ADD_RESOURCE}?classes=${params.id}`}
                                     className="float-end btn btn-secondary flex-shrink-0 btn-sm"
                                     style={{ marginRight: 2 }}
                                 >
@@ -101,14 +100,12 @@ function ClassDetails(props) {
                             <tbody>
                                 <tr>
                                     <th scope="row">ID</th>
-                                    <td> {props.match.params.id}</td>
+                                    <td> {params.id}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Label</th>
                                     <td>
-                                        {label ? (
-                                            label
-                                        ) : (
+                                        {label || (
                                             <i>
                                                 <small>No label</small>
                                             </i>
@@ -128,8 +125,7 @@ function ClassDetails(props) {
                                             <Link to={reverse(ROUTES.TEMPLATE, { id: template.id })}>{template.label}</Link>
                                         ) : (
                                             <i>
-                                                Not Defined{' '}
-                                                <Link to={`${reverse(ROUTES.TEMPLATE)}?classID=${props.match.params.id}`}>Create a template</Link>
+                                                Not Defined <Link to={`${reverse(ROUTES.ADD_TEMPLATE)}?classID=${params.id}`}>Create a template</Link>
                                             </i>
                                         )}
                                     </td>
@@ -162,7 +158,7 @@ function ClassDetails(props) {
                                 enableEdit={editMode}
                                 syncBackend={editMode}
                                 openExistingResourcesInDialog={false}
-                                initialSubjectId={props.match.params.id}
+                                initialSubjectId={params.id}
                                 initialSubjectLabel={label}
                                 newStore={true}
                                 propertiesAsLinks={true}
@@ -170,9 +166,9 @@ function ClassDetails(props) {
                             />
                         </div>
 
-                        <ClassInstances classId={props.match.params.id} key={keyInstances} />
+                        <ClassInstances classId={params.id} key={keyInstances} />
                         <ImportCSVInstances
-                            classId={props.match.params.id}
+                            classId={params.id}
                             showDialog={modalImportIsOpen}
                             toggle={() => setModalImportIsOpen(v => !v)}
                             callBack={() => setKeyInstances(Math.random())}
@@ -183,13 +179,5 @@ function ClassDetails(props) {
         </>
     );
 }
-
-ClassDetails.propTypes = {
-    match: PropTypes.shape({
-        params: PropTypes.shape({
-            id: PropTypes.string.isRequired
-        }).isRequired
-    }).isRequired
-};
 
 export default ClassDetails;

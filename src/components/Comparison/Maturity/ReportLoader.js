@@ -7,12 +7,12 @@ const BorderTopRadius = styled.div`
     overflow: hidden;
 `;
 
-function ReportLoader(){
-return (
-    <BorderTopRadius>
-        <BulletList />
-    </BorderTopRadius>
-  );
-};
+function ReportLoader() {
+    return (
+        <BorderTopRadius>
+            <BulletList />
+        </BorderTopRadius>
+    );
+}
 
 export default ReportLoader;

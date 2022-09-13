@@ -13,6 +13,7 @@ import EU_LOGO from 'assets/img/poweredby/co-funded-h2020-horiz_en.png';
 import EOSC_LOGO from 'assets/img/poweredby/EOSC.png';
 import styled from 'styled-components';
 import { reverse } from 'named-urls';
+import Tippy from '@tippyjs/react';
 
 const FooterWrapper = styled.div`
     background: #e0e2ea;
@@ -74,16 +75,16 @@ const Footer = () => (
                         <hr className="me-5" />
                         <ul className="p-0" style={{ listStyle: 'none' }}>
                             <li>
-                                <Link to={reverse(ROUTES.ABOUT, {})}>About us</Link>
+                                <Link to={reverse(ROUTES.ABOUT_NO_SLUG_ID, {})}>About us</Link>
                             </li>
                             <li>
                                 <Link to={ROUTES.HELP_CENTER}>Help center</Link>
                             </li>
-                            {/*<li>
+                            {/* <li>
                                 <a href="https://projects.tib.eu/orkg/get-involved/" target="_blank" rel="noopener noreferrer">
                                     Get involved
                                 </a>
-                            </li>*/}
+                            </li> */}
                             <li>
                                 <Link to={reverse(ROUTES.PAGE, { url: ROUTES_CMS.DATA_PROTECTION })}>Data protection</Link>
                             </li>
@@ -137,7 +138,12 @@ const Footer = () => (
                                 </a>
                             </li>
                             <li>
-                                <i className="me-3">Version</i> <Badge color="info">GIT_VERSION</Badge>
+                                <i className="me-3">Version</i>
+                                <Tippy content="GIT_VERSION_LONG">
+                                    <span>
+                                        <Badge color="info">GIT_VERSION</Badge>
+                                    </span>
+                                </Tippy>
                             </li>
                         </ul>
                     </FooterCol>
