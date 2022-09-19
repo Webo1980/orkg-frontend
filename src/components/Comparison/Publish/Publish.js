@@ -31,7 +31,7 @@ import UserAvatar from 'components/UserAvatar/UserAvatar';
 import { PREDICATES, CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
 import env from '@beam-australia/react-env';
 import Select from 'react-select';
-import { getConferences } from 'services/backend/organizations';
+import { getConferencesSeries } from 'services/backend/organizations';
 import { SelectGlobalStyle } from 'components/Autocomplete/styled';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useSelector } from 'react-redux';
@@ -107,7 +107,7 @@ function Publish(props) {
 
     useEffect(() => {
         const getConferencesList = () => {
-            getConferences().then(response => {
+            getConferencesSeries().then(response => {
                 setConferencesList(response);
             });
         };

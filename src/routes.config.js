@@ -69,6 +69,8 @@ import ContentTypeNew from 'pages/ContentType/ContentTypeNew';
 import ContentType from 'pages/ContentType/ContentType';
 import ContentTypes from 'pages/ContentType/ContentTypes';
 import ConferenceDetails from 'pages/Organizations/ConferenceDetails';
+import AddConference from 'pages/Conferences/AddConference';
+import Event from 'pages/Conferences/Event';
 import ResearchProblem from './pages/ResearchProblem';
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -234,10 +236,6 @@ const routes = [
         path: ROUTES.STATS,
         element: Stats,
     },
-    {
-        path: ROUTES.CONFERENCE,
-        element: ConferenceDetails,
-    },
     /* Legacy routes, only used for debugging now */
     {
         path: ROUTES.FEATURED_COMPARISONS,
@@ -371,6 +369,10 @@ const routes = [
         path: ROUTES.LIST_EMBED,
         element: List,
     },
+    {
+        path: ROUTES.EVENT,
+        element: Event,
+    },
     // redirect legacy route
     {
         path: ROUTES.CURATION_CALL,
@@ -410,6 +412,14 @@ const routes = [
     {
         path: ROUTES.CONTENT_TYPES,
         element: ContentTypes,
+    },
+    {
+        path: ROUTES.ADD_EVENT,
+        element: requireAuthentication(AddConference),
+    },
+    {
+        path: ROUTES.EVENT_SERIES,
+        element: ConferenceDetails,
     },
 ];
 

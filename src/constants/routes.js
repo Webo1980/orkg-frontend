@@ -17,8 +17,8 @@ const routes = {
     ADD_TEMPLATE: '/template/',
     ORGANIZATIONS: '/organizations/:type',
     OBSERVATORIES: '/observatories',
-    ADD_ORGANIZATION: '/addOrganization',
-    ORGANIZATION: '/organization/:id',
+    ADD_ORGANIZATION: '/addOrganization/:type',
+    ORGANIZATION: '/organization/:type/:id',
     ADD_OBSERVATORY: '/organizations/:id/addObservatory',
     OBSERVATORY: '/observatory/:id',
     ADD_PAPER: {
@@ -60,6 +60,8 @@ const routes = {
     CONTRIBUTION_EDITOR: '/contribution-editor',
     ADD_COMPARISON: '/add-comparison',
     EVENT: '/event/:id',
+    ADD_EVENT: '/organizations/:id/addEvent',
+    EVENT_SERIES: '/eventSeries/:id',
     /* Legacy routes */
     PREDICATES: '/predicates',
     PREDICATE: '/predicate/:id',
@@ -85,7 +87,6 @@ const routes = {
     CONTENT_TYPE: '/content-type/:type/:id/:mode',
     CONTENT_TYPE_NO_MODE: '/content-type/:type/:id',
     CONTENT_TYPES: '/content-type/:type',
-    CONFERENCE: '/conference/:id',
 };
 /**
  * Legacy routes are used to redirect old URLs to new ones
