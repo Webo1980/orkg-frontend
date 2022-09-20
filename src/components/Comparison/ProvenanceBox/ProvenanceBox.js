@@ -7,10 +7,12 @@ import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import ROUTES from 'constants/routes';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import capitalize from 'capitalize';
+import { ORGANIZATIONS_MISC } from 'constants/organizationsTypes';
 import { isEmpty } from 'lodash';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
+import styled from 'styled-components';
 
 const StyledOrganizationCard = styled.div`
     border: 0;
@@ -95,7 +97,7 @@ function ProvenanceBox(props) {
                                 <StyledOrganizationCard className="card h-100 border-0">
                                     <Link
                                         className="logoContainer"
-                                        to={reverse(ROUTES.ORGANIZATION, { id: props.provenance.organization.display_id })}
+                                        to={reverse(ROUTES.ORGANIZATION, { type: capitalize(ORGANIZATIONS_MISC.GENERAL), id: props.provenance.organization.display_id })}
                                     >
                                         <img
                                             className="mx-auto p-2"
@@ -109,7 +111,7 @@ function ProvenanceBox(props) {
                                 <Card className="h-100">
                                     <CardBody className="d-flex">
                                         <CardTitle className="align-self-center text-center flex-grow-1">
-                                            <Link to={reverse(ROUTES.ORGANIZATION, { id: props.provenance.organization.display_id })}>
+                                            <Link to={reverse(ROUTES.ORGANIZATION, { type: capitalize(ORGANIZATIONS_MISC.GENERAL), id: props.provenance.organization.display_id })}>
                                                 {props.provenance.organization.name}
                                             </Link>
                                         </CardTitle>

@@ -1,8 +1,10 @@
+import { ORGANIZATIONS_MISC } from 'constants/organizationsTypes';
 import ROUTES from 'constants/routes';
 import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import capitalize from 'capitalize';
 
 const ObservatoryBoxStyled = styled.div`
     float: right;
@@ -46,7 +48,7 @@ const ObservatoryBox = ({ provenance }) => {
                 </Link>
             )}
             {provenance && !provenance.id && provenance.organization.id && (
-                <Link to={reverse(ROUTES.ORGANIZATION, { id: provenance.organization.display_id })} className="text-center">
+                <Link to={reverse(ROUTES.ORGANIZATION, { type: capitalize(ORGANIZATIONS_MISC.GENERAL), id: provenance.organization.display_id })} className="text-center">
                     {provenance.organization.logo && (
                         <img
                             className="p-2"
