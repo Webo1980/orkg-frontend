@@ -68,9 +68,8 @@ import ListDiff from 'pages/Lists/ListDiff';
 import ContentTypeNew from 'pages/ContentType/ContentTypeNew';
 import ContentType from 'pages/ContentType/ContentType';
 import ContentTypes from 'pages/ContentType/ContentTypes';
-import ConferenceDetails from 'pages/Organizations/ConferenceDetails';
+import ConferenceDetails from 'pages/Conferences/ConferenceDetails';
 import AddConference from 'pages/Conferences/AddConference';
-import Event from 'pages/Conferences/Event';
 import ResearchProblem from './pages/ResearchProblem';
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -368,10 +367,6 @@ const routes = [
     {
         path: ROUTES.LIST_EMBED,
         element: List,
-    },
-    {
-        path: ROUTES.EVENT,
-        element: Event,
     },
     // redirect legacy route
     {
