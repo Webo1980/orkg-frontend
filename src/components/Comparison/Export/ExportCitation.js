@@ -96,10 +96,10 @@ class ExportCitation extends Component {
                                     text={this.state.citations[style.styleID] ? this.state.citations[style.styleID] : 'Loading...'}
                                     onCopy={() => {
                                         toast.dismiss();
-                                        toast.success(`${style.styleLabel} Citation Copied`);
+                                        toast.success(`${style.styleLabel} citation copied`);
                                     }}
                                 >
-                                    <Button color="primary" className="ps-3 pe-3 float-end" size="sm">
+                                    <Button color="primary" className="pl-3 pr-3 float-right" size="sm">
                                         <Icon icon={faClipboard} /> Copy to clipboard
                                     </Button>
                                 </CopyToClipboard>

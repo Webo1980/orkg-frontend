@@ -3,6 +3,75 @@ Changelog](https://keepachangelog.com/en/1.0.0/) and we adhere to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [v0.82.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.81.0...v0.82.0) - 2022-09-13
+
+### Changes
+
+- fix(CSP): Twitter timeline [`#944`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/944)
+
+---
+## [v0.81.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.80.1...v0.81.0) - 2022-09-12
+
+### Changes
+
+- fix(ViewPaper): Verify citations count before showing it [`#940`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/940)
+- fix(AuthorsInput): Disable selecting authors from wikidata in add paper wizard [`#939`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/939)
+- feat: Diagrams [`#915`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/915)
+- fix: use regular expression to validate uri [`#938`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/938)
+- Help video modal issue fixed [`#937`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/937)
+- fix(CSP): Loading description from Wikipedia [`#934`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/934)
+
+---
+## [v0.80.1](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.80.0...v0.80.1) - 2022-09-09
+
+### Changes
+
+- fix(CSP): Lookup by doi [`#936`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/936)
+
+---
+## [v0.80.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.79.1...v0.80.0) - 2022-09-05
+
+### Changes
+
+- feat(ViewPaper): link to TIB portal [`#932`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/932)
+- feat(ViewPaper): update link to survey for CS papers [`#931`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/931)
+- chore(Comparison): Ditch /orkg/ from export comparison as RDF [`#930`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/930)
+- fix(Search): Error on leaving search page [`#929`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/929)
+- test: Mock resource update [`#928`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/928)
+- npm: update matomo-tracker-react [`#924`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/924)
+- ux: catch JavaScript errors and display a fallback UI [`#922`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/922)
+- optimization: lazy-loading of Featured comparisons page [`#920`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/920)
+- ux: Add copy to clipboard button to description tooltip and ID tooltip [`#923`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/923)
+- fix(AddPaper): Changes on existing resources are ignored [`#919`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/919)
+- fix(ContributionEditor): selecting the ontology sources for resources [`#918`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/918)
+
+---
+## [v0.79.1](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.79.0...v0.79.1) - 2022-09-01
+
+### Changes
+
+- fix(ViewPaper): Broken DOI link in provenance box [`#927`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/927)
+
+---
+## [v0.79.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.78.1...v0.79.0) - 2022-08-31
+
+### Changes
+
+- feat(paper): Persistent identification of ORKG papers [`#693`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/693)
+- ux(Template): Show an overlay loading and saving indicator [`#925`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/925)
+- fix(CSP): Support loading fonts from data: [`#926`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/926)
+- style(Author): Responsive AuthorHeader component [`#921`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/921)
+- feat(CS-NER): activate for Computational Linguistics research field [`#917`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/917)
+
+---
+## [v0.78.1](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.78.0...v0.78.1) - 2022-08-30
+
+### Changes
+
+- ux(ViewPaper): Redirect to newly created contribution [`#914`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/914)
+- feat: include CSP in meta tag [`#912`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/912)
+
+---
 ## [v0.78.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.77.1...v0.78.0) - 2022-08-16
 
 ### Changes
