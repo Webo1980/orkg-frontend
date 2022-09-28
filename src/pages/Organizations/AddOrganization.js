@@ -1,44 +1,37 @@
-import { Component } from 'react';
 import { useState, useEffect } from 'react';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Button, Form, FormGroup, Input, Label, InputGroup } from 'reactstrap';
 import { toast } from 'react-toastify';
-import { createOrganization, createConference } from 'services/backend/organizations';
+import { createOrganization } from 'services/backend/organizations';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { openAuthDialog } from 'slices/authSlice';
-import PropTypes from 'prop-types';
 import REGEX from 'constants/regex';
-import { connect } from 'react-redux';
 import { reverse } from 'named-urls';
 import { getPublicUrl } from 'utils';
 import slugify from 'slugify';
 import ROUTES from 'constants/routes';
 import Tooltip from 'components/Utils/Tooltip';
 import TitleBar from 'components/TitleBar/TitleBar';
-import { ORGANIZATIONS_TYPES, ORGANIZATIONS_MISC } from 'constants/organizationsTypes';
+import { ORGANIZATIONS_TYPES } from 'constants/organizationsTypes';
 import { useSelector, useDispatch } from 'react-redux';
 
 const AddOrganization = () => {
     const params = useParams();
-    console.log(params.type);
-    const [redirect, setRedirect] = useState(false);
     const [name, setName] = useState('');
     const [website, setWebsite] = useState('');
-    const [displayId, setDisplayId] = useState('');
     const [permalink, setPermalink] = useState('');
     const [logo, setLogo] = useState('');
     const [editorState, setEditorState] = useState('edit');
-    const organizationType = ORGANIZATIONS_TYPES.find(t => t.label === params.type)?.id;
-    const displayType = organizationType === 'GENERAL' ? 'organization' : organizationType === 'CONFERENCE' ? 'conference' : '';
-    const publicOrganizationRoute = `${getPublicUrl()}${reverse(organizationType === 'GENERAL' ? ROUTES.ORGANIZATION : organizationType === 'CONFERENCE' ? ROUTES.EVENT : '', { id: ' ' })}`;
+    const organizationType = ORGANIZATIONS_TYPES.find(t => t.label === params.type);
+    const publicOrganizationRoute = `${getPublicUrl()}${reverse(ROUTES.ORGANIZATION, { type: organizationType?.label, id: ' ' })}`;
     const user = useSelector(state => state.auth.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     useEffect(() => {
-        document.title = `Create ${displayType} - ORKG`;
-    }, [displayType]);
+        document.title = `Create ${organizationType?.alternateLabel} - ORKG`;
+    }, [organizationType]);
 
     const createNewOrganization = async () => {
         setEditorState('loading');
@@ -65,23 +58,21 @@ const AddOrganization = () => {
         }
 
         try {
-            const responseJson = await createOrganization(name, logo[0], user.id, website, permalink, organizationType);
+            const responseJson = await createOrganization(name, logo[0], user.id, website, permalink, organizationType?.id);
             navigateToOrganization(responseJson.display_id);
         } catch (error) {
             setEditorState('edit');
             console.error(error);
-            toast.error(`Error creating ${displayType} ${error.message}`);
+            toast.error(`Error creating ${organizationType?.alternateLabel} ${error.message}`);
         }
     };
 
     const navigateToOrganization = display_id => {
         setEditorState('edit');
-        setRedirect(false);
         setName('');
-        setDisplayId('');
         setWebsite('');
         setPermalink('');
-        navigate(reverse(organizationType === 'GENERAL' ? ROUTES.ORGANIZATION : organizationType === 'CONFERENCE' ? ROUTES.EVENT : '', { id: display_id }));
+        navigate(reverse(ROUTES.ORGANIZATION, { type: organizationType?.label, id: display_id }));
     };
 
     const handlePreview = async e => {
@@ -101,7 +92,7 @@ const AddOrganization = () => {
 
     return (
         <>
-            <TitleBar>Create {displayType}</TitleBar>
+            <TitleBar>Create {organizationType?.alternateLabel}</TitleBar>
             <Container className="box rounded pt-4 pb-4 ps-5 pe-5">
                 {!!user && user.isCurationAllowed && (
                     <Form className="ps-3 pe-3 pt-2">
