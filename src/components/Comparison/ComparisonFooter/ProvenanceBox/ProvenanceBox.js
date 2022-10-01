@@ -13,6 +13,7 @@ import { isEmpty } from 'lodash';
 import moment from 'moment';
 import { useSelector } from 'react-redux';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
+import { ORGANIZATIONS_TYPES } from 'constants/organizationsTypes';
 
 const StyledOrganizationCard = styled.div`
     border: 0;
@@ -56,7 +57,7 @@ function ProvenanceBox() {
     }
 
     const isDoubleBlind =
-        observatory?.organization?.metadata?.is_double_blind && moment().format('YYYY-MM-DD') < observatory?.organization?.metadata?.date;
+        observatory?.metadata?.is_double_blind && moment().format('YYYY-MM-DD') < observatory?.metadata?.date;
 
     return (
         <div className="container box rounded-3 mt-4">
@@ -74,7 +75,11 @@ function ProvenanceBox() {
                                     )}
                                 </p>
                                 <h4 className="mb-3">
-                                    <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })}>{observatory.name}</Link>
+                                    {observatory?.metadata ? (
+                                        <Link to={reverse(ROUTES.EVENT_SERIES, { id: observatory.display_id })}>{observatory.name}</Link>
+                                    ) : (
+                                        <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })}>{observatory.name}</Link>
+                                    )}
                                 </h4>
                             </>
                         )}
@@ -99,7 +104,7 @@ function ProvenanceBox() {
                     <div className="col-4">
                         <div className={!observatory.organization.logo ? 'm-4' : ''}>
                             <StyledOrganizationCard className="card h-100 border-0">
-                                <Link className="logoContainer" to={reverse(ROUTES.ORGANIZATION, { id: observatory.organization.display_id })}>
+                                <Link className="logoContainer" to={reverse(ROUTES.ORGANIZATION, { type: ORGANIZATIONS_TYPES.find(t => t.id === observatory.organization.type)?.label, id: observatory.organization.display_id })}>
                                     {observatory.organization.logo ? (
                                         <img
                                             className="mx-auto p-2"
