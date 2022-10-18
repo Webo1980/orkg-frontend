@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { createSlice } from '@reduxjs/toolkit';
 import { LOCATION_CHANGE, guid } from 'utils';
 import { Cookies } from 'react-cookie';
@@ -251,27 +252,37 @@ const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
     const properties = [];
     for (const property of orkgProperties) {
         const propertyId = guid();
-        const getProperty = await getPredicate(property.replace('https://orkg.org/property/', ''));
-        properties.push({
-            propertyId,
-            label: getProperty.label,
-            existingPredicateId: getProperty.id,
-        });
-        for (const value of level[property]) {
-            const valueId = guid();
-            const resourceId = guid();
-            values.push({
-                valueId,
+        let getProperty = null;
+        try {
+            getProperty = await getPredicate(property.replace('https://orkg.org/property/', ''));
+        } catch (e) {
+            console.log(e);
+            toast.error(`Ignoring data for non-existing property: ${property}`);
+        }
+        if (getProperty) {
+            properties.push({
                 propertyId,
-                _class: value['@value'] ? 'literal' : 'resource',
-                label: value['@value'] ?? value['http://www.w3.org/2000/01/rdf-schema#label']?.[0]?.['@value'],
-                classes: value['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
-                isExistingValue: false,
-                existingResourceId: resourceId,
-                jsonLd: value,
+                label: getProperty.label,
+                existingPredicateId: getProperty.id,
             });
+            for (const value of level[property]) {
+                const valueId = guid();
+                const resourceId = guid();
+                const label = value['@value'] ?? value['http://www.w3.org/2000/01/rdf-schema#label']?.[0]?.['@value'];
+                values.push({
+                    valueId,
+                    propertyId,
+                    _class: value['@value'] ? 'literal' : 'resource',
+                    label: label ?? '',
+                    classes: value['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
+                    isExistingValue: false,
+                    existingResourceId: resourceId,
+                    jsonLd: value,
+                });
+            }
         }
     }
+
     dispatch(
         fillStatements({
             statements: {
