@@ -4,7 +4,12 @@ import selectEvent from 'react-select-event';
 import StatementBrowser from '../StatementBrowser';
 import { statementBrowser1P7V } from '../ValueItem/__mocks__/StatementBrowserDataValueItem';
 
-jest.mock('react-flip-move', () => ({ children }) => children);
+jest.mock(
+    'react-flip-move',
+    () =>
+        ({ children }) =>
+            children,
+);
 jest.mock('components/UserAvatar/UserAvatar', () => () => null);
 
 const setup = (
@@ -150,7 +155,7 @@ describe('ValueItem', () => {
         await clickOnEditValueButton(screen, VALUE_IDS.Resource);
         fireEvent.change(screen.getByPlaceholderText(/enter a value/i), { target: { value: 'resource label 1' } });
         fireEvent.click(screen.getByRole('button', { name: 'Done' }));
-        await waitForElementToBeRemoved(() => screen.queryByText(/Loading/i));
+        await waitForElementToBeRemoved(() => screen.queryByText(/Saving/i));
         await waitFor(() => expect(screen.getByRole('button', { name: 'resource label 1' })).toBeInTheDocument());
     });
 });
@@ -202,9 +207,12 @@ describe('ValueItem', () => {
         setup();
         await clickOnEditValueButton(screen, VALUE_IDS.URL);
         // Could be a bug in react-select-event
-        await selectEvent.select(screen.getByText('URL'), ['Text']);
+        const selectInput = screen.getByText('URL');
+        await selectEvent.openMenu(selectInput);
+        await selectEvent.select(selectInput, ['Text']);
         fireEvent.click(screen.getByRole('button', { name: 'Done' }));
         fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
+        await waitForElementToBeRemoved(() => screen.queryByText(/Saving/i));
         expect(screen.getAllByText('Text')).toHaveLength(2);
         expect(screen.getByText('www.orkg.org')).toBeInTheDocument();
         expect(screen.queryByText(/URL/i)).toBeNull();
@@ -216,9 +224,12 @@ describe('ValueItem', () => {
         setup();
         await clickOnEditValueButton(screen, VALUE_IDS.Date);
         // Could be a bug in react-select-event
-        await selectEvent.select(screen.getByText('Date'), ['Text']);
+        const selectInput = screen.getByText('Date');
+        await selectEvent.openMenu(selectInput);
+        await selectEvent.select(selectInput, ['Text']);
         fireEvent.change(screen.getByPlaceholderText(/enter a value/i), { target: { value: 'New text' } });
         fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+        await waitForElementToBeRemoved(() => screen.queryByText(/Saving/i));
         await waitFor(() => expect(screen.getByText('New text')).toBeInTheDocument());
         expect(screen.getAllByText('Text')).toHaveLength(2);
         expect(screen.queryByText(/Date/i)).toBeNull();
@@ -237,9 +248,11 @@ describe('ValueItem', () => {
     it('should not show resource datatype on literal edit', async () => {
         setup();
         await clickOnEditValueButton(screen, VALUE_IDS.Date);
-        await selectEvent.select(screen.getByText('Date'), ['Date']);
+        const selectInput = screen.getByText('Date');
+        await selectEvent.openMenu(selectInput);
+        await selectEvent.select(selectInput, ['Date']);
         await waitFor(() => expect(screen.queryAllByText(/Resource/i)).toHaveLength(1));
-        expect(screen.getAllByText('Text')).toHaveLength(2);
-        expect(screen.getAllByText('Date')).toHaveLength(2);
+        expect(screen.getAllByText('Text')).toHaveLength(1);
+        expect(screen.getAllByText('Date')).toHaveLength(1);
     });
 });

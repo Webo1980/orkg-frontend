@@ -94,12 +94,30 @@ const resources = [
             }),
         );
     }),
-    rest.post(resourcesUrl, (req, res, ctx) => {
-        const { label, classes } = req.body;
+    rest.post(resourcesUrl, async (req, res, ctx) => {
+        const { label, classes } = await req.json();
 
         return res(
             ctx.json({
                 id: `R${faker.datatype.number()}`,
+                label,
+                created_at: '2020-06-22T10:38:53.178764Z',
+                classes: classes ?? [],
+                shared: 0,
+                created_by: '00000000-0000-0000-0000-000000000000',
+                _class: 'resource',
+                observatory_id: '00000000-0000-0000-0000-000000000000',
+                extraction_method: 'UNKNOWN',
+                organization_id: '00000000-0000-0000-0000-000000000000',
+            }),
+        );
+    }),
+    rest.put(`${resourcesUrl}:id`, async (req, res, ctx) => {
+        const { label, classes } = await req.json();
+        const { id } = req.params;
+        return res(
+            ctx.json({
+                id,
                 label,
                 created_at: '2020-06-22T10:38:53.178764Z',
                 classes: classes ?? [],

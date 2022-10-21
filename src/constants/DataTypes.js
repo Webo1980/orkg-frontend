@@ -72,9 +72,7 @@ const DATA_TYPES = [
         type: 'xsd:anyURI',
         _class: ENTITIES.LITERAL,
         classId: CLASSES.URI,
-        schema: Joi.string()
-            .regex(REGEX.URL)
-            .message('"value" must be a valid URL'),
+        schema: Joi.string().regex(REGEX.URL).message('"value" must be a valid URL'),
         inputFormType: 'text',
         weight: 1,
     },
@@ -139,7 +137,7 @@ export const getSuggestionByTypeAndValue = (type, value) => {
 
 export const getSuggestionByValue = value =>
     orderBy(
-        DATA_TYPES.filter(dataType => dataType.type !== ENTITIES.RESOURCE).filter(dataType => !dataType.schema.validate(value)?.error),
+        DATA_TYPES.filter(dataType => dataType.type !== ENTITIES.RESOURCE).filter(dataType => !dataType.schema?.validate(value)?.error),
         ['weight'],
         ['desc'],
     );

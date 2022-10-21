@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { lazy } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import ResourceDetails from 'pages/Resources/Resource';
 import AddPaper from 'pages/AddPaper';
 import AuthorPage from 'pages/AuthorPage';
@@ -11,7 +11,7 @@ import ComparisonDiff from 'pages/Comparisons/ComparisonDiff';
 import Home from 'pages/Home';
 import Changelog from 'pages/Changelog/Changelog';
 import NotFound from 'pages/NotFound';
-import Papers from 'pages/Papers';
+import Papers from 'pages/Papers/Papers';
 import Comparisons from 'pages/Comparisons/Comparisons';
 import Visualizations from 'pages/Visualizations/Visualizations';
 import Visualization from 'pages/Visualizations/Visualization';
@@ -30,16 +30,14 @@ import ResearchFields from 'pages/ResearchFields/ResearchFields';
 import Resources from 'pages/Resources/Resources';
 import Organizations from 'pages/Organizations/Organizations';
 import Observatories from 'pages/Observatories/Observatories';
-import OrganizationDetails from 'pages/Organizations/OrganizationDetails';
+import Organization from 'pages/Organizations/Organization';
 import AddOrganization from 'pages/Organizations/AddOrganization';
 import AddObservatory from 'pages/Observatories/AddObservatory';
 import Observatory from 'pages/Observatories/Observatory';
 import SearchResults from 'pages/Search';
-import ViewPaper from 'pages/ViewPaper';
 import Stats from 'pages/Stats';
 import UserSettings from 'pages/UserSettings';
 import UserProfile from 'pages/UserProfile';
-import FeaturedComparisons from 'pages/FeaturedComparisons';
 import Data from 'pages/Data';
 import Contribution from 'pages/Contribution';
 import CsvImport from 'pages/CsvImport';
@@ -61,6 +59,7 @@ import HelpCenterCategory from 'pages/HelpCenter/HelpCenterCategory';
 import HelpCenterArticle from 'pages/HelpCenter/HelpCenterArticle';
 import HelpCenterSearch from 'pages/HelpCenter/HelpCenterSearch';
 import WebinarMay11 from 'pages/WebinarMay11';
+import CheckPaperVersion from 'pages/Papers/CheckPaperVersion';
 import Lists from 'pages/Lists/Lists';
 import ListNew from 'pages/Lists/ListNew';
 import List from 'pages/Lists/List';
@@ -68,12 +67,15 @@ import ListDiff from 'pages/Lists/ListDiff';
 import ContentTypeNew from 'pages/ContentType/ContentTypeNew';
 import ContentType from 'pages/ContentType/ContentType';
 import ContentTypes from 'pages/ContentType/ContentTypes';
+import Diagrams from 'pages/Diagrams/Diagrams';
+import Diagram from 'pages/Diagrams/Diagram';
 import ResearchProblem from './pages/ResearchProblem';
 
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
 const PdfTextAnnotation = lazy(() => import('pages/PdfTextAnnotation')); // for dependency "react-pdf-highlighter" ~1.16MB
 const PdfAnnotation = lazy(() => import('pages/PdfAnnotation')); // for dependency "handsontable" ~887.4KB
+const FeaturedComparisons = lazy(() => import('pages/FeaturedComparisons')); // for dependency @fontawesome/free-solid-svg-icons used to show icons
 
 const routes = [
     {
@@ -142,16 +144,16 @@ const routes = [
     },
     {
         path: ROUTES.ADD_PAPER.GENERAL_DATA,
-        element: requireAuthentication(AddPaper),
+        element: AddPaper,
     },
     {
         /* TODO: slug for the paper title */
         path: ROUTES.VIEW_PAPER_CONTRIBUTION,
-        element: ViewPaper,
+        element: CheckPaperVersion,
     },
     {
         path: ROUTES.VIEW_PAPER,
-        element: ViewPaper,
+        element: CheckPaperVersion,
     },
     {
         path: ROUTES.COMPARISON_DIFF,
@@ -241,7 +243,7 @@ const routes = [
     },
     {
         path: ROUTES.ORGANIZATION,
-        element: OrganizationDetails,
+        element: Organization,
     },
     {
         path: ROUTES.ADD_ORGANIZATION,
@@ -407,52 +409,76 @@ const routes = [
         path: ROUTES.CONTENT_TYPES,
         element: ContentTypes,
     },
+    {
+        path: ROUTES.DIAGRAMS,
+        element: Diagrams,
+    },
+    {
+        path: ROUTES.DIAGRAM,
+        element: Diagram,
+    },
+    {
+        path: ROUTES.NEW_DIAGRAM,
+        element: Diagram,
+    },
 ];
 
 const legacyRoutes = [
     {
         path: ROUTES.SMART_REVIEW_NEW,
-        element: () => <Navigate to={{ pathname: ROUTES.REVIEW_NEW, state: { status: 301 } }} />,
+        element: () => <Navigate to={ROUTES.REVIEW_NEW} replace />,
     },
     {
         path: ROUTES.SMART_REVIEW_DIFF,
-        element: ({ match }) => (
-            <Navigate
-                to={{ pathname: reverse(ROUTES.REVIEW_DIFF, { oldId: match.params.oldId, newId: match.params.newId }), state: { status: 301 } }}
-            />
-        ),
+        element: () => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { oldId, newId } = useParams();
+            return <Navigate to={reverse(ROUTES.REVIEW_DIFF, { oldId, newId })} replace />;
+        },
     },
     {
         path: ROUTES.SMART_REVIEW,
-        element: ({ match }) => <Navigate to={{ pathname: reverse(ROUTES.REVIEW, { id: match.params.id }), state: { status: 301 } }} />,
+        element: () => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { id } = useParams();
+            return <Navigate to={reverse(ROUTES.REVIEW, { id })} replace />;
+        },
     },
     {
         path: ROUTES.SMART_REVIEWS,
-        element: () => <Navigate to={{ pathname: ROUTES.REVIEWS, state: { status: 301 } }} />,
+        element: () => <Navigate to={ROUTES.REVIEWS} replace />,
     },
     {
         path: ROUTES.LITERATURE_LISTS,
-        element: () => <Navigate to={{ pathname: ROUTES.LISTS, state: { status: 301 } }} />,
+        element: () => <Navigate to={ROUTES.LISTS} replace />,
     },
     {
         path: ROUTES.LITERATURE_LIST,
-        element: ({ match }) => <Navigate to={{ pathname: reverse(ROUTES.LIST, { id: match.params.id }), state: { status: 301 } }} />,
+        element: () => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { id } = useParams();
+            return <Navigate to={reverse(ROUTES.LIST, { id })} replace />;
+        },
     },
     {
         path: ROUTES.LITERATURE_LIST_EMBED,
-        element: ({ match }) => <Navigate to={{ pathname: reverse(ROUTES.LIST_EMBED, { id: match.params.id }), state: { status: 301 } }} />,
+        element: () => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { id, embed } = useParams();
+            return <Navigate to={reverse(ROUTES.LIST_EMBED, { id, embed })} replace />;
+        },
     },
     {
         path: ROUTES.LITERATURE_LIST_NEW,
-        element: () => <Navigate to={{ pathname: ROUTES.LIST_NEW, state: { status: 301 } }} />,
+        element: () => <Navigate to={ROUTES.LIST_NEW} replace />,
     },
     {
         path: ROUTES.LITERATURE_LIST_DIFF,
-        element: ({ match }) => (
-            <Navigate
-                to={{ pathname: reverse(ROUTES.LIST_DIFF, { oldId: match.params.oldId, newId: match.params.newId }), state: { status: 301 } }}
-            />
-        ),
+        element: () => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { oldId, newId } = useParams();
+            return <Navigate to={reverse(ROUTES.LIST_DIFF, { oldId, newId })} replace />;
+        },
     },
 ];
 

@@ -39,6 +39,7 @@ function cropText(input, config, width) {
     let textWidth;
     let ratio;
     let newTruncatedTextLength;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         textWidth = measureTextWidth(truncatedText, config.fontFamily, config.fontSize);
         if (textWidth <= width) {
@@ -210,10 +211,7 @@ function renderHalo(group, cfg, pNode) {
     renderingShapeForHalo.style('stroke-width', '2');
 
     function animationEnd() {
-        group
-            .classed('searchResultA', false)
-            .classed('searchResultB', true)
-            .attr('animationRunning', false);
+        group.classed('searchResultA', false).classed('searchResultB', true).attr('animationRunning', false);
 
         // remove eventListener to prevent memory leaks
         group.node().removeEventListener('webkitAnimationEnd', animationEnd);

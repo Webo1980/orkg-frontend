@@ -157,11 +157,7 @@ const RDFDataCube = props => {
             text: (rows, id, filterValue) =>
                 rows.filter(row => {
                     const rowValue = row.values[id].label;
-                    return rowValue !== undefined
-                        ? String(rowValue)
-                              .toLowerCase()
-                              .startsWith(String(filterValue).toLowerCase())
-                        : true;
+                    return rowValue !== undefined ? String(rowValue).toLowerCase().startsWith(String(filterValue).toLowerCase()) : true;
                 }),
         }),
         [],
@@ -394,9 +390,10 @@ const RDFDataCube = props => {
                                         )}
                                     </DropdownMenu>
                                 </Dropdown>
-                                <Table {...getTableProps()} striped bordered>
+                                <Table {...getTableProps()} striped bordered className="text-nowrap d-block overflow-auto">
                                     <thead>
                                         {headerGroups.map(headerGroup => (
+                                            // eslint-disable-next-line react/jsx-key
                                             <tr {...headerGroup.getHeaderGroupProps()}>
                                                 {headerGroup.headers.map(column => (
                                                     // Add the sorting props to control sorting. For this example
@@ -428,8 +425,10 @@ const RDFDataCube = props => {
                                         {page.map((row, i) => {
                                             prepareRow(row);
                                             return (
+                                                // eslint-disable-next-line react/jsx-key
                                                 <tr {...row.getRowProps()}>
                                                     {row.cells.map(cell => (
+                                                        // eslint-disable-next-line react/jsx-key
                                                         <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                                     ))}
                                                 </tr>

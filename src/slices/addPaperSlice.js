@@ -45,6 +45,11 @@ const initialState = {
         allIds: [],
     },
     initialData: {},
+    nerResources: [],
+    nerProperties: [],
+    nerRawResponse: {},
+    bioassayText: '',
+    bioassayRawResponse: [],
 };
 
 export const addPaperSlice = createSlice({
@@ -196,6 +201,21 @@ export const addPaperSlice = createSlice({
         setInitialData: (state, { payload }) => {
             state.initialData = payload;
         },
+        setNerResources: (state, { payload }) => {
+            state.nerResources = payload;
+        },
+        setNerProperties: (state, { payload }) => {
+            state.nerProperties = payload;
+        },
+        setNerRawResponse: (state, { payload }) => {
+            state.nerRawResponse = payload;
+        },
+        setBioassayText: (state, { payload }) => {
+            state.bioassayText = payload;
+        },
+        setBioassayRawResponse: (state, { payload }) => {
+            state.bioassayRawResponse = payload;
+        },
     },
     extraReducers: {
         [LOCATION_CHANGE]: () => initialState,
@@ -226,6 +246,11 @@ export const {
     updateContributionLabel,
     saveAddPaper,
     setInitialData,
+    setNerResources,
+    setNerProperties,
+    setNerRawResponse,
+    setBioassayText,
+    setBioassayRawResponse,
 } = addPaperSlice.actions;
 
 export default addPaperSlice.reducer;
@@ -327,21 +352,24 @@ export const createContributionAction = ({ selectAfterCreation = false, fillStat
         }),
     );
 
+    if (performPrefill && statements?.length > 0) {
+        dispatch(parseJsonJdLevel(statements[0], newResourceId));
+    }
+
     if (selectAfterCreation) {
-        dispatch(
-            selectResource({
-                increaseLevel: false,
-                resourceId: newResourceId,
-                label: newContributionLabel,
-            }),
-        );
+        dispatch(selectContribution(newContributionId));
     }
 
     // Dispatch loading template of classes
     dispatch(fetchTemplatesOfClassIfNeeded(CLASSES.CONTRIBUTION));
 
-    if (performPrefill && statements?.length > 0) {
-        dispatch(parseJsonJdLevel(statements[0], newResourceId));
+    if (performPrefill && statements) {
+        dispatch(
+            fillStatements({
+                statements,
+                resourceId: newResourceId,
+            }),
+        );
     }
 };
 
@@ -412,6 +440,7 @@ export const getResourceObject = (data, resourceId, newProperties) => {
                     }
                     return {
                         '@id': newResources.includes(value.resourceId) ? `_${value.resourceId}` : value.resourceId,
+                        '@type': value._class,
                     };
                 }),
             };

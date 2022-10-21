@@ -31,22 +31,13 @@ class DbpediaAbstract extends Component {
         this.setState({ isLoading: true, loadingFailed: false });
         const resource = this.props.externalResource;
         const endpoint = 'http://dbpedia.org/sparql';
-        const query = `
-            SELECT
-                ?abstract
-            WHERE 
-                {
-                    <${resource}> <http://dbpedia.org/ontology/abstract> ?abstract .
-                    FILTER (lang(?abstract) = 'en')
-                }
-            LIMIT 500
-        `;
+        const query = `SELECT ?abstract WHERE {<${resource}> <http://dbpedia.org/ontology/abstract> ?abstract . FILTER (lang(?abstract) = 'en')} LIMIT 500`;
         const url = `${endpoint}?query=${encodeURIComponent(query)}&format=json`;
         const self = this;
 
         fetch(url)
             .then(response => response.json())
-            .then(function(data) {
+            .then(function (data) {
                 if (
                     data.results &&
                     data.results.bindings &&

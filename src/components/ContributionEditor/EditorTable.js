@@ -12,15 +12,10 @@ import FlipMove from 'react-flip-move';
 const EditorTable = ({ scrollContainerBody }) => {
     const { contributions, papers, statements, properties, resources, literals } = useSelector(state => state.contributionEditor);
     const { generateTableMatrix } = useContributionEditor();
-    const { data, columns } = useMemo(() => generateTableMatrix({ contributions, papers, statements, properties, resources, literals }), [
-        contributions,
-        generateTableMatrix,
-        literals,
-        papers,
-        properties,
-        resources,
-        statements,
-    ]);
+    const { data, columns } = useMemo(
+        () => generateTableMatrix({ contributions, papers, statements, properties, resources, literals }),
+        [contributions, generateTableMatrix, literals, papers, properties, resources, statements],
+    );
 
     const defaultColumn = useMemo(
         () => ({
@@ -48,8 +43,10 @@ const EditorTable = ({ scrollContainerBody }) => {
                 <ScrollSyncPane group="one">
                     <div style={{ overflow: 'auto', top: '71px', position: 'sticky', zIndex: '3' }} className="disable-scrollbars">
                         {headerGroups.map(headerGroup => (
+                            // eslint-disable-next-line react/jsx-key
                             <div className="header" {...headerGroup.getHeaderGroupProps()}>
                                 {headerGroup.headers.map(column => (
+                                    // eslint-disable-next-line react/jsx-key
                                     <div {...column.getHeaderProps()} className="th p-0">
                                         {column.render('Header')}
                                     </div>
@@ -66,8 +63,10 @@ const EditorTable = ({ scrollContainerBody }) => {
                                 {rows.map(row => {
                                     prepareRow(row);
                                     return (
+                                        // eslint-disable-next-line react/jsx-key
                                         <div {...row.getRowProps()} className="tr d-flex p-0" style={{ zIndex: 100 - row.index }}>
                                             {row.cells.map(cell => (
+                                                // eslint-disable-next-line react/jsx-key
                                                 <div {...cell.getCellProps()} className="td p-0">
                                                     {cell.render('Cell')}
                                                 </div>
@@ -78,12 +77,12 @@ const EditorTable = ({ scrollContainerBody }) => {
                             </FlipMove>
                         </div>
                     </div>
-                    {rows.length === 0 && (
-                        <Alert className="mt-0" color="info">
-                            Start adding properties or use templates by using the buttons below
-                        </Alert>
-                    )}
                 </ScrollSyncPane>
+                {rows.length === 0 && (
+                    <Alert className="mt-0" color="info">
+                        Start adding properties or use templates by using the buttons below
+                    </Alert>
+                )}
             </div>
         </>
     );

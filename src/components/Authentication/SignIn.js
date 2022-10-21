@@ -10,7 +10,7 @@ import { Cookies } from 'react-cookie';
 import { checkCookie } from 'utils';
 import env from '@beam-australia/react-env';
 import { useDispatch } from 'react-redux';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 const cookies = new Cookies();
 
@@ -52,6 +52,7 @@ const SignIn = props => {
                         redirectRoute: null,
                     }),
                 );
+                document.body.style.overflow = 'auto scroll';
                 dispatch(toggleAuthDialog());
                 setLoading(false);
                 trackEvent({ category: 'authentication', action: 'sign-in' });

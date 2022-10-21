@@ -63,6 +63,11 @@ export const PREDICATES = {
     HAS_LIST: 'HasList',
     HAS_ENTRY: 'HasEntry',
     HAS_HEADING_LEVEL: 'HasHeadingLevel',
+    METHOD: 'METHOD',
+    LANGUAGE: 'Language',
+    RESOURCE: 'Resource',
+    TOOL: 'Tool',
+    SOLUTION: 'Solution',
     HAS_VIDEO: 'HasVideo',
     IS_ANONYMIZED: 'IsAnonymized',
 };
@@ -90,7 +95,7 @@ export const CLASSES = {
     QB_DATASET_CLASS: 'QBDataset',
     LOCATION: 'DCLocation',
     SENTENCE: 'Sentence',
-    BENCHMARK: 'Benchmark',
+    BENCHMARK: 'C14022',
     MODEL: 'Model',
     DATASET: 'Dataset',
     EVALUATION: 'Evaluation',
@@ -117,11 +122,16 @@ export const CLASSES = {
     INTEGER: 'Integer',
     BOOLEAN: 'Boolean',
     URI: 'URI',
+    PAPER_VERSION: 'PaperVersion',
     SOFTWARE: 'Software',
+    EXTERNAL: 'External',
+    DIAGRAM: 'Diagram',
 };
 
 export const RESOURCES = {
     RESEARCH_FIELD_MAIN: 'R11',
+    RESEARCH_FIELD_COMPUTER_SCIENCE: 'R132',
+    RESEARCH_FIELD_COMPUTATIONAL_LINGUISTICS: 'R322',
     EMPTY_RESOURCE: 'empty',
 };
 

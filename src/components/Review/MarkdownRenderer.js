@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import * as Showdown from 'showdown';
 import footnotes from 'showdown-footnotes';
 import REGEX from 'constants/regex';
-import Cite from 'citation-js';
+import { Cite } from '@citation-js/core';
 import showdownVideoPlugin from 'components/ArticleBuilder/MarkdownEditor/showdownVideoPlugin';
 import { MarkdownContainer } from 'components/ArticleBuilder/MarkdownEditor/styled';
 
@@ -30,9 +30,9 @@ const MarkdownRenderer = ({ text, id }) => {
             const keyFormatted = formatReferenceKey(reference);
             const matchingReference = getReferenceByKey(keyFormatted);
             if (matchingReference) {
-                return `([${matchingReference?.parsedReference?.author?.[0]?.family ?? 'Unknown'}, ${matchingReference?.parsedReference?.issued?.[
-                    'date-parts'
-                ]?.[0]?.[0] ?? ''}](#reference${keyFormatted}))`;
+                return `([${matchingReference?.parsedReference?.author?.[0]?.family ?? 'Unknown'}, ${
+                    matchingReference?.parsedReference?.issued?.['date-parts']?.[0]?.[0] ?? ''
+                }](#reference${keyFormatted}))`;
             }
             return '<strong>[?]</strong>';
         },

@@ -10,7 +10,7 @@ import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { toast } from 'react-toastify';
 import { reverse } from 'named-urls';
 import REGEX from 'constants/regex';
-import Cite from 'citation-js';
+import { Cite } from '@citation-js/core';
 import ROUTES from 'constants/routes';
 import { useSelector } from 'react-redux';
 import { PREDICATES, ENTITIES, CLASSES } from 'constants/graphSettings';
@@ -62,7 +62,7 @@ const AddResource = () => {
                     const newResource = await createResource(label.trim(), classes ? classes.map(c => c.id) : []);
                     toast.success('Resource created successfully');
                     setIsLoading(false);
-                    navigate(reverse(ROUTES.RESOURCE, { id: newResource.id }));
+                    navigate(`${reverse(ROUTES.RESOURCE, { id: newResource.id })}?noRedirect`);
                 } catch (error) {
                     console.error(error);
                     setIsLoading(false);
@@ -79,7 +79,7 @@ const AddResource = () => {
                         await createLiteralStatement(newResource.id, PREDICATES.HAS_DOI, responseJsonDoi.id);
                         toast.success('Resource created successfully');
                         setIsLoading(false);
-                        navigate(reverse(ROUTES.RESOURCE, { id: newResource.id }));
+                        navigate(`${reverse(ROUTES.RESOURCE, { id: newResource.id })}?noRedirect`);
                     } catch (error) {
                         console.error(error);
                         toast.error(`Error finding DOI : ${error.message}`);

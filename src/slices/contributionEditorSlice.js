@@ -13,7 +13,7 @@ import {
     updateStatement,
     deleteStatementsByIds,
 } from 'services/backend/statements';
-import { CLASSES, ENTITIES, MISC, PREDICATES } from 'constants/graphSettings';
+import { CLASSES, ENTITIES, MISC, PREDICATES, RESOURCES } from 'constants/graphSettings';
 import { uniq, flatten, intersection, uniqBy } from 'lodash';
 import {
     createResource as createResourceApi,
@@ -38,6 +38,7 @@ const initialState = {
     classes: {},
     isLoading: false,
     hasFailed: false,
+    previousInputDataType: MISC.DEFAULT_LITERAL_DATATYPE,
 };
 
 export const contributionEditorSlice = createSlice({
@@ -163,6 +164,9 @@ export const contributionEditorSlice = createSlice({
         updateContributionClasses: (state, { payload: { resourceId, classes } }) => {
             state.contributions[resourceId].classes = classes;
         },
+        setPreviousInputDataType: (state, { payload }) => {
+            state.previousInputDataType = payload;
+        },
     },
     extraReducers: {
         [LOCATION_CHANGE]: () => initialState,
@@ -189,6 +193,7 @@ export const {
     propertyDeleted,
     propertyUpdated,
     paperUpdated,
+    setPreviousInputDataType,
 } = contributionEditorSlice.actions;
 
 export default contributionEditorSlice.reducer;
@@ -379,6 +384,9 @@ export const addValue = (entityType, value, valueClass, contributionId, property
             case ENTITIES.CLASS:
                 apiCall = createClass(value.label);
                 break;
+            case 'empty':
+                apiCall = getResource(RESOURCES.EMPTY_RESOURCE);
+                break;
             default:
                 apiCall = createLiteralApi(value.label, value.datatype);
         }
@@ -445,117 +453,127 @@ export const addValue = (entityType, value, valueClass, contributionId, property
     return newEntity.id;
 };
 
-export const createResource = ({ contributionId, propertyId, action, classes = [], resourceId = null, resourceLabel = null }) => async dispatch => {
-    dispatch(setIsLoading(true));
+export const createResource =
+    ({ contributionId, propertyId, action, classes = [], resourceId = null, resourceLabel = null }) =>
+    async dispatch => {
+        dispatch(setIsLoading(true));
 
-    const resource = await getOrCreateResource({
-        action,
-        id: resourceId,
-        label: resourceLabel,
-        classes,
-    });
-
-    if (!resource) {
-        return;
-    }
-
-    // create the new statement
-    return createResourceStatement(contributionId, propertyId, resource.id)
-        .then(newStatement => {
-            dispatch(
-                resourceAdded({
-                    statementId: newStatement.id,
-                    contributionId,
-                    propertyId,
-                    resource,
-                }),
-            );
-            dispatch(setIsLoading(false));
-            return resource.id;
-        })
-        .catch(() => {
-            toast.error('Something went wrong while creating the resource.');
-            dispatch(setIsLoading(false));
+        const resource = await getOrCreateResource({
+            action,
+            id: resourceId,
+            label: resourceLabel,
+            classes,
         });
-};
 
-export const createLiteral = ({ contributionId, propertyId, label, datatype }) => async dispatch => {
-    dispatch(setIsLoading(true));
+        if (!resource) {
+            return;
+        }
 
-    // fetch the selected resource id
-    const literal = await createLiteralApi(label, datatype);
+        // create the new statement
+        return createResourceStatement(contributionId, propertyId, resource.id)
+            .then(newStatement => {
+                dispatch(
+                    resourceAdded({
+                        statementId: newStatement.id,
+                        contributionId,
+                        propertyId,
+                        resource,
+                    }),
+                );
+                dispatch(setIsLoading(false));
+                return resource.id;
+            })
+            .catch(() => {
+                toast.error('Something went wrong while creating the resource.');
+                dispatch(setIsLoading(false));
+            });
+    };
 
-    if (!literal) {
-        return;
-    }
+export const createLiteral =
+    ({ contributionId, propertyId, label, datatype }) =>
+    async dispatch => {
+        dispatch(setIsLoading(true));
 
-    // create the new statement
-    createLiteralStatement(contributionId, propertyId, literal.id)
-        .then(newStatement => {
-            dispatch(
-                literalAdded({
-                    statementId: newStatement.id,
-                    contributionId,
-                    propertyId,
-                    literal,
-                }),
-            );
+        // fetch the selected resource id
+        const literal = await createLiteralApi(label, datatype);
+
+        if (!literal) {
+            return;
+        }
+
+        // create the new statement
+        createLiteralStatement(contributionId, propertyId, literal.id)
+            .then(newStatement => {
+                dispatch(
+                    literalAdded({
+                        statementId: newStatement.id,
+                        contributionId,
+                        propertyId,
+                        literal,
+                    }),
+                );
+                dispatch(setIsLoading(false));
+            })
+            .catch(() => {
+                toast.error('Something went wrong while creating the literal.');
+                dispatch(setIsLoading(false));
+            });
+    };
+
+export const createProperty =
+    ({ action, id = null, label = null }) =>
+    async dispatch => {
+        const property = await getOrCreateProperty({ action, id, label });
+        if (!property) {
+            return;
+        }
+        dispatch(propertyAdded(property));
+    };
+
+export const deleteProperty =
+    ({ id, statementIds }) =>
+    dispatch => {
+        (statementIds?.length > 0 ? deleteStatementsByIds(statementIds) : Promise.resolve())
+            .then(() => {
+                dispatch(
+                    propertyDeleted({
+                        id,
+                        statementIds,
+                    }),
+                );
+            })
+            .catch(() => {
+                toast.error('Error deleting statements, please refresh the page');
+            });
+    };
+
+export const updateProperty =
+    ({ id, statementIds, action, newId = null, newLabel = null }) =>
+    async dispatch => {
+        dispatch(setIsLoading(true));
+        const property = await getOrCreateProperty({ action, id: newId, label: newLabel });
+        if (!property) {
             dispatch(setIsLoading(false));
-        })
-        .catch(() => {
-            toast.error('Something went wrong while creating the literal.');
-            dispatch(setIsLoading(false));
-        });
-};
+            return;
+        }
 
-export const createProperty = ({ action, id = null, label = null }) => async dispatch => {
-    const property = await getOrCreateProperty({ action, id, label });
-    if (!property) {
-        return;
-    }
-    dispatch(propertyAdded(property));
-};
-
-export const deleteProperty = ({ id, statementIds }) => dispatch => {
-    (statementIds?.length > 0 ? deleteStatementsByIds(statementIds) : Promise.resolve())
-        .then(() => {
+        try {
+            for (const statementId of statementIds) {
+                await updateStatement(statementId, { predicate_id: property.id });
+            }
             dispatch(
-                propertyDeleted({
+                propertyUpdated({
                     id,
+                    newProperty: property,
                     statementIds,
                 }),
             );
-        })
-        .catch(() => {
-            toast.error('Error deleting statements, please refresh the page');
-        });
-};
-
-export const updateProperty = ({ id, statementIds, action, newId = null, newLabel = null }) => async dispatch => {
-    dispatch(setIsLoading(true));
-    const property = await getOrCreateProperty({ action, id: newId, label: newLabel });
-    if (!property) {
-        dispatch(setIsLoading(false));
-        return;
-    }
-
-    try {
-        for (const statementId of statementIds) {
-            await updateStatement(statementId, { predicate_id: property.id });
+        } catch (e) {
+            toast.error('Error updating statements, please refresh the page');
         }
-        dispatch(
-            propertyUpdated({
-                id,
-                newProperty: property,
-                statementIds,
-            }),
-        );
-    } catch (e) {
-        toast.error('Error updating statements, please refresh the page');
-    }
-    dispatch(setIsLoading(false));
-    // use this code instead when the backend issue is fixed: https://gitlab.com/TIBHannover/orkg/orkg-backend/-/issues/308
-    /* updateStatements(statementIds, { predicate_id: property.id })
+        dispatch(setIsLoading(false));
+        // use this code instead when the backend issue is fixed: https://gitlab.com/TIBHannover/orkg/orkg-backend/-/issues/308
+        /* updateStatements(statementIds, { predicate_id: property.id })
         .then(() => {
             dispatch(
                 propertyUpdated({
@@ -566,7 +584,7 @@ export const updateProperty = ({ id, statementIds, action, newId = null, newLabe
             );
         })
         .catch(e => toast.error(`Error updating statements, please refresh the page`)); */
-};
+    };
 
 /**
  * Fetch template by ID
@@ -737,25 +755,27 @@ export function createRequiredPropertiesInContribution(contributionId) {
  * @param {String=} data.contributionId - contribution ID
  * @param {Array=} data.classes - Classes of value
  */
-export const updateContributionClasses = ({ contributionId, classes }) => (dispatch, getState) => {
-    const resource = getState().contributionEditor.contributions[contributionId];
-    if (resource) {
-        dispatch(
-            contributionUpdated({
-                ...resource,
-                classes: uniq(classes?.filter(c => c) ?? []),
-            }),
-        );
+export const updateContributionClasses =
+    ({ contributionId, classes }) =>
+    (dispatch, getState) => {
+        const resource = getState().contributionEditor.contributions[contributionId];
+        if (resource) {
+            dispatch(
+                contributionUpdated({
+                    ...resource,
+                    classes: uniq(classes?.filter(c => c) ?? []),
+                }),
+            );
 
-        // Fetch templates
-        const templatesOfClassesLoading = classes && classes?.filter(c => c).map(classID => dispatch(fetchTemplatesOfClassIfNeeded(classID)));
-        // Add required properties
-        Promise.all(templatesOfClassesLoading).then(() => dispatch(createRequiredPropertiesInContribution(contributionId)));
+            // Fetch templates
+            const templatesOfClassesLoading = classes && classes?.filter(c => c).map(classID => dispatch(fetchTemplatesOfClassIfNeeded(classID)));
+            // Add required properties
+            Promise.all(templatesOfClassesLoading).then(() => dispatch(createRequiredPropertiesInContribution(contributionId)));
 
-        return updateResourceClassesApi(contributionId, uniq(classes?.filter(c => c) ?? []));
-    }
-    return Promise.resolve();
-};
+            return updateResourceClassesApi(contributionId, uniq(classes?.filter(c => c) ?? []));
+        }
+        return Promise.resolve();
+    };
 
 /**
  * Fill a contributions with a template
@@ -992,13 +1012,15 @@ export function canDeletePropertyAction(state, propertyId) {
  * @param {Object} statements - Statements of shape {propertyId, value: {id, label, datatype}}
  * @param {string} resourceId - The target resource ID
  */
-export const fillStatements = ({ statements, resourceId }) => async () => {
-    for (const statement of statements) {
-        const newObject = await createLiteralApi(statement.value.label, statement.value.datatype ?? MISC.DEFAULT_LITERAL_DATATYPE);
-        await createResourceStatement(resourceId, statement.propertyId, newObject.id);
-    }
-    return Promise.resolve();
-};
+export const fillStatements =
+    ({ statements, resourceId }) =>
+    async () => {
+        for (const statement of statements) {
+            const newObject = await createLiteralApi(statement.value.label, statement.value.datatype ?? MISC.DEFAULT_LITERAL_DATATYPE);
+            await createResourceStatement(resourceId, statement.propertyId, newObject.id);
+        }
+        return Promise.resolve();
+    };
 
 /**
  * Get formatted label of resource
