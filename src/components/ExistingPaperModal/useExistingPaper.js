@@ -13,7 +13,9 @@ const useExistingPaper = () => {
     const [continueNextStep, setContinueNextStep] = useState(false);
 
     const checkIfPaperExists = async ({ doi, title, continueNext = false }) => {
+        return false;
         // check if DOI exists
+        // eslint-disable-next-line no-unreachable
         if (doi && doi.includes('10.') && doi.startsWith('10.')) {
             try {
                 const paperData = await getPaperByDOI(doi);
