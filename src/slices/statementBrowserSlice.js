@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { LOCATION_CHANGE, guid, filterStatementsBySubjectId } from 'utils';
 import { ENTITIES, PREDICATES, CLASSES } from 'constants/graphSettings';
 import { match } from 'path-to-regexp';
-import { last, flatten, uniqBy, orderBy, uniq } from 'lodash';
+import { last, flatten, uniqBy, orderBy, uniq, sortBy } from 'lodash';
 import ROUTES from 'constants/routes';
 import { Cookies } from 'react-cookie';
 import { getEntity } from 'services/backend/misc';
@@ -1462,7 +1462,10 @@ export function addStatements(statements, resourceId, depth) {
                     // check if statement.object.id is not already loaded (propertyIds.length===0)
                     const resource = getState().statementBrowser.resources.byId[statement.object.id];
                     // resource.propertyIds?.length === 0
-                    if (filterStatementsBySubjectId(statements, statement.object.id)?.length && resource?.propertyIds?.length === 0) {
+                    if (
+                        filterStatementsBySubjectId(statements, statement.object.id)?.length &&
+                        (resource?.propertyIds?.length === 0 || resource.fetchedDepth < depth)
+                    ) {
                         // Add required properties and add statements
                         return dispatch(createRequiredPropertiesInResource(statement.object.id))
                             .then(() => dispatch(addStatements(statements, statement.object.id, depth - 1)))
@@ -1660,4 +1663,49 @@ export function getSubjectIdByValue(state, valueId) {
     const value = state.statementBrowser.values.byId[valueId];
     const predicate = state.statementBrowser.properties.byId[value.propertyId];
     return predicate?.resourceId;
+}
+
+/**
+ * Get CSV Table by value ID
+ * @param {Object} state Current state of the Store
+ * @param {String} valueId Value ID
+ * @return {Object} Table
+ */
+export function getTableByValueId(state, valueId) {
+    const value = state.statementBrowser.values.byId[valueId];
+    const columnsPropertyId = getPropertyIdByByResourceAndPredicateId(state, value.resourceId, PREDICATES.CSVW_COLUMNS);
+    const rowsPropertyId = getPropertyIdByByResourceAndPredicateId(state, value.resourceId, PREDICATES.CSVW_ROWS);
+    let cols = state.statementBrowser.properties.byId[columnsPropertyId];
+    cols =
+        cols?.valueIds?.map(v => {
+            const c = state.statementBrowser.values.byId[v];
+            const namePropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_NAME);
+            const numberPropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_NUMBER);
+            let name = state.statementBrowser.properties.byId[namePropertyId];
+            let number = state.statementBrowser.properties.byId[numberPropertyId];
+            name = name?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            number = number?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            return { ...c, name, number };
+        }) ?? [];
+    let lines = state.statementBrowser.properties.byId[rowsPropertyId];
+    lines =
+        lines?.valueIds?.map(v => {
+            const r = state.statementBrowser.values.byId[v];
+            const cellsPropertyId = getPropertyIdByByResourceAndPredicateId(state, r.resourceId, PREDICATES.CSVW_CELLS);
+            const numberPropertyId = getPropertyIdByByResourceAndPredicateId(state, r.resourceId, PREDICATES.CSVW_NUMBER);
+            let cells = state.statementBrowser.properties.byId[cellsPropertyId];
+            let number = state.statementBrowser.properties.byId[numberPropertyId];
+            number = number?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            cells =
+                cells?.valueIds?.map(w => {
+                    const c = state.statementBrowser.values.byId[w];
+                    const valuePropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_VALUE);
+                    let value = state.statementBrowser.properties.byId[valuePropertyId];
+                    value = value?.valueIds.map(l => state.statementBrowser.values.byId[l])?.[0] ?? {};
+                    return { ...c, value, row: r };
+                }) ?? [];
+            return { ...r, cells, number };
+        }) ?? [];
+    // cols: sortBy(cols, obj => parseInt(obj.number.label ?? '0', 10))
+    return { cols, lines: sortBy(lines, obj => parseInt(obj.number.label ?? '0', 10)) };
 }

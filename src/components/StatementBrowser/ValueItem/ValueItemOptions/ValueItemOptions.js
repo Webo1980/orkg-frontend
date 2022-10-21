@@ -10,6 +10,7 @@ import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import PropTypes from 'prop-types';
 import HELP_CENTER_ARTICLES from 'constants/helpCenterArticles';
 import RDFDataCube from 'components/RDFDataCube/RDFDataCube';
+import CSVWTable from 'components/CSVWTable/CSVWTable';
 import { toast } from 'react-toastify';
 import InfoTippy from './InfoTippy';
 
@@ -22,6 +23,7 @@ const ValueItemOptions = ({ id, enableEdit, syncBackend, handleOnClick }) => {
     const dispatch = useDispatch();
 
     const [modalDataset, setModalDataset] = useState(false);
+    const [isCSVWModelOpen, setIsCSVWModelOpen] = useState(false);
 
     const handleDeleteValue = async () => {
         if (syncBackend) {
@@ -61,6 +63,12 @@ const ValueItemOptions = ({ id, enableEdit, syncBackend, handleOnClick }) => {
                 <>
                     {modalDataset && <RDFDataCube show={modalDataset} toggleModal={() => setModalDataset(prev => !prev)} id={id} />}
                     <StatementActionButton title="Visualize data in tabular form" icon={faTable} action={handleDatasetClick} />
+                </>
+            )}
+            {value.classes?.includes(CLASSES.CSVW_TABLE) && (
+                <>
+                    {isCSVWModelOpen && <CSVWTable show={isCSVWModelOpen} toggleModal={() => setIsCSVWModelOpen(prev => !prev)} id={id} />}
+                    <StatementActionButton title="Visualize data in tabular form" icon={faTable} action={() => setIsCSVWModelOpen(true)} />
                 </>
             )}
             <div className="valueOptions">
