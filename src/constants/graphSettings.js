@@ -71,6 +71,7 @@ export const PREDICATES = {
     HAS_VIDEO: 'HasVideo',
     IS_ANONYMIZED: 'IsAnonymized',
     CSVW_COLUMNS: 'CSVW_Columns',
+    CSVW_COLUMN: 'CSVW_Column',
     CSVW_ROWS: 'CSVW_Rows',
     CSVW_CELLS: 'CSVW_Cells',
     CSVW_NUMBER: 'CSVW_Number',

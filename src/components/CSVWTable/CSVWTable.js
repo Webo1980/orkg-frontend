@@ -138,7 +138,7 @@ function CSVWTable(props) {
             lines?.map(r => {
                 let values = r.cells.map(c => c) ?? [];
                 values = values.map((c, index) => ({
-                    [cols[index].existingResourceId]: c,
+                    [c.column?.id ?? cols[index].existingResourceId]: c,
                 }));
                 values.cells = r;
                 values = Object.assign({}, ...values);

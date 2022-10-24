@@ -1700,14 +1700,17 @@ export function getTableByValueId(state, valueId) {
                 cells?.valueIds?.map(w => {
                     const c = state.statementBrowser.values.byId[w];
                     const valuePropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_VALUE);
-                    let value = state.statementBrowser.properties.byId[valuePropertyId];
-                    value = value?.valueIds.map(l => state.statementBrowser.values.byId[l])?.[0] ?? {};
-                    return { ...c, value, row: r };
+                    const columnPropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_COLUMN);
+                    let val = state.statementBrowser.properties.byId[valuePropertyId];
+                    let col = state.statementBrowser.properties.byId[columnPropertyId];
+                    val = val?.valueIds.map(l => state.statementBrowser.values.byId[l])?.[0] ?? {};
+                    col = col?.valueIds.map(l => state.statementBrowser.values.byId[l])?.[0] ?? {};
+                    return { ...c, value: val, column: col, row: r };
                 }) ?? [];
             return { ...r, cells, number };
         }) ?? [];
     // cols: sortBy(cols, obj => parseInt(obj.number.label ?? '0', 10))
-    return { cols, lines: sortBy(lines, obj => parseInt(obj.number.label ?? '0', 10)) };
+    return { cols: sortBy(cols, obj => parseInt(obj.number.label ?? '0', 10)), lines: sortBy(lines, obj => parseInt(obj.number.label ?? '0', 10)) };
 }
 
 /**
