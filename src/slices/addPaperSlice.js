@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { LOCATION_CHANGE, guid } from 'utils';
 import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
-import { mergeWith, isArray, uniqBy, merge } from 'lodash';
+import { mergeWith, isArray, uniqBy, merge, uniq, flatten } from 'lodash';
 import { saveFullPaper } from 'services/backend/papers';
 import { toast } from 'react-toastify';
 import { CLASSES, ENTITIES } from 'constants/graphSettings';
@@ -17,6 +17,7 @@ import {
     fillStatements,
 } from 'slices/statementBrowserSlice';
 import { getPredicate } from 'services/backend/predicates';
+import * as jsonld from 'jsonld';
 
 const initialState = {
     isTourOpen: false,
@@ -261,30 +262,21 @@ export const loadPaperDataAction = data => dispatch => {
     dispatch(loadStatementBrowserData(data.statementBrowser));
 };
 
-const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
+const parseJsonJdLevel = (jsonLd, newResourceId, fetchedOrkgProperties) => async dispatch => {
     const level = jsonLd;
     const orkgProperties = Object.keys(level).filter(key => key.startsWith('https://orkg.org/property/'));
     if (orkgProperties.length === 0) {
         return [];
-    }
-    const propertyIds = [];
-
-    for (const orkgProperty of orkgProperties) {
-        propertyIds.push(orkgProperty.replace('https://orkg.org/property/', ''));
     }
 
     const values = [];
     const properties = [];
     for (const property of orkgProperties) {
         const propertyId = guid();
-        let getProperty = null;
-        try {
-            getProperty = await getPredicate(property.replace('https://orkg.org/property/', ''));
-        } catch (e) {
-            console.log(e);
+        const getProperty = fetchedOrkgProperties.find(p => p.id === property.replace('https://orkg.org/property/', ''));
+        if (!getProperty) {
             toast.error(`Ignoring data for non-existing property: ${property}`);
-        }
-        if (getProperty) {
+        } else {
             properties.push({
                 propertyId,
                 label: getProperty.label,
@@ -301,7 +293,7 @@ const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
                     label: label ?? '',
                     classes: value['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
                     isExistingValue: false,
-                    existingResourceId: resourceId,
+                    existingResourceId: resourceId, // value['@id'] ??
                     jsonLd: value,
                 });
             }
@@ -318,7 +310,7 @@ const parseJsonJdLevel = (jsonLd, newResourceId) => async dispatch => {
         }),
     );
     for (const value of values) {
-        dispatch(parseJsonJdLevel(value.jsonLd, value.existingResourceId));
+        dispatch(parseJsonJdLevel(value.jsonLd, value.existingResourceId, fetchedOrkgProperties));
     }
 };
 
@@ -353,7 +345,17 @@ export const createContributionAction = ({ selectAfterCreation = false, fillStat
     );
 
     if (performPrefill && statements?.length > 0) {
-        dispatch(parseJsonJdLevel(statements[0], newResourceId));
+        const propertiesToFetch = uniq(
+            flatten(
+                (await jsonld.flatten(statements)).map(properties =>
+                    Object.keys(properties).filter(key => key.startsWith('https://orkg.org/property/')),
+                ),
+            ),
+        ).map(key => key.replace('https://orkg.org/property/', ''));
+
+        const fetchedOrkgProperties = await Promise.all(propertiesToFetch.map(propertyId => getPredicate(propertyId)));
+
+        dispatch(parseJsonJdLevel(statements[0], newResourceId, fetchedOrkgProperties));
     }
 
     if (selectAfterCreation) {
