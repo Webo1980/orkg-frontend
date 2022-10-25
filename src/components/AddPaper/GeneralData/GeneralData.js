@@ -24,7 +24,7 @@ import Tooltip from 'components/Utils/Tooltip';
 import AuthorsInput from 'components/AuthorsInput/AuthorsInput';
 import Joi from 'joi';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateGeneralData, nextStep, openTour, closeTour, setInitialDataAction } from 'slices/addPaperSlice';
+import { updateGeneralData, nextStep, openTour, closeTour, addInitialData } from 'slices/addPaperSlice';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { useCookies } from 'react-cookie';
 import styled from 'styled-components';
@@ -120,16 +120,20 @@ const GeneralData = () => {
             const paper = await submitGetRequest(lookDoi);
             const attributes = paper?.data?.attributes;
             const title = attributes?.titles?.[0]?.title;
-            const url = attributes?.relatedIdentifiers?.filter(identifier => identifier?.relationType === 'IsSupplementedBy')?.[0]?.relatedIdentifier;
+            const urls = attributes?.relatedIdentifiers
+                ?.filter(identifier => identifier?.relationType === 'IsSupplementedBy' && identifier?.relatedIdentifier?.startsWith('http'))
+                .map(identifier => identifier.relatedIdentifier);
 
-            if (url.startsWith('http')) {
+            for (const [index, url] of urls.entries()) {
                 const structuredPaperData = await submitGetRequest(url);
                 const expandedJsonLd = await jsonld.expand(structuredPaperData);
 
                 // basic check to see if this looks like a json-ld file
                 if (expandedJsonLd?.[0]?.['@id']) {
-                    dispatch(setInitialDataAction(expandedJsonLd));
-                    toast.info('Contribution data automatically fetched');
+                    dispatch(addInitialData(expandedJsonLd));
+                    if (index === 0) {
+                        toast.info('Contribution data automatically fetched');
+                    }
                 }
             }
             dispatch(
@@ -593,13 +597,11 @@ const GeneralData = () => {
                         ? [
                               {
                                   element: '#doiInputGroup',
-                                  intro:
-                                      'Start by entering the DOI or the BibTeX of the paper you want to add. Then, click on "Lookup" to fetch paper meta-data automatically.',
+                                  intro: 'Start by entering the DOI or the BibTeX of the paper you want to add. Then, click on "Lookup" to fetch paper meta-data automatically.',
                               },
                               {
                                   element: '#entryOptions',
-                                  intro:
-                                      'In case you don\'t have the DOI, you can enter the general paper data manually. Do this by pressing the "Manually" button on the right.',
+                                  intro: 'In case you don\'t have the DOI, you can enter the general paper data manually. Do this by pressing the "Manually" button on the right.',
                               },
                               {
                                   element: '#helpIcon',
@@ -609,8 +611,7 @@ const GeneralData = () => {
                         : [
                               {
                                   element: '#entryOptions',
-                                  intro:
-                                      'In case you have the DOI, you can enter the doi to fetch paper meta-data automatically. Do this by pressing the "By DOI" button on the left.',
+                                  intro: 'In case you have the DOI, you can enter the doi to fetch paper meta-data automatically. Do this by pressing the "By DOI" button on the left.',
                               },
                               {
                                   element: '#manuelInputGroup',

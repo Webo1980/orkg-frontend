@@ -45,7 +45,7 @@ const initialState = {
         byId: {},
         allIds: [],
     },
-    initialData: {},
+    initialData: [],
     nerResources: [],
     nerProperties: [],
     nerRawResponse: {},
@@ -199,8 +199,8 @@ export const addPaperSlice = createSlice({
         saveAddPaper: (state, { payload }) => {
             state.paperNewResourceId = payload;
         },
-        setInitialData: (state, { payload }) => {
-            state.initialData = payload;
+        addInitialData: (state, { payload }) => {
+            state.initialData = [...state.initialData, payload];
         },
         setNerResources: (state, { payload }) => {
             state.nerResources = payload;
@@ -246,12 +246,12 @@ export const {
     selectContribution,
     updateContributionLabel,
     saveAddPaper,
-    setInitialData,
     setNerResources,
     setNerProperties,
     setNerRawResponse,
     setBioassayText,
     setBioassayRawResponse,
+    addInitialData,
 } = addPaperSlice.actions;
 
 export default addPaperSlice.reducer;
@@ -264,7 +264,7 @@ export const loadPaperDataAction = data => dispatch => {
 
 const parseJsonJdLevel = (jsonLd, newResourceId, fetchedOrkgProperties) => async dispatch => {
     const level = jsonLd;
-    const orkgProperties = Object.keys(level).filter(key => key.startsWith('https://orkg.org/property/'));
+    const orkgProperties = Object.keys(level).filter(key => key.match(/https:\/\/.*orkg.org\/property\//));
     if (orkgProperties.length === 0) {
         return [];
     }
@@ -273,7 +273,7 @@ const parseJsonJdLevel = (jsonLd, newResourceId, fetchedOrkgProperties) => async
     const properties = [];
     for (const property of orkgProperties) {
         const propertyId = guid();
-        const getProperty = fetchedOrkgProperties.find(p => p.id === property.replace('https://orkg.org/property/', ''));
+        const getProperty = fetchedOrkgProperties.find(p => p.id === property.replace(/https:\/\/.*orkg.org\/property\//, ''));
         if (!getProperty) {
             toast.error(`Ignoring data for non-existing property: ${property}`);
         } else {
@@ -291,7 +291,7 @@ const parseJsonJdLevel = (jsonLd, newResourceId, fetchedOrkgProperties) => async
                     propertyId,
                     _class: value['@value'] ? 'literal' : 'resource',
                     label: label ?? '',
-                    classes: value['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? [],
+                    classes: value['@type']?.map(classUri => classUri.replace(/https:\/\/.*orkg.org\/class\//, '')) ?? [],
                     isExistingValue: false,
                     existingResourceId: resourceId, // value['@id'] ??
                     jsonLd: value,
@@ -314,66 +314,67 @@ const parseJsonJdLevel = (jsonLd, newResourceId, fetchedOrkgProperties) => async
     }
 };
 
-export const createContributionAction = ({ selectAfterCreation = false, fillStatements: performPrefill = false, statements = null }) => async (
-    dispatch,
-    getState,
-) => {
-    const newResourceId = guid();
-    const newContributionId = guid();
-    let newContributionLabel = `Contribution ${getState().addPaper.contributions.allIds.length + 1}`;
-    const additionalContributionClasses = [];
+export const createContributionAction =
+    ({ selectAfterCreation = false, fillStatements: performPrefill = false, statements = null }) =>
+    async (dispatch, getState) => {
+        const newResourceId = guid();
+        const newContributionId = guid();
+        let newContributionLabel = `Contribution ${getState().addPaper.contributions.allIds.length + 1}`;
+        const additionalContributionClasses = [];
 
-    if (performPrefill && statements) {
-        additionalContributionClasses.push(...(statements?.[0]?.['@type']?.map(classUri => classUri.replace('https://orkg.org/class/', '')) ?? []));
-        newContributionLabel = statements?.[0]?.['http://www.w3.org/2000/01/rdf-schema#label']?.[0]?.['@value'];
-    }
+        if (performPrefill && statements) {
+            additionalContributionClasses.push(
+                ...(statements?.[0]?.['@type']?.map(classUri => classUri.replace(/https:\/\/.*orkg.org\/class\//, '')) ?? []),
+            );
+            newContributionLabel = statements?.[0]?.['http://www.w3.org/2000/01/rdf-schema#label']?.[0]?.['@value'];
+        }
 
-    dispatch(
-        createContribution({
-            id: newContributionId,
-            resourceId: newResourceId,
-            label: newContributionLabel,
-        }),
-    );
-
-    dispatch(
-        createResource({
-            resourceId: newResourceId,
-            label: newContributionLabel,
-            classes: [CLASSES.CONTRIBUTION, ...additionalContributionClasses],
-        }),
-    );
-
-    if (performPrefill && statements?.length > 0) {
-        const propertiesToFetch = uniq(
-            flatten(
-                (await jsonld.flatten(statements)).map(properties =>
-                    Object.keys(properties).filter(key => key.startsWith('https://orkg.org/property/')),
-                ),
-            ),
-        ).map(key => key.replace('https://orkg.org/property/', ''));
-
-        const fetchedOrkgProperties = await Promise.all(propertiesToFetch.map(propertyId => getPredicate(propertyId)));
-
-        dispatch(parseJsonJdLevel(statements[0], newResourceId, fetchedOrkgProperties));
-    }
-
-    if (selectAfterCreation) {
-        dispatch(selectContribution(newContributionId));
-    }
-
-    // Dispatch loading template of classes
-    dispatch(fetchTemplatesOfClassIfNeeded(CLASSES.CONTRIBUTION));
-
-    if (performPrefill && statements) {
         dispatch(
-            fillStatements({
-                statements,
+            createContribution({
+                id: newContributionId,
                 resourceId: newResourceId,
+                label: newContributionLabel,
             }),
         );
-    }
-};
+
+        dispatch(
+            createResource({
+                resourceId: newResourceId,
+                label: newContributionLabel,
+                classes: [CLASSES.CONTRIBUTION, ...additionalContributionClasses],
+            }),
+        );
+
+        if (performPrefill && statements?.length > 0) {
+            const propertiesToFetch = uniq(
+                flatten(
+                    (await jsonld.flatten(statements)).map(properties =>
+                        Object.keys(properties).filter(key => key.match(/https:\/\/.*orkg.org\/property\//)),
+                    ),
+                ),
+            ).map(key => key.replace(/https:\/\/.*orkg.org\/property\//, ''));
+
+            const fetchedOrkgProperties = await Promise.all(propertiesToFetch.map(propertyId => getPredicate(propertyId)));
+
+            dispatch(parseJsonJdLevel(statements[0], newResourceId, fetchedOrkgProperties));
+        }
+
+        if (selectAfterCreation) {
+            dispatch(selectContribution(newContributionId));
+        }
+
+        // Dispatch loading template of classes
+        dispatch(fetchTemplatesOfClassIfNeeded(CLASSES.CONTRIBUTION));
+
+        if (performPrefill && statements) {
+            dispatch(
+                fillStatements({
+                    statements,
+                    resourceId: newResourceId,
+                }),
+            );
+        }
+    };
 
 export const deleteContributionAction = data => dispatch => {
     dispatch(deleteContribution(data.id));
@@ -420,31 +421,30 @@ export const getResourceObject = (data, resourceId, newProperties) => {
             return {
                 // Map properties of resource
                 /* Use the temp id from unique list of new properties */
-                [property.existingPredicateId
-                    ? property.existingPredicateId
-                    : newProperties.find(p => p[property.label])[property.label]]: property.valueIds.map(valueId => {
-                    const value = data.values.byId[valueId];
-                    if (value._class === ENTITIES.LITERAL && !value.isExistingValue) {
+                [property.existingPredicateId ? property.existingPredicateId : newProperties.find(p => p[property.label])[property.label]]:
+                    property.valueIds.map(valueId => {
+                        const value = data.values.byId[valueId];
+                        if (value._class === ENTITIES.LITERAL && !value.isExistingValue) {
+                            return {
+                                text: value.label,
+                                datatype: value.datatype,
+                            };
+                        }
+                        if (!value.isExistingValue) {
+                            const newResources = {};
+                            newResources[value.resourceId] = value.resourceId;
+                            return {
+                                '@temp': `_${value.resourceId}`,
+                                label: value.label,
+                                classes: value.classes && value.classes.length > 0 ? value.classes : null,
+                                values: { ...getResourceObject(data, value.resourceId, newProperties) },
+                            };
+                        }
                         return {
-                            text: value.label,
-                            datatype: value.datatype,
+                            '@id': newResources.includes(value.resourceId) ? `_${value.resourceId}` : value.resourceId,
+                            '@type': value._class,
                         };
-                    }
-                    if (!value.isExistingValue) {
-                        const newResources = {};
-                        newResources[value.resourceId] = value.resourceId;
-                        return {
-                            '@temp': `_${value.resourceId}`,
-                            label: value.label,
-                            classes: value.classes && value.classes.length > 0 ? value.classes : null,
-                            values: { ...getResourceObject(data, value.resourceId, newProperties) },
-                        };
-                    }
-                    return {
-                        '@id': newResources.includes(value.resourceId) ? `_${value.resourceId}` : value.resourceId,
-                        '@type': value._class,
-                    };
-                }),
+                    }),
             };
         }),
         customizer,
@@ -500,8 +500,4 @@ export const saveAddPaperAction = data => async dispatch => {
         toast.error('Something went wrong while saving this paper.');
         dispatch(previousStep());
     }
-};
-
-export const setInitialDataAction = data => dispatch => {
-    dispatch(setInitialData(data));
 };

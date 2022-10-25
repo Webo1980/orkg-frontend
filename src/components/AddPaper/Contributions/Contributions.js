@@ -69,21 +69,33 @@ const Contributions = () => {
     useEffect(() => {
         // if there is no contribution yet, create the first one
         if (contributions.allIds.length === 0) {
-            dispatch(
-                createContribution({
-                    selectAfterCreation: true,
-                    fillStatements: true,
-                    researchField: selectedResearchField,
-                    statements: initialData ?? undefined,
-                }),
-            );
+            if (initialData.length > 0) {
+                for (const [index, data] of initialData.entries()) {
+                    dispatch(
+                        createContribution({
+                            selectAfterCreation: index === 0,
+                            fillStatements: true,
+                            researchField: selectedResearchField,
+                            statements: data,
+                        }),
+                    );
+                }
+            } else {
+                dispatch(
+                    createContribution({
+                        selectAfterCreation: true,
+                        fillStatements: true,
+                        researchField: selectedResearchField,
+                    }),
+                );
+            }
             dispatch(
                 updateSettings({
                     openExistingResourcesInDialog: true,
                 }),
             );
         }
-    }, [contributions.allIds.length, dispatch, selectedResearchField]);
+    }, [contributions.allIds.length, dispatch, initialData, selectedResearchField]);
 
     const handleNextClick = async () => {
         if (isComputerScienceField) {
