@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
-
     <head>
-
         <meta charset="utf-8" />
 
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -27,6 +25,7 @@
                     https://cdn.syndication.twimg.com
                     https://cdnjs.cloudflare.com
                     https://app.chatwoot.com
+                    https://unpkg.com/pdfjs-dist@2.11.338/build/pdf.worker.min.js
                 ;
                 style-src 'self' 'unsafe-inline'
                     https://orkg.org
@@ -58,6 +57,7 @@
                 connect-src 'self'
                     blob:
                     localhost:*
+                    127.0.0.1:*
                     https://orkg.org
                     https://*.orkg.org
                     https://support.tib.eu
@@ -107,13 +107,10 @@
         <title>Open Research Knowledge Graph</title>
 
         <meta property="og:image" content="%PUBLIC_URL%/og_image.png" />
-
     </head>
 
     <body>
-
         <noscript> You need to enable JavaScript to run this app. </noscript>
-
         <div id="root"></div>
 
         <!--
@@ -131,13 +128,13 @@
             if (window.__ENV) {
                 const chatwoot_token = window.__ENV.REACT_APP_CHATWOOT_WEBSITE_TOKEN;
                 if (chatwoot_token && !chatwoot_token.includes('REACT_APP_CHATWOOT_WEBSITE_TOKEN')) {
-                    (function(d, t) {
+                    (function (d, t) {
                         var BASE_URL = 'https://app.chatwoot.com';
                         var g = d.createElement(t),
                             s = d.getElementsByTagName(t)[0];
                         g.src = BASE_URL + '/packs/js/sdk.js';
                         s.parentNode.insertBefore(g, s);
-                        g.onload = function() {
+                        g.onload = function () {
                             window.chatwootSDK.run({
                                 websiteToken: chatwoot_token,
                                 baseUrl: BASE_URL,
@@ -147,8 +144,5 @@
                 }
             }
         </script>
-
     </body>
-
 </html>
-
