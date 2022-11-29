@@ -5,11 +5,10 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { faClipboard } from '@fortawesome/free-regular-svg-icons';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCalendar, faTags, faArrowRight, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faTags, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import pluralize from 'pluralize';
-import UserAvatar from 'components/UserAvatar/UserAvatar';
-import { MISC } from 'constants/graphSettings';
 import ProvenanceBox from 'components/Resource/ProvenanceBox';
+import CreatedByBadge from 'components/Badges/CreatedByBadge/CreatedByBadge';
 
 const ItemMetadata = ({ item, showClasses, showCreatedAt, showCreatedBy, showProvenance, editMode }) => (
     <div className="d-flex">
@@ -35,14 +34,7 @@ const ItemMetadata = ({ item, showClasses, showCreatedAt, showCreatedBy, showPro
                     {item.classes.join(', ')}
                 </Badge>
             )}
-            {showCreatedBy && item.created_by !== MISC.UNKNOWN_ID && (
-                <Badge color="light" className="me-2">
-                    <Icon icon={faUser} /> Created by{' '}
-                    <span className="ms-1 d-inline-block" style={{ marginTop: -30, marginBottom: -30 }}>
-                        <UserAvatar size={20} userId={item.created_by} showDisplayName={true} />
-                    </span>
-                </Badge>
-            )}
+            {showCreatedBy && <CreatedByBadge creator={item.created_by} />}
             {showProvenance && (
                 <span className="d-inline-block">
                     <ProvenanceBox item={item} editMode={editMode} />

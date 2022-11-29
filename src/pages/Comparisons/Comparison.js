@@ -4,7 +4,6 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import ComparisonLoadingComponent from 'components/Comparison/ComparisonLoadingComponent';
 import ComparisonTable from 'components/Comparison/Comparison';
-import ProvenanceBox from 'components/Comparison/ComparisonFooter/ProvenanceBox/ProvenanceBox';
 import RelatedResources from 'components/Comparison/ComparisonFooter/RelatedResources/RelatedResources';
 import RelatedFigures from 'components/Comparison/ComparisonFooter/RelatedResources/RelatedFigures';
 import ComparisonMetaData from 'components/Comparison/ComparisonHeader/ComparisonMetaData';
@@ -97,8 +96,6 @@ const Comparison = () => {
                 <RelatedFigures />
                 <DataSources />
             </ContainerAnimated>
-
-            {comparisonResource.id && <ProvenanceBox />}
         </div>
     );
 };

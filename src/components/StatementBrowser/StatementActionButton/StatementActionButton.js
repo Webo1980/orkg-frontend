@@ -31,7 +31,7 @@ const StatementActionButton = props => {
     const handleClick = e => {
         e.stopPropagation();
         if (!props.requireConfirmation) {
-            props.action();
+            props.action(e);
         }
     };
 

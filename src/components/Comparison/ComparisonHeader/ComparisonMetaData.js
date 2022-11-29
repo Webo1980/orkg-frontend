@@ -12,17 +12,19 @@ import ROUTES from 'constants/routes.js';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Helmet } from 'react-helmet';
+import useCreator from 'components/Comparison/hooks/useCreator';
+import CreatedByBadge from 'components/Badges/CreatedByBadge/CreatedByBadge';
 
 const ComparisonMetaData = () => {
     const comparisonResource = useSelector(state => state.comparison.comparisonResource);
     const provenance = useSelector(state => state.comparison.provenance);
-
     const isLoadingMetadata = useSelector(state => state.comparison.isLoadingMetadata);
     const isFailedLoadingMetadata = useSelector(state => state.comparison.isFailedLoadingMetadata);
     const isFailedLoadingResult = useSelector(state => state.comparison.isFailedLoadingResult);
     const errors = useSelector(state => state.comparison.errors);
     const contributionsList = useSelector(state => state.comparison.configuration.contributionsList);
     const navigate = useNavigate();
+    const { createdBy } = useCreator();
 
     /**
      * Is case of an error the user can go to the previous link in history
@@ -110,7 +112,7 @@ const ComparisonMetaData = () => {
                                         />
                                     )}
                                 </h4>
-                                <div>
+                                <div className="mb-2">
                                     {comparisonResource.description && (
                                         <div style={{ lineHeight: 1.5 }} className="h6 mb-2">
                                             {comparisonResource.description}
@@ -119,7 +121,7 @@ const ComparisonMetaData = () => {
                                     <div>
                                         {comparisonResource.created_at && (
                                             <span className="badge bg-light me-2">
-                                                <Icon icon={faCalendar} className="text-primary" />{' '}
+                                                <Icon icon={faCalendar} />{' '}
                                                 {comparisonResource.created_at ? moment(comparisonResource.created_at).format('MMMM') : ''}{' '}
                                                 {comparisonResource.created_at ? moment(comparisonResource.created_at).format('YYYY') : ''}
                                             </span>
@@ -127,6 +129,7 @@ const ComparisonMetaData = () => {
                                         {comparisonResource.authors?.length > 0 && !isDoubleBlind && (
                                             <AuthorBadges authors={comparisonResource.authors} />
                                         )}
+                                        {!isDoubleBlind && <CreatedByBadge creator={createdBy?.id} />}
                                     </div>
                                     {comparisonResource.doi && (
                                         <div className="mb-1" style={{ lineHeight: 1.5 }}>

@@ -83,9 +83,6 @@ const Outline = () => {
                             <Link to="#dataSources">Data sources</Link>
                         </ListItem>
                     )}
-                    <ListItem>
-                        <Link to="#provenance">Provenance</Link>
-                    </ListItem>
                 </ol>
             </Box>
         </Wrapper>
