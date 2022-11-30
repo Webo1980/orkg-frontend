@@ -37,7 +37,7 @@
         "intro.js": "^6.0.0",
         "intro.js-react": "^0.7.0",
         "joi": "^17.7.0",
-        "jsonld": "^6.0.0",
+        "jsonld": "^8.1.0",
         "jspdf": "^2.5.1",
         "lodash": "^4.17.21",
         "make-latex": "^0.1.0",
