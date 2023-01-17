@@ -8,14 +8,14 @@ import NotFound from 'pages/NotFound';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Container, Nav, Navbar, NavItem, Alert } from 'reactstrap';
-import { getAboutPage, getAboutPagesMenu } from 'services/cms';
+import { getAboutPage, getAboutPagesMenu, getAboutPageVersions } from 'services/cms';
 import { reverseWithSlug } from 'utils';
 
 const About = () => {
     const [isLoadingMenu, setIsLoadingMenu] = useState(false);
     const [isFailedLoadingMenu, setIsFailedLoadingMenu] = useState(false);
     const [menuItems, setMenuItems] = useState([]);
-    const { loadPage, page, isLoading, isNotFound } = usePage();
+    const { loadPage, page, isLoading, isNotFound, PageHistory } = usePage();
     const params = useParams();
     const id = params.id ? parseInt(params.id) : null;
 
@@ -32,7 +32,7 @@ const About = () => {
                 return;
             }
             const pagePromise = getAboutPage(aboutPageId);
-            loadPage({ pagePromise });
+            loadPage({ pagePromise, historyPromise: getAboutPageVersions, historyRoute: ROUTES.ABOUT });
         };
         load();
     }, [params, loadPage, menuItems, id, page]);
@@ -60,7 +60,7 @@ const About = () => {
     }, [page]);
 
     useEffect(() => {
-        document.title = `${page?.title ?? ''} - ORKG`;
+        document.title = `${page?.attributes?.title ?? ''} - ORKG`;
     }, [page]);
 
     if (isNotFound) {
@@ -90,6 +90,7 @@ const About = () => {
                         <hr />
                     </>
                 )}
+                <PageHistory />
 
                 {!isLoadingMenu && isFailedLoadingMenu && <Alert color="danger">Failed loading menu</Alert>}
 

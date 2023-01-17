@@ -5,7 +5,7 @@ import MarkFeaturedUnlistedContainer from 'components/Comparison/ComparisonHeade
 import moment from 'moment';
 import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Select, { components } from 'react-select';
 import { Alert, Button, Modal, ModalBody, ModalHeader } from 'reactstrap';
@@ -64,7 +64,7 @@ const Time = styled.div`
     }
 `;
 
-const HistoryModal = ({ id, show, toggle, title, versions = [], routeDiff }) => {
+const HistoryModal = ({ id, show, toggle, title, versions = [], routeDiff = null, shouldHideFeaturedUnlisted = false }) => {
     const [selectedVersion1, setSelectedVersion1] = useState(null);
     const [selectedVersion2, setSelectedVersion2] = useState(null);
     const navigate = useNavigate();
@@ -84,48 +84,50 @@ const HistoryModal = ({ id, show, toggle, title, versions = [], routeDiff }) => 
             <ModalBody>
                 {versions.length > 0 && (
                     <div>
-                        <div className="p-2">
-                            {versions.length > 1 && (
-                                <div className="mb-4">
-                                    <h2 className="h6">Compare versions</h2>
-                                    <div className="d-flex w-100">
-                                        <Select
-                                            value={selectedVersion1}
-                                            onChange={v => setSelectedVersion1(v)}
-                                            options={options}
-                                            components={{ Option }}
-                                            blurInputOnSelect
-                                            openMenuOnFocus
-                                            className="flex-grow-1 me-1 focus-primary"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select version"
-                                        />
-                                        <Select
-                                            value={selectedVersion2}
-                                            onChange={v => setSelectedVersion2(v)}
-                                            options={options}
-                                            components={{ Option }}
-                                            blurInputOnSelect
-                                            openMenuOnFocus
-                                            className="flex-grow-1 me-1"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select version"
-                                        />
-                                        <SelectGlobalStyle />
-                                        <Button
-                                            disabled={!selectedVersion2 || !selectedVersion1}
-                                            color="secondary"
-                                            className="px-2"
-                                            onClick={handleCompare}
-                                        >
-                                            <Icon icon={faSearch} />
-                                        </Button>
+                        {routeDiff && (
+                            <div className="p-2">
+                                {versions.length > 1 && (
+                                    <div className="mb-4">
+                                        <h2 className="h6">Compare versions</h2>
+                                        <div className="d-flex w-100">
+                                            <Select
+                                                value={selectedVersion1}
+                                                onChange={v => setSelectedVersion1(v)}
+                                                options={options}
+                                                components={{ Option }}
+                                                blurInputOnSelect
+                                                openMenuOnFocus
+                                                className="flex-grow-1 me-1 focus-primary w-50"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select version"
+                                            />
+                                            <Select
+                                                value={selectedVersion2}
+                                                onChange={v => setSelectedVersion2(v)}
+                                                options={options}
+                                                components={{ Option }}
+                                                blurInputOnSelect
+                                                openMenuOnFocus
+                                                className="flex-grow-1 me-1 w-50"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select version"
+                                            />
+                                            <SelectGlobalStyle />
+                                            <Button
+                                                disabled={!selectedVersion2 || !selectedVersion1}
+                                                color="secondary"
+                                                className="px-2"
+                                                onClick={handleCompare}
+                                            >
+                                                <Icon icon={faSearch} />
+                                            </Button>
+                                        </div>
+                                        <hr />
                                     </div>
-                                    <hr />
-                                </div>
-                            )}
-                            <h2 className="h6 mb-0">Version history</h2>
-                        </div>
+                                )}
+                                <h2 className="h6 mb-0">Version history</h2>
+                            </div>
+                        )}
                         <div className="p-4">
                             {versions.map((version, i) => (
                                 <Activity key={version.id} className="ps-3 pb-3">
@@ -138,13 +140,15 @@ const HistoryModal = ({ id, show, toggle, title, versions = [], routeDiff }) => 
                                     </Time>
                                     <div>
                                         Version {versions.length - i}
-                                        <div className="ms-1 d-inline-block ">
-                                            <MarkFeaturedUnlistedContainer
-                                                size="xs"
-                                                id={version?.id}
-                                                featured={version?.featured}
-                                                unlisted={version?.unlisted}
-                                            />
+                                        <div className="ms-1 d-inline-block">
+                                            {!shouldHideFeaturedUnlisted && (
+                                                <MarkFeaturedUnlistedContainer
+                                                    size="xs"
+                                                    id={version?.id}
+                                                    featured={version?.featured}
+                                                    unlisted={version?.unlisted}
+                                                />
+                                            )}
                                         </div>
                                         {version.description && (
                                             <>
@@ -170,12 +174,13 @@ const HistoryModal = ({ id, show, toggle, title, versions = [], routeDiff }) => 
 };
 
 HistoryModal.propTypes = {
-    id: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     toggle: PropTypes.func.isRequired,
     show: PropTypes.bool.isRequired,
     title: PropTypes.string.isRequired,
+    shouldHideFeaturedUnlisted: PropTypes.bool,
     versions: PropTypes.array,
-    routeDiff: PropTypes.string.isRequired,
+    routeDiff: PropTypes.string,
 };
 
 export default HistoryModal;

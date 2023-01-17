@@ -4,11 +4,12 @@ import NotFound from 'pages/NotFound';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, Container } from 'reactstrap';
-import { getHelpCategory } from 'services/cms';
+import { getHelpCategory, getHelpCategoryArticles } from 'services/cms';
 import { reverseWithSlug } from 'utils';
 
 const HelpCenterCategory = () => {
     const [category, setCategory] = useState(null);
+    const [articles, setArticles] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isNotFound, setIsNotFound] = useState(false);
     const params = useParams();
@@ -21,6 +22,7 @@ const HelpCenterCategory = () => {
             try {
                 setIsLoading(true);
                 setCategory((await getHelpCategory(params.id)).data);
+                setArticles((await getHelpCategoryArticles(params.id)).data);
             } catch (e) {
                 setIsNotFound(true);
             } finally {
@@ -51,7 +53,7 @@ const HelpCenterCategory = () => {
                         </Breadcrumb>
                         <h1 className="h3 my-4">{category.attributes?.title}</h1>
                         <ul>
-                            {category.attributes?.help_articles?.data?.map(article => (
+                            {articles.map(article => (
                                 <li key={article.id}>
                                     <Link
                                         to={reverseWithSlug(ROUTES.HELP_CENTER_ARTICLE, {

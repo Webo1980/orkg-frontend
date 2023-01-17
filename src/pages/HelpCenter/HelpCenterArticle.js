@@ -7,24 +7,23 @@ import ROUTES from 'constants/routes';
 import { reverse } from 'named-urls';
 import NotFound from 'pages/NotFound';
 import { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, Container } from 'reactstrap';
-import { getHelpArticle } from 'services/cms';
+import { getHelpArticle, getHelpArticleVersions } from 'services/cms';
 
 const HelpCenterArticle = () => {
-    const { loadPage, page, isLoading, isNotFound } = usePage();
+    const { loadPage, page, isLoading, isNotFound, PageHistory } = usePage();
     const params = useParams();
 
     useEffect(() => {
         if (!params?.id) {
             return;
         }
-        const pagePromise = getHelpArticle(params.id);
-        loadPage({ pagePromise });
+        loadPage({ pagePromise: getHelpArticle(params.id), historyPromise: getHelpArticleVersions, historyRoute: ROUTES.HELP_CENTER_ARTICLE });
     }, [params, loadPage]);
 
     useEffect(() => {
-        document.title = `${page?.title ?? ''} - ORKG`;
+        document.title = `${page?.attributes?.title ?? ''} - ORKG`;
     }, [page]);
 
     if (isNotFound) {
@@ -59,6 +58,9 @@ const HelpCenterArticle = () => {
                             )}
                             <BreadcrumbItem active>{page.attributes?.title}</BreadcrumbItem>
                         </Breadcrumb>
+                        <hr />
+                        <PageHistory />
+
                         <h1 className="h3 my-4">{page.attributes?.title}</h1>
                         <CmsPage>{page.content}</CmsPage>
                     </>
