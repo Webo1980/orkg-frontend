@@ -41,6 +41,7 @@ import TitleBar from 'components/TitleBar/TitleBar';
 import Share from 'components/Comparison/Share';
 import pluralize from 'pluralize';
 import { SubTitle } from 'components/styled';
+import VizTool from './VizTool';
 
 const ComparisonHeaderMenu = props => {
     const dispatch = useDispatch();
@@ -76,6 +77,7 @@ const ComparisonHeaderMenu = props => {
     const [showAddContribution, setShowAddContribution] = useState(false);
     const [showComparisonVersions, setShowComparisonVersions] = useState(false);
     const [showExportCitationsDialog, setShowExportCitationsDialog] = useState(false);
+    const [showVizDialog, setShowVizDialog] = useState(false);
 
     const user = useSelector(state => state.auth.user);
 
@@ -192,6 +194,18 @@ const ComparisonHeaderMenu = props => {
                             <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={handleAddContribution}>
                                 <Icon icon={faPlus} className="me-1" /> Add contribution
                             </Button>
+                            {comparisonResource.id && (
+                                <Button
+                                    color="secondary"
+                                    size="sm"
+                                    onClick={() => {
+                                        setShowVizDialog(true);
+                                    }}
+                                    style={{ marginRight: 2 }}
+                                >
+                                    <Icon icon={faChartBar} className="me-1" /> Visualize Tool
+                                </Button>
+                            )}
                             {comparisonResource.id ? (
                                 <Button
                                     color="secondary"
@@ -442,6 +456,7 @@ const ComparisonHeaderMenu = props => {
             <AddVisualizationModal />
             <SelectProperties showPropertiesDialog={showPropertiesDialog} togglePropertiesDialog={() => setShowPropertiesDialog(v => !v)} />
             <Share showDialog={showShareDialog} toggle={() => setShowShareDialog(v => !v)} />
+            {showVizDialog && <VizTool showDialog={showVizDialog} toggle={() => setShowVizDialog(v => !v)} />}
         </>
     );
 };
