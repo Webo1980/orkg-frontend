@@ -400,6 +400,14 @@ export const getTemplateComponentData = (component, componentStatements) => {
         component.id,
     );
 
+    const requiredProperty = filterObjectOfStatementsByPredicateAndClass(
+        componentStatements,
+        PREDICATES.TEMPLATE_COMPONENT_REQUIRED_PROPERTY,
+        true,
+        null,
+        component.id
+    );
+
     const order = filterObjectOfStatementsByPredicateAndClass(componentStatements, PREDICATES.TEMPLATE_COMPONENT_ORDER, true, null, component.id);
 
     return {
@@ -419,6 +427,7 @@ export const getTemplateComponentData = (component, componentStatements) => {
         minOccurs: minOccurs ? minOccurs.label : 0,
         maxOccurs: maxOccurs ? maxOccurs.label : null,
         order: order ? order.label : null,
+        requiredProperty: requiredProperty ? requiredProperty.label==='true' : false,
         validationRules:
             validationRules && Object.keys(validationRules).length > 0
                 ? validationRules.reduce((obj, item) => {

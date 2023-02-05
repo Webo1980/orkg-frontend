@@ -251,6 +251,14 @@ export const saveTemplate = () => async (dispatch, getState) => {
                                     },
                                 ],
                             }),
+                            ...((component.requiredProperty || component.requiredProperty === 0) && {
+                                [PREDICATES.TEMPLATE_COMPONENT_REQUIRED_PROPERTY]: [
+                                    {
+                                        text: component.requiredProperty,
+                                        datatype: 'xsd:boolean',
+                                    },
+                                ],
+                            }),
                             [PREDICATES.TEMPLATE_COMPONENT_ORDER]: [
                                 {
                                     text: index,

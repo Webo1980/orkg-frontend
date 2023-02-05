@@ -77,6 +77,7 @@ function TemplateComponent(props) {
                     value={props.value}
                     minOccurs={props.minOccurs}
                     maxOccurs={props.maxOccurs}
+                    requiredProperty={props.requiredProperty}
                     validationRules={props.validationRules}
                     handleClassOfPropertySelect={props.handleClassOfPropertySelect}
                 />
@@ -91,6 +92,7 @@ TemplateComponent.propTypes = {
     value: PropTypes.object,
     minOccurs: PropTypes.string.isRequired,
     maxOccurs: PropTypes.string,
+    requiredProperty: PropTypes.bool,
     validationRules: PropTypes.object,
     moveCard: PropTypes.func.isRequired,
     handleDeleteTemplateComponent: PropTypes.func.isRequired,

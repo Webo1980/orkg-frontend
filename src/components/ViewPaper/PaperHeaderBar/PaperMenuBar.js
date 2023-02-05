@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Button, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faProjectDiagram, faPen, faTimes, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faProjectDiagram, faPen, faTimes, faEllipsisV, faBackward } from '@fortawesome/free-solid-svg-icons';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import PapersWithCodeModal from 'components/PapersWithCodeModal/PapersWithCodeModal';
+import ReproducePaperModal from 'components/ViewPaper/ReproducePaper/ReproducePaperModal';
 import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
@@ -21,10 +22,13 @@ function PaperMenuBar(props) {
     const label = useSelector(state => state.viewPaper.paperResource?.label);
     const doi = useSelector(state => state.viewPaper.doi?.label);
     const paperLink = useSelector(getPaperLink);
-
+    const [showReproducePaperModalDialog, setShowReproducePaperModalDialog] = useState(false);
     return (
         <>
             <ViewPaperButton paperLink={paperLink} doi={doi} title={label} />
+            <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowReproducePaperModalDialog(v => !v)}>
+                <Icon icon={faBackward} style={{ margin: '2px 4px 0 0' }} /> Reproducibility Report
+            </Button>
             <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => props.toggle('showGraphModal')}>
                 <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view
             </Button>
@@ -70,6 +74,10 @@ function PaperMenuBar(props) {
             </ButtonDropdown>
 
             <PapersWithCodeModal isOpen={isOpenPWCModal} toggle={() => setIsOpenPWCModal(v => !v)} label={label} />
+            <ReproducePaperModal
+                showReproducePaperModalDialog={showReproducePaperModalDialog}
+                toggleReproducePaperModalDialog={() => setShowReproducePaperModalDialog(v => !v)}
+            />
             <Publish showDialog={showPublishDialog} toggle={() => setShowPublishDialog(v => !v)} />
         </>
     );

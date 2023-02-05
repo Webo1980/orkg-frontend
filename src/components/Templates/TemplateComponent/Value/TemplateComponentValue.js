@@ -24,6 +24,9 @@ const TemplateComponentValue = props => {
             const _item = { ...item };
             if (j === props.id) {
                 _item[event.target.name] = event.target.value.toString();
+                if (event.target.id=="requiredProperty"){
+                    _item[event.target.name] = event.target.checked;
+                }
             }
             return _item;
         });
@@ -145,7 +148,15 @@ const TemplateComponentValue = props => {
                         </div>
                     </>
                 )}
-
+                <div className="mt-2">
+                  <FormGroup row>
+                    <Col sm={9}>
+                     <Label check>
+                       <small><Input on type="checkbox" name="requiredProperty" id="requiredProperty" onChange={onChange} checked={props.requiredProperty}/> This property is required for reproducibility</small>
+                     </Label>
+                    </Col>
+                  </FormGroup>
+                </div>
                 {props.value && ['Number', 'Integer', 'String'].includes(props.value.id) && (
                     <ValidationRules validationRules={props.validationRules} id={props.id} value={props.value} />
                 )}

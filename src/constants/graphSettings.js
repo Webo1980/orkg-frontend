@@ -32,6 +32,7 @@ export const PREDICATES = {
     TEMPLATE_COMPONENT_VALIDATION_RULE: 'TemplateComponentValidationRule',
     TEMPLATE_COMPONENT_OCCURRENCE_MAX: 'TemplateComponentOccurrenceMax',
     TEMPLATE_COMPONENT_OCCURRENCE_MIN: 'TemplateComponentOccurrenceMin',
+    TEMPLATE_COMPONENT_REQUIRED_PROPERTY: 'P37',
     TEMPLATE_COMPONENT_ORDER: 'TemplateComponentOrder',
     TEMPLATE_STRICT: 'TemplateStrict',
     TEMPLATE_LABEL_FORMAT: 'TemplateLabelFormat',

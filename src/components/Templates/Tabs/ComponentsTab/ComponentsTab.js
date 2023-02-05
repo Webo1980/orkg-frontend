@@ -61,6 +61,7 @@ const ComponentsTab = () => {
                     validationRules: {},
                     minOccurs: '0',
                     maxOccurs: null,
+                    requiredProperty: false,
                     order: null,
                 },
             ];
@@ -97,7 +98,7 @@ const ComponentsTab = () => {
     const handleSelectNewProperty = ({ id, value: label }) => {
         const templateComponents = [
             ...components,
-            { property: { id, label }, value: {}, validationRules: {}, minOccurs: '0', maxOccurs: null, order: null },
+            { property: { id, label }, value: {}, validationRules: {}, minOccurs: '0', maxOccurs: null, order: null, requiredProperty: false },
         ];
         dispatch(updateComponents(templateComponents));
         setShowAddProperty(false);
@@ -129,7 +130,6 @@ const ComponentsTab = () => {
     const handleSwitchIsStrictTemplate = event => {
         dispatch(updateIsStrict(event.target.checked));
     };
-
     return (
         <div className="p-4">
             {isOpenConfirmModal && (
@@ -159,6 +159,7 @@ const ComponentsTab = () => {
                             value={templateProperty.value}
                             minOccurs={templateProperty.minOccurs}
                             maxOccurs={templateProperty.maxOccurs}
+                            requiredProperty={templateProperty.requiredProperty}
                             validationRules={templateProperty.validationRules}
                             handlePropertiesSelect={handlePropertiesSelect}
                             handleClassOfPropertySelect={handleClassOfPropertySelect}

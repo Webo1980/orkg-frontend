@@ -19,6 +19,7 @@ import {
 import { createResource as createResourceApi, updateResourceClasses as updateResourceClassesApi } from 'services/backend/resources';
 import DATA_TYPES from 'constants/DataTypes.js';
 import { toast } from 'react-toastify';
+import { lab } from 'd3';
 
 const cookies = new Cookies();
 
@@ -882,6 +883,140 @@ export function getTemplateIDsByResourceID(state, resourceId) {
     templateIds = uniq(templateIds);
     return templateIds;
 }
+
+
+/**
+ * Get required properties for a reproducibility template by resource ID
+ *
+ * @param {Object} state Current state of the Store
+ * @param {String} resourceId Resource ID
+ * @return {String[]} list of required properties IDs
+ */
+ export function getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID(state, resourceId) {
+    if (!resourceId) {
+        return [];
+    }
+
+    // 1 - Get all template ids of this resource
+    const templateIds = getTemplateIDsByResourceID(state, resourceId);
+    console.log(templateIds);
+    // 2 - Collect the required properties
+    let requiredProperties = [];
+    for (const templateId of templateIds) {
+        const template = state.statementBrowser.templates[templateId];
+        const component = template.components;
+        if (template && component) {
+            for (const componentItem of component) {
+                console.log(componentItem);
+                if(componentItem.requiredProperty === true){
+                    requiredProperties = requiredProperties.concat(componentItem.property.label);
+                }
+            }
+        }
+    }
+    return requiredProperties;
+}
+
+/**
+ * Check whether a certain property has a resource value 
+ * (If at least one value is avilable for a resource)
+ * @param {Object} state Current state of the Store
+ * @param {String} resourceId Resource ID
+ * @param {String} propertyId Property ID
+ * @return {String} Whether it has value or not
+ */
+ export function hasPropertyValue(state, resourceId, propertyId) {
+    let propertiesValues=[];
+    let labelsArray = []
+    const property = state.statementBrowser.properties.byId;
+    console.log(property);
+    if (property) {
+        let i = 0;
+        const resources = state.statementBrowser.resources;
+        Object.entries(property).map((key, value) => {
+            console.log(key);
+            Object.entries(resources.byId).map((resourceKey, resourceValue) => {
+                console.log(resourceKey[1]);
+                const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
+                console.log(typeComponents);
+                if (typeComponents && typeComponents.length > 0) {
+                    if (key[1]["valueIds"].length >0) {
+                        Object.entries(key[1]["valueIds"]).map((IdsKey, IdsValue) => {
+                            if(resourceKey[1].valueId == IdsKey[1] && key[1].label == propertyId){
+                                console.log(resourceKey[1]);
+                                labelsArray[i]=[resourceKey[1].label, resourceKey[1]._class, resourceKey[1].propertyId,resourceKey[1].id];
+                                propertiesValues[propertyId]=labelsArray
+                                i++;
+                            }
+                        });    
+                    }
+                }
+            });    
+        });
+    }
+    console.log(propertiesValues);
+    return propertiesValues;
+}
+
+/**
+ * Check whether a certain contribution has a certain property 
+ * (If the property avilable in the contribution)
+ * @param {Object} state Current state of the Store
+ * @param {String} resourceId Resource ID
+ * @param {String} propertyId Property ID
+ * @return {Boolean} Whether the contribution has the property or not
+ */
+/*export function doesContributionHasRequiredProperties(state, resourceId, requiredPropertyIds) {
+    let contributionProperties= [];
+    let allFounded;
+    let i = 0;
+    const property = state.statementBrowser.properties.byId;
+    if (property) {
+        Object.entries(property).map((key, value) => {
+            //console.log(key, value)
+            const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
+            //console.log(typeComponents);
+            if (typeComponents && Object.keys(typeComponents).length > 0) {
+                //contributionProperties = Object.entries(typeComponents).map((key, value) => {
+                    //return key[1]["property"]["id"] 
+                    contributionProperties[i] = typeComponents[0]["property"]["id"];
+                //})
+                
+            }
+            i++;
+        });
+        console.log(contributionProperties, requiredPropertyIds);
+        allFounded = contributionProperties.every( property => requiredPropertyIds.includes(property) );
+        console.log(allFounded);
+    }
+    return allFounded;
+}*/
+
+export function contributionProperties(state, resourceId) {
+    let contributionProperties= [];
+    let allFounded;
+    let i = 0;
+    const property = state.statementBrowser.properties.byId;
+    if (property) {
+        Object.entries(property).map((key, value) => {
+            console.log(key[1].existingPredicateId)
+            console.log(key[1]);
+            const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
+            console.log(typeComponents);
+            if (typeComponents && Object.keys(typeComponents).length > 0) {
+                //contributionProperties = Object.entries(typeComponents).map((key, value) => {
+                    //return key[1]["property"]["id"] 
+                    contributionProperties[i] = typeComponents[0]["property"]["label"];
+                //})
+                
+            }
+            i++;
+        });
+        console.log(contributionProperties);
+    }
+    return contributionProperties;
+}
+
 
 /**
  * Get components by resource ID

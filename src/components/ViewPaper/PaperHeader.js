@@ -6,6 +6,7 @@ import useMarkFeaturedUnlisted from 'components/MarkFeaturedUnlisted/hooks/useMa
 import MarkFeatured from 'components/MarkFeaturedUnlisted/MarkFeatured/MarkFeatured';
 import MarkUnlisted from 'components/MarkFeaturedUnlisted/MarkUnlisted/MarkUnlisted';
 import useDeletePapers from 'components/ViewPaper/hooks/useDeletePapers';
+import ReproducePaperModal from 'components/ViewPaper/ReproducePaper/ReproducePaperModal';
 import OpenCitations from 'components/ViewPaper/OpenCitations/OpenCitations';
 import ROUTES from 'constants/routes';
 import moment from 'moment';
@@ -17,6 +18,7 @@ import { Link } from 'react-router-dom';
 import { Button, Alert } from 'reactstrap';
 import { getAltMetrics } from 'services/altmetric/index';
 import { loadPaper } from 'slices/viewPaperSlice';
+import Tippy from '@tippyjs/react';
 import EditPaperDialog from './EditDialog/EditPaperDialog';
 
 const PaperHeader = props => {
@@ -30,6 +32,7 @@ const PaperHeader = props => {
     // make sure a user is signed in (not null)
     const userCreatedThisPaper = viewPaper.paperResource.created_by && userId && viewPaper.paperResource.created_by === userId;
     const showDeleteButton = props.editMode && (isCurationAllowed || userCreatedThisPaper);
+    const [showReproducePaperModalDialog, setShowReproducePaperModalDialog] = useState(false);
     const { isFeatured, isUnlisted, handleChangeStatus } = useMarkFeaturedUnlisted({
         resourceId: viewPaper.paperResource.id,
         unlisted: viewPaper.paperResource.unlisted,
@@ -93,6 +96,33 @@ const PaperHeader = props => {
                         </small>
                     </div>
                 )}
+                {altMetrics && (
+                    <div className="flex-shrink-0 me-2">
+                        <Tippy content="The paper is 30% reproducible, click to see the full report">
+                            <small>
+                                <a href='#'  onClick={() => setShowReproducePaperModalDialog(v => !v)}>
+                                    <ReactStoreIndicator
+                                        value={60}
+                                        maxValue={100}
+                                        width={70}
+                                        lineWidth={10}
+                                        textStyle={{color:'#646464', fontWeight:'bold'}}
+                                        stepColors={[
+                                            '#ffffff',
+                                            '#ed8d00',
+                                            '#f1bc00',
+                                            '#84c42b',
+                                            '#53b83a',
+                                            '#3da940',
+                                            '#3da940',
+                                            '#3da940',
+                                          ]}
+                                    />
+                                </a>
+                            </small>
+                        </Tippy>    
+                    </div>
+                )}
             </div>
 
             <div className="clearfix" />
@@ -153,6 +183,11 @@ const PaperHeader = props => {
                     </div>
                 )}
             </div>
+            
+            <ReproducePaperModal
+                showReproducePaperModalDialog={showReproducePaperModalDialog}
+                toggleReproducePaperModalDialog={() => setShowReproducePaperModalDialog(v => !v)}
+            />
 
             {isOpenEditModal && (
                 <EditPaperDialog
