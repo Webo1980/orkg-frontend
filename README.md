@@ -22,6 +22,9 @@ Go to the frontend directory:
 Install the dependencies by running:
 
     npm install --force
+Some times need to run the following command to upgrade dependencies
+
+    npm audit --fix 
 
 Copy the file `default.env` to `.env`:
 
