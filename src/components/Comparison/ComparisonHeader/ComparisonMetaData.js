@@ -1,4 +1,4 @@
-import { Alert } from 'reactstrap';
+import { Alert, Badge } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faCalendar } from '@fortawesome/free-solid-svg-icons';
 import AuthorBadges from 'components/Badges/AuthorBadges/AuthorBadges';
@@ -14,6 +14,7 @@ import { useSelector } from 'react-redux';
 import { Helmet } from 'react-helmet';
 import useCreator from 'components/Comparison/hooks/useCreator';
 import CreatedByBadge from 'components/Badges/CreatedByBadge/CreatedByBadge';
+import { CONFERENCE_REVIEW_MISC } from 'constants/organizationsTypes';
 
 const ComparisonMetaData = () => {
     const comparisonResource = useSelector(state => state.comparison.comparisonResource);
@@ -34,7 +35,8 @@ const ComparisonMetaData = () => {
     };
 
     const isDoubleBlind =
-        provenance?.organization?.metadata?.is_double_blind && moment().format('YYYY-MM-DD') < provenance?.organization?.metadata?.date;
+        provenance?.metadata?.review_process === CONFERENCE_REVIEW_MISC.DOUBLE_BLIND &&
+        moment().format('YYYY-MM-DD') < provenance?.metadata?.start_date;
 
     const ldJson = {
         mainEntity: {
@@ -63,9 +65,9 @@ const ComparisonMetaData = () => {
                 <meta property="og:description" content={comparisonResource?.description} />
                 <script type="application/ld+json">{JSON.stringify(ldJson)}</script>
             </Helmet>
-            <ShareLinkMarker typeOfLink="comparison" title={comparisonResource?.label} />
+            {!!comparisonResource.id && <ShareLinkMarker typeOfLink="comparison" title={comparisonResource?.label} />}
             {!isLoadingMetadata && (isFailedLoadingResult || isFailedLoadingMetadata) && (
-                <div>
+                <div className="py-4">
                     {isFailedLoadingResult && contributionsList.length < 2 ? (
                         <>
                             <div className="clearfix" />
@@ -96,65 +98,67 @@ const ComparisonMetaData = () => {
                 </div>
             )}
 
-            {!isFailedLoadingMetadata && !isFailedLoadingResult && (
-                <div className="p-0 d-flex align-items-start">
-                    <div className="flex-grow-1">
-                        {(comparisonResource.label || comparisonResource.id) && (
-                            <>
-                                <h4 className="mb-4 mt-4">
-                                    {comparisonResource.label}{' '}
-                                    {comparisonResource.id && (
-                                        <MarkFeaturedUnlistedContainer
-                                            size="xs"
-                                            id={comparisonResource?.id}
-                                            featured={comparisonResource?.featured}
-                                            unlisted={comparisonResource?.unlisted}
-                                        />
-                                    )}
-                                </h4>
-                                <div className="mb-2">
-                                    {comparisonResource.description && (
-                                        <div style={{ lineHeight: 1.5 }} className="h6 mb-2">
-                                            {comparisonResource.description}
-                                        </div>
-                                    )}
+            {!!comparisonResource.id && !isFailedLoadingMetadata && !isFailedLoadingResult && (
+                <div className="pt-2 pb-3">
+                    <div className="p-0 d-flex align-items-start">
+                        <div className="flex-grow-1">
+                            {(comparisonResource.label || comparisonResource.id) && (
+                                <>
+                                    <h4 className="mb-2 mt-4">
+                                        {comparisonResource.label}{' '}
+                                        {comparisonResource.id && (
+                                            <MarkFeaturedUnlistedContainer
+                                                size="xs"
+                                                id={comparisonResource?.id}
+                                                featured={comparisonResource?.featured}
+                                                unlisted={comparisonResource?.unlisted}
+                                            />
+                                        )}
+                                    </h4>
                                     <div>
-                                        {comparisonResource.created_at && (
-                                            <span className="badge bg-light me-2">
-                                                <Icon icon={faCalendar} />{' '}
-                                                {comparisonResource.created_at ? moment(comparisonResource.created_at).format('MMMM') : ''}{' '}
-                                                {comparisonResource.created_at ? moment(comparisonResource.created_at).format('YYYY') : ''}
-                                            </span>
-                                        )}
-                                        {comparisonResource.authors?.length > 0 && !isDoubleBlind && (
-                                            <AuthorBadges authors={comparisonResource.authors} />
-                                        )}
-                                        {!isDoubleBlind && <CreatedByBadge creator={createdBy?.id} />}
-                                    </div>
-                                    {comparisonResource.doi && (
-                                        <div className="mb-1" style={{ lineHeight: 1.5 }}>
-                                            <small>
-                                                DOI:{' '}
-                                                <a href={`https://doi.org/${comparisonResource.doi}`} target="_blank" rel="noopener noreferrer">
-                                                    https://doi.org/{comparisonResource.doi}
-                                                </a>
-                                            </small>
+                                        <div>
+                                            {comparisonResource.created_at && (
+                                                <Badge color="light" className="me-2 mb-2">
+                                                    <Icon icon={faCalendar} />{' '}
+                                                    {comparisonResource.created_at ? moment(comparisonResource.created_at).format('MMMM') : ''}{' '}
+                                                    {comparisonResource.created_at ? moment(comparisonResource.created_at).format('YYYY') : ''}
+                                                </Badge>
+                                            )}
+                                            {comparisonResource.authors?.length > 0 && !isDoubleBlind && (
+                                                <AuthorBadges authors={comparisonResource.authors} />
+                                            )}
+                                            {!isDoubleBlind && <CreatedByBadge creator={createdBy?.id} />}
                                         </div>
-                                    )}
-                                    {comparisonResource.video && (
-                                        <small className="d-flex mb-1">
-                                            <div className="me-2">Video: </div>
-                                            <Video options={{ inModal: true }} type={ENTITIES.LITERAL}>
-                                                {comparisonResource.video.label}
-                                            </Video>
-                                        </small>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
+                                        {comparisonResource.description && (
+                                            <div style={{ lineHeight: 1.5 }} className="h6 mb-2">
+                                                {comparisonResource.description}
+                                            </div>
+                                        )}
+                                        {comparisonResource.doi && (
+                                            <div className="mb-1" style={{ lineHeight: 1.5 }}>
+                                                <small>
+                                                    DOI:{' '}
+                                                    <a href={`https://doi.org/${comparisonResource.doi}`} target="_blank" rel="noopener noreferrer">
+                                                        https://doi.org/{comparisonResource.doi}
+                                                    </a>
+                                                </small>
+                                            </div>
+                                        )}
+                                        {comparisonResource.video && (
+                                            <small className="d-flex mb-1">
+                                                <div className="me-2">Video: </div>
+                                                <Video options={{ inModal: true }} type={ENTITIES.LITERAL}>
+                                                    {comparisonResource.video.label}
+                                                </Video>
+                                            </small>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
 
-                    {comparisonResource.id && <OrganizationBanner />}
+                        {comparisonResource.id && <OrganizationBanner />}
+                    </div>
                 </div>
             )}
         </>
