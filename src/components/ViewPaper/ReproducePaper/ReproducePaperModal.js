@@ -1,114 +1,82 @@
 import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faAngleDown, faQuestionCircle , faCheck, faTimes,faNotEqual, faInfo, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faQuestionCircle , faCheck, faTimes,faMinus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { SortableContainer } from 'react-sortable-hoc';
-import ContentLoader from 'react-content-loader';
 import Tabs, { TabPane } from 'rc-tabs';
 import { useParams } from 'react-router-dom';
-import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Col, Container, FormGroup, Row } from 'reactstrap';
+import { Alert, Col, Container, Row } from 'reactstrap';
 import { Modal, ModalHeader, ModalBody, Table } from 'reactstrap';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Tippy from '@tippyjs/react';
-import AddContributionButton from 'components/ContributionTabs/AddContributionButton';
-import ProgressBar from 'react-bootstrap/ProgressBar';
 import ContributionTab from 'components/ContributionTabs/ContributionTab';
-//import { StyledHorizontalContributionsList, StyledHorizontalContribution, AddContribution } from 'components/AddPaper/Contributions/styled';
+import { useNavigate } from 'react-router-dom';
+import { reverse } from 'named-urls';
+import ROUTES from 'constants/routes.js';
+import axios from "axios";
+const GitUrlParse = require("git-url-parse");
+const { Octokit } = require("@octokit/rest");
+const octokit = new Octokit({
+    auth: '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'
+})
+
 import { 
             getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID, 
             hasPropertyValue, 
-            getTemplateIDsByResourceID,
-            getPropertyIdByByResourceAndPredicateId,
-            contributionProperties,
+            getPropertyIdByByResourceAndPredicateId
        } from 'slices/statementBrowserSlice';
-import { ar } from 'faker/lib/locales';
-import { boolean } from 'joi';
-import { StyledContributionTabs, GlobalStyle } from 'components/ContributionTabs/styled';
-import { selectContribution } from 'slices/addPaperSlice';
-import { tree } from 'd3';
+
+import {selectContribution} from 'slices/viewPaperSlice';
+
+import { StyledContributionTabs } from 'components/ContributionTabs/styled';
 
 const ReproducePaperModal = (props) => {
   const { resourceId, contributionId } = useParams();
+  const firstContributionId = useSelector(state => contributionId ??state.viewPaper.contributions?.[0].id);
   const state = useSelector(state => state);
   const contributions = state.viewPaper.contributions;
-  console.log(state.statementBrowser.properties.byId)
   const templates = state.statementBrowser.templates;
-  const isLoading = state.contributionEditor.isLoading;
-  const [selectedContribution, setSelectedContribution] = useState(contributionId);
-  console.log(selectedContribution)
+  const [selectedContribution, setSelectedContribution] = useState(firstContributionId);
   const requiredPropertiesIDsForReproducibility = getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID(state,selectedContribution);
-  console.log(requiredPropertiesIDsForReproducibility)
-  const contributionPropertiesList = contributionProperties(state, selectedContribution);
-  console.log(contributionPropertiesList)
-  console.log(resourceId)
   let availabilityScore = [];
   let accessibilityScore = [];
   let linkabilityScore = [];
   let licenseScore = [];
-  const [isLoadingContributionFailed, setLoadingContributionFailed] = useState(false);
-  const [urlStatus, seturlStatus] = useState(false);
-  const [licenseStatus, setLicenseStatus] = useState(false);
-  const [checkedPropertyValue,setCheckedPropertyValue]=useState('https://gitlab.com/TIBHannover/orkg/orkg-frontend');
-  useEffect (() => {
-    const isAvailable = () => {
-            fetch(checkedPropertyValue)
-            .then(response => {
-                (response.status == 200) ? seturlStatus(true) : seturlStatus(false);
-            })
-            .catch(error =>  {
-                seturlStatus(false)
-            });
-        }
-        isAvailable();
-  }, [urlStatus,checkedPropertyValue]);
-
-  useEffect (() => {
-    const isLicensed = () => {
-            
-        }
-        isLicensed();
-  }, [licenseStatus,checkedPropertyValue]);
-    
-  useEffect(() => {
-      if (contributions?.length && (selectedContribution !== contributionId || !contributionId)) {
-          try {
-              // apply selected contribution
-              if (
-                  contributionId &&
-                  !contributions.some(el => {
-                      return el.id === contributionId;
-                  })
-              ) {
-                  throw new Error('Contribution not found');
-              }
-              const selected =
-                  contributionId &&
-                  contributions.some(el => {
-                      return el.id === contributionId;
-                  })
-                      ? contributionId
-                      : contributions[0].id;
-              setSelectedContribution(selected);
-          } catch (error) {
-              console.log(error);
-              setLoadingContributionFailed(true);
-          }
-      }
-  }, [contributionId, contributions, selectedContribution]);
-
-  let sendUrl = (propertyValue) => {
-    console.log(propertyValue);
-    if(propertyValue.startsWith("http")){
-        setCheckedPropertyValue(propertyValue);
-    }
-  }
-  const templateIds = getTemplateIDsByResourceID(state, contributionId ? contributionId : state.statementBrowser.selectedResource);
-  console.log(templateIds);
+  const [checkedPropertyAccessibility,setCheckedPropertyAccessibility]=useState(false);
+  const [checkedPropertyLicense,setCheckedPropertyLicense]=useState('');
+  const [currentPropertyValue,setPropertyValue]=useState('');
+  const [currentPropertyType,setPropertyType]=useState('');
+  const dispatch = useDispatch();
   
+  useEffect(() => {
+    setSelectedContribution(contributionId ?? firstContributionId);
+  }, [firstContributionId]);
+
+  const navigate = useNavigate();
+  const handleSelectContribution = cId => {
+    // get the contribution label
+    const contributionResource = contributions.find(c => c.id === selectedContribution);
+    if (contributionResource) {
+        setLoadingContributionFailed(false);
+        dispatch    (
+            selectContribution({
+                contributionId: cId,
+                contributionLabel: contributionResource.label,
+            }),
+        );
+    } 
+  };
+
   const onTabChange = key => {
+    navigate(
+        reverse(ROUTES.VIEW_PAPER_CONTRIBUTION, {
+            resourceId,
+            contributionId: key,
+        }),
+    );
     handleSelectContribution(key);
+    setSelectedContribution(key);
   };
 
   const renderTabBar = (props, DefaultTabBar) => (
@@ -141,114 +109,51 @@ const ReproducePaperModal = (props) => {
   `;
 
   if(props.showReproducePaperModalDialog===true){
-
      let isReproducibilityTemplateUsed = [];
      if(Object.keys(templates).length > 0 ) {
           Object.entries(templates).map((key, value) => {
             if(Object.keys(templates).length > 0 ) {
                 const templateName = key[1].label
-                console.log(key[1].label);
                 if(templateName!="" && typeof templateName === "string") {
-                    isReproducibilityTemplateUsed[value] = templateName.startsWith("Reproducible") 
-                    console.log(isReproducibilityTemplateUsed[value],value, key,templateName.startsWith("Reproducible"));
+                    isReproducibilityTemplateUsed[value] = templateName.startsWith("Reproducible")
                 }
             }
          });
-      }
-      
-    /*let areReproducibilityTemplateRequiredPropertiesUsed = [];
-     if(Object.keys(templates).length > 0 ) {
-         let i = 0;
-          Object.entries(templates).map((key, value) => {
-            if(Object.keys(templates).length > 0 ) {
-                const templateName = key[1].label
-                if(templateName!="" && typeof templateName === "string") {
-                    if(templateName.indexOf("Reproducible") == 0){
-                        //console.log(key[1].components,templateName);
-                        console.log(typeof key[1].components);
-                        let requiredPropertiesObject = key[1].components.filter(function (prop)
-                        {
-                            return prop.requiredProperty === true ;
-                        });
-                        console.log(Object.entries(requiredPropertiesObject).map((key, value) => {return key[1]["property"]["id"]}));
-                        areReproducibilityTemplateRequiredPropertiesUsed[i] = doesContributionHasRequiredProperties(state, selectedContribution, Object.entries(requiredPropertiesObject).map((key, value) => {return key[1]["property"]["id"]}))
-                        console.log(areReproducibilityTemplateRequiredPropertiesUsed);
-                    }
-                }
-            }
-            i++;
-         });
-      }
-      console.log(areReproducibilityTemplateRequiredPropertiesUsed);*/
-      //const doesContributionHasRequiredProperty =  (propertyId) => {
-        
-      //};
-
-    /*if(Object.keys(requiredPropertiesIDsForReproducibility).length > 0 ) {
-        Object.entries(requiredPropertiesIDsForReproducibility).map((key, index) => {
-            let propertyValue = hasPropertyValue(state, contributionId ? contributionId : state.statementBrowser.selectedResource, key[1]);
-            console.log(propertyValue);
-        });
-    }
-    
-    const propertiesValues = [];
-    Object.entries(requiredPropertiesIDsForReproducibility).map((key, index) => {
-        let propertyValue = hasPropertyValue(state, contributionId ? contributionId : state.statementBrowser.selectedResource, key[1]);
-        if(propertyValue!= ""){
-            propertiesValues.push(<ul><li>{}</li></ul>)   
-        }
-        else{
-            propertiesValues.push(<span>All are set</span>)
-        }
-    });*/
-    
-    let getColumnScore = (columnName) => {
-        let nodes= document.body.getElementsByTagName('*'),
-        list= nodes.length, columnValues= [], temp, node;
-        while(list){
-            temp= nodes[--list].id || '';
-            if(temp.indexOf(columnName)== 0) {
-                node = document.getElementById(temp);
-                console.log(node.innerHTML);
-                //if(typeof node.innerHTML!==undefined){
-                    //if (!isNaN(parseInt(node.innerHTML))){
-                        //htmlContent += parseInt(node.innerHTML);
-                        columnValues.push(parseInt(node.innerHTML));
-                        console.log(parseInt(node.innerHTML));
-                    //}
-                //}
-            }
-        }
-        console.log(columnValues);
-        return columnValues.reduce(function(acc, val) { return acc + val; }, 0)/columnValues.length;
-    }
-
-    let getScoreByProperty = (propertyValue) => {
-        let accessibilityScore = [];
-        return accessibilityScore.push(score);
     }
 
     let checkAccessibility = (propertyValue, propertyType,accessibilityScore) => {
         const accessibility = [];
-        console.log(propertyValue);
-        console.log(propertyType);
         if(propertyValue!=""){
             if(propertyType=="literal" && propertyValue.startsWith("http")){
-                //sendUrl(propertyValue);
-               if(urlStatus == true){
-                accessibilityScore[propertyValue] = 100;
-                accessibility.push(<Tippy content={
-                    <>
-                        The given url: {checkedPropertyValue} is reachable {urlStatus}
-                    </>
-                }><Icon icon={faCheck} className="mt-3 me-3 text-success" /></Tippy>);
+                    const fetchAccessibility =  () => {
+                    try {
+                            axios.get(propertyValue, {params: {}})
+                            .then(response => {
+                            (response.status == 200) ? setCheckedPropertyAccessibility(true) : setCheckedPropertyAccessibility(false);
+                            })
+                            .catch(error => {
+                            setCheckedPropertyAccessibility(false);
+                            })
+                      } catch (error) {
+                            setCheckedPropertyAccessibility(false);
+                      }
+                    };
+                    fetchAccessibility();
+                if(checkedPropertyAccessibility == true){
+                    accessibilityScore[propertyValue] = 100;
+                    accessibility.push(<Tippy content={
+                        <>
+                            The given url: {propertyValue} is reachable
+                        </>
+                    }><Icon icon={faCheck} className="mt-2 text-success" /></Tippy>);
                }
                else{
-                accessibility.push(<Tippy content={
-                    <>
-                        The given url: {checkedPropertyValue} is unreachable {urlStatus}
-                    </>
-                }><Icon icon={faXmark} className="mt-3 me-3 text-danger" /></Tippy>);
+                    accessibilityScore[propertyValue] = 0;
+                    accessibility.push(<Tippy content={
+                        <>
+                            The given url: {propertyValue} is unreachable
+                        </>
+                    }><Icon icon={faXmark} className="mt-2 text-danger" /></Tippy>);
                }
             }
             else{
@@ -257,14 +162,13 @@ const ReproducePaperModal = (props) => {
                         <>
                             The property type : {propertyType} is not a valid url, so it is inapplicable for this check
                         </>
-                    }><Icon icon={faNotEqual}  style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} /></Tippy>);
+                    }><Icon icon={faMinus}  style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} /></Tippy>);
             }
         }
         else{
                 accessibilityScore[propertyValue] = 0;
-                accessibility.push(<Tippy content="The property has to have at least one value"><Icon icon={faTimes} className="mt-3 me-3 text-danger" /></Tippy>);
+                accessibility.push(<Tippy content="The property has to have at least one value"><Icon icon={faTimes} className="mt-2 text-danger" /></Tippy>);
         }
-        console.log([accessibility,accessibilityScore]);
         return [accessibility,accessibilityScore];
     }
 
@@ -276,25 +180,21 @@ const ReproducePaperModal = (props) => {
                 <>
                     The property has value: {propertyValue}
                 </>
-            }><Icon icon={faCheck} className="mt-3 me-3 text-success" /></Tippy>);
+            }><Icon icon={faCheck} className="mt-2 text-success" /></Tippy>);
         }
         else{
                 availabilityScore[propertyValue] = 0;
-                availability.push(<Tippy content="The property has to have at least one value"><Icon icon={faTimes} className="mt-3 me-3 text-danger" /></Tippy>);
+                availability.push(<Tippy content="The property has to have at least one value"><Icon icon={faTimes} className="mt-2 text-danger" /></Tippy>);
         }
-        console.log(availabilityScore)
         return [availability,availabilityScore];
     }
 
     let checkLinkability = (propertyValue, propertyType, resourceId, linkabilityScore, propertyName) => {
         const linkability = [];
-        console.log(propertyType, resourceId);
         if(propertyType == "resource"){
             let resources = state.statementBrowser.resources;
             let sameAsValueId = getPropertyIdByByResourceAndPredicateId(state, resourceId, 'SAME_AS');
-            console.log(sameAsValueId);
             if(sameAsValueId){
-                console.log(sameAsValueId);  //45102e49-b5e4-7a1d-3dda-71aae529b053
                 let valueID = state.statementBrowser.properties.byId[sameAsValueId].valueIds;
                 if(valueID==''){
                     linkabilityScore[propertyValue] = 0;
@@ -302,22 +202,20 @@ const ReproducePaperModal = (props) => {
                         <>
                             The property is not of type resource, and cannot be linked with other resources
                         </>
-                    }><Icon icon={faXmark} className="mt-3 me-3 text-danger" /></Tippy>);
+                    }><Icon icon={faXmark} className="mt-2 text-danger" /></Tippy>);
                 }
                 else{
                     Object.entries(resources.byId).map((key, value) => {
                         if(key[1].valueId == valueID){
                             linkabilityScore[propertyValue] = 100;
-                            console.log(requiredPropertiesIDsForReproducibility, value);
                             linkability.push(<Tippy content={
                                 <>
-                                    The resource {propertyName} is linked with the external ontology {key[1].label}
+                                    The resource {propertyValue} is linked with the external ontology {key[1].label}
                                 </>
-                            }><Icon icon={faCheck} className="mt-3 me-3 text-success" /></Tippy>);
+                            }><Icon icon={faCheck} className="mt-2 text-success" /></Tippy>);
                         }
                     });    
                 }
-                console.log(resources);
             }
             else{
                     linkabilityScore[propertyValue] = 0;    
@@ -325,10 +223,8 @@ const ReproducePaperModal = (props) => {
                         <>
                             The resource {propertyValue} is not linked to any external ontolgies
                         </>
-                    }><Icon icon={faXmark} className="mt-3 me-3 text-danger" /></Tippy>);
+                    }><Icon icon={faXmark} className="mt-2 text-danger" /></Tippy>);
             }
-            console.log(propertyValue);  // 590861b9-9fc6-e069-2051-8b5a551eed5b
-            console.log(resourceId);
         }
         else{   
                 linkabilityScore[propertyValue] = 100;
@@ -336,34 +232,57 @@ const ReproducePaperModal = (props) => {
                     <>
                         The property is not of type resource, so it is inapplicable for this check
                     </>
-                }><Icon icon={faNotEqual}  style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} /></Tippy>);
+                }><Icon icon={faMinus}  style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} /></Tippy>);
         }
         return [linkability,linkabilityScore];
     }
 
     let checkLicense  = (propertyValue, propertyType ,licenseScore) => {
         const license = [];
-        console.log(propertyValue);
-        console.log(propertyType);
         if(propertyValue!=""){
             if(propertyType=="literal" && propertyValue.startsWith("http")){
-                //sendUrl(propertyValue);
-               if(urlStatus == true){
-                    licenseScore[propertyValue] = 100;
-                    license.push(<Tippy content={
-                        <>
-                            The given url: {checkedPropertyValue} has a valid license
-                        </>
-                    }><Icon icon={faCheck} className="mt-3 me-3 text-success" /></Tippy>);
-               }
-               else{
-                    licenseScore[propertyValue] = 0;
-                    license.push(<Tippy content={
-                        <>
-                            The given url: {checkedPropertyValue} is unreachable {urlStatus}
-                        </>
-                    }><Icon icon={faXmark} className="mt-3 me-3 text-danger" /></Tippy>);
-               }
+                const url = new URL(propertyValue);
+                const domain = url.hostname.split('.').shift();
+                if(domain == 'github'){
+                    const parsedURL = GitUrlParse(propertyValue);
+                    const getRepoLicense = async (parsedURL) => {
+                        try {      
+                                const response = await octokit.repos.get({
+                                    owner: parsedURL.owner,
+                                    repo: parsedURL.name
+                                });
+                            setCheckedPropertyLicense(response.data.license.name);
+                        }
+                        catch (error) {
+                            setCheckedPropertyLicense('');
+                        }
+                    };
+                    getRepoLicense(parsedURL);
+                    if(checkedPropertyLicense != ""){
+                        licenseScore[propertyValue] = 100;
+                        license.push(<Tippy content={
+                            <>
+                                The given url: {propertyValue} has a {checkedPropertyLicense}
+                            </>
+                        }><Icon icon={faCheck} className="mt-2 text-success" /></Tippy>);
+                    }
+                    else{
+                            licenseScore[propertyValue] = 0;
+                            license.push(<Tippy content={
+                                <>
+                                    The license of the given url: {propertyValue} cannot be retrived
+                                </>
+                            }><Icon icon={faXmark} className="mt-2 text-danger" /></Tippy>);
+                    }
+                }
+                else{
+                        licenseScore[propertyValue] = 100;
+                        license.push(<Tippy content={
+                                <>
+                                    The license of the given url cannot be checked. For now we check only license for Github repos
+                                </>
+                        }><Icon icon={faCheck} className="mt-2 text-success" /></Tippy>);
+                }
             }
             else{
                     licenseScore[propertyValue] = 100;
@@ -371,49 +290,53 @@ const ReproducePaperModal = (props) => {
                         <>
                             The property type : {propertyType} is not a valid url, so it is inapplicable for this check
                         </>
-                    }><Icon icon={faNotEqual}  style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} /></Tippy>);
+                    }><Icon icon={faMinus}  style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} /></Tippy>);
             }
         }
         else{
                 licenseScore[propertyValue] = 0;
-                license.push(<Tippy content="The property has to have at least one value"><Icon icon={faTimes} className="mt-3 me-3 text-danger" /></Tippy>);
+                license.push(<Tippy content="The property has to have at least one value"><Icon icon={faTimes} className="mt-2 text-danger" /></Tippy>);
         }
-        console.log(license);
         return [license,licenseScore];
     }
 
-    
     const reproducibilityTableLeftColumn = [];
+    const finalAccessibilityColumnScore = [];
+    const finalAvailabilityColumnScore = [];
+    const finalLinkabilityColumnScore = [];
+    const finalLicenseColumnScore = [];
     if(requiredPropertiesIDsForReproducibility.length > 0) {
         let itemValues= {};
         Object.entries(requiredPropertiesIDsForReproducibility).map((key, index) => {
-            let propertyValue = hasPropertyValue(state, contributionId ? contributionId : state.statementBrowser.selectedResource, key[1]);
+            let propertyValue = hasPropertyValue(state, selectedContribution, key[1]);
             (propertyValue[key[1]])? itemValues = propertyValue[key[1]] : itemValues= {};
-            console.log(itemValues, key[1]);
             var urlDomain = /:\/\/(.[^/]+)/;
             Object.entries(itemValues).map((propertyValueKey, propertyValueIndex) => {
-                console.log(propertyValueKey, propertyValueIndex);
-                let propertyValue = itemValues[propertyValueIndex][0];
-                let propertyType = itemValues[propertyValueIndex][1];
-                let resourceId = itemValues[propertyValueIndex][3];
-                let accessibilityData = checkAccessibility(propertyValue,propertyType,accessibilityScore);
-                let availabilityData = checkAvailability(propertyValue,availabilityScore);
-                let linkabilityData = checkLinkability(propertyValue,propertyType,resourceId , linkabilityScore, key[1]);
-                let licenseData = checkLicense(propertyValue,propertyType, licenseScore);
-                let totalPropertyScore = (accessibilityData[1][propertyValue] +
+                const propertyValue = itemValues[propertyValueIndex][0];
+                const propertyType = itemValues[propertyValueIndex][1];
+                const resourceId = itemValues[propertyValueIndex][3];
+                const accessibilityData = checkAccessibility(propertyValue,propertyType,accessibilityScore);
+                const availabilityData = checkAvailability(propertyValue,availabilityScore);
+                const linkabilityData = checkLinkability(propertyValue,propertyType,resourceId , linkabilityScore, key[1]);
+                const licenseData = checkLicense(propertyValue,propertyType, licenseScore);
+                const totalPropertyScore = (accessibilityData[1][propertyValue] +
                                          availabilityData[1][propertyValue] +
                                          linkabilityData[1][propertyValue] +
                                          licenseData[1][propertyValue]) / 4;
 
                 if(propertyValueIndex == 0){
+                    finalAvailabilityColumnScore.push(availabilityData[1][propertyValue]);
+                    finalAccessibilityColumnScore.push(accessibilityData[1][propertyValue])
+                    finalLinkabilityColumnScore.push(linkabilityData[1][propertyValue])
+                    finalLicenseColumnScore.push(licenseData[1][propertyValue])
                     reproducibilityTableLeftColumn.push(
                         <tr>
                             <td rowSpan={itemValues.length}>{key[1]}</td>
                             <td>{(propertyValue.startsWith("http")===true)? propertyValue.match(urlDomain)[1]:propertyValue}</td>
-                            <td style={{textAlign: 'center' }}>{availabilityData[0]}<div style={{display : "none"}} id={"availabilityScore" + propertyValueIndex}>{availabilityData[1][propertyValue]}</div></td>
-                            <td style={{textAlign: 'center' }}>{accessibilityData[0]}<div style={{display : "none"}} id={"accessibilityScore" + propertyValueIndex}>{accessibilityData[1][propertyValue]}</div></td>
-                            <td style={{textAlign: 'center' }}>{linkabilityData[0]}<div style={{display : "none"}} id={"linkabilityScore" + propertyValueIndex}>{linkabilityData[1][propertyValue]}</div></td>
-                            <td style={{textAlign: 'center' }}>{licenseData[0]}<div style={{display : "none"}} id={"licenseScore" + propertyValueIndex}>{licenseData[1][propertyValue]}</div></td>
+                            <td style={{textAlign: 'center' }}>{availabilityData[0]}</td>
+                            <td style={{textAlign: 'center' }}>{accessibilityData[0]}</td>
+                            <td style={{textAlign: 'center' }}>{linkabilityData[0]}</td>
+                            <td style={{textAlign: 'center' }}>{licenseData[0]}</td>
                             <td style={{fontWeight: 'bold' }}>{totalPropertyScore}%</td>
                         </tr>
                     );
@@ -422,17 +345,20 @@ const ReproducePaperModal = (props) => {
                     reproducibilityTableLeftColumn.push(
                         <tr>
                             <td>{(propertyValue.startsWith("http")===true)? propertyValue.match(urlDomain)[1]:propertyValue}</td>
-                            <td style={{textAlign: 'center' }}>{availabilityData[0]}<div style={{display : "none"}} id={"availabilityScore" + propertyValueIndex}>{availabilityData[1][propertyValue]}</div></td>
-                            <td style={{textAlign: 'center' }}>{accessibilityData[0]}<div style={{display : "none"}} id={"accessibilityScore" + propertyValueIndex}>{accessibilityData[1][propertyValue]}</div></td>
-                            <td style={{textAlign: 'center' }}>{linkabilityData[0]}<div style={{display : "none"}} id={"linkabilityScore" + propertyValueIndex}>{linkabilityData[1][propertyValue]}</div></td>
-                            <td style={{textAlign: 'center' }}>{licenseData[0]}<div style={{display : "none"}} id={"licenseScore" + propertyValueIndex}>{licenseData[1][propertyValue]}</div></td>
+                            <td style={{textAlign: 'center' }}>{availabilityData[0]}</td>
+                            <td style={{textAlign: 'center' }}>{accessibilityData[0]}</td>
+                            <td style={{textAlign: 'center' }}>{linkabilityData[0]}</td>
+                            <td style={{textAlign: 'center' }}>{licenseData[0]}</td>
                             <td style={{fontWeight: 'bold' }}>{totalPropertyScore}%</td>
                         </tr>
                     );
-                }   
-                
-            });   
-        });                  
+                } 
+            }); 
+        });
+    }
+
+    const calculateColumnAverage = (ColumnName) => {
+        return ColumnName.reduce((total, current) => total + current, 0) / ColumnName.length
     }
 
     const ReproducibilityTable = SortableContainer(() => {
@@ -465,7 +391,7 @@ const ReproducePaperModal = (props) => {
                             </tr>
                             <tr>
                                 <td key="1" style={{fontSize: '14px', textAlign: 'center'}}>
-                                    <Icon icon={faNotEqual} style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} />
+                                    <Icon icon={faMinus} style={{color: '#D4D4D4', fontWeight: 'bolder', fontSize: '1.5em'}} />
                                 </td>
                                 <td key="2" style={{ fontSize: '16px' }}>
                                     The needed data is inapplicable
@@ -495,22 +421,22 @@ const ReproducePaperModal = (props) => {
                                     <td key="1" style={{ width: '20%', fontWeight: 'bold' }}>
                                         Property Name
                                     </td>
-                                    <td key="1" style={{ width: '20%', fontWeight: 'bold' }}>
+                                    <td key="2" style={{ width: '20%', fontWeight: 'bold' }}>
                                         Property Value
                                     </td>
-                                    <td key="2" style={{ width: '19%', fontWeight: 'bold' }}>
+                                    <td key="3" style={{ width: '19%', fontWeight: 'bold' }}>
                                         Availability <Tippy content="The availability means that the given resource has at least a one value"><Icon icon={faQuestionCircle} /></Tippy>
                                     </td>
-                                    <td key="3" style={{ width: '19%', fontWeight: 'bold' }}>
+                                    <td key="4" style={{ width: '19%', fontWeight: 'bold' }}>
                                         Accessibility<Tippy content="The accessibility means that if the given resource of type URL, then the URL should be reachable"><Icon icon={faQuestionCircle} /></Tippy>
                                     </td>
-                                    <td key="4" style={{ width: '17%', fontWeight: 'bold' }}>
+                                    <td key="5" style={{ width: '17%', fontWeight: 'bold' }}>
                                         Linkability<Tippy content="The linkability means that the given resource is linked with an external ontology"><Icon icon={faQuestionCircle} /></Tippy>
                                     </td>
-                                    <td key="5" style={{ width: '17%', fontWeight: 'bold' }}>
+                                    <td key="6" style={{ width: '17%', fontWeight: 'bold' }}>
                                         Licence<Tippy content="The license means that if the given resource is of type URL (eg.,gitHub), then it should have a valid license"><Icon icon={faQuestionCircle} /></Tippy>
                                     </td>
-                                    <td key="6" style={{ width: '8%', fontWeight: 'bold' }}>
+                                    <td key="7" style={{ width: '8%', fontWeight: 'bold' }}>
                                         Score
                                     </td>
                                 </tr>
@@ -520,20 +446,18 @@ const ReproducePaperModal = (props) => {
                                 <tr>
                                     <td key="1" colSpan={2} style={{ width: '15%', fontWeight: 'bold', textAlign: 'center' }}>Final Score</td>
                                     <td key="2" style={{ width: '15%', fontWeight: 'bold', textAlign: 'center' }}>
-                                        100%
+                                        {calculateColumnAverage(finalAvailabilityColumnScore)}%
                                     </td>
                                     <td key="3" style={{ width: '15%', fontWeight: 'bold', textAlign: 'center' }}>
-                                        100%
+                                        {calculateColumnAverage(finalAccessibilityColumnScore)}%
                                     </td>
                                     <td key="4" style={{ width: '15%', fontWeight: 'bold', textAlign: 'center' }}>
-                                        100%
+                                        {calculateColumnAverage(finalLinkabilityColumnScore)}%
                                     </td>
                                     <td key="5" style={{ width: '15%', fontWeight: 'bold', textAlign: 'center' }}>
-                                        100%
+                                        {calculateColumnAverage(finalLicenseColumnScore)}%
                                     </td>
-                                    <td key="6" style={{ width: '10%', fontWeight: 'bold', textAlign: 'center' }}>
-                                        
-                                    </td>
+                                    <td key="6" style={{ width: '10%', fontWeight: 'bold', textAlign: 'center' }}></td>
                                 </tr>
                             </tbody>
                         </Table>
@@ -554,7 +478,7 @@ const ReproducePaperModal = (props) => {
       return (
           <div>
             <Modal isOpen={props.showReproducePaperModalDialog} toggle={props.toggleReproducePaperModalDialog} size="lg">
-              <ModalHeader toggle={props.toggleReproducePaperModalDialog}>Reproducibility Report</ModalHeader>
+              <ModalHeader toggle={props.toggleReproducePaperModalDialog}>Reproducibility Score</ModalHeader>
               <ModalBody>
                   <div>
                       <Container>
@@ -574,9 +498,13 @@ const ReproducePaperModal = (props) => {
                                         tab={
                                             <ContributionTab
                                                 isSelected={contribution.id === selectedContribution}
-                                                canDelete={contributions.length !== 1}
                                                 contribution={contribution}
+                                                selectedContributionId={selectedContribution}
                                                 key={contribution.id}
+                                                handleChangeContributionLabel={() => {}}
+                                                enableEdit={false}
+                                                canDelete={false}
+                                                toggleDeleteContribution={() => {}}
                                             />
                                         }
                                         key={contribution.id}
@@ -602,7 +530,7 @@ const ReproducePaperModal = (props) => {
     else{ // important to avoid errors at the first load time
       return (
           <div>
-
+            loading...
           </div>
       );
     }

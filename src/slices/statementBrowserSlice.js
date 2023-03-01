@@ -892,14 +892,12 @@ export function getTemplateIDsByResourceID(state, resourceId) {
  * @param {String} resourceId Resource ID
  * @return {String[]} list of required properties IDs
  */
- export function getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID(state, resourceId) {
-    if (!resourceId) {
+ export function getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID(state, contributionId) {
+    if (!contributionId) {
         return [];
     }
-
     // 1 - Get all template ids of this resource
-    const templateIds = getTemplateIDsByResourceID(state, resourceId);
-    console.log(templateIds);
+    const templateIds = getTemplateIDsByResourceID(state, contributionId);
     // 2 - Collect the required properties
     let requiredProperties = [];
     for (const templateId of templateIds) {
@@ -907,7 +905,6 @@ export function getTemplateIDsByResourceID(state, resourceId) {
         const component = template.components;
         if (template && component) {
             for (const componentItem of component) {
-                console.log(componentItem);
                 if(componentItem.requiredProperty === true){
                     requiredProperties = requiredProperties.concat(componentItem.property.label);
                 }
@@ -925,36 +922,30 @@ export function getTemplateIDsByResourceID(state, resourceId) {
  * @param {String} propertyId Property ID
  * @return {String} Whether it has value or not
  */
- export function hasPropertyValue(state, resourceId, propertyId) {
+ export function hasPropertyValue(state, contributionId, propertyId) {
     let propertiesValues=[];
     let labelsArray = []
     const property = state.statementBrowser.properties.byId;
-    console.log(property);
     if (property) {
         let i = 0;
         const resources = state.statementBrowser.resources;
         Object.entries(property).map((key, value) => {
-            console.log(key);
             Object.entries(resources.byId).map((resourceKey, resourceValue) => {
-                console.log(resourceKey[1]);
-                const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
-                console.log(typeComponents);
+                const typeComponents = getComponentsByResourceIDAndPredicateID(state, contributionId, key[1].existingPredicateId);
                 if (typeComponents && typeComponents.length > 0) {
                     if (key[1]["valueIds"].length >0) {
                         Object.entries(key[1]["valueIds"]).map((IdsKey, IdsValue) => {
                             if(resourceKey[1].valueId == IdsKey[1] && key[1].label == propertyId){
-                                console.log(resourceKey[1]);
                                 labelsArray[i]=[resourceKey[1].label, resourceKey[1]._class, resourceKey[1].propertyId,resourceKey[1].id];
                                 propertiesValues[propertyId]=labelsArray
                                 i++;
                             }
-                        });    
+                        });
                     }
                 }
-            });    
+            });
         });
     }
-    console.log(propertiesValues);
     return propertiesValues;
 }
 
@@ -966,31 +957,6 @@ export function getTemplateIDsByResourceID(state, resourceId) {
  * @param {String} propertyId Property ID
  * @return {Boolean} Whether the contribution has the property or not
  */
-/*export function doesContributionHasRequiredProperties(state, resourceId, requiredPropertyIds) {
-    let contributionProperties= [];
-    let allFounded;
-    let i = 0;
-    const property = state.statementBrowser.properties.byId;
-    if (property) {
-        Object.entries(property).map((key, value) => {
-            //console.log(key, value)
-            const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
-            //console.log(typeComponents);
-            if (typeComponents && Object.keys(typeComponents).length > 0) {
-                //contributionProperties = Object.entries(typeComponents).map((key, value) => {
-                    //return key[1]["property"]["id"] 
-                    contributionProperties[i] = typeComponents[0]["property"]["id"];
-                //})
-                
-            }
-            i++;
-        });
-        console.log(contributionProperties, requiredPropertyIds);
-        allFounded = contributionProperties.every( property => requiredPropertyIds.includes(property) );
-        console.log(allFounded);
-    }
-    return allFounded;
-}*/
 
 export function contributionProperties(state, resourceId) {
     let contributionProperties= [];
@@ -999,20 +965,12 @@ export function contributionProperties(state, resourceId) {
     const property = state.statementBrowser.properties.byId;
     if (property) {
         Object.entries(property).map((key, value) => {
-            console.log(key[1].existingPredicateId)
-            console.log(key[1]);
             const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
-            console.log(typeComponents);
             if (typeComponents && Object.keys(typeComponents).length > 0) {
-                //contributionProperties = Object.entries(typeComponents).map((key, value) => {
-                    //return key[1]["property"]["id"] 
-                    contributionProperties[i] = typeComponents[0]["property"]["label"];
-                //})
-                
+                contributionProperties[i] = typeComponents[0]["property"]["label"];
             }
             i++;
         });
-        console.log(contributionProperties);
     }
     return contributionProperties;
 }
@@ -1677,7 +1635,6 @@ export const fetchStatementsForResource =
                     });
                 })
                 .catch(e => {
-                    console.log(e);
                     dispatch(
                         setFailedFetchingStatements({
                             resourceId,

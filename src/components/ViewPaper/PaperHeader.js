@@ -38,7 +38,7 @@ const PaperHeader = props => {
         unlisted: viewPaper.paperResource.unlisted,
         featured: viewPaper.paperResource.featured,
     });
-
+    
     useEffect(() => {
         if (!viewPaper.doi?.label) {
             return;
@@ -101,23 +101,7 @@ const PaperHeader = props => {
                         <Tippy content="The paper is 30% reproducible, click to see the full report">
                             <small>
                                 <a href='#'  onClick={() => setShowReproducePaperModalDialog(v => !v)}>
-                                    <ReactStoreIndicator
-                                        value={60}
-                                        maxValue={100}
-                                        width={70}
-                                        lineWidth={10}
-                                        textStyle={{color:'#646464', fontWeight:'bold'}}
-                                        stepColors={[
-                                            '#ffffff',
-                                            '#ed8d00',
-                                            '#f1bc00',
-                                            '#84c42b',
-                                            '#53b83a',
-                                            '#3da940',
-                                            '#3da940',
-                                            '#3da940',
-                                          ]}
-                                    />
+                                    
                                 </a>
                             </small>
                         </Tippy>    

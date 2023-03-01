@@ -27,7 +27,7 @@ function PaperMenuBar(props) {
         <>
             <ViewPaperButton paperLink={paperLink} doi={doi} title={label} />
             <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowReproducePaperModalDialog(v => !v)}>
-                <Icon icon={faBackward} style={{ margin: '2px 4px 0 0' }} /> Reproducibility Report
+                <Icon icon={faBackward} style={{ margin: '2px 4px 0 0' }} /> Reproducibility Score
             </Button>
             <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => props.toggle('showGraphModal')}>
                 <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view

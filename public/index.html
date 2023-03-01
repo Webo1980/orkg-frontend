@@ -4,10 +4,11 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="theme-color" content="#000000" />
-        <meta
+        <!--
+            <meta
             http-equiv="Content-Security-Policy"
             content="default-src 'self' ;
-                img-src 'self' 
+                img-src 'self'
                     *
                     data:
                 ;
@@ -30,7 +31,7 @@
                     https://platform.twitter.com
                     https://*.twimg.com
                 ;
-                font-src 'self' 
+                font-src 'self'
                     data:
                     https://orkg.org
                     https://*.orkg.org
@@ -50,8 +51,10 @@
                     https://support.tib.eu
                 ;
                 connect-src 'self'
+                    http://127.0.0.1:8080  
                     blob:
                     localhost:*
+                    http://127.0.0.1/*
                     https://orkg.org
                     https://*.orkg.org
                     https://support.tib.eu
@@ -70,9 +73,10 @@
                     https://*.wikipedia.org/api/
                     http://dbpedia.org/sparql
                     https://api.unpaywall.org
+                    https://api.github.com
                 ;"
         />
-
+        -->
         <!--
           manifest.json provides metadata used when your web app is added to the
           homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
