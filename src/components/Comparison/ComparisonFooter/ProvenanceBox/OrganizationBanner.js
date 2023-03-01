@@ -61,8 +61,8 @@ const OrganizationBanner = () => {
                 </div>
             )}
             {observatory?.organization && (
-                <Link to={link} className="text-center">
-                    <OrganizationBannerStyled>
+                <OrganizationBannerStyled>
+                    <Link to={link} className="text-center">
                         {observatory.organization.logo && (
                             <img
                                 className="p-2"
@@ -79,8 +79,8 @@ const OrganizationBanner = () => {
                                 </div>
                             )}
                         </div>
-                    </OrganizationBannerStyled>
-                </Link>
+                    </Link>
+                </OrganizationBannerStyled>
             )}
 
             <ObservatoryModal
