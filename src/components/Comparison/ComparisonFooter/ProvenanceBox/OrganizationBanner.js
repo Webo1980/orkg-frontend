@@ -42,16 +42,14 @@ const OrganizationBanner = () => {
         e.preventDefault();
         setShowAssignObservatory(true);
     };
-    if (!observatory || !observatory.organization) {
-        return null;
-    }
+
     let route = '';
-    if (observatory.organization.type === ORGANIZATIONS_MISC.EVENT) {
+    if (observatory?.organization?.type === ORGANIZATIONS_MISC.EVENT) {
         route = reverse(ROUTES.EVENT_SERIES, { id: observatory.display_id });
-    } else if (observatory.organization.type === ORGANIZATIONS_MISC.GENERAL) {
+    } else if (observatory?.organization?.type === ORGANIZATIONS_MISC.GENERAL) {
         route = reverse(ROUTES.ORGANIZATION, { type: capitalize(ORGANIZATIONS_MISC.GENERAL), id: observatory.organization.id });
     }
-    const link = observatory.id ? reverse(ROUTES.OBSERVATORY, { id: observatory.display_id }) : route;
+    const link = observatory?.id ? reverse(ROUTES.OBSERVATORY, { id: observatory?.display_id }) : route;
 
     return (
         <>
