@@ -127,7 +127,7 @@ const ComparisonMetaData = () => {
                                             {comparisonResource.authors?.length > 0 && !isDoubleBlind && (
                                                 <AuthorBadges authors={comparisonResource.authors} />
                                             )}
-                                            {!isDoubleBlind && <CreatedByBadge creator={createdBy?.id} />}
+                                            {createdBy?.id && !isDoubleBlind && <CreatedByBadge creator={createdBy?.id} />}
                                         </div>
                                         {comparisonResource.description && (
                                             <div style={{ lineHeight: 1.5 }} className="h6 mb-2">

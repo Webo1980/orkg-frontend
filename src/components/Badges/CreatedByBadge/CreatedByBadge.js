@@ -16,7 +16,7 @@ const CreatedByBadge = ({ creator = null }) =>
     ) : null;
 
 CreatedByBadge.propTypes = {
-    creator: PropTypes.object,
+    creator: PropTypes.string,
 };
 
 export default CreatedByBadge;
