@@ -18,6 +18,7 @@ import rootReducer from 'slices/rootReducer';
 import configureStore from 'store';
 import { unregister } from 'registerServiceWorker';
 import App from 'App';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 const matomoInstance =
     env('MATOMO_TRACKER') === 'true'
@@ -53,19 +54,22 @@ plugins.input.add('@doi/id', {
 const { store, history } = configureStore();
 const container = document.getElementById('root');
 const root = createRoot(container);
+const queryClient = new QueryClient();
 
 const render = () => {
     root.render(
         <DndProvider backend={HTML5Backend}>
             <CookiesProvider>
                 <Provider store={store}>
-                    <ThemeProvider theme={theme}>
-                        <MatomoProvider value={matomoInstance}>
-                            <Router basename={env('PUBLIC_URL')} history={history}>
-                                <App />
-                            </Router>
-                        </MatomoProvider>
-                    </ThemeProvider>
+                    <QueryClientProvider client={queryClient}>
+                        <ThemeProvider theme={theme}>
+                            <MatomoProvider value={matomoInstance}>
+                                <Router basename={env('PUBLIC_URL')} history={history}>
+                                    <App />
+                                </Router>
+                            </MatomoProvider>
+                        </ThemeProvider>
+                    </QueryClientProvider>
                 </Provider>
             </CookiesProvider>
         </DndProvider>,

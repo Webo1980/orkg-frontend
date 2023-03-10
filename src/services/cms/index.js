@@ -17,7 +17,7 @@ export const getAboutPages = (categoryId = null) =>
         `${url}about-pages?sort=order&pagination[pageSize]=100&fields[0]=title,order&populate[category][fields][0]=id${
             categoryId ? `&filters[category][id][$eq]=${categoryId}` : ''
         }`,
-    ).catch(() => []);
+    );
 
 export const getHelpArticle = id => submitGetRequest(`${url}help-articles/${id}?populate[help_category][fields][0]=id,title`);
 

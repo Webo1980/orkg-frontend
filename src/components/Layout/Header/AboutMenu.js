@@ -2,7 +2,7 @@ import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import ROUTES from 'constants/routes.js';
 import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink as RouterNavLink } from 'react-router-dom';
 import { DropdownItem, DropdownMenu, DropdownToggle, UncontrolledButtonDropdown } from 'reactstrap';
 import { getAboutPageCategories, getAboutPages } from 'services/cms';
@@ -11,6 +11,7 @@ import { reverse } from 'named-urls';
 import styled from 'styled-components';
 import { groupBy, get } from 'lodash';
 import ContentLoader from 'react-content-loader';
+import { useQueries, useQuery } from 'react-query';
 
 const StyledButtonDropdown = styled(UncontrolledButtonDropdown)`
     @media (max-width: ${props => props.theme.gridBreakpoints.md}) {
@@ -23,19 +24,32 @@ const StyledButtonDropdown = styled(UncontrolledButtonDropdown)`
 `;
 
 const AboutMenu = ({ closeMenu }) => {
-    const [items, setItems] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    // const { data: items, isLoading: isLoadingItems } = useQuery('items', () => getAboutPages(), {
+    //     select: data => groupBy(data.data, item => get(item, 'attributes.category.data.id', 'main')) ?? [],
+    //     staleTime: Infinity,
+    // });
 
-    useEffect(() => {
-        const getItems = async () => {
-            setIsLoading(true);
-            setItems(groupBy((await getAboutPages()).data, item => get(item, 'attributes.category.data.id', 'main')) ?? []);
-            setCategories((await getAboutPageCategories()).data ?? []);
-            setIsLoading(false);
-        };
-        getItems();
-    }, []);
+    // const fsd = useQuery('aboutPages', () => getAboutPageCategories(), { staleTime: Infinity });
+    // // console.log(fsd);
+    // const { data: categories, isLoading: isLoadingPages } = fsd;
+    // const isLoading = isLoadingItems || isLoadingPages;
+
+    const queries = useQueries([
+        {
+            queryKey: 'items',
+            queryFn: () => getAboutPages(),
+            select: data => groupBy(data.data, item => get(item, 'attributes.category.data.id', 'main')) ?? [],
+            staleTime: Infinity,
+        },
+        {
+            queryKey: 'aboutPages',
+            queryFn: () => getAboutPageCategories(),
+            staleTime: Infinity,
+        },
+    ]);
+    const [items, categories] = queries;
+    const isLoading = queries.some(e => e.isLoading);
+    console.log(items, categories);
     return (
         <>
             {isLoading && (
@@ -48,10 +62,10 @@ const AboutMenu = ({ closeMenu }) => {
             )}
 
             {!isLoading &&
-                categories.map(category => {
-                    const subItems = items[category.id];
+                categories?.data?.data.map(category => {
+                    const subItems = items.data[category.id];
                     if (category.attributes.label === 'main') {
-                        return items.main.map(({ id, title }) => (
+                        return items.data.main.map(({ id, title }) => (
                             <DropdownItem
                                 key={id}
                                 tag={RouterNavLink}
