@@ -1,16 +1,17 @@
-import { getPropertyObjectFromData } from 'components/Comparison/hooks/helpers';
 import REVIEW_QUESTIONS from 'components/Comparison/QualityReportModal/reviewQuestions';
+import { getPropertyObjectFromData } from 'components/Comparison/hooks/helpers';
 import { ENTITIES, PREDICATES } from 'constants/graphSettings';
+import ROUTES from 'constants/routes';
+import THING_TYPES from 'constants/thingTypes';
 import { flattenDeep, isEmpty, reject, values } from 'lodash';
 import moment from 'moment';
+import { reverse } from 'named-urls';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getStatementsBySubjectAndPredicate } from 'services/backend/statements';
-import { getResourceData } from 'services/similarity';
-import ROUTES from 'constants/routes';
-import { Link } from 'react-router-dom';
-import { reverse } from 'named-urls';
+import { getThing } from 'services/similarity';
 
 const useQualityReport = () => {
     const [issueRecommendations, setIssueRecommendations] = useState([]);
@@ -31,7 +32,10 @@ const useQualityReport = () => {
                 getStatementsBySubjectAndPredicate({ subjectId: version.id, predicateId: PREDICATES.HAS_QUALITY_REVIEW }),
             );
             const reviewDataPromises = (await Promise.all(reviewStatementsPromises)).reduce(
-                (acc, _reviews) => [...acc, ..._reviews.map(review => getResourceData(review.object.id))],
+                (acc, _reviews) => [
+                    ...acc,
+                    ..._reviews.map(review => getThing({ thingType: THING_TYPES.QUALITY_REVIEW, thingKey: review.object.id })),
+                ],
                 [],
             );
 

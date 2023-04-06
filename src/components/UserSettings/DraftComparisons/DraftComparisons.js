@@ -1,18 +1,19 @@
 import { faAngleDoubleLeft, faAngleDoubleRight, faCalendar, faClock, faPen, faSpinner, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import Confirm from 'components/Confirmation/Confirmation';
 import EditTitleModal from 'components/UserSettings/DraftComparisons/EditTitleModal';
 import { CLASSES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
+import THING_TYPES from 'constants/thingTypes';
 import moment from 'moment';
 import { reverse } from 'named-urls';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Alert, Button, ButtonGroup, ListGroup, ListGroupItem } from 'reactstrap';
-import Confirm from 'components/Confirmation/Confirmation';
 import { deleteResource, getResourcesByClass } from 'services/backend/resources';
-import { getResourceData } from 'services/similarity/index';
+import { getThing } from 'services/similarity';
 
 const DraftComparisons = () => {
     const [draftComparisons, setDraftComparisons] = useState([]);
@@ -39,7 +40,10 @@ const DraftComparisons = () => {
                 creator: userId,
                 desc: true,
             });
-            const draftComparisonUrls = await Promise.all(_draftComparisons.map(draftComparison => getResourceData(draftComparison.id)));
+
+            const draftComparisonUrls = await Promise.all(
+                _draftComparisons.map(draftComparison => getThing({ thingType: THING_TYPES.DRAFT_COMPARISON, thingKey: draftComparison.id })),
+            );
             setIsLast(last);
             setDraftComparisons(
                 _draftComparisons.map((draftComparison, index) => ({ ...draftComparison, url: draftComparisonUrls[index].data.url })),

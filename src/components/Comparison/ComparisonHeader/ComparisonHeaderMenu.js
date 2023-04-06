@@ -39,7 +39,6 @@ import {
 import Confirm from 'components/Confirmation/Confirmation';
 import SaveDraft from 'components/Comparison/SaveDraft/SaveDraft';
 import TitleBar from 'components/TitleBar/TitleBar';
-import Share from 'components/Comparison/Share';
 import pluralize from 'pluralize';
 import { SubTitle } from 'components/styled';
 import ComparisonAuthorsModel from 'components/TopAuthors/ComparisonAuthorsModel';
@@ -77,7 +76,6 @@ const ComparisonHeaderMenu = props => {
 
     const [showPropertiesDialog, setShowPropertiesDialog] = useState(false);
     const [showLatexDialog, setShowLatexDialog] = useState(false);
-    const [showShareDialog, setShowShareDialog] = useState(false);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [showSaveDraftDialog, setShowSaveDraftDialog] = useState(false);
     const [showAddContribution, setShowAddContribution] = useState(false);
@@ -377,7 +375,6 @@ const ComparisonHeaderMenu = props => {
                                             </DropdownItem>
                                         </span>
                                     </Tippy>
-                                    <DropdownItem onClick={() => setShowShareDialog(v => !v)}>Share link</DropdownItem>
                                     <DropdownItem divider />
                                     <Tippy disabled={!isPublished} content="A published comparison cannot be saved as draft">
                                         <span>
@@ -475,7 +472,6 @@ const ComparisonHeaderMenu = props => {
 
             <AddVisualizationModal />
             <SelectProperties showPropertiesDialog={showPropertiesDialog} togglePropertiesDialog={() => setShowPropertiesDialog(v => !v)} />
-            <Share showDialog={showShareDialog} toggle={() => setShowShareDialog(v => !v)} />
             {isOpenTopAuthorsModal && (
                 <ComparisonAuthorsModel comparisonId={comparisonResource?.id} toggle={() => setIsOpenTopAuthorsModal(v => !v)} />
             )}

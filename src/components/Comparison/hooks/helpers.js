@@ -103,8 +103,8 @@ export const similarPropertiesByLabel = (propertyLabel, propertyData) => {
     const result = [];
     // flat property values and add similar but not equal labels
     flattenDepth(propertyData, 2).forEach((value, index) => {
-        if (value.pathLabels && value.pathLabels.length > 0 && value.pathLabels[value.pathLabels.length - 1] !== propertyLabel) {
-            result.push(value.pathLabels[value.pathLabels.length - 1]);
+        if (value.path_labels && value.path_labels.length > 0 && value.path_labels[value.path_labels.length - 1] !== propertyLabel) {
+            result.push(value.path_labels[value.path_labels.length - 1]);
         }
     });
     return uniq(result);
@@ -180,6 +180,15 @@ export function getComparisonURLConfig(comparisonState) {
     return `?${params}`;
 }
 
+export function getComparisonConfigObject(comparisonState) {
+    return {
+        contributions: activatedContributionsToList(comparisonState.contributions),
+        predicates: comparisonState.configuration.predicatesList.map(predicate => encodeURIComponent(predicate)),
+        type: comparisonState.configuration.comparisonType,
+        transpose: comparisonState.configuration.transpose,
+    };
+}
+
 // returns the part of the string preceding (but not including) the
 // final directory delimiter, or empty if none are found
 export const truncateToLastDir = str => str.substr(0, str.lastIndexOf('/')).toString();
@@ -230,8 +239,8 @@ export const groupArrayByDirectoryPrefix = strings => {
  */
 export const getPropertyObjectFromData = (data, value) => {
     const notEmptyCell = find(flatten(data[value.id]), v => v?.path?.length > 0);
-    return notEmptyCell && notEmptyCell.path?.length && notEmptyCell.pathLabels?.length
-        ? { id: last(notEmptyCell.path), label: last(notEmptyCell.pathLabels) }
+    return notEmptyCell && notEmptyCell.path?.length && notEmptyCell.path_labels?.length
+        ? { id: last(notEmptyCell.path), label: last(notEmptyCell.path_labels) }
         : value;
 };
 

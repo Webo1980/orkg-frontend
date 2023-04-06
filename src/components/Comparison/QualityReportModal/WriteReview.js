@@ -2,6 +2,7 @@ import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
 import InviteResearchersButton from 'components/Comparison/QualityReportModal/InviteResearchersButton';
 import reviewQuestions from 'components/Comparison/QualityReportModal/reviewQuestions';
 import { CLASSES, PREDICATES } from 'constants/graphSettings';
+import THING_TYPES from 'constants/thingTypes';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -9,7 +10,7 @@ import { toast } from 'react-toastify';
 import { Alert, Input, Modal, ModalBody, ModalFooter, ModalHeader, Table } from 'reactstrap';
 import { createResource } from 'services/backend/resources';
 import { createResourceStatement } from 'services/backend/statements';
-import { createResourceData } from 'services/similarity/index';
+import { createThing } from 'services/similarity';
 
 const WriteReview = ({ toggle }) => {
     const [answers, setAnswers] = useState({});
@@ -39,7 +40,7 @@ const WriteReview = ({ toggle }) => {
         try {
             const reviewResource = await createResource('review', [CLASSES.QUALITY_REVIEW]);
             createResourceStatement(comparisonId, PREDICATES.HAS_QUALITY_REVIEW, reviewResource.id);
-            createResourceData({ resourceId: reviewResource.id, data });
+            createThing({ thingType: THING_TYPES.QUALITY_REVIEW, thingKey: reviewResource.id, data });
             setIsSubmitted(true);
         } catch (e) {
             toast.error('Something went wrong');

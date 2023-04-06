@@ -5,9 +5,10 @@ import { useDispatch } from 'react-redux';
 import { loadPaper, setPaperAuthors } from 'slices/viewPaperSlice';
 import { getPaperDataViewPaper, filterObjectOfStatementsByPredicateAndClass, filterSubjectOfStatementsByPredicateAndClass } from 'utils';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
-import { getVisualization } from 'services/similarity';
+import { getThing } from 'services/similarity';
 import { uniqBy } from 'lodash';
 import { getOriginalPaperId } from 'services/backend/papers';
+import THING_TYPES from 'constants/thingTypes';
 
 const useViewPaperVersion = ({ paperId }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -44,7 +45,7 @@ const useViewPaperVersion = ({ paperId }) => {
                     return;
                 }
                 // Load the paper metadata but skip the research field and contribution data
-                getVisualization(paperId).then(async r => {
+                getThing({ thingType: THING_TYPES.PAPER_VERSION, thingKey: paperId }).then(async r => {
                     setPaperStatements(r.data.statements);
                     const contributionsNodes = filterSubjectOfStatementsByPredicateAndClass(
                         r.data.statements,

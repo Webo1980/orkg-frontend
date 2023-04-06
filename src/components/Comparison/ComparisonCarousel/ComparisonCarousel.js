@@ -1,19 +1,20 @@
-import { useState, useEffect, useMemo } from 'react';
-import { getStatementsBySubjects } from 'services/backend/statements';
-import { getVisualization } from 'services/similarity/index';
-import ContentLoader from 'react-content-loader';
-import { getVisualizationData } from 'utils';
-import { useSelector, useDispatch } from 'react-redux';
-import { setIsOpenVisualizationModal, setUseReconstructedDataInVisualization } from 'slices/comparisonSlice';
-import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
-import ErrorBoundary from 'components/ErrorBoundary/ErrorBoundary';
-import { find } from 'lodash';
 import { faArrowCircleLeft, faArrowCircleRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import useRelatedResources from 'components/Comparison/ComparisonCarousel/RelatedResources/useRelatedResources';
-import RelatedResource from 'components/Comparison/ComparisonCarousel/RelatedResources/RelatedResource';
 import RelatedFigure from 'components/Comparison/ComparisonCarousel/RelatedResources/RelatedFigure';
+import RelatedResource from 'components/Comparison/ComparisonCarousel/RelatedResources/RelatedResource';
+import useRelatedResources from 'components/Comparison/ComparisonCarousel/RelatedResources/useRelatedResources';
+import ErrorBoundary from 'components/ErrorBoundary/ErrorBoundary';
 import StyledSlider from 'components/ResearchProblem/Benchmarks/styled';
+import THING_TYPES from 'constants/thingTypes';
+import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
+import { find } from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
+import ContentLoader from 'react-content-loader';
+import { useDispatch, useSelector } from 'react-redux';
+import { getStatementsBySubjects } from 'services/backend/statements';
+import { getThing } from 'services/similarity';
+import { setIsOpenVisualizationModal, setUseReconstructedDataInVisualization } from 'slices/comparisonSlice';
+import { getVisualizationData } from 'utils';
 import SingleVisualizationComponent from './SingleVisualizationComponent';
 
 function ComparisonCarousel() {
@@ -101,7 +102,9 @@ function ComparisonCarousel() {
             if (visualizations?.length) {
                 setIsLoadingVisualizationData(true);
                 // Get the reconstruction model from the comparison service
-                const reconstructionModelsCalls = Promise.all(visualizations.map(v => getVisualization(v.id).catch(() => false)));
+                const reconstructionModelsCalls = Promise.all(
+                    visualizations.map(v => getThing({ thingType: THING_TYPES.VISUALIZATION, thingKey: v.id }).catch(() => false)),
+                );
                 // Get the meta data for each visualization
                 const visObjectCalls = getStatementsBySubjects({ ids: visualizations.map(v => v.id) }).then(visualizationsStatements => {
                     const vis = visualizationsStatements.map(visualizationStatements => {
@@ -112,7 +115,10 @@ function ComparisonCarousel() {
                 });
                 Promise.all([visObjectCalls, reconstructionModelsCalls]).then(([visObjects, reconstructionModels]) => {
                     // zip the result
-                    const _visObjects = visObjects.map(v => ({ ...v, reconstructionModel: reconstructionModels.find(r => r.orkgOrigin === v.id) }));
+                    const _visObjects = visObjects.map(v => ({
+                        ...v,
+                        reconstructionModel: reconstructionModels.find(r => r.data.orkgOrigin === v.id),
+                    }));
                     // filter out the visualization that doesn't exist;
                     const visDataObjects = _visObjects.filter(v => v.reconstructionModel);
                     setIsLoadingVisualizationData(false);

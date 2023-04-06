@@ -7,12 +7,13 @@ import Tooltip from 'components/Utils/Tooltip';
 import AuthorsInput from 'components/AuthorsInput/AuthorsInput';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
-import { addVisualization } from 'services/similarity';
+import { createThing } from 'services/similarity';
 import { saveAuthors } from 'components/AuthorsInput/helpers';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
+import THING_TYPES from 'constants/thingTypes';
 
 function PublishVisualization(props) {
     const [isLoading, setIsLoading] = useState(false);
@@ -55,10 +56,7 @@ function PublishVisualization(props) {
 
     const createReconstructionModelInBackend = async (resourceId, model) => {
         try {
-            await addVisualization({
-                resourceId,
-                jsonData: model,
-            });
+            await createThing({ thingType: THING_TYPES.VISUALIZATION, thingKey: resourceId, data: model });
         } catch (error) {
             toast.error(`Error publishing a visualization : ${error.message}`);
         }

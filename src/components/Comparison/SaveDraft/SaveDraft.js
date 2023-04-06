@@ -1,22 +1,23 @@
-import { Alert, FormGroup, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
-import { useState } from 'react';
+import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
+import { getComparisonConfigObject } from 'components/Comparison/hooks/helpers';
 import { CLASSES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
+import THING_TYPES from 'constants/thingTypes';
 import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Alert, FormGroup, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 import { createResource } from 'services/backend/resources';
-import { createResourceData } from 'services/similarity/index';
-import { getComparisonURLConfig } from 'components/Comparison/hooks/helpers';
-import { useSelector } from 'react-redux';
-import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
+import { createThing } from 'services/similarity';
 
 const SaveDraft = ({ isOpen, toggle }) => {
     const [title, setTitle] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [savedDraftId, setSavedDraftId] = useState(null);
-    const comparisonURLConfig = useSelector(state => getComparisonURLConfig(state.comparison));
+    const comparisonConfigObject = useSelector(state => getComparisonConfigObject(state.comparison));
 
     const saveDraft = async () => {
         if (!title || !title.trim()) {
@@ -26,10 +27,7 @@ const SaveDraft = ({ isOpen, toggle }) => {
 
         setIsLoading(true);
         const draftComparison = await createResource(title, [CLASSES.COMPARISON_DRAFT]);
-        await createResourceData({
-            resourceId: draftComparison.id,
-            data: { url: comparisonURLConfig },
-        });
+        await createThing({ thingType: THING_TYPES.DRAFT_COMPARISON, thingKey: draftComparison.id, config: comparisonConfigObject });
         setSavedDraftId(draftComparison.id);
         setIsLoading(false);
     };

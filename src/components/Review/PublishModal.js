@@ -1,25 +1,25 @@
-import PropTypes from 'prop-types';
-import { useState } from 'react';
-import { Alert, Button, FormGroup, Input, InputGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
-import { createLiteralStatement, createResourceStatement, getStatementsBundleBySubject } from 'services/backend/statements';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faClipboard } from '@fortawesome/free-solid-svg-icons';
-import { createResource } from 'services/backend/resources';
-import { createLiteral } from 'services/backend/literals';
-import { CLASSES, PREDICATES } from 'constants/graphSettings';
-import { createResourceData } from 'services/similarity';
-import { toast } from 'react-toastify';
-import { reverse } from 'named-urls';
-import routes from 'constants/routes';
-import { Link } from 'react-router-dom';
-import { setVersions } from 'slices/reviewSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import Tooltip from 'components/Utils/Tooltip';
-import { generateDoi } from 'services/backend/misc';
-import ROUTES from 'constants/routes';
-import CopyToClipboard from 'react-copy-to-clipboard';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
+import Tooltip from 'components/Utils/Tooltip';
+import { CLASSES, PREDICATES } from 'constants/graphSettings';
+import ROUTES from 'constants/routes';
+import THING_TYPES from 'constants/thingTypes';
+import { reverse } from 'named-urls';
+import PropTypes from 'prop-types';
+import { useState } from 'react';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Alert, Button, FormGroup, Input, InputGroup, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
+import { createLiteral } from 'services/backend/literals';
+import { generateDoi } from 'services/backend/misc';
+import { createResource } from 'services/backend/resources';
+import { createLiteralStatement, createResourceStatement, getStatementsBundleBySubject } from 'services/backend/statements';
+import { createThing } from 'services/similarity';
+import { setVersions } from 'slices/reviewSlice';
 
 const PublishModal = ({ id, show, toggle, getVersions, paperId }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -67,10 +67,7 @@ const PublishModal = ({ id, show, toggle, getVersions, paperId }) => {
 
             await createLiteralStatement(versionResource.id, PREDICATES.DESCRIPTION, updateMessageLiteral.id);
             await createResourceStatement(versionResource.id, PREDICATES.HAS_PAPER, id);
-            await createResourceData({
-                resourceId: versionResource.id,
-                data: { rootResource: id, statements },
-            });
+            await createThing({ thingType: THING_TYPES.REVIEW, thingKey: versionResource.id, data: { rootResource: id, statements } });
 
             if (shouldAssignDoi) {
                 try {
@@ -178,7 +175,7 @@ const PublishModal = ({ id, show, toggle, getVersions, paperId }) => {
                                 </InputGroup>
                             </FormGroup>
                         )}
-                        <Link to={reverse(routes.REVIEW, { id: publishedId })} onClick={toggle}>
+                        <Link to={reverse(ROUTES.REVIEW, { id: publishedId })} onClick={toggle}>
                             View the published article
                         </Link>
                     </>

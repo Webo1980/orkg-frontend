@@ -1,42 +1,43 @@
-import { useEffect, useCallback } from 'react';
-import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
+import { CLASSES, PREDICATES } from 'constants/graphSettings';
+import ROUTES from 'constants/routes.js';
+import THING_TYPES from 'constants/thingTypes';
+import { uniq, without } from 'lodash';
+import { reverse } from 'named-urls';
+import qs from 'qs';
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getResource } from 'services/backend/resources';
-import { getComparison, getResourceData } from 'services/similarity/index';
+import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
+import { getComparison, getThing } from 'services/similarity';
 import {
+    extendAndSortProperties,
     setComparisonResource,
-    setResearchField,
     setConfiguration,
-    setHasPreviousVersion,
     setConfigurationAttribute,
-    setProperties,
     setContributions,
     setData,
-    setFilterControlData,
-    setIsFailedLoadingMetadata,
-    setIsLoadingMetadata,
-    setIsLoadingResult,
-    setIsFailedLoadingResult,
     setErrors,
-    extendAndSortProperties,
+    setFilterControlData,
+    setHasPreviousVersion,
     setHiddenGroups,
     setIsEmbeddedMode,
+    setIsFailedLoadingMetadata,
+    setIsFailedLoadingResult,
+    setIsLoadingMetadata,
+    setIsLoadingResult,
+    setProperties,
+    setResearchField,
 } from 'slices/comparisonSlice';
 import {
+    asyncLocalStorage,
     filterObjectOfStatementsByPredicateAndClass,
     getArrayParamFromQueryString,
-    getParamFromQueryString,
-    getErrorMessage,
     getComparisonData,
-    asyncLocalStorage,
+    getErrorMessage,
+    getParamFromQueryString,
 } from 'utils';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { PREDICATES, CLASSES } from 'constants/graphSettings';
-import { reverse } from 'named-urls';
-import { uniq, without } from 'lodash';
-import ROUTES from 'constants/routes.js';
-import qs from 'qs';
-import { useSelector, useDispatch } from 'react-redux';
-import { getComparisonConfiguration, generateFilterControlData } from './helpers';
+import { generateFilterControlData, getComparisonConfiguration } from './helpers';
 
 const DEFAULT_COMPARISON_METHOD = 'path';
 
@@ -69,7 +70,7 @@ function useComparison({ id, isEmbeddedMode = false }) {
             if (cId) {
                 dispatch(setIsLoadingMetadata(true));
                 // Get the comparison resource and comparison config
-                Promise.all([getResource(cId), getResourceData(cId)])
+                Promise.all([getResource(cId), getThing({ thingType: THING_TYPES.COMPARISON, thingKey: cId })])
                     .then(([_comparisonResource, configurationData]) => {
                         // Make sure that this resource is a comparison
                         if (!_comparisonResource.classes.includes(CLASSES.COMPARISON)) {
@@ -149,8 +150,22 @@ function useComparison({ id, isEmbeddedMode = false }) {
      */
     const getComparisonResult = useCallback(() => {
         dispatch(setIsLoadingResult(true));
-        getComparison({ contributionIds: contributionsList, type: comparisonType, response_hash: responseHash, save_response: false })
-            .then(async comparisonData => {
+        let simCompCall = null;
+        if (comparisonId) {
+            simCompCall = getThing({ thingType: THING_TYPES.COMPARISON, thingKey: comparisonId });
+        } else {
+            simCompCall = getComparison({ contributionIds: contributionsList, type: comparisonType });
+        }
+
+        simCompCall
+            .then(async _comparisonData => {
+                let comparisonData;
+                if (comparisonId) {
+                    comparisonData = _comparisonData.data;
+                } else {
+                    comparisonData = _comparisonData;
+                }
+                comparisonData.properties = comparisonData.predicates;
                 // mocking function to allow for deletion of contributions via the url
                 comparisonData.contributions.forEach((contribution, index) => {
                     if (contributionsList?.length > 0 && !contributionsList.includes(contribution.id)) {
@@ -183,7 +198,7 @@ function useComparison({ id, isEmbeddedMode = false }) {
                 dispatch(setIsLoadingResult(false));
                 dispatch(setIsFailedLoadingResult(true));
             });
-    }, [comparisonType, contributionsList, responseHash, dispatch]);
+    }, [comparisonId, comparisonType, contributionsList, responseHash, dispatch]);
 
     /**
      * Update the URL

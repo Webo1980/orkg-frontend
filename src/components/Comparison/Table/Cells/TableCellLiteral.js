@@ -23,9 +23,9 @@ const TableCellLiteral = ({ entity }) => {
         <>
             <div ref={ref} className="overflow-hidden" style={{ maxHeight: isExpanded ? 'initial' : 200 }}>
                 <DescriptionTooltip
-                    id={entity.resourceId}
+                    id={entity.id}
                     _class={entity.type}
-                    extraContent={entity.pathLabels?.length > 1 ? <PathTooltipContent data={entity} cellDataValue={entity} /> : ''}
+                    extraContent={entity.path_labels?.length > 1 ? <PathTooltipContent data={entity} cellDataValue={entity} /> : ''}
                 >
                     <span>
                         <ValuePlugins type="literal" options={{ inModal: true }}>

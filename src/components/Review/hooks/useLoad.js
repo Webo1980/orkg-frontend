@@ -1,12 +1,13 @@
-import { load as loadArticle } from 'slices/reviewSlice';
+import { Cite } from '@citation-js/core';
 import { CLASSES, MISC, PREDICATES } from 'constants/graphSettings';
+import THING_TYPES from 'constants/thingTypes';
+import { countBy, orderBy } from 'lodash';
 import { useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { getResource } from 'services/backend/resources';
 import { getStatementsBundleBySubject, getStatementsByObjectAndPredicate, getStatementsBySubjects } from 'services/backend/statements';
-import { getResourceData } from 'services/similarity';
-import { countBy, orderBy } from 'lodash';
-import { Cite } from '@citation-js/core';
+import { getThing } from 'services/similarity';
+import { load as loadArticle } from 'slices/reviewSlice';
 
 const useLoad = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +39,7 @@ const useLoad = () => {
 
         // for published articles
         if (paperResource.classes.includes(CLASSES.SMART_REVIEW_PUBLISHED)) {
-            const resourceData = await getResourceData(id).catch(e => {});
+            const resourceData = await getThing({ thingType: THING_TYPES.REVIEW, thingKey: id }).catch(e => {});
             if (!resourceData) {
                 console.log('no resource data found');
                 notFound();
