@@ -25,7 +25,6 @@ export const stringComparePosition = (left, right) => {
  * @param {Array} comparisonStatements
  */
 export const getComparisonConfiguration = url => {
-    const response_hash = getParamFromQueryString(url.substring(url.indexOf('?')), 'response_hash') ?? null;
     const type = getParamFromQueryString(url.substring(url.indexOf('?')), 'type') ?? DEFAULT_COMPARISON_METHOD;
     const transpose = getParamFromQueryString(url.substring(url.indexOf('?')), 'transpose', true);
     const predicatesList = getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'properties');
@@ -33,7 +32,6 @@ export const getComparisonConfiguration = url => {
         without(uniq(getArrayParamFromQueryString(url.substring(url.indexOf('?')), 'contributions')), undefined, null, '') ?? [];
 
     return {
-        responseHash: response_hash,
         comparisonType: type,
         transpose,
         predicatesList,
@@ -163,21 +161,37 @@ export const activatedContributionsToList = contributionsData => {
     return activeContributions;
 };
 
-export function getComparisonURLConfig(comparisonState) {
+export function getComparisonURLFromConfig({
+    contributions = [],
+    predicates = [],
+    type = DEFAULT_COMPARISON_METHOD,
+    transpose = false,
+    hasPreviousVersion = null,
+}) {
     const params = qs.stringify(
         {
-            contributions: activatedContributionsToList(comparisonState.contributions).join(','),
-            properties: comparisonState.configuration.predicatesList.map(predicate => encodeURIComponent(predicate)).join(','),
-            type: comparisonState.configuration.comparisonType,
-            transpose: comparisonState.configuration.transpose,
-            response_hash: comparisonState.configuration.responseHash,
+            contributions,
+            properties: predicates.map(predicate => encodeURIComponent(predicate)),
+            type,
+            transpose,
+            hasPreviousVersion,
         },
         {
             skipNulls: true,
             encode: false,
+            arrayFormat: 'repeat',
         },
     );
     return `?${params}`;
+}
+
+export function getComparisonURLConfigOfReduxState(comparisonState) {
+    return getComparisonURLFromConfig({
+        contributions: activatedContributionsToList(comparisonState.contributions),
+        predicates: comparisonState.configuration.predicatesList,
+        type: comparisonState.configuration.comparisonType,
+        transpose: comparisonState.configuration.transpose,
+    });
 }
 
 export function getComparisonConfigObject(comparisonState) {

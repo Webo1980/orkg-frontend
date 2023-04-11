@@ -44,7 +44,6 @@ const initialState = {
     configuration: {
         transpose: false,
         comparisonType: DEFAULT_COMPARISON_METHOD,
-        responseHash: null,
         contributionsList: [],
         predicatesList: [],
         fullWidth: cookies.get('useFullWidthForComparisonTable') === 'true' ? cookies.get('useFullWidthForComparisonTable') : false,

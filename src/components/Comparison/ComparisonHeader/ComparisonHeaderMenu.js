@@ -61,7 +61,6 @@ const ComparisonHeaderMenu = props => {
     const fullWidth = useSelector(state => state.comparison.configuration.fullWidth);
     const viewDensity = useSelector(state => state.comparison.configuration.viewDensity);
     const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
-    const responseHash = useSelector(state => state.comparison.configuration.responseHash);
     const transpose = useSelector(state => state.comparison.configuration.transpose);
     const isEditing = useSelector(state => state.comparison.isEditing);
     const contributionsList = useSelector(state => activatedContributionsToList(state.comparison.contributions));
@@ -154,7 +153,7 @@ const ComparisonHeaderMenu = props => {
         }
     }, [comparisonResource.id, loadVersions]);
 
-    const isPublished = !!(comparisonResource?.id || responseHash);
+    const isPublished = !!comparisonResource?.id;
     const publishedMessage = "Published comparisons cannot be edited, click 'Fetch live data' to reload the live comparison data";
 
     const handleAddContribution = async () => {

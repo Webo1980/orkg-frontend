@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { getComparisonURLFromConfig } from 'components/Comparison/hooks/helpers';
 import { Alert, Button, ButtonGroup, ListGroup, ListGroupItem } from 'reactstrap';
 import { deleteResource, getResourcesByClass } from 'services/backend/resources';
 import { getThing } from 'services/similarity';
@@ -31,26 +32,29 @@ const DraftComparisons = () => {
     const getDraftComparisons = useCallback(async () => {
         setIsLoading(true);
 
-        try {
-            const { content: _draftComparisons, last } = await getResourcesByClass({
-                id: CLASSES.COMPARISON_DRAFT,
-                page,
-                items: 10,
-                sortBy: 'created_at',
-                creator: userId,
-                desc: true,
-            });
+        const { content: _draftComparisons, last } = await getResourcesByClass({
+            id: CLASSES.COMPARISON_DRAFT,
+            page,
+            items: 10,
+            sortBy: 'created_at',
+            creator: userId,
+            desc: true,
+        });
 
-            const draftComparisonUrls = await Promise.all(
-                _draftComparisons.map(draftComparison => getThing({ thingType: THING_TYPES.DRAFT_COMPARISON, thingKey: draftComparison.id })),
-            );
-            setIsLast(last);
-            setDraftComparisons(
-                _draftComparisons.map((draftComparison, index) => ({ ...draftComparison, url: draftComparisonUrls[index].data.url })),
-            );
-        } catch (e) {
-            toast.error('An error occurred, reload the page and try again');
-        }
+        let draftComparisonUrls = await Promise.all(
+            _draftComparisons.map(draftComparison =>
+                getThing({ thingType: THING_TYPES.DRAFT_COMPARISON, thingKey: draftComparison.id }).catch(() => null),
+            ),
+        );
+        draftComparisonUrls = draftComparisonUrls.filter(result => result);
+        setIsLast(last);
+        setDraftComparisons(
+            draftComparisonUrls.map(draftComparison => ({
+                ...draftComparison,
+                ..._draftComparisons.find(dc => dc.id === draftComparison.thing_key),
+            })),
+        );
+
         setIsLoading(false);
     }, [page, userId]);
 
@@ -97,7 +101,10 @@ const DraftComparisons = () => {
                     {draftComparisons.map(draftComparison => (
                         <ListGroupItem key={draftComparison.id} className="d-flex justify-content-between align-items-center px-4 py-3">
                             <div>
-                                <Link to={reverse(ROUTES.COMPARISON_NOT_PUBLISHED) + draftComparison.url}>{draftComparison.label}</Link> <br />
+                                <Link to={reverse(ROUTES.COMPARISON_NOT_PUBLISHED) + getComparisonURLFromConfig(draftComparison.config)}>
+                                    {draftComparison.label}
+                                </Link>{' '}
+                                <br />
                                 <small>
                                     <Icon icon={faCalendar} /> {moment(draftComparison.created_at).format('DD MMMM YYYY')}{' '}
                                     <Icon icon={faClock} className="ms-2 me-1" />

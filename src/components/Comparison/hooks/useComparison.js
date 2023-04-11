@@ -29,17 +29,9 @@ import {
     setProperties,
     setResearchField,
 } from 'slices/comparisonSlice';
-import {
-    asyncLocalStorage,
-    filterObjectOfStatementsByPredicateAndClass,
-    getArrayParamFromQueryString,
-    getComparisonData,
-    getErrorMessage,
-    getParamFromQueryString,
-} from 'utils';
-import { generateFilterControlData, getComparisonConfiguration } from './helpers';
-
-const DEFAULT_COMPARISON_METHOD = 'path';
+import { DEFAULT_COMPARISON_METHOD } from 'constants/misc';
+import { asyncLocalStorage, getArrayParamFromQueryString, getComparisonData, getErrorMessage, getParamFromQueryString } from 'utils';
+import { generateFilterControlData, getComparisonURLFromConfig } from './helpers';
 
 function useComparison({ id, isEmbeddedMode = false }) {
     const { search } = useLocation();
@@ -54,7 +46,6 @@ function useComparison({ id, isEmbeddedMode = false }) {
     const predicatesList = useSelector(state => state.comparison.configuration.predicatesList);
     const transpose = useSelector(state => state.comparison.configuration.transpose);
     const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
-    const responseHash = useSelector(state => state.comparison.configuration.responseHash);
     const contributions = useSelector(state => state.comparison.contributions);
     const isLoadingResult = useSelector(state => state.comparison.isLoadingResult);
     const data = useSelector(state => state.comparison.data);
@@ -70,58 +61,19 @@ function useComparison({ id, isEmbeddedMode = false }) {
             if (cId) {
                 dispatch(setIsLoadingMetadata(true));
                 // Get the comparison resource and comparison config
-                Promise.all([getResource(cId), getThing({ thingType: THING_TYPES.COMPARISON, thingKey: cId })])
-                    .then(([_comparisonResource, configurationData]) => {
+                getResource(cId)
+                    .then(_comparisonResource => {
                         // Make sure that this resource is a comparison
                         if (!_comparisonResource.classes.includes(CLASSES.COMPARISON)) {
                             throw new Error(`The requested resource is not of class "${CLASSES.COMPARISON}".`);
                         }
-                        return [_comparisonResource, configurationData];
+                        return _comparisonResource;
                     })
-                    .then(([_comparisonResource, configurationData]) => {
+                    .then(_comparisonResource => {
                         // Get meta data and config of a comparison
                         getStatementsBySubject({ id: cId }).then(statements => {
                             const comparisonObject = getComparisonData(_comparisonResource, statements);
                             dispatch(setComparisonResource(comparisonObject));
-
-                            const { url } = configurationData.data;
-                            if (url) {
-                                dispatch(setConfiguration(getComparisonConfiguration(url)));
-                            } else {
-                                dispatch(
-                                    setConfigurationAttribute({
-                                        attribute: 'predicatesList',
-                                        value: filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_PROPERTY, false)?.map(
-                                            p => p.id,
-                                        ),
-                                    }),
-                                );
-                                const contributionsIDs =
-                                    without(
-                                        uniq(
-                                            filterObjectOfStatementsByPredicateAndClass(
-                                                statements,
-                                                PREDICATES.COMPARE_CONTRIBUTION,
-                                                false,
-                                                CLASSES.CONTRIBUTION,
-                                            )?.map(c => c.id) ?? [],
-                                        ),
-                                        undefined,
-                                        null,
-                                        '',
-                                    ) ?? [];
-                                dispatch(setConfigurationAttribute({ attribute: 'contributionsList', value: contributionsIDs }));
-                            }
-                            if (
-                                !filterObjectOfStatementsByPredicateAndClass(
-                                    statements,
-                                    PREDICATES.COMPARE_CONTRIBUTION,
-                                    false,
-                                    CLASSES.CONTRIBUTION,
-                                )?.map(c => c.id)
-                            ) {
-                                dispatch(setIsLoadingResult(false));
-                            }
                             dispatch(setIsLoadingMetadata(false));
                             dispatch(setIsFailedLoadingMetadata(false));
                         });
@@ -148,57 +100,63 @@ function useComparison({ id, isEmbeddedMode = false }) {
     /**
      * Call the comparison service to get the comparison result
      */
-    const getComparisonResult = useCallback(() => {
-        dispatch(setIsLoadingResult(true));
-        let simCompCall = null;
-        if (comparisonId) {
-            simCompCall = getThing({ thingType: THING_TYPES.COMPARISON, thingKey: comparisonId });
-        } else {
-            simCompCall = getComparison({ contributionIds: contributionsList, type: comparisonType });
-        }
+    const getComparisonResult = useCallback(
+        contributionsIDs => {
+            dispatch(setIsLoadingResult(true));
+            let simCompCall = null;
+            if (comparisonId) {
+                simCompCall = getThing({ thingType: THING_TYPES.COMPARISON, thingKey: comparisonId });
+            } else {
+                simCompCall = getComparison({ contributionIds: contributionsIDs, type: comparisonType });
+            }
 
-        simCompCall
-            .then(async _comparisonData => {
-                let comparisonData;
-                if (comparisonId) {
-                    comparisonData = _comparisonData.data;
-                } else {
-                    comparisonData = _comparisonData;
-                }
-                comparisonData.properties = comparisonData.predicates;
-                // mocking function to allow for deletion of contributions via the url
-                comparisonData.contributions.forEach((contribution, index) => {
-                    if (contributionsList?.length > 0 && !contributionsList.includes(contribution.id)) {
-                        comparisonData.contributions[index].active = false;
+            simCompCall
+                .then(async _comparisonData => {
+                    let comparisonData;
+                    if (comparisonId) {
+                        comparisonData = _comparisonData.data;
+                        dispatch(
+                            setConfiguration({
+                                ..._comparisonData.config,
+                                comparisonType: _comparisonData.config.type,
+                                predicatesList: _comparisonData.config.predicates,
+                                contributionsList: _comparisonData.config.contributions,
+                            }),
+                        );
                     } else {
-                        comparisonData.contributions[index].active = true;
+                        comparisonData = _comparisonData;
                     }
+                    comparisonData.properties = comparisonData.predicates;
+
+                    // mocking function to allow for deletion of contributions via the url
+                    comparisonData.contributions.forEach((contribution, index) => {
+                        if (contributionsList?.length > 0 && !contributionsList.includes(contribution.id)) {
+                            comparisonData.contributions[index].active = false;
+                        } else {
+                            comparisonData.contributions[index].active = true;
+                        }
+                    });
+
+                    comparisonData.properties = await dispatch(extendAndSortProperties(comparisonData, comparisonType));
+
+                    dispatch(setContributions(comparisonData.contributions));
+                    dispatch(setProperties(comparisonData.properties));
+                    dispatch(setData(comparisonData.data));
+                    dispatch(
+                        setFilterControlData(generateFilterControlData(comparisonData.contributions, comparisonData.properties, comparisonData.data)),
+                    );
+                    dispatch(setIsLoadingResult(false));
+                    dispatch(setIsFailedLoadingResult(false));
+                })
+                .catch(error => {
+                    console.log(error);
+                    dispatch(setErrors(getErrorMessage(error)));
+                    dispatch(setIsLoadingResult(false));
+                    dispatch(setIsFailedLoadingResult(true));
                 });
-
-                comparisonData.properties = await dispatch(extendAndSortProperties(comparisonData, comparisonType));
-
-                dispatch(setContributions(comparisonData.contributions));
-                dispatch(setProperties(comparisonData.properties));
-                dispatch(setData(comparisonData.data));
-                dispatch(
-                    setFilterControlData(generateFilterControlData(comparisonData.contributions, comparisonData.properties, comparisonData.data)),
-                );
-                dispatch(setIsLoadingResult(false));
-                dispatch(setIsFailedLoadingResult(false));
-
-                if (comparisonData.response_hash) {
-                    dispatch(setConfigurationAttribute({ attribute: 'responseHash', value: comparisonData.response_hash }));
-                } else {
-                    dispatch(setConfigurationAttribute({ attribute: 'responseHash', value: responseHash }));
-                }
-            })
-            .catch(error => {
-                console.log(error);
-                dispatch(setErrors(getErrorMessage(error)));
-                dispatch(setIsLoadingResult(false));
-                dispatch(setIsFailedLoadingResult(true));
-            });
-    }, [comparisonId, comparisonType, contributionsList, responseHash, dispatch]);
+        },
+        [comparisonId, comparisonType, contributionsList, dispatch],
+    );
 
     /**
      * Update the URL
@@ -210,21 +168,14 @@ function useComparison({ id, isEmbeddedMode = false }) {
         _transpose = transpose,
         hasPreviousVersion = comparisonResource?.id || comparisonResource?.hasPreviousVersion?.id,
     }) => {
-        const qParams = qs.stringify(
-            {
-                contributions: _contributionsList.join(','),
-                properties: _predicatesList.map(predicate => encodeURIComponent(predicate)).join(','),
-                type: _comparisonType,
-                transpose: _transpose,
-                hasPreviousVersion,
-            },
-            {
-                skipNulls: true,
-                arrayFormat: 'comma',
-                encode: false,
-            },
-        );
-        navigate(`${reverse(ROUTES.COMPARISON_NOT_PUBLISHED)}?${qParams}`);
+        const qParams = getComparisonURLFromConfig({
+            contributions: _contributionsList,
+            predicates: _predicatesList.map(predicate => encodeURIComponent(predicate)),
+            type: _comparisonType,
+            transpose: _transpose,
+            hasPreviousVersion,
+        });
+        navigate(`${reverse(ROUTES.COMPARISON_NOT_PUBLISHED)}${qParams}`);
     };
 
     useEffect(() => {
@@ -276,11 +227,11 @@ function useComparison({ id, isEmbeddedMode = false }) {
     useEffect(() => {
         if (comparisonId !== undefined) {
             loadComparisonMetaData(comparisonId);
+            getComparisonResult();
         } else {
             // Update browser title
             document.title = 'Comparison - ORKG';
 
-            dispatch(setConfigurationAttribute({ attribute: 'responseHash', value: getParamFromQueryString(search, 'response_hash') }));
             dispatch(
                 setConfigurationAttribute({
                     attribute: 'comparisonType',
@@ -291,20 +242,9 @@ function useComparison({ id, isEmbeddedMode = false }) {
             const contributionsIDs = without(uniq(getArrayParamFromQueryString(search, 'contributions')), undefined, null, '') ?? [];
             dispatch(setConfigurationAttribute({ attribute: 'contributionsList', value: contributionsIDs }));
             dispatch(setConfigurationAttribute({ attribute: 'predicatesList', value: getArrayParamFromQueryString(search, 'properties') }));
+            getComparisonResult(contributionsIDs);
         }
     }, [comparisonId, dispatch, loadComparisonMetaData, search]);
-
-    /**
-     * Update comparison if:
-     *  1/ Contribution list changed
-     *  2/ Comparison type changed
-     *  3/ Comparison id changed and is not undefined
-     */
-    useEffect(() => {
-        if (contributionsList?.length > 0) {
-            getComparisonResult();
-        }
-    }, [contributionsList?.length, getComparisonResult]);
 
     useEffect(() => {
         dispatch(setIsEmbeddedMode(isEmbeddedMode));

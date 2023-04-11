@@ -27,7 +27,11 @@ const SaveDraft = ({ isOpen, toggle }) => {
 
         setIsLoading(true);
         const draftComparison = await createResource(title, [CLASSES.COMPARISON_DRAFT]);
-        await createThing({ thingType: THING_TYPES.DRAFT_COMPARISON, thingKey: draftComparison.id, config: comparisonConfigObject });
+        await createThing({
+            thingType: THING_TYPES.DRAFT_COMPARISON,
+            thingKey: draftComparison.id,
+            config: comparisonConfigObject,
+        });
         setSavedDraftId(draftComparison.id);
         setIsLoading(false);
     };
