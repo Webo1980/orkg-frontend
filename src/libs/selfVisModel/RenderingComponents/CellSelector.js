@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Alert, ButtonGroup, Button } from 'reactstrap';
 import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
 import Tippy, { useSingleton } from '@tippyjs/react';
 import PropTypes from 'prop-types';
+import { chart } from '@rawgraphs/rawgraphs-core';
+import { bubblechart } from '@rawgraphs/rawgraphs-charts';
 import CellRenderer from './CellRenderer';
 import DropDownMapperSelector from './DropdownMapperSelector';
 import CheckboxSelector from './CheckBoxSelector';
 
 const CellSelector = props => {
+    let chartRef = useRef(null);
     const [selfVisModel] = useState(new SelfVisDataModel());
     const [source, target] = useSingleton();
-
+    console.log('visual model', selfVisModel);
     /** some data handlers * */
     const toggleCheckboxForCol = (id, value) => {
         // this is the correct id for the init from the propertyAnchors
@@ -152,9 +155,42 @@ const CellSelector = props => {
         //     colItems[i].setItemSelected(value);
         // }
     };
+    // defining some data.
+
+    // getting the target HTML node
+    // const root = document.getElementById('app');
+    // define a mapping between dataset and the visual model
+
+    useEffect(() => {
+        // Data in the format required by bubblechart
+        const userData = [
+            { size: 10, price: 2, cat: 'a' },
+            { size: 12, price: 1.2, cat: 'a' },
+            { size: 1.3, price: 2, cat: 'b' },
+            { size: 1.5, price: 2.2, cat: 'c' },
+            { size: 10, price: 4.2, cat: 'b' },
+            { size: 10, price: 6.2, cat: 'c' },
+            { size: 12, price: 2.2, cat: 'b' },
+        ];
+
+        // Mapping options for bubblechart
+        const mapping = {
+            x: { value: 'size' },
+            y: { value: 'price' },
+            color: { value: 'cat' },
+        };
+
+        // Instantiate the chart with the data and mapping options
+        const viz = chart(bubblechart, { data: userData, mapping });
+
+        // Render the chart to the DOM node
+        viz.renderToDOM(chartRef.current);
+    }, []);
 
     return (
         <div className="pt-2">
+            <h1>hello</h1>
+            <div ref={chartRef} />
             <Alert color="info" fade={false}>
                 Select cells for the visualization and map them to types
             </Alert>

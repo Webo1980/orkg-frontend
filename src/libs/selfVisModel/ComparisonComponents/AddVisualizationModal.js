@@ -3,6 +3,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import SelfVisDataModel from 'libs/selfVisModel/SelfVisDataModel';
 import CellEditor from 'libs/selfVisModel/RenderingComponents/CellEditor';
 import CellSelector from 'libs/selfVisModel/RenderingComponents/CellSelector';
+import VisualizationType from 'libs/selfVisModel/RenderingComponents/VisualizationType';
 import VisualizationWidget from 'libs/selfVisModel/VisRenderer/VisualizationWidget';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import { setIsOpenVisualizationModal, setVisualizations } from 'slices/comparisonSlice';
@@ -103,13 +104,13 @@ function AddVisualizationModal() {
             if (!prevShowDialog) {
                 if (useReconstructedDataInVisualization) {
                     // set the state last tab;
-                    setProcessStep(2);
+                    setProcessStep(3);
                 } else {
                     // reset the model >> this is called when we start the visualization modal
                     new SelfVisDataModel().resetCustomizationModel();
                     setProcessStep(0);
                 }
-            } else if (prevProcessStep === 0 && processStep === 2) {
+            } else if (prevProcessStep === 0 && processStep === 3) {
                 // this shall trigger the cell validation
                 // shall be done when the user switches between select directly to visualize
                 new SelfVisDataModel().forceCellValidation(); // singleton call
@@ -174,16 +175,20 @@ function AddVisualizationModal() {
                             Select
                         </TabButton>
                         <TabButton active={processStep === 1} onClick={() => setProcessStep(1)}>
-                            Map &amp; edit
+                            Select Graph Type
                         </TabButton>
                         <TabButton active={processStep === 2} onClick={() => setProcessStep(2)}>
+                            Map &amp; edit
+                        </TabButton>
+                        <TabButton active={processStep === 3} onClick={() => setProcessStep(3)}>
                             Visualize
                         </TabButton>
                     </TabButtons>
                     {/*  renders different views based on the current step in the process */}
                     {processStep === 0 && <CellSelector isLoading={!loadedModel} height={windowHeight - 50} />}
-                    {processStep === 1 && <CellEditor isLoading={!loadedModel} height={windowHeight - 50} />}
-                    {processStep === 2 && (
+                    {processStep === 1 && <VisualizationType />}
+                    {processStep === 2 && <CellEditor isLoading={!loadedModel} height={windowHeight - 50} />}
+                    {processStep === 3 && (
                         <VisualizationWidget
                             isLoading={!loadedModel}
                             height={windowHeight - 10}
