@@ -29,6 +29,7 @@ const Comparison = () => {
     const [cookies] = useCookies(['useFullWidthForComparisonTable']);
     const isPublished = !!comparisonResource.id;
 
+    console.log('show selected  comparisonId ', comparisonId);
     const dispatch = useDispatch();
 
     useEffect(() => {

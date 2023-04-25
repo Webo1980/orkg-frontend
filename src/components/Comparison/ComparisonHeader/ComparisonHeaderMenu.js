@@ -50,7 +50,9 @@ import RequireAuthentication from 'components/RequireAuthentication/RequireAuthe
 const ComparisonHeaderMenu = props => {
     const dispatch = useDispatch();
     const data = useSelector(state => state.comparison.data);
+    console.log('show data', data);
     const matrixData = useSelector(state => getMatrixOfComparison(state.comparison));
+    console.log('show matrix data', matrixData);
     const contributions = useSelector(state => state.comparison.contributions.filter(c => c.active));
     const properties = useSelector(state => state.comparison.properties.filter(c => c.active));
     const comparisonResource = useSelector(state => state.comparison.comparisonResource);
@@ -178,7 +180,15 @@ const ComparisonHeaderMenu = props => {
         }
         dispatch(setIsEditing(shouldEdit));
     };
+    // https://sandbox.orkg.org/simcomp/visualization/?resourceId=R279159
+    const resourceIdParam = window.location.pathname;
 
+    const csvURL = 'https://raw.githubusercontent.com/Qurat62/rawGraph-resource/main/ORKG%20Contribution%20Comparison%20(2).csv';
+    const encodedObj = encodeURIComponent(csvURL);
+
+    const handleClick = () => {
+        window.location.href = `http://localhost:3002/?${encodedObj}`;
+    };
     return (
         <>
             <Breadcrumbs researchFieldId={comparisonResource?.researchField ? comparisonResource?.researchField.id : null} />
@@ -205,10 +215,11 @@ const ComparisonHeaderMenu = props => {
                                 <Button
                                     color="secondary"
                                     size="sm"
-                                    onClick={() => {
-                                        dispatch(setUseReconstructedDataInVisualization(false));
-                                        dispatch(setIsOpenVisualizationModal(!isOpenVisualizationModal));
-                                    }}
+                                    onClick={handleClick}
+                                    // onClick={() => {
+                                    //     dispatch(setUseReconstructedDataInVisualization(false));
+                                    //     dispatch(setIsOpenVisualizationModal(!isOpenVisualizationModal));
+                                    // }}
                                     style={{ marginRight: 2 }}
                                 >
                                     <Icon icon={faChartBar} className="me-1" /> Visualize

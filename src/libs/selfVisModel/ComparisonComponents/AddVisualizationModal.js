@@ -56,6 +56,7 @@ function AddVisualizationModal() {
 
     const dispatch = useDispatch();
     const { data } = useSelector(state => state.comparison);
+
     const contributions = useSelector(state => state.comparison.contributions.filter(c => c.active));
     const properties = useSelector(state => state.comparison.properties.filter(c => c.active));
     const comparisonResource = useSelector(state => state.comparison.comparisonResource);
@@ -175,20 +176,20 @@ function AddVisualizationModal() {
                             Select
                         </TabButton>
                         <TabButton active={processStep === 1} onClick={() => setProcessStep(1)}>
-                            Select Graph Type
-                        </TabButton>
-                        <TabButton active={processStep === 2} onClick={() => setProcessStep(2)}>
                             Map &amp; edit
                         </TabButton>
-                        <TabButton active={processStep === 3} onClick={() => setProcessStep(3)}>
+                        <TabButton active={processStep === 2} onClick={() => setProcessStep(2)}>
                             Visualize
+                        </TabButton>
+                        <TabButton active={processStep === 3} onClick={() => setProcessStep(3)}>
+                            Raw Graph
                         </TabButton>
                     </TabButtons>
                     {/*  renders different views based on the current step in the process */}
                     {processStep === 0 && <CellSelector isLoading={!loadedModel} height={windowHeight - 50} />}
-                    {processStep === 1 && <VisualizationType />}
-                    {processStep === 2 && <CellEditor isLoading={!loadedModel} height={windowHeight - 50} />}
-                    {processStep === 3 && (
+
+                    {processStep === 1 && <CellEditor isLoading={!loadedModel} height={windowHeight - 50} />}
+                    {processStep === 2 && (
                         <VisualizationWidget
                             isLoading={!loadedModel}
                             height={windowHeight - 10}
@@ -196,6 +197,7 @@ function AddVisualizationModal() {
                             comparePropsWithActualWidth={compareWidth}
                         />
                     )}
+                    {processStep === 3 && <VisualizationType />}
 
                     <HelpVideoModal showDialog={showVideoModal} toggle={() => setShowVideoModal(!showVideoModal)} />
 

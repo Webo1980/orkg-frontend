@@ -28,6 +28,7 @@ const ComparisonCard = props => {
         unlisted: props.comparison?.unlisted,
         featured: props.comparison?.featured,
     });
+    console.log('show comparison id', props.comparison.id);
     return (
         <ComparisonCardStyled
             style={{ flexWrap: 'wrap' }}

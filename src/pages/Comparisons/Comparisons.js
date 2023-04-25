@@ -20,7 +20,6 @@ const Comparisons = () => {
     });
 
     const renderListItem = comparison => <ComparisonCard comparison={comparison} key={`pc${comparison.id}`} />;
-
     const fetchItems = async ({ page, pageSize }) => {
         const { items, last, totalElements } = await getResourcesByClass({
             id: CLASSES.COMPARISON,
