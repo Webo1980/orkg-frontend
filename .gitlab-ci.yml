@@ -74,7 +74,7 @@ deploy:release:
 #   rules:
 #     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
-branch-deploy:
+pages:
   image: node:lts-buster
   # when: manual
   stage: branch-deploy
@@ -83,8 +83,8 @@ branch-deploy:
     NODE_OPTIONS: "–max_old_space_size=4096"
   script:
     - cp default.env .env
-    - REACT_APP_PUBLIC_URL="/orkg-frontend/$CI_COMMIT_REF_SLUG" # needs to be placed after copying the env file, otherwise the var is overwritten
-    - echo "Vars '$GENERATE_SOURCEMAP' '$NODE_OPTIONS'"
+    - REACT_APP_PUBLIC_URL="/orkg/orkg-frontend/$CI_COMMIT_REF_SLUG" # needs to be placed after copying the env file, otherwise the var is overwritten
+    - echo "Vars '$GENERATE_SOURCEMAP' '$NODE_OPTIONS' '$REACT_APP_PUBLIC_URL'"
     - npm run build
     - mkdir -p "public/$CI_COMMIT_REF_SLUG"
     - mv build/* "public/$CI_COMMIT_REF_SLUG"
