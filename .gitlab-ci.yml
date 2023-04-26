@@ -1,5 +1,6 @@
 stages:
     - install
+    - branch-deploy
     - test
     - containerize
     - verify
@@ -60,15 +61,33 @@ deploy:release:
     - if: $CI_COMMIT_TAG
 
 # deploy storybook to Gitlab pages
-pages:
+# pages:
+#   image: node:lts-buster
+#   stage: pages
+#   script:
+#     - rm -rf public # remove the currently existing 'public' folder that contains static files for running the frontend
+#     - mkdir -p public/storybook
+#     - npm run build-storybook
+#   artifacts:
+#     paths:
+#       - public
+#   rules:
+#     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+
+branch-deploy:
   image: node:lts-buster
-  stage: pages
+  # when: manual
+  stage: branch-deploy
+  variables:
+    GENERATE_SOURCEMAP: "false" 
+    NODE_OPTIONS: "–max_old_space_size=4096"
   script:
-    - rm -rf public # remove the currently existing 'public' folder that contains static files for running the frontend
-    - mkdir -p public/storybook
-    - npm run build-storybook
+    - cp default.env .env
+    - REACT_APP_PUBLIC_URL="/orkg-frontend/$CI_COMMIT_REF_SLUG" # needs to be placed after copying the env file, otherwise the var is overwritten
+    - echo "Vars '$GENERATE_SOURCEMAP' '$NODE_OPTIONS'"
+    - npm run build
+    - mkdir -p "public/$CI_COMMIT_REF_SLUG"
+    - mv build/* "public/$CI_COMMIT_REF_SLUG"
   artifacts:
     paths:
       - public
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
