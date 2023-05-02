@@ -10,13 +10,13 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getConferencesSeries } from 'services/backend/conferences-series';
+import { getConferenceById, getConferencesSeries } from 'services/backend/conferences-series';
 import { createLiteral } from 'services/backend/literals';
 import { createObject, generateDoi } from 'services/backend/misc';
-import { createResourceStatement, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
+import { createResourceStatement, getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { createThing } from 'services/similarity';
 import { setDoi } from 'slices/comparisonSlice';
-import { filterObjectOfStatementsByPredicateAndClass, getErrorMessage, getPublicUrl } from 'utils';
+import { filterObjectOfStatementsByPredicateAndClass, getComparisonData, getErrorMessage, getPublicUrl } from 'utils';
 
 function usePublish() {
     const comparisonResource = useSelector(state => state.comparison.comparisonResource);
@@ -56,6 +56,9 @@ function usePublish() {
     };
 
     useEffect(() => {
+        if (comparisonResource.hasPreviousVersion) {
+            return;
+        }
         setTitle(comparisonResource && comparisonResource.label ? comparisonResource.label : '');
         setDescription(comparisonResource && comparisonResource.description ? comparisonResource.description : '');
         setReferences(comparisonResource?.references && comparisonResource.references.length > 0 ? comparisonResource.references : ['']);
@@ -66,6 +69,35 @@ function usePublish() {
                 : [{ label: displayName, id: displayName, orcid: '', statementId: '', __isNew__: true }],
         );
     }, [comparisonResource, displayName]);
+
+    const getConference = async conferenceId => {
+        if (!conferenceId || conferenceId === MISC.UNKNOWN_ID) {
+            return null;
+        }
+        try {
+            return await getConferenceById(conferenceId);
+        } catch (e) {
+            return null;
+        }
+    };
+
+    // populate the publish model with metadata when republishing an existing comparison
+    useEffect(() => {
+        if (!comparisonResource?.hasPreviousVersion?.id) {
+            return;
+        }
+        const fetchData = async () => {
+            const statements = await getStatementsBySubject({ id: comparisonResource.hasPreviousVersion.id });
+            const comparisonData = getComparisonData(statements[0].subject, statements);
+            setTitle(comparisonData.label);
+            setDescription(comparisonData.description);
+            setResearchField(comparisonData.researchField);
+            setComparisonCreators(comparisonData.authors);
+            setReferences(comparisonData.references.length > 0 ? comparisonData.references.map(reference => reference.label) : ['']);
+            setConference((await getConference(comparisonData.organization_id)) ?? null);
+        };
+        fetchData();
+    }, [comparisonResource?.hasPreviousVersion?.id]);
 
     useEffect(() => {
         const getConferencesList = () => {
@@ -231,7 +263,7 @@ function usePublish() {
         setReferences(list);
     };
 
-    const handleSelectField = ({ _id, label }) =>
+    const handleSelectField = ({ id: _id, label }) =>
         setResearchField({
             id: _id,
             label,
