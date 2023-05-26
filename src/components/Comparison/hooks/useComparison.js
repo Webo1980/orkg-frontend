@@ -107,7 +107,7 @@ function useComparison({ id, isEmbeddedMode = false }) {
             if (comparisonId) {
                 simCompCall = getThing({ thingType: THING_TYPES.COMPARISON, thingKey: comparisonId });
             } else {
-                simCompCall = getComparison({ contributionIds: contributionsIDs, type: comparisonType });
+                simCompCall = getComparison({ contributionIds: contributionsIDs, type: getParamFromQueryString(search, 'type') ?? comparisonType });
             }
 
             simCompCall

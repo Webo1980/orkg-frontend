@@ -10,13 +10,15 @@ import useComparison from 'components/Comparison/hooks/useComparison';
 import PreviewVisualizationComparison from 'components/Comparison/ComparisonCarousel/ComparisonCarousel';
 import ComparisonHeaderMenu from 'components/Comparison/ComparisonHeader/ComparisonHeaderMenu';
 import AppliedFilters from 'components/Comparison/ComparisonHeader/AppliedFilters';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCookies } from 'react-cookie';
+import qs from 'qs';
 import { setConfigurationAttribute } from 'slices/comparisonSlice';
 import EditModeHeader from 'components/EditModeHeader/EditModeHeader';
 
 const Comparison = () => {
+    const { search } = useLocation();
     const { comparisonId } = useParams();
     const { comparisonResource, navigateToNewURL } = useComparison({ id: comparisonId });
     const isFailedLoadingMetadata = useSelector(state => state.comparison.isFailedLoadingMetadata);
@@ -27,7 +29,7 @@ const Comparison = () => {
     const isEditing = useSelector(state => state.comparison.isEditing);
     const containerStyle = fullWidth ? { maxWidth: 'calc(100% - 100px)' } : {};
     const [cookies] = useCookies(['useFullWidthForComparisonTable']);
-    const isPublished = !!comparisonResource.id;
+    const isPublished = !!comparisonResource?.id || qs.parse(search, { ignoreQueryPrefix: true })?.noResource;
 
     const dispatch = useDispatch();
 
