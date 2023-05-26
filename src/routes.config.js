@@ -24,6 +24,7 @@ import PropertyDetails from 'pages/Properties/Property';
 import Templates from 'pages/Templates/Templates';
 import Template from 'pages/Templates/Template';
 import ROUTES from 'constants/routes';
+import RedirectShortLinks from 'pages/Comparisons/RedirectShortLinks';
 import ResearchField from 'pages/ResearchFields/ResearchField';
 import ResearchFields from 'pages/ResearchFields/ResearchFields';
 import Resources from 'pages/Resources/Resources';
@@ -180,11 +181,7 @@ const routes = [
     },
     {
         path: ROUTES.COMPARISON_SHORTLINK,
-        element: () => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const { shortCode } = useParams();
-            return <Navigate to={reverse(ROUTES.COMPARISON, { comparisonId: shortCode })} replace />;
-        },
+        element: RedirectShortLinks,
     },
     {
         path: ROUTES.COMPARISON,

@@ -60,7 +60,7 @@ function useComparison({ id, isEmbeddedMode = false }) {
         cId => {
             if (cId) {
                 dispatch(setIsLoadingMetadata(true));
-                // Get the comparison resource and comparison config
+                // Get the comparison resource
                 getResource(cId)
                     .then(_comparisonResource => {
                         // Make sure that this resource is a comparison
@@ -225,7 +225,7 @@ function useComparison({ id, isEmbeddedMode = false }) {
      * parse query params and set the configuration
      */
     useEffect(() => {
-        if (comparisonId !== undefined) {
+        if (comparisonId !== undefined && !qs.parse(search, { ignoreQueryPrefix: true })?.noResource) {
             loadComparisonMetaData(comparisonId);
             getComparisonResult();
         } else {

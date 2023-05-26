@@ -1,53 +1,55 @@
-import { useState, useEffect } from 'react';
-import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Alert } from 'reactstrap';
+import env from '@beam-australia/react-env';
+import { faChartBar, faChevronRight, faEllipsisV, faExternalLinkAlt, faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faPlus, faChartBar, faExternalLinkAlt, faChevronRight, faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
-import ExportToLatex from 'components/Comparison/Export/ExportToLatex';
-import GeneratePdf from 'components/Comparison/Export/GeneratePdf';
-import SelectProperties from 'components/Comparison/SelectProperties';
-import AddContribution from 'components/Comparison/AddContribution/AddContribution';
-import Breadcrumbs from 'components/Breadcrumbs/Breadcrumbs';
-import ExportCitation from 'components/Comparison/Export/ExportCitation';
-import HistoryModal from 'components/Comparison/HistoryModal/HistoryModal';
-import useComparisonVersions from 'components/Comparison/hooks/useComparisonVersions';
-import NewerVersionWarning from 'components/Comparison/HistoryModal/NewerVersionWarning';
-import Publish from 'components/Comparison/Publish/Publish';
-import { ComparisonTypeButton } from 'components/Comparison/styled';
-import { uniq, without } from 'lodash';
-import ROUTES from 'constants/routes.js';
-import { useNavigate, NavLink, useSearchParams } from 'react-router-dom';
-import { openAuthDialog } from 'slices/authSlice';
-import { CSVLink } from 'react-csv';
-import PropTypes from 'prop-types';
-import { generateRdfDataVocabularyFile, activatedContributionsToList } from 'components/Comparison/hooks/helpers';
 import Tippy from '@tippyjs/react';
-import { useCookies } from 'react-cookie';
 import ExactMatch from 'assets/img/comparison-exact-match.svg';
 import IntelligentMerge from 'assets/img/comparison-intelligent-merge.svg';
-import AddVisualizationModal from 'libs/selfVisModel/ComparisonComponents/AddVisualizationModal';
-import { reverse } from 'named-urls';
-import env from '@beam-australia/react-env';
-import { useSelector, useDispatch } from 'react-redux';
-import {
-    setConfigurationAttribute,
-    setIsOpenVisualizationModal,
-    setUseReconstructedDataInVisualization,
-    getMatrixOfComparison,
-    setIsEditing,
-    setIsOpenReviewModal,
-} from 'slices/comparisonSlice';
-import Confirm from 'components/Confirmation/Confirmation';
-import SaveDraft from 'components/Comparison/SaveDraft/SaveDraft';
-import TitleBar from 'components/TitleBar/TitleBar';
-import pluralize from 'pluralize';
-import { SubTitle } from 'components/styled';
-import ComparisonAuthorsModel from 'components/TopAuthors/ComparisonAuthorsModel';
+import Breadcrumbs from 'components/Breadcrumbs/Breadcrumbs';
+import AddContribution from 'components/Comparison/AddContribution/AddContribution';
+import ExportCitation from 'components/Comparison/Export/ExportCitation';
+import ExportToLatex from 'components/Comparison/Export/ExportToLatex';
+import GeneratePdf from 'components/Comparison/Export/GeneratePdf';
+import HistoryModal from 'components/Comparison/HistoryModal/HistoryModal';
+import NewerVersionWarning from 'components/Comparison/HistoryModal/NewerVersionWarning';
+import Publish from 'components/Comparison/Publish/Publish';
 import QualityReportModal from 'components/Comparison/QualityReportModal/QualityReportModal';
 import WriteReview from 'components/Comparison/QualityReportModal/WriteReview';
+import SaveDraft from 'components/Comparison/SaveDraft/SaveDraft';
+import SelectProperties from 'components/Comparison/SelectProperties';
+import { activatedContributionsToList, generateRdfDataVocabularyFile } from 'components/Comparison/hooks/helpers';
+import useComparisonVersions from 'components/Comparison/hooks/useComparisonVersions';
+import { ComparisonTypeButton } from 'components/Comparison/styled';
+import Confirm from 'components/Confirmation/Confirmation';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
+import TitleBar from 'components/TitleBar/TitleBar';
+import ComparisonAuthorsModel from 'components/TopAuthors/ComparisonAuthorsModel';
+import { SubTitle } from 'components/styled';
+import ROUTES from 'constants/routes.js';
+import AddVisualizationModal from 'libs/selfVisModel/ComparisonComponents/AddVisualizationModal';
+import { uniq, without } from 'lodash';
+import { reverse } from 'named-urls';
+import pluralize from 'pluralize';
+import PropTypes from 'prop-types';
+import qs from 'qs';
+import { useEffect, useState } from 'react';
+import { useCookies } from 'react-cookie';
+import { CSVLink } from 'react-csv';
+import { useDispatch, useSelector } from 'react-redux';
+import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Alert, Button, Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
+import { openAuthDialog } from 'slices/authSlice';
+import {
+    getMatrixOfComparison,
+    setConfigurationAttribute,
+    setIsEditing,
+    setIsOpenReviewModal,
+    setIsOpenVisualizationModal,
+    setUseReconstructedDataInVisualization,
+} from 'slices/comparisonSlice';
 
 const ComparisonHeaderMenu = props => {
     const dispatch = useDispatch();
+    const { search } = useLocation();
     const data = useSelector(state => state.comparison.data);
     const matrixData = useSelector(state => getMatrixOfComparison(state.comparison));
     const contributions = useSelector(state => state.comparison.contributions.filter(c => c.active));
@@ -153,7 +155,7 @@ const ComparisonHeaderMenu = props => {
         }
     }, [comparisonResource.id, loadVersions]);
 
-    const isPublished = !!comparisonResource?.id;
+    const isPublished = !!comparisonResource?.id || qs.parse(search, { ignoreQueryPrefix: true })?.noResource;
     const publishedMessage = "Published comparisons cannot be edited, click 'Fetch live data' to reload the live comparison data";
 
     const handleAddContribution = async () => {
