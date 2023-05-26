@@ -238,6 +238,7 @@ const useQualityReport = () => {
         comparisonResource?.created_at,
         comparisonResource?.description?.length,
         comparisonResource?.doi,
+        comparisonResource?.figures?.length,
         comparisonResource?.id,
         comparisonResource?.visualizations?.length,
         data,

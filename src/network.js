@@ -27,6 +27,10 @@ export const submitGetRequest = (url, headers, send_token = false) => {
                         statusText: response.statusText,
                     });
                 } else {
+                    if (response.status === 204) {
+                        // 204 No Content
+                        return resolve(null);
+                    }
                     const json = response.json();
                     if (json.then) {
                         json.then(resolve).catch(reject);
@@ -39,7 +43,7 @@ export const submitGetRequest = (url, headers, send_token = false) => {
     });
 };
 
-export const submitPostRequest = (url, headers, data, jsonStringify = true, send_token = true) => {
+export const submitPostRequest = (url, headers, data, jsonStringify = true, send_token = true, parseResponse = true) => {
     if (!url) {
         throw new Error('Cannot submit POST request. URL is null or undefined.');
     }
@@ -72,6 +76,10 @@ export const submitPostRequest = (url, headers, data, jsonStringify = true, send
                         statusText: response.statusText,
                     });
                 }
+                if (response.status === 204 || !parseResponse) {
+                    // 204 No Content
+                    return resolve(null);
+                }
                 const json = response.json();
                 if (json.then) {
                     json.then(resolve).catch(reject);
@@ -101,6 +109,51 @@ export const submitPutRequest = (url, headers, data, jsonStringify = true) => {
 
     return new Promise((resolve, reject) => {
         fetch(url, { method: 'PUT', headers: myHeaders, body: _data })
+            .then(response => {
+                if (!response.ok) {
+                    const json = response.json();
+                    if (json.then) {
+                        return json.then(reject);
+                    }
+                    return reject({
+                        error: new Error(`Error response. (${response.status}) ${response.statusText}`),
+                        statusCode: response.status,
+                        statusText: response.statusText,
+                    });
+                }
+                if (response.status === 204) {
+                    // HTTP 204 No Content success status
+                    return resolve();
+                }
+                const json = response.json();
+                if (json.then) {
+                    json.then(resolve).catch(reject);
+                } else {
+                    return resolve(json);
+                }
+            })
+            .catch(reject);
+    });
+};
+
+export const submitPatchRequest = (url, headers, data, jsonStringify = true) => {
+    if (!url) {
+        throw new Error('Cannot submit PATCH request. URL is null or undefined.');
+    }
+
+    const cookies = new Cookies();
+    const token = cookies.get('token') ? cookies.get('token') : null;
+    const myHeaders = new Headers(headers);
+    if (token) {
+        myHeaders.append('Authorization', `Bearer ${token}`);
+    }
+    let _data = data;
+    if (jsonStringify) {
+        _data = JSON.stringify(_data);
+    }
+
+    return new Promise((resolve, reject) => {
+        fetch(url, { method: 'PATCH', headers: myHeaders, body: _data })
             .then(response => {
                 if (!response.ok) {
                     const json = response.json();
