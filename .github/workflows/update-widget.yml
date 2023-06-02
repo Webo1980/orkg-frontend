@@ -1,0 +1,40 @@
+name: Update OJS ORKG Widget 
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  commit-changes-to-ojsOrkgWidget:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Check for widget.js changes
+        id: check_changes
+        uses: tj-actions/changed-files@v36
+        with:
+            files: public/widget.js
+
+      - name: Clone ojsOrkgWidget repository
+        uses: actions/checkout@v2
+        with:
+          repository: TIBHannover/ojsOrkgWidget
+          path: ojsOrkgWidget-repo
+        if: steps.check_changes.outputs.any_changed == 'true'
+
+      - name: Copy file to ojsOrkgWidget repository
+        run: cp public/widget.js ojsOrkgWidget-repo/orkgw/widget.js
+        if: steps.check_changes.outputs.any_changed == 'true'
+
+      - name: Commit and push changes
+        working-directory: ojsOrkgWidget-repo
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Update widget.js from orkg-frontend repository"
+          git push
+        if: steps.check_changes.outputs.any_changed == 'true'
