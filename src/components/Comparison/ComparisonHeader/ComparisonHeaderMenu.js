@@ -315,13 +315,15 @@ const ComparisonHeaderMenu = props => {
                                                     </DropdownItem>
                                                 </span>
                                             </Tippy>
-                                            <Tippy disabled={!isPublished} content={publishedMessage}>
-                                                <span>
-                                                    <DropdownItem onClick={() => setShowPropertiesDialog(v => !v)} disabled={isPublished}>
-                                                        Select properties
-                                                    </DropdownItem>
-                                                </span>
-                                            </Tippy>
+                                            {comparisonType !== 'property-path' && (
+                                                <Tippy disabled={!isPublished} content={publishedMessage}>
+                                                    <span>
+                                                        <DropdownItem onClick={() => setShowPropertiesDialog(v => !v)} disabled={isPublished}>
+                                                            Select properties
+                                                        </DropdownItem>
+                                                    </span>
+                                                </Tippy>
+                                            )}
                                             <Tippy disabled={!isPublished} content={publishedMessage}>
                                                 <span>
                                                     <Dropdown
@@ -391,13 +393,15 @@ const ComparisonHeaderMenu = props => {
                                                 </span>
                                             </Tippy>
 
-                                            <Tippy disabled={!isPublished} content={publishedMessage}>
-                                                <span>
-                                                    <DropdownItem onClick={handleEditContributions} disabled={isPublished}>
-                                                        Edit contributions
-                                                    </DropdownItem>
-                                                </span>
-                                            </Tippy>
+                                            {comparisonType !== 'property-path' && (
+                                                <Tippy disabled={!isPublished} content={publishedMessage}>
+                                                    <span>
+                                                        <DropdownItem onClick={handleEditContributions} disabled={isPublished}>
+                                                            Edit contributions
+                                                        </DropdownItem>
+                                                    </span>
+                                                </Tippy>
+                                            )}
 
                                             <DropdownItem divider />
                                             <DropdownItem header>Export</DropdownItem>
