@@ -16,6 +16,7 @@ export default function StatementMenuHeader(props) {
     const isPreferencesOpen = useSelector(state => state.statementBrowser.isPreferencesOpen);
     const isHelpModalOpen = useSelector(state => state.statementBrowser.isHelpModalOpen);
     const isTemplatesModalOpen = useSelector(state => state.statementBrowser.isTemplatesModalOpen);
+    const isSharedResourceEditable = useSelector(state => state.statementBrowser.isSharedResourceEditable);
     const dispatch = useDispatch();
     const preferencesTippy = useRef(null);
 
@@ -67,7 +68,7 @@ export default function StatementMenuHeader(props) {
                 </ButtonGroup>
             </div>
 
-            {!props.canEdit && props.enableEdit && (
+            {!props.canEdit && props.enableEdit && !isSharedResourceEditable && (
                 <UncontrolledAlert color="info">
                     A shared resource cannot be edited directly{' '}
                     <Button
@@ -77,6 +78,13 @@ export default function StatementMenuHeader(props) {
                     >
                         <Icon icon={faQuestionCircle} />
                     </Button>
+                </UncontrolledAlert>
+            )}
+
+            {!props.canEdit && props.enableEdit && isSharedResourceEditable && (
+                <UncontrolledAlert color="warning">
+                    You are editing a shared resource. Changes you made will be applied to <strong>all places where this resource is used</strong>.
+                    Please use with caution.
                 </UncontrolledAlert>
             )}
 

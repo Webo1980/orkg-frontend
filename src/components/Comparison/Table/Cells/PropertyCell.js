@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ENTITIES } from 'constants/graphSettings';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import HierarchyIndicator from 'components/Comparison/Table/Cells/HierarchyIndicator';
 
 const FilterButton = styled(Button)`
     &&& {
@@ -52,7 +53,7 @@ const FilterButton = styled(Button)`
     }
 `;
 
-const PropertyCell = ({ id, label, property, similar, group, grouped = false, groupId }) => {
+const PropertyCell = ({ id, label, property, similar, group, grouped = false, groupId, path = [] }) => {
     const [showStatementBrowser, setShowStatementBrowser] = useState(false);
     const [showFilterDialog, setShowFilterDialog] = useState(false);
     const dispatch = useDispatch();
@@ -60,49 +61,58 @@ const PropertyCell = ({ id, label, property, similar, group, grouped = false, gr
     const filterControlData = useSelector(state => state.comparison.filterControlData);
     const isEmbeddedMode = useSelector(state => state.comparison.isEmbeddedMode);
     const hiddenGroups = useSelector(state => state.comparison.hiddenGroups);
+    const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
 
     const handleOpenStatementBrowser = () => {
         setShowStatementBrowser(true);
     };
 
-    const getValuesNr = () => (!group ? Object.keys(getValuesByProperty(filterControlData, id)).length : 0);
+    const getValuesNr = () => (!group ? Object.keys(getValuesByProperty(filterControlData, id) ?? {})?.length : 0);
 
     const filterButtonClasses = classNames({
         'd-block': true,
-        active: !group ? getRuleByProperty(filterControlData, id).length > 0 : false,
+        active: !group ? getRuleByProperty(filterControlData, id)?.length > 0 : false,
     });
 
     return (
         <>
             {!group && (
                 <>
-                    <Button onClick={handleOpenStatementBrowser} color="link" className="text-start text-light m-0 p-0 text-break user-select-auto">
-                        <DescriptionTooltip
-                            id={property?.id}
-                            _class={ENTITIES.PREDICATE}
-                            extraContent={
-                                similar && similar.length ? (
-                                    <tr>
-                                        <td colSpan="2">This property is merged with: {similar.join(', ')}</td>
-                                    </tr>
-                                ) : (
-                                    ''
-                                )
-                            }
+                    <div className="d-flex align-items-center h-100">
+                        {comparisonType === 'property-path' && <HierarchyIndicator path={path} color="#bcc1d4" />}
+                        <Button
+                            onClick={handleOpenStatementBrowser}
+                            color="link"
+                            className="text-start text-light m-0 p-0 text-break user-select-auto my-1 mx-2"
+                            style={{ fontSize: 'inherit' }}
                         >
-                            <div className={grouped ? 'ms-2' : ''}>
-                                {grouped && <Icon icon={faLevelUpAlt} rotation={90} className="me-2" />}
-                                {label}
-                                {similar && similar.length > 0 && '*'}
-                            </div>
-                        </DescriptionTooltip>
-                    </Button>
-                    {!isEmbeddedMode && (
+                            <DescriptionTooltip
+                                id={property?.id}
+                                _class={ENTITIES.PREDICATE}
+                                extraContent={
+                                    similar && similar.length ? (
+                                        <tr>
+                                            <td colSpan="2">This property is merged with: {similar.join(', ')}</td>
+                                        </tr>
+                                    ) : (
+                                        ''
+                                    )
+                                }
+                            >
+                                <div className={grouped ? 'ms-2' : ''}>
+                                    {grouped && <Icon icon={faLevelUpAlt} rotation={90} className="me-2" />}
+                                    {label}
+                                    {similar && similar.length > 0 && '*'}
+                                </div>
+                            </DescriptionTooltip>
+                        </Button>
+                    </div>
+                    {comparisonType !== 'property-path' && !isEmbeddedMode && (
                         <>
                             <FilterWrapper
                                 data={{
                                     rules: getRuleByProperty(filterControlData, id),
-                                    disabled: getValuesNr() <= 1 && getRuleByProperty(filterControlData, id).length === 0,
+                                    disabled: getValuesNr() <= 1 && getRuleByProperty(filterControlData, id)?.length === 0,
                                 }}
                             >
                                 <FilterButton
@@ -126,7 +136,7 @@ const PropertyCell = ({ id, label, property, similar, group, grouped = false, gr
                     )}
                 </>
             )}
-            {group && label}
+            {group && <div className="my-1 mx-2">{label}</div>}
             {group && (
                 <Button
                     color="link"
@@ -160,6 +170,7 @@ PropertyCell.propTypes = {
     group: PropTypes.bool,
     grouped: PropTypes.bool,
     groupId: PropTypes.string,
+    path: PropTypes.array,
 };
 
 PropertyCell.defaultProps = {

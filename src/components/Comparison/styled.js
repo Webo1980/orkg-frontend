@@ -182,10 +182,37 @@ export const PropertiesInner = styled.div`
     background: ${props => (props.transpose ? props => props.theme.primary : props => props.theme.secondary)};
     height: 100%;
     color: #fff;
-    padding: ${props => props.cellPadding ?? 10}px 10px;
     border-bottom: ${props => (props.transpose ? 'thin solid #fff!important' : 'thin solid #8B91A5!important')};
     overflow-wrap: anywhere;
     white-space: normal;
+
+    &.bg-property-depth-2 {
+        background: #7d8399;
+    }
+    &.bg-property-depth-3 {
+        background: #7b8197;
+    }
+    &.bg-property-depth-4 {
+        background: #787f95;
+    }
+    &.bg-property-depth-5 {
+        background: #767c93;
+    }
+    &.bg-property-depth-6 {
+        background: #747a91;
+    }
+    &.bg-property-depth-7 {
+        background: #71788f;
+    }
+    &.bg-property-depth-8 {
+        background: #6f768d;
+    }
+    &.bg-property-depth-9 {
+        background: #6d748b;
+    }
+    &.bg-property-depth-deepest {
+        background: #6b7288;
+    }
     a {
         color: #fff !important;
     }

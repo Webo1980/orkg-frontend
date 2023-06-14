@@ -62,7 +62,7 @@ const initialState = {
     researchField: null,
     isLoadingMetadata: false,
     isFailedLoadingMetadata: false,
-    isLoadingResult: true,
+    isLoadingResult: false,
     isFailedLoadingResult: false,
     isOpenVisualizationModal: false,
     isOpenReviewModal: false,
@@ -70,6 +70,8 @@ const initialState = {
     hiddenGroups: [],
     isEditing: false,
     isEmbeddedMode: false,
+    expandedPropertyPaths: [],
+    contributionStatements: [],
 };
 
 export const comparisonSlice = createSlice({
@@ -160,6 +162,12 @@ export const comparisonSlice = createSlice({
         setVersions: (state, { payload }) => {
             state.versions = payload;
         },
+        setExpandedPropertyPaths: (state, { payload }) => {
+            state.expandedPropertyPaths = payload;
+        },
+        setContributionStatements: (state, { payload }) => {
+            state.contributionStatements = payload;
+        },
     },
     extraReducers: builder => {
         builder.addCase(LOCATION_CHANGE, (state, { payload }) => {
@@ -203,6 +211,8 @@ export const {
     setIsEditing,
     setIsEmbeddedMode,
     setVersions,
+    setExpandedPropertyPaths,
+    setContributionStatements,
 } = comparisonSlice.actions;
 
 /**

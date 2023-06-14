@@ -8,11 +8,14 @@ import { getCellPadding } from 'slices/comparisonSlice';
 const RowHeader = ({ cell, property }) => {
     const transpose = useSelector(state => state.comparison.configuration.transpose);
     const cellPadding = useSelector(getCellPadding);
+    const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
 
     return (
         <Properties className={`${!transpose ? 'columnProperty' : 'columnContribution'} ${cell.group ? 'columnPropertyGroup' : ''}`}>
             <PropertiesInner
-                className={`${!transpose ? 'd-flex flex-row align-items-start justify-content-between' : ''}`}
+                className={`${
+                    comparisonType === 'property-path' ? `bg-property-depth-${cell?.path.length < 10 ? cell?.path.length : 'deepest'}` : ''
+                } ${!transpose ? 'd-flex flex-row align-items-start justify-content-between' : ''}`}
                 cellPadding={cellPadding}
                 transpose={transpose}
             >
@@ -25,6 +28,7 @@ const RowHeader = ({ cell, property }) => {
                         grouped={cell.grouped ?? false}
                         groupId={cell.groupId ?? null}
                         property={property}
+                        path={cell.path}
                     />
                 ) : (
                     <ContributionCell contribution={cell} />

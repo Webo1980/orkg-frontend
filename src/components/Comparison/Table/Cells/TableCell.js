@@ -1,18 +1,16 @@
-import { Fragment, memo, useState } from 'react';
-import PropTypes from 'prop-types';
-import styled from 'styled-components';
-import { ENTITIES } from 'constants/graphSettings';
-import { Button } from 'reactstrap';
+import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faChevronCircleUp, faChevronCircleDown } from '@fortawesome/free-solid-svg-icons';
-import ValuePlugins from 'components/ValuePlugins/ValuePlugins';
-import StatementBrowserDialog from 'components/StatementBrowser/StatementBrowserDialog';
-import DescriptionTooltip from 'components/DescriptionTooltip/DescriptionTooltip';
+import HierarchyIndicator from 'components/Comparison/Table/Cells/HierarchyIndicator';
 import TableCellLiteral from 'components/Comparison/Table/Cells/TableCellLiteral';
-import PathTooltipContent from 'components/Comparison/Table/Cells/PathTooltipContent';
+import TableCellResource from 'components/Comparison/Table/Cells/TableCellResource';
+import { ENTITIES } from 'constants/graphSettings';
 import { isEqual } from 'lodash';
-import { getCellPadding } from 'slices/comparisonSlice';
+import PropTypes from 'prop-types';
+import { Fragment, memo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Button } from 'reactstrap';
+import { getCellPadding } from 'slices/comparisonSlice';
+import styled from 'styled-components';
 
 export const Item = styled.div`
     margin: 0;
@@ -21,15 +19,43 @@ export const Item = styled.div`
 `;
 
 export const ItemInner = styled.div`
-    padding: ${props => props.cellPadding}px 0;
+    /* padding: ${props => props.cellPadding}px 0; */
     border-right: thin solid #d5dae4;
     border-bottom: thin solid #e7eaf1;
-    text-align: center;
+    /* padding-left: 0.2rem; */
     height: 100%;
     overflow-wrap: anywhere;
 
     &:hover .create-button {
         display: block;
+    }
+
+    &.bg-cell-depth-2 {
+        background: #f7f8fa;
+    }
+    &.bg-cell-depth-3 {
+        background: #f2f3f7;
+    }
+    &.bg-cell-depth-4 {
+        background: #edeff4;
+    }
+    &.bg-cell-depth-5 {
+        background: #e9ebf1;
+    }
+    &.bg-cell-depth-6 {
+        background: #e4e7ee;
+    }
+    &.bg-cell-depth-7 {
+        background: #e0e3eb;
+    }
+    &.bg-cell-depth-8 {
+        background: #dbdfe8;
+    }
+    &.bg-cell-depth-9 {
+        background: #d6dbe5;
+    }
+    &.bg-cell-depth-deepest {
+        background: #d2d7e3;
     }
 `;
 
@@ -43,41 +69,21 @@ export const ItemInnerSeparator = styled.hr`
 const MAX_ITEMS = 6;
 
 const TableCell = ({ entities }) => {
-    const [modal, setModal] = useState(false);
-    const [dialogResourceId, setDialogResourceId] = useState(null);
-    const [dialogResourceLabel, setDialogResourceLabel] = useState(null);
-    const [dialogResourceType, setDialogResourceType] = useState(ENTITIES.RESOURCE);
-    const [path, setPath] = useState([]);
     const [isExpanded, setIsExpanded] = useState(false);
     const cellPadding = useSelector(getCellPadding);
-
-    const openStatementBrowser = (id, label, type = null, path = []) => {
-        setDialogResourceId(id);
-        setDialogResourceLabel(label);
-        setDialogResourceType(type || ENTITIES.RESOURCE);
-        setPath(path);
-        setModal(true);
-    };
-
-    const onClickHandle = (date, index) => {
-        openStatementBrowser(
-            date.resourceId,
-            date.label,
-            null,
-            date.pathLabels.map((l, i) => ({
-                id: entities[index].path[i],
-                label: l,
-                _class: isEqualPaths ? (i % 2 === 0 ? ENTITIES.RESOURCE : ENTITIES.PREDICATE) : i % 2 !== 0 ? ENTITIES.RESOURCE : ENTITIES.PREDICATE,
-            })),
-        );
-    };
-
-    const isEqualPaths = entities?.length > 0 ? entities[0].pathLabels?.length === entities[0].path?.length : true;
+    const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
 
     return (
         <>
             <Item>
-                <ItemInner cellPadding={cellPadding} className={entities === undefined ? 'itemGroup' : ''}>
+                <ItemInner
+                    cellPadding={cellPadding}
+                    className={`${
+                        comparisonType === 'property-path'
+                            ? `bg-cell-depth-${entities[0].path.length < 10 ? entities[0].path.length : 'deepest'}`
+                            : ''
+                    } ${entities === undefined ? 'itemGroup' : ''}`}
+                >
                     {entities &&
                         entities.length > 0 &&
                         entities.slice(0, !isExpanded ? MAX_ITEMS : entities?.length).map(
@@ -85,33 +91,10 @@ const TableCell = ({ entities }) => {
                                 Object.keys(entity).length > 0 && (
                                     <Fragment key={`value-${entity.resourceId}`}>
                                         {index > 0 && <ItemInnerSeparator cellPadding={cellPadding} />}
-                                        <div style={{ padding: '0 5px' }}>
+                                        <div className="d-flex h-100">
+                                            {comparisonType === 'property-path' && <HierarchyIndicator path={entity.path} color="#b1b1b1" />}
                                             {entity.type === ENTITIES.RESOURCE ? (
-                                                <span>
-                                                    <DescriptionTooltip
-                                                        id={entity.resourceId}
-                                                        _class={entity.type}
-                                                        classes={entity.classes ?? []}
-                                                        extraContent={
-                                                            entity.pathLabels?.length > 1 ? (
-                                                                <PathTooltipContent data={entity} cellDataValue={entity} />
-                                                            ) : (
-                                                                ''
-                                                            )
-                                                        }
-                                                    >
-                                                        <div
-                                                            className="btn-link"
-                                                            onClick={() => onClickHandle(entity, index)}
-                                                            style={{ cursor: 'pointer' }}
-                                                            onKeyDown={e => (e.keyCode === 13 ? onClickHandle(entity, index) : undefined)}
-                                                            role="button"
-                                                            tabIndex={0}
-                                                        >
-                                                            <ValuePlugins type="resource">{entity.label}</ValuePlugins>
-                                                        </div>
-                                                    </DescriptionTooltip>
-                                                </span>
+                                                <TableCellResource entity={entity} index={index} />
                                             ) : (
                                                 <TableCellLiteral key={index} entity={entity} />
                                             )}
@@ -127,17 +110,6 @@ const TableCell = ({ entities }) => {
                     )}
                 </ItemInner>
             </Item>
-
-            {modal && (
-                <StatementBrowserDialog
-                    show={modal}
-                    toggleModal={() => setModal(v => !v)}
-                    id={dialogResourceId}
-                    label={dialogResourceLabel}
-                    type={dialogResourceType}
-                    initialPath={path}
-                />
-            )}
         </>
     );
 };

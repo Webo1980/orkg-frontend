@@ -82,6 +82,8 @@ class StatementBrowserDialog extends Component {
                         newStore={this.props.newStore}
                         showExternalDescriptions={this.props.showExternalDescriptions}
                         canEditSharedRootLevel={this.props.canEditSharedRootLevel}
+                        propertiesInComparison={this.props.propertiesInComparison}
+                        isSharedResourceEditable={this.props.isSharedResourceEditable}
                     />
                 </ModalBody>
             </Modal>
@@ -101,7 +103,9 @@ StatementBrowserDialog.propTypes = {
     openExistingResourcesInDialog: PropTypes.bool.isRequired,
     showExternalDescriptions: PropTypes.bool.isRequired,
     updateSettings: PropTypes.func.isRequired,
+    propertiesInComparison: PropTypes.array,
     type: PropTypes.string,
+    isSharedResourceEditable: PropTypes.bool,
     initialPath: PropTypes.arrayOf(
         PropTypes.shape({
             id: PropTypes.string.isRequired,
@@ -119,7 +123,9 @@ StatementBrowserDialog.defaultProps = {
     initialPath: [],
     showExternalDescriptions: true,
     canEditSharedRootLevel: true,
+    isSharedResourceEditable: false,
     onCloseModal: () => {},
+    propertiesInComparison: [],
 };
 
 const mapStateToProps = state => ({ openExistingResourcesInDialog: state.statementBrowser.openExistingResourcesInDialog });

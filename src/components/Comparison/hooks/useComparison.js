@@ -1,5 +1,10 @@
 import { useEffect, useCallback } from 'react';
-import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
+import {
+    getStatementsBySubject,
+    getStatementsBySubjectAndPredicate,
+    getStatementsBundleBySubject,
+    getStatementsByObject,
+} from 'services/backend/statements';
 import { getResource } from 'services/backend/resources';
 import { getComparison, getResourceData } from 'services/similarity/index';
 import {
@@ -20,6 +25,8 @@ import {
     extendAndSortProperties,
     setHiddenGroups,
     setIsEmbeddedMode,
+    setContributionStatements,
+    setExpandedPropertyPaths,
 } from 'slices/comparisonSlice';
 import {
     filterObjectOfStatementsByPredicateAndClass,
@@ -28,17 +35,20 @@ import {
     getErrorMessage,
     getComparisonData,
     asyncLocalStorage,
+    getPaperData,
 } from 'utils';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
-import { uniq, without } from 'lodash';
+import { flatten, uniq, without } from 'lodash';
 import ROUTES from 'constants/routes.js';
 import qs from 'qs';
 import { useSelector, useDispatch } from 'react-redux';
+import useComparisonPropertyPath from 'components/Comparison/Table/hooks/useComparisonPropertyPath';
+import { getStatementsByObjectAndPredicate } from 'services/backend/statements';
 import { getComparisonConfiguration, generateFilterControlData } from './helpers';
 
-const DEFAULT_COMPARISON_METHOD = 'path';
+const DEFAULT_COMPARISON_METHOD = 'property-path';
 
 function useComparison({ id, isEmbeddedMode = false }) {
     const { search } = useLocation();
@@ -58,7 +68,7 @@ function useComparison({ id, isEmbeddedMode = false }) {
     const isLoadingResult = useSelector(state => state.comparison.isLoadingResult);
     const data = useSelector(state => state.comparison.data);
     const properties = useSelector(state => state.comparison.properties);
-
+    const { getUniqueProperties } = useComparisonPropertyPath();
     /**
      * Load comparison meta data and comparison config
      *
@@ -144,11 +154,48 @@ function useComparison({ id, isEmbeddedMode = false }) {
         [dispatch],
     );
 
+    const getDataForPropertyPathComparison = useCallback(async () => {
+        try {
+            dispatch(setIsLoadingResult(true));
+
+            // create the columns, fetch data related to papers
+            let paperStatements = contributionsList.map(objectId =>
+                getStatementsByObjectAndPredicate({ objectId, predicateId: PREDICATES.HAS_CONTRIBUTION }),
+            );
+            paperStatements = flatten(await Promise.all(paperStatements));
+
+            const _contributions = paperStatements.map(statement => ({
+                contributionLabel: statement.object.label,
+                id: statement.object.id,
+                paperId: statement.subject.id,
+                title: statement.subject.label,
+                active: true,
+            }));
+            dispatch(setContributions(_contributions));
+
+            // the rest of the data
+            const allStatementPromise = contributionsList.map(resourceId => getStatementsBundleBySubject({ id: resourceId, maxLevel: 20 }));
+            const allStatements = await Promise.all(allStatementPromise);
+            dispatch(setContributionStatements(allStatements));
+            const uniqueProperties = getUniqueProperties(allStatements);
+            const firstLevelPropertyIds = uniqueProperties.filter(p => p.path.length === 1).map(p => [p.id]);
+            dispatch(setExpandedPropertyPaths(firstLevelPropertyIds));
+            dispatch(setProperties(uniqueProperties));
+
+            dispatch(setIsFailedLoadingResult(false));
+        } catch (e) {
+            dispatch(setIsFailedLoadingResult(true));
+        } finally {
+            dispatch(setIsLoadingResult(false));
+        }
+    }, [contributionsList, dispatch, getUniqueProperties]);
+
     /**
      * Call the comparison service to get the comparison result
      */
     const getComparisonResult = useCallback(() => {
         dispatch(setIsLoadingResult(true));
+        // probably this is not needed for comparisonType === 'property-path'
         getComparison({ contributionIds: contributionsList, type: comparisonType, response_hash: responseHash, save_response: false })
             .then(async comparisonData => {
                 // mocking function to allow for deletion of contributions via the url
@@ -163,13 +210,14 @@ function useComparison({ id, isEmbeddedMode = false }) {
                 comparisonData.properties = await dispatch(extendAndSortProperties(comparisonData, comparisonType));
 
                 dispatch(setContributions(comparisonData.contributions));
-                dispatch(setProperties(comparisonData.properties));
+
+                dispatch(setIsLoadingResult(false));
+                dispatch(setIsFailedLoadingResult(false));
                 dispatch(setData(comparisonData.data));
                 dispatch(
                     setFilterControlData(generateFilterControlData(comparisonData.contributions, comparisonData.properties, comparisonData.data)),
                 );
-                dispatch(setIsLoadingResult(false));
-                dispatch(setIsFailedLoadingResult(false));
+                dispatch(setProperties(comparisonData.properties));
 
                 if (comparisonData.response_hash) {
                     dispatch(setConfigurationAttribute({ attribute: 'responseHash', value: comparisonData.response_hash }));
@@ -286,10 +334,12 @@ function useComparison({ id, isEmbeddedMode = false }) {
      *  3/ Comparison id changed and is not undefined
      */
     useEffect(() => {
-        if (contributionsList?.length > 0) {
+        if (comparisonType === 'property-path') {
+            getDataForPropertyPathComparison();
+        } else if (contributionsList?.length > 0) {
             getComparisonResult();
         }
-    }, [contributionsList?.length, getComparisonResult]);
+    }, [comparisonType, contributionsList?.length, getComparisonResult, getDataForPropertyPathComparison]);
 
     useEffect(() => {
         dispatch(setIsEmbeddedMode(isEmbeddedMode));

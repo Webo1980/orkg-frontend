@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Alert } from 'reactstrap';
+import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Alert, Badge } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faEllipsisV, faPlus, faChartBar, faExternalLinkAlt, faChevronRight, faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
+import {
+    faEllipsisV,
+    faPlus,
+    faChartBar,
+    faExternalLinkAlt,
+    faChevronRight,
+    faPen,
+    faTimes,
+    faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 import ExportToLatex from 'components/Comparison/Export/ExportToLatex';
 import GeneratePdf from 'components/Comparison/Export/GeneratePdf';
 import SelectProperties from 'components/Comparison/SelectProperties';
@@ -46,9 +55,12 @@ import ComparisonAuthorsModel from 'components/TopAuthors/ComparisonAuthorsModel
 import QualityReportModal from 'components/Comparison/QualityReportModal/QualityReportModal';
 import WriteReview from 'components/Comparison/QualityReportModal/WriteReview';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
+import CreatePaperModal from 'components/CreatePaperModal/CreatePaperModal';
+import CreateContributionModal from 'components/CreateContributionModal/CreateContributionModal';
 
 const ComparisonHeaderMenu = props => {
     const dispatch = useDispatch();
+
     const data = useSelector(state => state.comparison.data);
     const matrixData = useSelector(state => getMatrixOfComparison(state.comparison));
     const contributions = useSelector(state => state.comparison.contributions.filter(c => c.active));
@@ -70,6 +82,10 @@ const ComparisonHeaderMenu = props => {
     const [, setCookie] = useCookies();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const [isOpenCreatePaper, setIsOpenCreatePaper] = useState(false);
+    const [initialValueCreatePaper, setInitialValueCreatePaper] = useState(null);
+    const [isOpenCreateContribution, setIsOpenCreateContribution] = useState(false);
+    const [createContributionPaperId, setCreateContributionPaperId] = useState(null);
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [dropdownDensityOpen, setDropdownDensityOpen] = useState(false);
@@ -179,109 +195,179 @@ const ComparisonHeaderMenu = props => {
         dispatch(setIsEditing(shouldEdit));
     };
 
+    const handleOpenCreateContributionModal = paperId => {
+        setShowAddContribution(false);
+        setCreateContributionPaperId(paperId);
+        setIsOpenCreateContribution(true);
+    };
+
+    const handleOpenCreatePaperModal = initialValue => {
+        setShowAddContribution(false);
+        setIsOpenCreatePaper(true);
+        setInitialValueCreatePaper(initialValue);
+    };
+
+    const handleCreateContribution = id => {
+        addContributions([id]);
+        setIsOpenCreateContribution(false);
+    };
+
+    const handleCreatePaper = ({ contributionId }) => {
+        addContributions([contributionId]);
+        setIsOpenCreatePaper(false);
+    };
+
     return (
         <>
             <Breadcrumbs researchFieldId={comparisonResource?.researchField ? comparisonResource?.researchField.id : null} />
 
             <TitleBar
                 buttonGroup={
-                    contributionsList.length > 1 &&
                     !isLoadingResult &&
                     !isFailedLoadingResult && (
                         <>
-                            {!isEditing ? (
-                                <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => handleEdit(true)}>
-                                    <Icon icon={faPen} className="me-1" /> Edit
-                                </Button>
-                            ) : (
-                                <Button active color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => handleEdit(false)}>
-                                    <Icon icon={faTimes} /> Stop editing
-                                </Button>
-                            )}
-                            <Button color="secondary" size="sm" style={{ marginRight: 2 }} onClick={handleAddContribution}>
-                                <Icon icon={faPlus} className="me-1" /> Add contribution
-                            </Button>
-                            {comparisonResource.id ? (
-                                <Button
+                            {(comparisonType === 'property-path' || contributionsList.length > 0) && (
+                                <RequireAuthentication
+                                    component={Button}
                                     color="secondary"
                                     size="sm"
-                                    onClick={() => {
-                                        dispatch(setUseReconstructedDataInVisualization(false));
-                                        dispatch(setIsOpenVisualizationModal(!isOpenVisualizationModal));
-                                    }}
                                     style={{ marginRight: 2 }}
+                                    onClick={handleAddContribution}
                                 >
-                                    <Icon icon={faChartBar} className="me-1" /> Visualize
-                                </Button>
-                            ) : (
-                                <Tippy
-                                    hideOnClick={false}
-                                    content="Cannot use self-visualization-service for unpublished comparison. You must publish the comparison first to use this functionality"
-                                >
-                                    <span className="btn-group">
-                                        {/* To trigger the tippy even the button is disabled */}
-                                        <span style={{ marginRight: 2 }} className="btn btn-secondary btn-sm disabled">
-                                            <Icon icon={faChartBar} className="me-1" /> Visualize
-                                        </span>
-                                    </span>
-                                </Tippy>
+                                    <Icon icon={faPlus} className="me-1" /> Add contribution
+                                </RequireAuthentication>
                             )}
-                            <Dropdown group isOpen={dropdownOpen} toggle={() => setDropdownOpen(v => !v)}>
-                                <DropdownToggle color="secondary" size="sm" className="rounded-end">
-                                    <span className="me-2">Actions</span> <Icon icon={faEllipsisV} />
-                                </DropdownToggle>
-                                <DropdownMenu end style={{ zIndex: '1031' }}>
-                                    <Dropdown isOpen={dropdownDensityOpen} toggle={() => setDropdownDensityOpen(v => !v)} direction="left">
-                                        <DropdownToggle className="dropdown-item pe-auto" tag="div" style={{ cursor: 'pointer' }}>
-                                            View <Icon style={{ marginTop: '4px' }} icon={faChevronRight} pull="right" />
+                            {contributionsList.length > 0 && (
+                                <>
+                                    {comparisonResource.id ? (
+                                        <Button
+                                            color="secondary"
+                                            size="sm"
+                                            onClick={() => {
+                                                dispatch(setUseReconstructedDataInVisualization(false));
+                                                dispatch(setIsOpenVisualizationModal(!isOpenVisualizationModal));
+                                            }}
+                                            style={{ marginRight: 2 }}
+                                        >
+                                            <Icon icon={faChartBar} className="me-1" /> Visualize
+                                        </Button>
+                                    ) : (
+                                        <Tippy
+                                            hideOnClick={false}
+                                            content="Cannot use self-visualization-service for unpublished comparison. You must publish the comparison first to use this functionality"
+                                        >
+                                            <span className="btn-group">
+                                                {/* To trigger the tippy even the button is disabled */}
+                                                <span style={{ marginRight: 2 }} className="btn btn-secondary btn-sm disabled">
+                                                    <Icon icon={faChartBar} className="me-1" /> Visualize
+                                                </span>
+                                            </span>
+                                        </Tippy>
+                                    )}
+                                    {!isEditing ? (
+                                        <RequireAuthentication
+                                            component={Button}
+                                            color="secondary"
+                                            size="sm"
+                                            style={{ marginRight: 2 }}
+                                            onClick={() => handleEdit(true)}
+                                        >
+                                            <Icon icon={faPen} className="me-1" /> Edit
+                                        </RequireAuthentication>
+                                    ) : (
+                                        <Button active color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => handleEdit(false)}>
+                                            <Icon icon={faTimes} /> Stop editing
+                                        </Button>
+                                    )}
+                                    <Dropdown group isOpen={dropdownOpen} toggle={() => setDropdownOpen(v => !v)}>
+                                        <DropdownToggle color="secondary" size="sm" className="rounded-end">
+                                            <span className="me-2">Actions</span> <Icon icon={faEllipsisV} />
                                         </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem onClick={handleFullWidth}>
-                                                <span className="me-2">{fullWidth ? 'Reduced width' : 'Full width'}</span>
-                                            </DropdownItem>
-                                            <DropdownItem onClick={handleTranspose}>Transpose table</DropdownItem>
-                                            <DropdownItem divider />
-                                            <DropdownItem header>View density</DropdownItem>
-                                            <DropdownItem active={viewDensity === 'spacious'} onClick={() => handleViewDensity('spacious')}>
-                                                Spacious
-                                            </DropdownItem>
-                                            <DropdownItem active={viewDensity === 'normal'} onClick={() => handleViewDensity('normal')}>
-                                                Normal
-                                            </DropdownItem>
-                                            <DropdownItem active={viewDensity === 'compact'} onClick={() => handleViewDensity('compact')}>
-                                                Compact
-                                            </DropdownItem>
-                                        </DropdownMenu>
-                                    </Dropdown>
-                                    <DropdownItem divider />
-                                    <DropdownItem header>Customize</DropdownItem>
-                                    <Tippy disabled={isPublished} content="The comparison uses live data already">
-                                        <span>
-                                            <DropdownItem onClick={() => props.navigateToNewURL({})} disabled={!isPublished}>
-                                                Fetch live data
-                                            </DropdownItem>
-                                        </span>
-                                    </Tippy>
-                                    <Tippy disabled={!isPublished} content={publishedMessage}>
-                                        <span>
-                                            <DropdownItem onClick={() => setShowPropertiesDialog(v => !v)} disabled={isPublished}>
-                                                Select properties
-                                            </DropdownItem>
-                                        </span>
-                                    </Tippy>
-                                    <Tippy disabled={!isPublished} content={publishedMessage}>
-                                        <span>
-                                            <Dropdown isOpen={dropdownMethodOpen} toggle={() => setDropdownMethodOpen(v => !v)} direction="left">
-                                                <DropdownToggle
-                                                    tag="div"
-                                                    className={`dropdown-item d-flex ${isPublished ? 'disabled' : ''}`}
-                                                    style={{ cursor: 'pointer' }}
-                                                    disabled={isPublished}
-                                                >
-                                                    Comparison method <Icon style={{ marginTop: '4px' }} icon={faChevronRight} pull="right" />
+                                        <DropdownMenu end style={{ zIndex: '1031' }}>
+                                            <Dropdown isOpen={dropdownDensityOpen} toggle={() => setDropdownDensityOpen(v => !v)} direction="left">
+                                                <DropdownToggle className="dropdown-item pe-auto" tag="div" style={{ cursor: 'pointer' }}>
+                                                    View <Icon style={{ marginTop: '4px' }} icon={faChevronRight} pull="right" />
                                                 </DropdownToggle>
                                                 <DropdownMenu>
-                                                    <div className="d-flex px-2">
+                                                    <DropdownItem onClick={handleFullWidth}>
+                                                        <span className="me-2">{fullWidth ? 'Reduced width' : 'Full width'}</span>
+                                                    </DropdownItem>
+                                                    <DropdownItem onClick={handleTranspose}>Transpose table</DropdownItem>
+                                                    <DropdownItem divider />
+                                                    <DropdownItem header>View density</DropdownItem>
+                                                    <DropdownItem active={viewDensity === 'spacious'} onClick={() => handleViewDensity('spacious')}>
+                                                        Spacious
+                                                    </DropdownItem>
+                                                    <DropdownItem active={viewDensity === 'normal'} onClick={() => handleViewDensity('normal')}>
+                                                        Normal
+                                                    </DropdownItem>
+                                                    <DropdownItem active={viewDensity === 'compact'} onClick={() => handleViewDensity('compact')}>
+                                                        Compact
+                                                    </DropdownItem>
+                                                </DropdownMenu>
+                                            </Dropdown>
+                                            <DropdownItem divider />
+                                            <DropdownItem header>Customize</DropdownItem>
+                                            <Tippy disabled={isPublished} content="The comparison uses live data already">
+                                                <span>
+                                                    <DropdownItem onClick={() => props.navigateToNewURL({})} disabled={!isPublished}>
+                                                        Fetch live data
+                                                    </DropdownItem>
+                                                </span>
+                                            </Tippy>
+                                            <Tippy disabled={!isPublished} content={publishedMessage}>
+                                                <span>
+                                                    <DropdownItem onClick={() => setShowPropertiesDialog(v => !v)} disabled={isPublished}>
+                                                        Select properties
+                                                    </DropdownItem>
+                                                </span>
+                                            </Tippy>
+                                            <Tippy disabled={!isPublished} content={publishedMessage}>
+                                                <span>
+                                                    <Dropdown
+                                                        isOpen={dropdownMethodOpen}
+                                                        toggle={() => setDropdownMethodOpen(v => !v)}
+                                                        direction="left"
+                                                    >
+                                                        <DropdownToggle
+                                                            tag="div"
+                                                            className={`dropdown-item d-flex ${isPublished ? 'disabled' : ''}`}
+                                                            style={{ cursor: 'pointer' }}
+                                                            disabled={isPublished}
+                                                        >
+                                                            Comparison method <Icon style={{ marginTop: '4px' }} icon={faChevronRight} pull="right" />
+                                                        </DropdownToggle>
+                                                        <DropdownMenu>
+                                                            <DropdownItem
+                                                                onClick={() => handleChangeType('property-path')}
+                                                                active={comparisonType === 'property-path'}
+                                                            >
+                                                                Property path
+                                                            </DropdownItem>
+                                                            <DropdownItem
+                                                                onClick={() => handleChangeType('merge')}
+                                                                active={comparisonType === 'merge'}
+                                                            >
+                                                                Intelligent merge{' '}
+                                                                <Tippy content="This comparison method is deprecated and will be removed in the near future">
+                                                                    <span>
+                                                                        <Badge color="warning">
+                                                                            <Icon icon={faTriangleExclamation} className="ms-1" /> Deprecated{' '}
+                                                                        </Badge>
+                                                                    </span>
+                                                                </Tippy>
+                                                            </DropdownItem>
+                                                            <DropdownItem onClick={() => handleChangeType('path')} active={comparisonType === 'path'}>
+                                                                Exact match{' '}
+                                                                <Tippy content="This comparison method is deprecated and will be removed in the near future">
+                                                                    <span>
+                                                                        <Badge color="warning">
+                                                                            <Icon icon={faTriangleExclamation} className="ms-1" /> Deprecated{' '}
+                                                                        </Badge>
+                                                                    </span>
+                                                                </Tippy>
+                                                            </DropdownItem>
+                                                            {/* <div className="d-flex px-2">
                                                         <ComparisonTypeButton
                                                             color="link"
                                                             className="p-0 m-1"
@@ -299,127 +385,129 @@ const ComparisonHeaderMenu = props => {
                                                         >
                                                             <img src={ExactMatch} alt="Exact match example" />
                                                         </ComparisonTypeButton>
-                                                    </div>
-                                                </DropdownMenu>
-                                            </Dropdown>
-                                        </span>
-                                    </Tippy>
+                                                    </div> */}
+                                                        </DropdownMenu>
+                                                    </Dropdown>
+                                                </span>
+                                            </Tippy>
 
-                                    <Tippy disabled={!isPublished} content={publishedMessage}>
-                                        <span>
-                                            <DropdownItem onClick={handleEditContributions} disabled={isPublished}>
-                                                Edit contributions
-                                            </DropdownItem>
-                                        </span>
-                                    </Tippy>
+                                            <Tippy disabled={!isPublished} content={publishedMessage}>
+                                                <span>
+                                                    <DropdownItem onClick={handleEditContributions} disabled={isPublished}>
+                                                        Edit contributions
+                                                    </DropdownItem>
+                                                </span>
+                                            </Tippy>
 
-                                    <DropdownItem divider />
-                                    <DropdownItem header>Export</DropdownItem>
-                                    <DropdownItem onClick={() => setShowLatexDialog(v => !v)}>Export as LaTeX</DropdownItem>
-                                    {matrixData && (
-                                        <CSVLink
-                                            data={matrixData}
-                                            filename="ORKG Contribution Comparison.csv"
-                                            className="dropdown-item"
-                                            target="_blank"
-                                            onClick={() => setDropdownOpen(v => !v)}
-                                        >
-                                            Export as CSV
-                                        </CSVLink>
-                                    )}
-                                    <GeneratePdf id="comparisonTable" />
-                                    <DropdownItem
-                                        onClick={() =>
-                                            generateRdfDataVocabularyFile(
-                                                data,
-                                                contributions,
-                                                properties,
-                                                comparisonResource.id
-                                                    ? {
-                                                          title: comparisonResource.label,
-                                                          description: comparisonResource.description,
-                                                          creator: comparisonResource.createdBy,
-                                                          date: comparisonResource.createdAt,
-                                                      }
-                                                    : { title: '', description: '', creator: '', date: '' },
-                                            )
-                                        }
-                                    >
-                                        Export as RDF
-                                    </DropdownItem>
-                                    {comparisonResource?.id && comparisonResource?.doi && (
-                                        <DropdownItem onClick={() => setShowExportCitationsDialog(v => !v)}>Export Citation</DropdownItem>
-                                    )}
-                                    {comparisonResource?.id && (
-                                        <DropdownItem
-                                            tag="a"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            href={`https://mybinder.org/v2/gl/TIBHannover%2Forkg%2Forkg-notebook-boilerplate/HEAD?urlpath=notebooks%2FComparison.ipynb%3Fcomparison_id%3D%22${comparisonResource.id}%22%26autorun%3Dtrue`}
-                                        >
-                                            Jupyter Notebook <Icon size="sm" icon={faExternalLinkAlt} />
-                                        </DropdownItem>
-                                    )}
-                                    <DropdownItem divider />
-                                    <DropdownItem header>Tools</DropdownItem>
-                                    <Tippy disabled={versions?.length > 1} content="There is no history available for this comparison">
-                                        <span>
-                                            <DropdownItem onClick={() => setShowComparisonVersions(v => !v)} disabled={versions?.length < 2}>
-                                                <span className="me-2">History</span>
+                                            <DropdownItem divider />
+                                            <DropdownItem header>Export</DropdownItem>
+                                            <DropdownItem onClick={() => setShowLatexDialog(v => !v)}>Export as LaTeX</DropdownItem>
+                                            {matrixData && (
+                                                <CSVLink
+                                                    data={matrixData}
+                                                    filename="ORKG Contribution Comparison.csv"
+                                                    className="dropdown-item"
+                                                    target="_blank"
+                                                    onClick={() => setDropdownOpen(v => !v)}
+                                                >
+                                                    Export as CSV
+                                                </CSVLink>
+                                            )}
+                                            <GeneratePdf id="comparisonTable" />
+                                            <DropdownItem
+                                                onClick={() =>
+                                                    generateRdfDataVocabularyFile(
+                                                        data,
+                                                        contributions,
+                                                        properties,
+                                                        comparisonResource.id
+                                                            ? {
+                                                                  title: comparisonResource.label,
+                                                                  description: comparisonResource.description,
+                                                                  creator: comparisonResource.createdBy,
+                                                                  date: comparisonResource.createdAt,
+                                                              }
+                                                            : { title: '', description: '', creator: '', date: '' },
+                                                    )
+                                                }
+                                            >
+                                                Export as RDF
                                             </DropdownItem>
-                                        </span>
-                                    </Tippy>
-                                    <DropdownItem onClick={() => setIsOpenQualityReportModal(true)}>Quality report</DropdownItem>
-                                    <Tippy disabled={isPublished} content="This feature only works for published comparisons">
-                                        <span>
-                                            <DropdownItem onClick={() => setIsOpenTopAuthorsModal(true)} disabled={!isPublished}>
-                                                Top authors
-                                            </DropdownItem>
-                                        </span>
-                                    </Tippy>
-                                    <DropdownItem onClick={() => setShowShareDialog(v => !v)}>Share link</DropdownItem>
-                                    <DropdownItem divider />
-                                    <Tippy disabled={!isPublished} content="A published comparison cannot be saved as draft">
-                                        <span>
+                                            {comparisonResource?.id && comparisonResource?.doi && (
+                                                <DropdownItem onClick={() => setShowExportCitationsDialog(v => !v)}>Export Citation</DropdownItem>
+                                            )}
+                                            {comparisonResource?.id && (
+                                                <DropdownItem
+                                                    tag="a"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    href={`https://mybinder.org/v2/gl/TIBHannover%2Forkg%2Forkg-notebook-boilerplate/HEAD?urlpath=notebooks%2FComparison.ipynb%3Fcomparison_id%3D%22${comparisonResource.id}%22%26autorun%3Dtrue`}
+                                                >
+                                                    Jupyter Notebook <Icon size="sm" icon={faExternalLinkAlt} />
+                                                </DropdownItem>
+                                            )}
+                                            <DropdownItem divider />
+                                            <DropdownItem header>Tools</DropdownItem>
+                                            <Tippy disabled={versions?.length > 1} content="There is no history available for this comparison">
+                                                <span>
+                                                    <DropdownItem onClick={() => setShowComparisonVersions(v => !v)} disabled={versions?.length < 2}>
+                                                        <span className="me-2">History</span>
+                                                    </DropdownItem>
+                                                </span>
+                                            </Tippy>
+                                            <DropdownItem onClick={() => setIsOpenQualityReportModal(true)}>Quality report</DropdownItem>
+                                            <Tippy disabled={isPublished} content="This feature only works for published comparisons">
+                                                <span>
+                                                    <DropdownItem onClick={() => setIsOpenTopAuthorsModal(true)} disabled={!isPublished}>
+                                                        Top authors
+                                                    </DropdownItem>
+                                                </span>
+                                            </Tippy>
+                                            <DropdownItem onClick={() => setShowShareDialog(v => !v)}>Share link</DropdownItem>
+                                            <DropdownItem divider />
+                                            <Tippy disabled={!isPublished} content="A published comparison cannot be saved as draft">
+                                                <span>
+                                                    <DropdownItem
+                                                        onClick={() => {
+                                                            if (!user) {
+                                                                dispatch(openAuthDialog({ action: 'signin', signInRequired: true }));
+                                                            } else {
+                                                                setShowSaveDraftDialog(true);
+                                                            }
+                                                        }}
+                                                        disabled={isPublished}
+                                                    >
+                                                        Save as draft
+                                                    </DropdownItem>
+                                                </span>
+                                            </Tippy>
                                             <DropdownItem
                                                 onClick={() => {
                                                     if (!user) {
                                                         dispatch(openAuthDialog({ action: 'signin', signInRequired: true }));
                                                     } else {
-                                                        setShowSaveDraftDialog(true);
+                                                        setShowPublishDialog(v => !v);
                                                     }
                                                 }}
-                                                disabled={isPublished}
                                             >
-                                                Save as draft
+                                                Publish
                                             </DropdownItem>
-                                        </span>
-                                    </Tippy>
-                                    <DropdownItem
-                                        onClick={() => {
-                                            if (!user) {
-                                                dispatch(openAuthDialog({ action: 'signin', signInRequired: true }));
-                                            } else {
-                                                setShowPublishDialog(v => !v);
-                                            }
-                                        }}
-                                    >
-                                        Publish
-                                    </DropdownItem>
-                                    {comparisonResource?.id && (
-                                        <>
-                                            <DropdownItem divider />
-                                            <DropdownItem
-                                                tag={NavLink}
-                                                end
-                                                to={`${reverse(ROUTES.RESOURCE, { id: comparisonResource.id })}?noRedirect`}
-                                            >
-                                                View resource
-                                            </DropdownItem>
-                                        </>
-                                    )}
-                                </DropdownMenu>
-                            </Dropdown>
+                                            {comparisonResource?.id && (
+                                                <>
+                                                    <DropdownItem divider />
+                                                    <DropdownItem
+                                                        tag={NavLink}
+                                                        end
+                                                        to={`${reverse(ROUTES.RESOURCE, { id: comparisonResource.id })}?noRedirect`}
+                                                    >
+                                                        View resource
+                                                    </DropdownItem>
+                                                </>
+                                            )}
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                </>
+                            )}
                         </>
                     )
                 }
@@ -460,7 +548,15 @@ const ComparisonHeaderMenu = props => {
             {showPublishDialog && (
                 <Publish toggle={() => setShowPublishDialog(v => !v)} nextVersions={!isLoadingVersions && hasNextVersion ? versions : []} />
             )}
-            <AddContribution onAddContributions={addContributions} showDialog={showAddContribution} toggle={() => setShowAddContribution(v => !v)} />
+
+            <AddContribution
+                allowCreate
+                onCreateContribution={handleOpenCreateContributionModal}
+                onAddContributions={addContributions}
+                onCreatePaper={handleOpenCreatePaperModal}
+                showDialog={showAddContribution}
+                toggle={() => setShowAddContribution(v => !v)}
+            />
             <ExportToLatex showDialog={showLatexDialog} toggle={() => setShowLatexDialog(v => !v)} s />
             <ExportCitation
                 showDialog={showExportCitationsDialog}
@@ -480,6 +576,22 @@ const ComparisonHeaderMenu = props => {
             {isOpenQualityReportModal && <QualityReportModal toggle={() => setIsOpenQualityReportModal(v => !v)} />}
             {isOpenReviewModal && (
                 <WriteReview comparisonId={comparisonResource?.id} toggle={() => dispatch(setIsOpenReviewModal(!isOpenReviewModal))} />
+            )}
+            {isOpenCreatePaper && (
+                <CreatePaperModal
+                    isOpen
+                    onCreatePaper={handleCreatePaper}
+                    toggle={() => setIsOpenCreatePaper(v => !v)}
+                    initialValue={initialValueCreatePaper}
+                />
+            )}
+            {isOpenCreateContribution && (
+                <CreateContributionModal
+                    isOpen
+                    onCreateContribution={handleCreateContribution}
+                    toggle={() => setIsOpenCreateContribution(v => !v)}
+                    paperId={createContributionPaperId}
+                />
             )}
         </>
     );

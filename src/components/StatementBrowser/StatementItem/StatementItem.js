@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { toggleEditPropertyLabel } from 'slices/statementBrowserSlice';
-import { faPen, faTrash, faCheck, faTimes, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faTrash, faCheck, faTimes, faSpinner, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { ListGroup, InputGroup } from 'reactstrap';
 import PropTypes from 'prop-types';
 import ValueItem from 'components/StatementBrowser/ValueItem/ValueItem';
@@ -15,7 +15,10 @@ import { useSelector } from 'react-redux';
 import { reverse } from 'named-urls';
 import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
-import useStatementItem from './hooks/useStatementItem';
+import useStatementItem from 'components/StatementBrowser/StatementItem/hooks/useStatementItem';
+// import { flatten, isEqual } from 'lodash';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import Tippy from '@tippyjs/react';
 
 // eslint-disable-next-line react/display-name
 const StatementItem = forwardRef((props, ref) => {
@@ -37,6 +40,29 @@ const StatementItem = forwardRef((props, ref) => {
     });
 
     const preferences = useSelector(state => state.statementBrowser.preferences);
+    // const resourceHistory = useSelector(state => state.statementBrowser.resourceHistory);
+    const propertiesInComparison = useSelector(state => state.statementBrowser.propertiesInComparison);
+
+    // console.log('propertiesInComparison', propertiesInComparison);
+
+    // const propertyPath = resourceHistory.allIds
+    //     .map(id => resourceHistory.byId[id])
+    //     .filter(item => item.propertyId)
+    //     .map(item => item.propertyId);
+    // // console.log(propertyPath);
+    // let propertiesInComparison2 = [];
+    // if (propertiesInComparison?.length > 0) {
+    //     propertiesInComparison2 = flatten(
+    //         propertiesInComparison
+    //             .filter(
+    //                 property =>
+    //                     isEqual(propertyPath ?? [], property.path?.slice(0, propertyPath?.length ?? 0)) &&
+    //                     property.path.length === (propertyPath?.length ?? 0) + 1,
+    //             )
+    //             .map(path => path[path.length - 1]),
+    //     );
+    //     // console.log('propertiesInComparison', propertiesInComparison);
+    // }
 
     return (
         <StatementsGroupStyle ref={ref} className={`${props.inTemplate ? 'inTemplate' : 'noTemplate'} list-group-item`}>
@@ -62,6 +88,13 @@ const StatementItem = forwardRef((props, ref) => {
                                 )}
                                 {!property.isSaving && !property.existingPredicateId && predicateLabel}
                                 {property.isSaving && 'Saving...'}
+                                {propertiesInComparison.length > 0 && !propertiesInComparison.find(p => p.id === property.existingPredicateId) && (
+                                    <Tippy content="This property is not displayed inside in the comparison. To show the property, edit the comparison and go the 'Manage properties'">
+                                        <span className="ms-2">
+                                            <Icon icon={faEyeSlash} />
+                                        </span>
+                                    </Tippy>
+                                )}
                             </div>
                             {props.enableEdit && (
                                 <div className={propertyOptionsClasses}>

@@ -4,6 +4,7 @@ import { ItemHeader, ItemHeaderInner } from 'components/Comparison/styled';
 import PropTypes from 'prop-types';
 import { Draggable } from 'react-beautiful-dnd';
 import { useSelector } from 'react-redux';
+import { Button } from 'reactstrap';
 
 const ColumnHeader = ({ headerData, columnId, columnStyle, property, index }) => {
     const transpose = useSelector(state => state.comparison.configuration.transpose);
@@ -26,7 +27,7 @@ const ColumnHeader = ({ headerData, columnId, columnStyle, property, index }) =>
                     >
                         {!transpose ? (
                             <ItemHeader key={`contribution${headerData.id}`}>
-                                <ItemHeaderInner>
+                                <ItemHeaderInner className="d-flex flex-column justify-content-between">
                                     <ContributionCell contribution={headerData} />
                                 </ItemHeaderInner>
                             </ItemHeader>

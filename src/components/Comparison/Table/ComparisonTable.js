@@ -14,6 +14,7 @@ import { useFlexLayout, useTable } from 'react-table';
 import { useSticky } from 'react-table-sticky';
 import { useMedia } from 'react-use';
 import { Alert } from 'reactstrap';
+import useComparisonPropertyPath from 'components/Comparison/Table/hooks/useComparisonPropertyPath';
 import { ReactTableWrapper } from '../styled';
 
 const ComparisonTable = props => {
@@ -30,8 +31,9 @@ const ComparisonTable = props => {
     const scrollContainerHead = useRef(null);
     const smallerFontSize = viewDensity === 'compact';
     const isSmallScreen = useMedia('(max-width: 576px)');
+    const { tableData: tableDataPropertyPath } = useComparisonPropertyPath();
 
-    const tableData = useMemo(() => {
+    const tableDataLegacy = useMemo(() => {
         let dataFrame = [
             ...(!transpose
                 ? properties
@@ -94,8 +96,15 @@ const ComparisonTable = props => {
         return dataFrame;
     }, [comparisonType, contributions, data, properties, hiddenGroups, transpose, isEditing]);
 
+    let tableData;
+    if (comparisonType === 'property-path') {
+        tableData = tableDataPropertyPath;
+    } else {
+        tableData = tableDataLegacy;
+    }
+
     const columns = useMemo(() => {
-        if (filterControlData.length === 0) {
+        if (filterControlData.length === 0 && comparisonType !== 'property-path') {
             return [];
         }
         return [
@@ -159,8 +168,17 @@ const ComparisonTable = props => {
                 </ScrollSyncPane>
             </div>
             {rows.length === 0 && (
-                <Alert className="mt-3" color="info">
-                    These contributions have no data to compare on!
+                <Alert className="m-0" color="info">
+                    There is no data to display.{' '}
+                    {!isEditing ? (
+                        <span>
+                            Ensure you are in edit mode (click the <em>Edit</em> button on the right top) to start adding data
+                        </span>
+                    ) : (
+                        <span>
+                            Ensure data is added to your paper (click the <em>Statement browser</em> button)
+                        </span>
+                    )}
                 </Alert>
             )}
         </ReactTableWrapper>

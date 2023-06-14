@@ -106,7 +106,7 @@ const AddNew = ({ isHomePageStyle, onAdd = null }) => {
                 offset={[0, 0]}
                 content={
                     <div>
-                        <ToolContainer onClick={handleClickMenuItem} to={ROUTES.ADD_COMPARISON} className="d-flex p-2">
+                        <ToolContainer onClick={handleClickMenuItem} to={ROUTES.COMPARISON_NOT_PUBLISHED} className="d-flex p-2">
                             <ImgContainer>
                                 <img src={ContributionEditor} width="90%" alt="Contribution editor preview" />
                             </ImgContainer>

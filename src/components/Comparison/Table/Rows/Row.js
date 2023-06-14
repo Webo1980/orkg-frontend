@@ -6,9 +6,10 @@ import { useSelector } from 'react-redux';
 
 const Row = ({ row, index }) => {
     const isEditing = useSelector(state => state.comparison.isEditing);
+    const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
 
     return (
-        <Draggable draggableId={row.id} key={row.getRowProps().key} index={index} isDragDisabled={!isEditing}>
+        <Draggable draggableId={row.id} key={row.getRowProps().key} index={index} isDragDisabled={!isEditing || comparisonType === 'property-path'}>
             {providedDraggable => (
                 <div
                     className="comparisonRow tr p-0"

@@ -21,7 +21,7 @@ const TableCellLiteral = ({ entity }) => {
 
     return (
         <>
-            <div ref={ref} className="overflow-hidden" style={{ maxHeight: isExpanded ? 'initial' : 200 }}>
+            <div ref={ref} className="overflow-hidden py-1 px-2" style={{ maxHeight: isExpanded ? 'initial' : 200 }}>
                 <DescriptionTooltip
                     id={entity.resourceId}
                     _class={entity.type}

@@ -53,13 +53,14 @@ const useValueItem = ({ valueId, propertyId }) => {
                 }),
             );
         }
-
+        console.log(property);
         dispatch(
             selectResource({
                 increaseLevel: true,
                 resourceId: value.resourceId,
                 label: value.label,
                 propertyLabel: property?.label,
+                propertyId: property?.existingPredicateId,
             }),
         );
     };

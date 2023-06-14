@@ -22,6 +22,7 @@ import {
     initializeWithoutContribution,
     initializeWithResource,
     setInitialPath,
+    setPropertiesInComparison,
     updateSettings,
 } from 'slices/statementBrowserSlice';
 import ItemPreviewFactory from '../ValueItem/ItemPreviewFactory/ItemPreviewFactory';
@@ -45,6 +46,7 @@ const Statements = props => {
                         resourceId: props.initialSubjectId,
                         label: props.initialSubjectLabel,
                         rootNodeType: props.rootNodeType,
+                        // propertiesInComparison: props.propertiesInComparison,
                     }),
                 );
             } else {
@@ -59,6 +61,7 @@ const Statements = props => {
                 updateSettings({
                     openExistingResourcesInDialog: props.openExistingResourcesInDialog,
                     propertiesAsLinks: props.propertiesAsLinks,
+                    isSharedResourceEditable: props.isSharedResourceEditable,
                     resourcesAsLinks: props.resourcesAsLinks,
                     initOnLocationChange: props.initOnLocationChange,
                     keyToKeepStateOnLocationChange: props.keyToKeepStateOnLocationChange,
@@ -66,6 +69,7 @@ const Statements = props => {
             );
 
             dispatch(setInitialPath(props.initialPath));
+            dispatch(setPropertiesInComparison(props.propertiesInComparison));
         } else {
             dispatch(
                 updateSettings({
@@ -86,6 +90,8 @@ const Statements = props => {
         props.resourcesAsLinks,
         props.rootNodeType,
         props.initialPath,
+        props.propertiesInComparison,
+        props.isSharedResourceEditable,
     ]);
 
     const statements = () => {
@@ -96,6 +102,7 @@ const Statements = props => {
             propertyIds = resource && isArray(resource.propertyIds) ? resource.propertyIds : [];
             shared = resource?.shared ?? 0;
         }
+        const isEditing = props.enableEdit && (props.isSharedResourceEditable || shared <= 1 || (props.canEditSharedRootLevel && level === 0));
 
         return (
             <ConditionalWrapper
@@ -109,10 +116,7 @@ const Statements = props => {
                 <div>
                     <Row>
                         <Col lg={props.propertySuggestionsComponent ? 9 : 12}>
-                            <ClassesItem
-                                enableEdit={(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) && props.enableEdit}
-                                syncBackend={syncBackend}
-                            />
+                            <ClassesItem enableEdit={isEditing} syncBackend={syncBackend} />
                             <ListGroup tag="div" className="listGroupEnlarge">
                                 {selectedResource && !resource.isFetching ? (
                                     <>
@@ -121,9 +125,7 @@ const Statements = props => {
                                                 propertyIds.map((propertyId, index) => (
                                                     <StatementItemWrapper
                                                         key={`statement-p${propertyId}r${selectedResource}`}
-                                                        enableEdit={
-                                                            (shared <= 1 || (props.canEditSharedRootLevel && level === 0)) && props.enableEdit
-                                                        }
+                                                        enableEdit={isEditing}
                                                         openExistingResourcesInDialog={props.openExistingResourcesInDialog}
                                                         isLastItem={propertyIds.length === index + 1}
                                                         isFirstItem={index === 0}
@@ -144,15 +146,10 @@ const Statements = props => {
                                     </StyledStatementItem>
                                 )}
 
-                                {(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) && props.enableEdit && (
-                                    <AddProperty resourceId={selectedResource} syncBackend={syncBackend} />
-                                )}
+                                {isEditing && <AddProperty resourceId={selectedResource} syncBackend={syncBackend} />}
                             </ListGroup>
                         </Col>
-                        {(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) &&
-                            props.enableEdit &&
-                            suggestedProperties.length > 0 &&
-                            propertySuggestionsComponent}
+                        {isEditing && suggestedProperties.length > 0 && propertySuggestionsComponent}
                     </Row>
                 </div>
             </ConditionalWrapper>
@@ -207,8 +204,10 @@ Statements.propTypes = {
     syncBackend: PropTypes.bool.isRequired,
     newStore: PropTypes.bool,
     propertiesAsLinks: PropTypes.bool,
+    isSharedResourceEditable: PropTypes.bool,
     resourcesAsLinks: PropTypes.bool,
     initOnLocationChange: PropTypes.bool.isRequired,
+    propertiesInComparison: PropTypes.array,
     showExternalDescriptions: PropTypes.bool.isRequired,
     propertySuggestionsComponent: PropTypes.node,
     keyToKeepStateOnLocationChange: PropTypes.string,
@@ -223,6 +222,7 @@ Statements.defaultProps = {
     initialSubjectLabel: null,
     syncBackend: false,
     newStore: false,
+    isSharedResourceEditable: false,
     propertiesAsLinks: false,
     resourcesAsLinks: false,
     initOnLocationChange: true,
@@ -233,6 +233,7 @@ Statements.defaultProps = {
     initialPath: [],
     canEditSharedRootLevel: true,
     propertySuggestionsComponent: null,
+    propertiesInComparison: [],
 };
 
 export default Statements;

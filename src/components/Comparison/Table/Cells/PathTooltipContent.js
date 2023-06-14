@@ -1,9 +1,14 @@
 import { ENTITIES } from 'constants/graphSettings';
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
 const PathTooltipContent = ({ data, cellDataValue, openStatementBrowser }) => {
     const isEqualPaths = data?.length > 0 ? data[0].pathLabels?.length === data[0].path?.length : true;
+    const comparisonType = useSelector(state => state.comparison.configuration.comparisonType);
 
+    if (comparisonType === 'property-path') {
+        return null;
+    }
     return (
         <tr>
             <td>Path</td>

@@ -3,7 +3,7 @@ import DATA_TYPES from 'constants/DataTypes.js';
 import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
 import REGEX from 'constants/regex';
 import ROUTES from 'constants/routes';
-import { flatten, last, orderBy, sortBy, uniq, uniqBy } from 'lodash';
+import { flatten, isEqual, last, orderBy, reverse, sortBy, uniq, uniqBy } from 'lodash';
 import { match } from 'path-to-regexp';
 import { Cookies } from 'react-cookie';
 import { toast } from 'react-toastify';
@@ -35,6 +35,7 @@ const initialState = {
     isFetchingStatements: false,
     openExistingResourcesInDialog: false,
     propertiesAsLinks: false, // if false the link appears in black font color and opens in a new window
+    isSharedResourceEditable: false,
     resourcesAsLinks: false,
     isTemplatesModalOpen: false,
     isHelpModalOpen: false,
@@ -68,6 +69,7 @@ const initialState = {
     // adding contribution object plus selected contributionId;
     contributions: {},
     selectedContributionId: '',
+    propertiesInComparison: [],
 };
 
 export const statementBrowserSlice = createSlice({
@@ -189,6 +191,9 @@ export const statementBrowserSlice = createSlice({
             const propertyIndex = state.properties.byId[payload.propertyId].valueIds.indexOf(payload.id);
             state.properties.byId[payload.propertyId].valueIds.splice(propertyIndex, 1);
         },
+        setResourcePropertyIds: (state, { payload }) => {
+            state.resources.byId[payload.resourceId].propertyIds = payload.propertyIds;
+        },
         setSavingValue: (state, { payload: { id, status } }) => {
             state.values.byId[id].isSaving = status;
         },
@@ -263,7 +268,12 @@ export const statementBrowserSlice = createSlice({
         addResourceHistory: (state, { payload }) => {
             const resourceId = payload.resourceId ? payload.resourceId : null; // state.contributions.byId[state.selectedContribution].resourceId
             const lastResourceId = state.resourceHistory.allIds[state.resourceHistory.allIds.length - 1];
-            state.resourceHistory.byId[resourceId] = { id: resourceId, label: payload.label, propertyLabel: payload.propertyLabel };
+            state.resourceHistory.byId[resourceId] = {
+                id: resourceId,
+                label: payload.label,
+                propertyLabel: payload.propertyLabel,
+                propertyId: payload.propertyId,
+            };
             if (lastResourceId) {
                 state.resourceHistory.byId[lastResourceId] = {
                     ...state.resourceHistory.byId[lastResourceId],
@@ -289,6 +299,7 @@ export const statementBrowserSlice = createSlice({
                 state.resourceHistory.byId[lastResourceId] = {
                     ...state.resourceHistory.byId[lastResourceId],
                     propertyLabel: last(payload.filter(pt => pt._class === ENTITIES.PREDICATE))?.label,
+                    propertyId: last(payload.filter(pt => pt._class === ENTITIES.PREDICATE))?.id,
                 };
             }
             state.resourceHistory.allIds.unshift(...payload.filter(pt => pt._class !== ENTITIES.PREDICATE).map(pt => pt.id));
@@ -298,6 +309,7 @@ export const statementBrowserSlice = createSlice({
                         id: pt.id,
                         label: pt.label,
                         propertyLabel: payload[index - 1]?.label,
+                        propertyId: payload[index - 1]?.id,
                     };
                 }
                 return null;
@@ -333,6 +345,8 @@ export const statementBrowserSlice = createSlice({
             state.initOnLocationChange =
                 typeof payload.initOnLocationChange === 'boolean' ? payload.initOnLocationChange : state.initOnLocationChange;
             state.keyToKeepStateOnLocationChange = payload.keyToKeepStateOnLocationChange ? payload.keyToKeepStateOnLocationChange : null;
+            state.isSharedResourceEditable =
+                typeof payload.isSharedResourceEditable === 'boolean' ? payload.isSharedResourceEditable : state.isSharedResourceEditable;
         },
         clearResourceHistory: state => {
             state.level = 0;
@@ -427,6 +441,9 @@ export const statementBrowserSlice = createSlice({
             }
             state.templates[templateID].isFetching = status;
         },
+        setPropertiesInComparison: (state, { payload }) => {
+            state.propertiesInComparison = payload;
+        },
     },
     extraReducers: builder => {
         builder.addCase(LOCATION_CHANGE, (state, { payload }) => {
@@ -510,6 +527,8 @@ export const {
     createTemplate,
     setIsFetchingTemplatesOfClass,
     setIsFetchingTemplateData,
+    setPropertiesInComparison,
+    setResourcePropertyIds,
 } = statementBrowserSlice.actions;
 
 export default statementBrowserSlice.reducer;
@@ -534,6 +553,8 @@ export const initializeWithoutContribution = data => dispatch => {
     const { label } = data;
     const { resourceId } = data;
     const { rootNodeType } = data;
+    // const { propertiesInComparison } = data;
+    // console.log('propertiesInComparison', propertiesInComparison);
     let classes = [];
     if (rootNodeType === ENTITIES.PREDICATE) {
         classes = [CLASSES.PREDICATE];
@@ -565,6 +586,7 @@ export const initializeWithoutContribution = data => dispatch => {
             existingResourceId: resourceId,
             resourceId,
             rootNodeType,
+            // propertiesInComparison,
         }),
     );
 };
@@ -823,6 +845,44 @@ export function createRequiredPropertiesInResource(resourceId) {
             });
 
         return Promise.resolve(createdProperties);
+    };
+}
+
+export function createStructure(resourceId) {
+    return (dispatch, getState) => {
+        const existingPropertyIds = getExistingPredicatesByResource(getState(), resourceId);
+
+        const { resourceHistory, propertiesInComparison } = getState().statementBrowser;
+        const foundProperties = getPropertiesForPath({ resourceHistory, propertiesInComparison });
+
+        for (const foundProperty of foundProperties.filter(x => !existingPropertyIds.includes(x.id))) {
+            const propertyId = guid();
+            dispatch(
+                createProperty({
+                    propertyId,
+                    resourceId,
+                    existingPredicateId: foundProperty.id,
+                    label: foundProperty.label,
+                    isExistingProperty: true,
+                    isTemplate: false,
+                }),
+            );
+        }
+
+        const { resources, properties } = getState().statementBrowser;
+        const propertyOrder = resources.byId[resourceId].propertyIds;
+        let realProperties = propertyOrder.map(propertyId => properties.byId[propertyId]);
+        realProperties = sortBy(realProperties, item => {
+            const index = foundProperties.findIndex(property => property.id === item.existingPredicateId);
+            return index !== -1 ? index : null;
+        });
+        const newOrder = realProperties.map(property => property.propertyId);
+
+        if (propertyOrder.length > 0 && newOrder.length > 0) {
+            dispatch(setResourcePropertyIds({ resourceId, propertyIds: newOrder }));
+        }
+
+        return Promise.resolve();
     };
 }
 
@@ -1352,13 +1412,16 @@ export function selectResourceAction(data) {
                 resourceId: data.resourceId,
                 label: data.label,
                 propertyLabel: data.propertyLabel,
+                propertyId: data.propertyId,
             }),
         );
 
         if (data.resetLevel) {
             dispatch(resetLevel());
         }
-        return Promise.resolve().then(() => dispatch(createRequiredPropertiesInResource(data.resourceId)));
+        return Promise.resolve()
+            .then(() => dispatch(createRequiredPropertiesInResource(data.resourceId)))
+            .then(() => dispatch(createStructure(data.resourceId)));
     };
 }
 
@@ -1378,6 +1441,7 @@ export const goToResourceHistory = data => (dispatch, getState) => {
         );
     }
     dispatch(gotoResourceHistory(data));
+    dispatch(createStructure(data.id));
 };
 
 /**
@@ -1411,6 +1475,20 @@ function statementExists(state, statementId) {
     return !!state.statementBrowser.values.allIds.find(id => state.statementBrowser.values.byId[id].statementId === statementId);
 }
 
+export function getPropertiesForPath({ resourceHistory, propertiesInComparison }) {
+    // const propertiesInComparison = getState().statementBrowser.propertiesInComparison;
+    const propertyPath = resourceHistory.allIds
+        .map(id => resourceHistory.byId[id])
+        .filter(item => item.propertyId)
+        .map(item => item.propertyId);
+
+    return propertiesInComparison.filter(
+        property =>
+            isEqual(propertyPath ?? [], property?.path?.slice(0, propertyPath?.length ?? 0)) &&
+            property?.path?.length === (propertyPath?.length ?? 0) + 1,
+    );
+}
+
 /**
  * Recursive function to add statements to a resource
  *
@@ -1422,14 +1500,14 @@ export function addStatements(statements, resourceId, depth) {
     return (dispatch, getState) => {
         let resourceStatements = filterStatementsBySubjectId(statements, resourceId);
         // Sort predicates and values by label
-        resourceStatements = orderBy(
-            resourceStatements,
-            [
-                resourceStatements => resourceStatements.predicate.label.toLowerCase(),
-                resourceStatements => resourceStatements.object.label.toLowerCase(),
-            ],
-            ['asc'],
-        );
+        // resourceStatements = orderBy(
+        //     resourceStatements,
+        //     [
+        //         resourceStatements => resourceStatements.predicate.label.toLowerCase(),
+        //         resourceStatements => resourceStatements.object.label.toLowerCase(),
+        //     ],
+        //     ['asc'],
+        // );
 
         return Promise.all(
             resourceStatements.map(async statement => {
@@ -1513,7 +1591,7 @@ export function addStatements(statements, resourceId, depth) {
  * @return {Promise} Promise object
  */
 export const fetchStatementsForResource =
-    ({ resourceId, rootNodeType = ENTITIES.RESOURCE, depth = 1 }) =>
+    ({ resourceId, rootNodeType = ENTITIES.RESOURCE, depth = 1, propertiesInComparison }) =>
     (dispatch, getState) => {
         if (shouldFetchStatementsForResource(getState(), resourceId, depth, rootNodeType)) {
             dispatch(setIsFetchingStatements({ resourceId }));
@@ -1553,8 +1631,8 @@ export const fetchStatementsForResource =
                         // 3 - load templates
                         const templatesOfClassesLoading = allClasses && allClasses?.map(classID => dispatch(fetchTemplatesOfClassIfNeeded(classID)));
                         return Promise.all(templatesOfClassesLoading)
+                            .then(() => dispatch(addStatements(response.statements, resourceId, depth, propertiesInComparison))) // Add statements
                             .then(() => dispatch(createRequiredPropertiesInResource(resourceId))) // Add required properties
-                            .then(() => dispatch(addStatements(response.statements, resourceId, depth))) // Add statements
                             .then(() => {
                                 // Set fetching is done
                                 dispatch(doneFetchingStatements({ resourceId }));

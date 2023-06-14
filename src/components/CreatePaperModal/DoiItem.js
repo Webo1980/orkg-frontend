@@ -93,7 +93,6 @@ DoiItem.propTypes = {
     onPopulateMetadata: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
-    setIsExistingDoi: PropTypes.func.isRequired,
     lookupOnMount: PropTypes.bool,
 };
 
