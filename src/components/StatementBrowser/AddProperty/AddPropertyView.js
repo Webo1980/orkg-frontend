@@ -1,18 +1,21 @@
-import { Button, InputGroup } from 'reactstrap';
+import { InputGroup } from 'reactstrap';
 import { AddPropertyStyle, AddPropertyContentStyle, AddPropertyFormStyle, StyledButton } from 'components/StatementBrowser/styled';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { ENTITIES } from 'constants/graphSettings';
 import defaultProperties from 'constants/defaultProperties';
 import ConditionalWrapper from 'components/Utils/ConditionalWrapper';
 import Tippy from '@tippyjs/react';
 import PropTypes from 'prop-types';
+import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
 
 const AddPropertyView = props => (
     <AddPropertyStyle className={props.inTemplate ? 'inTemplate' : 'mt-3'}>
         <AddPropertyContentStyle
-            onClick={() => (!props.isLoading && props.inTemplate && !props.showAddProperty ? props.setShowAddProperty(true) : undefined)}
+            onClick={() =>
+                !props.isLoading && props.inTemplate && !props.showAddProperty && !props.isDisabled ? props.setShowAddProperty(true) : undefined
+            }
             className={`${props.inTemplate ? 'inTemplate' : 'noTemplate'} ${props.showAddProperty ? 'col-12 large' : ''}`}
         >
             {props.isLoading || !props.showAddProperty ? (
@@ -24,24 +27,16 @@ const AddPropertyView = props => (
                         </Tippy>
                     )}
                 >
-                    <Button
+                    <ButtonWithLoading
                         color={props.inTemplate ? 'light' : 'secondary'}
                         disabled={props.isDisabled || props.isLoading}
                         onClick={() => (!props.isLoading && !props.inTemplate ? props.setShowAddProperty(true) : undefined)}
                         style={props.inTemplate && props.isDisabled ? { opacity: '1', color: '#21252975' } : undefined}
                         size="sm"
+                        isLoading={props.isLoading}
                     >
-                        {props.isLoading && (
-                            <>
-                                <Icon icon={faSpinner} spin /> Loading
-                            </>
-                        )}
-                        {!props.isLoading && (
-                            <>
-                                <Icon className="icon" size="sm" icon={faPlus} /> Add property
-                            </>
-                        )}
-                    </Button>
+                        <Icon className="icon" size="sm" icon={faPlus} /> Add property
+                    </ButtonWithLoading>
                 </ConditionalWrapper>
             ) : (
                 <AddPropertyFormStyle>
@@ -70,7 +65,7 @@ const AddPropertyView = props => (
                             inputId="addProperty"
                         />
 
-                        <StyledButton outline onClick={() => props.setShowAddProperty(false)}>
+                        <StyledButton className="w-auto" outline onClick={() => props.setShowAddProperty(false)}>
                             Cancel
                         </StyledButton>
                     </InputGroup>

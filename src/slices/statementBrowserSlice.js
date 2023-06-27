@@ -1,25 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { LOCATION_CHANGE, guid, filterStatementsBySubjectId } from 'utils';
-import { ENTITIES, PREDICATES, CLASSES } from 'constants/graphSettings';
-import { match } from 'path-to-regexp';
-import { last, flatten, uniqBy, orderBy, uniq } from 'lodash';
+import DATA_TYPES from 'constants/DataTypes.js';
+import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
+import REGEX from 'constants/regex';
 import ROUTES from 'constants/routes';
+import { flatten, last, orderBy, sortBy, uniq, uniqBy } from 'lodash';
+import { match } from 'path-to-regexp';
 import { Cookies } from 'react-cookie';
-import { getEntity } from 'services/backend/misc';
+import { toast } from 'react-toastify';
 import { createLiteral } from 'services/backend/literals';
+import { getEntity } from 'services/backend/misc';
 import { createPredicate } from 'services/backend/predicates';
-import format from 'string-format';
+import { createResource as createResourceApi, updateResourceClasses as updateResourceClassesApi } from 'services/backend/resources';
 import {
+    createLiteralStatement,
+    createResourceStatement,
+    getStatementsBundleBySubject,
     getTemplateById,
     getTemplatesByClass,
-    getStatementsBundleBySubject,
-    createResourceStatement,
-    createLiteralStatement,
 } from 'services/backend/statements';
-import { createResource as createResourceApi, updateResourceClasses as updateResourceClassesApi } from 'services/backend/resources';
-import DATA_TYPES from 'constants/DataTypes.js';
-import { toast } from 'react-toastify';
-import { lab } from 'd3';
+import format from 'string-format';
+import { LOCATION_CHANGE, filterStatementsBySubjectId, guid } from 'utils';
 
 const cookies = new Cookies();
 
@@ -44,9 +44,8 @@ const initialState = {
     isPreferencesOpen: false,
     preferences: {
         showClasses: getPreferenceFromCookies('showClasses') ?? false,
-        showStatementInfo: getPreferenceFromCookies('showStatementInfo') ?? true,
-        showValueInfo: getPreferenceFromCookies('showValueInfo') ?? true,
-        showLiteralDataTypes: getPreferenceFromCookies('showLiteralDataTypes') ?? true,
+        showDescriptionTooltips: getPreferenceFromCookies('showDescriptionTooltips') ?? true,
+        showInlineDataTypes: getPreferenceFromCookies('showInlineDataTypes') ?? false,
     },
     resources: {
         byId: {},
@@ -88,10 +87,12 @@ export const statementBrowserSlice = createSlice({
         updatePreferences: (state, { payload }) => {
             state.preferences = {
                 showClasses: typeof payload.showClasses === 'boolean' ? payload.showClasses : state.preferences.showClasses,
-                showStatementInfo: typeof payload.showStatementInfo === 'boolean' ? payload.showStatementInfo : state.preferences.showStatementInfo,
-                showValueInfo: typeof payload.showValueInfo === 'boolean' ? payload.showValueInfo : state.preferences.showValueInfo,
-                showLiteralDataTypes:
-                    typeof payload.showLiteralDataTypes === 'boolean' ? payload.showLiteralDataTypes : state.preferences.showLiteralDataTypes,
+                showDescriptionTooltips:
+                    typeof payload.showDescriptionTooltips === 'boolean'
+                        ? payload.showDescriptionTooltips
+                        : state.preferences.showDescriptionTooltips,
+                showInlineDataTypes:
+                    typeof payload.showInlineDataTypes === 'boolean' ? payload.showInlineDataTypes : state.preferences.showInlineDataTypes,
             };
         },
         createResource: (state, { payload }) => {
@@ -371,9 +372,8 @@ export const statementBrowserSlice = createSlice({
             ...initialState,
             preferences: {
                 showClasses: getPreferenceFromCookies('showClasses') ?? false,
-                showStatementInfo: getPreferenceFromCookies('showStatementInfo') ?? true,
-                showValueInfo: getPreferenceFromCookies('showValueInfo') ?? true,
-                showLiteralDataTypes: getPreferenceFromCookies('showLiteralDataTypes') ?? false,
+                showDescriptionTooltips: getPreferenceFromCookies('showDescriptionTooltips') ?? true,
+                showInlineDataTypes: getPreferenceFromCookies('showInlineDataTypes') ?? false,
             },
         }),
         /** -- Handling for creation of contribution objects* */
@@ -428,14 +428,14 @@ export const statementBrowserSlice = createSlice({
             state.templates[templateID].isFetching = status;
         },
     },
-    extraReducers: {
-        [LOCATION_CHANGE]: (state, { payload }) => {
+    extraReducers: builder => {
+        builder.addCase(LOCATION_CHANGE, (state, { payload }) => {
             // prevent reset location for content type page (location change is trigger on edit mode)
             if (
                 state.keyToKeepStateOnLocationChange === match(ROUTES.CONTENT_TYPE)(payload.location.pathname)?.params?.id ||
                 state.keyToKeepStateOnLocationChange === match(ROUTES.CONTENT_TYPE_NO_MODE)(payload.location.pathname)?.params?.id
             ) {
-                return;
+                return state;
             }
 
             // from redux-first-history, reset the wizard when the page is changed
@@ -460,12 +460,11 @@ export const statementBrowserSlice = createSlice({
                 ...initialState,
                 preferences: {
                     showClasses: getPreferenceFromCookies('showClasses') ?? false,
-                    showStatementInfo: getPreferenceFromCookies('showStatementInfo') ?? true,
-                    showValueInfo: getPreferenceFromCookies('showValueInfo') ?? true,
-                    showLiteralDataTypes: getPreferenceFromCookies('showLiteralDataTypes') ?? false,
+                    showDescriptionTooltips: getPreferenceFromCookies('showDescriptionTooltips') ?? true,
+                    showInlineDataTypes: getPreferenceFromCookies('showInlineDataTypes') ?? false,
                 },
             };
-        },
+        });
     },
 });
 
@@ -721,7 +720,6 @@ export const fillStatements =
                 }),
             );
         }
-
         return Promise.resolve();
     };
 
@@ -762,8 +760,8 @@ export function getPropertyIdByByResourceAndPredicateId(state, resourceId, exist
  */
 export function removeEmptyPropertiesOfClass({ resourceId, classId }) {
     return (dispatch, getState) => {
-        const components = getComponentsByResourceID(getState(), resourceId, classId);
-        const existingPropertyIdsToRemove = components.map(mp => mp.property?.id).filter(p => p);
+        const propertyShapes = getPropertyShapesByResourceID(getState(), resourceId, classId);
+        const existingPropertyIdsToRemove = propertyShapes.map(mp => mp.property?.id).filter(p => p);
         const resource = getState().statementBrowser.resources.byId[resourceId];
         if (!resource) {
             return [];
@@ -797,14 +795,14 @@ export function removeEmptyPropertiesOfClass({ resourceId, classId }) {
 export function createRequiredPropertiesInResource(resourceId) {
     return (dispatch, getState) => {
         const createdProperties = [];
-        const components = getComponentsByResourceID(getState(), resourceId);
+        const propertyShapes = getPropertyShapesByResourceID(getState(), resourceId);
         const existingPropertyIds = getExistingPredicatesByResource(getState(), resourceId);
 
-        // Add required properties (minOccurs >= 1)
-        components
+        // Add required properties (minCount >= 1)
+        propertyShapes
             .filter(x => !existingPropertyIds.includes(x.property.id))
             .map(mp => {
-                if (mp.minOccurs >= 1) {
+                if (mp.minCount >= 1) {
                     const propertyId = guid();
                     dispatch(
                         createProperty({
@@ -884,7 +882,6 @@ export function getTemplateIDsByResourceID(state, resourceId) {
     return templateIds;
 }
 
-
 /**
  * Get required properties for a reproducibility template by resource ID
  *
@@ -892,7 +889,7 @@ export function getTemplateIDsByResourceID(state, resourceId) {
  * @param {String} resourceId Resource ID
  * @return {String[]} list of required properties IDs
  */
- export function getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID(state, contributionId) {
+export function getTemplateRequiredPropertiesIDsForReproducibilitysByResourceID(state, contributionId) {
     if (!contributionId) {
         return [];
     }
@@ -902,42 +899,44 @@ export function getTemplateIDsByResourceID(state, resourceId) {
     let requiredProperties = [];
     for (const templateId of templateIds) {
         const template = state.statementBrowser.templates[templateId];
-        const component = template.components;
+        console.log('template', template, component);
+        const component = template.propertyShapes;
         if (template && component) {
             for (const componentItem of component) {
-                if(componentItem.requiredProperty === true){
+                if (componentItem.requiredProperty === true) {
                     requiredProperties = requiredProperties.concat(componentItem.property.label);
                 }
             }
         }
     }
+    console.log('requiredProperties', requiredProperties);
     return requiredProperties;
 }
 
 /**
- * Check whether a certain property has a resource value 
+ * Check whether a certain property has a resource value
  * (If at least one value is avilable for a resource)
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
  * @param {String} propertyId Property ID
  * @return {String} Whether it has value or not
  */
- export function hasPropertyValue(state, contributionId, propertyId) {
-    let propertiesValues=[];
-    let labelsArray = []
+export function hasPropertyValue(state, contributionId, propertyId) {
+    let propertiesValues = [];
+    let labelsArray = [];
     const property = state.statementBrowser.properties.byId;
     if (property) {
         let i = 0;
         const resources = state.statementBrowser.resources;
         Object.entries(property).map((key, value) => {
             Object.entries(resources.byId).map((resourceKey, resourceValue) => {
-                const typeComponents = getComponentsByResourceIDAndPredicateID(state, contributionId, key[1].existingPredicateId);
+                const typeComponents = getPropertyShapesByResourceIDAndPredicateID(state, contributionId, key[1].existingPredicateId);
                 if (typeComponents && typeComponents.length > 0) {
-                    if (key[1]["valueIds"].length >0) {
-                        Object.entries(key[1]["valueIds"]).map((IdsKey, IdsValue) => {
-                            if(resourceKey[1].valueId == IdsKey[1] && key[1].label == propertyId){
-                                labelsArray[i]=[resourceKey[1].label, resourceKey[1]._class, resourceKey[1].propertyId,resourceKey[1].id];
-                                propertiesValues[propertyId]=labelsArray
+                    if (key[1]['valueIds'].length > 0) {
+                        Object.entries(key[1]['valueIds']).map((IdsKey, IdsValue) => {
+                            if (resourceKey[1].valueId == IdsKey[1] && key[1].label == propertyId) {
+                                labelsArray[i] = [resourceKey[1].label, resourceKey[1]._class, resourceKey[1].propertyId, resourceKey[1].id];
+                                propertiesValues[propertyId] = labelsArray;
                                 i++;
                             }
                         });
@@ -950,7 +949,7 @@ export function getTemplateIDsByResourceID(state, resourceId) {
 }
 
 /**
- * Check whether a certain contribution has a certain property 
+ * Check whether a certain contribution has a certain property
  * (If the property avilable in the contribution)
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
@@ -959,15 +958,15 @@ export function getTemplateIDsByResourceID(state, resourceId) {
  */
 
 export function contributionProperties(state, resourceId) {
-    let contributionProperties= [];
+    let contributionProperties = [];
     let allFounded;
     let i = 0;
     const property = state.statementBrowser.properties.byId;
     if (property) {
         Object.entries(property).map((key, value) => {
-            const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
+            const typeComponents = getPropertyShapesByResourceIDAndPredicateID(state, resourceId, key[1].existingPredicateId);
             if (typeComponents && Object.keys(typeComponents).length > 0) {
-                contributionProperties[i] = typeComponents[0]["property"]["label"];
+                contributionProperties[i] = typeComponents[0]['property']['label'];
             }
             i++;
         });
@@ -975,22 +974,23 @@ export function contributionProperties(state, resourceId) {
     return contributionProperties;
 }
 
-
 /**
- * Get components by resource ID
+ * Get propertyShapes by resource ID
  *
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
  * @return {{
  * id: String,
- * minOccurs: Number,
- * maxOccurs: Number,
+ * minCount: Number,
+ * maxCount: Number,
  * property: Object,
  * value: Object=,
- * validationRules: Array
- * }[]} list of components
+ * minInclusive:Number,
+ * maxInclusive:Number ,
+ * pattern:String
+ * }[]} list of propertyShapes
  */
-export function getComponentsByResourceID(state, resourceId, classId = null) {
+export function getPropertyShapesByResourceID(state, resourceId, classId = null) {
     if (!resourceId) {
         return [];
     }
@@ -1002,38 +1002,40 @@ export function getComponentsByResourceID(state, resourceId, classId = null) {
     // 1 - Get all template ids of this resource
     const templateIds = getTemplateIDsByResourceID(state, resourceId);
 
-    // 2 - Collect the components
-    let components = [];
+    // 2 - Collect the propertyShapes
+    let propertyShapes = [];
     for (const templateId of templateIds) {
         const template = state.statementBrowser.templates[templateId];
-        if (template && template.components && (!classId || classId === template.class?.id)) {
-            components = components.concat(template.components);
+        if (template && template.propertyShapes && (!classId || classId === template.class?.id)) {
+            propertyShapes = propertyShapes.concat(template.propertyShapes);
         }
     }
-    return components;
+    return propertyShapes;
 }
 
 /**
- * Get components by resource ID and PredicateID
+ * Get propertyShapes by resource ID and PredicateID
  *
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
  * @param {String} predicateId Existing Predicate ID
  * @return {{
  * id: String,
- * minOccurs: Number,
- * maxOccurs: Number,
+ * minCount: Number,
+ * maxCount: Number,
  * property: Object,
  * value: Object=,
- * validationRules: Array
- * }[]} list of components
+ * minInclusive:Number,
+ * maxInclusive:Number ,
+ * pattern:String
+ * }[]} list of propertyShapes
  */
-export function getComponentsByResourceIDAndPredicateID(state, resourceId, predicateId) {
-    const resourceComponents = getComponentsByResourceID(state, resourceId);
-    if (resourceComponents.length === 0) {
+export function getPropertyShapesByResourceIDAndPredicateID(state, resourceId, predicateId) {
+    const resourcePropertyShapes = getPropertyShapesByResourceID(state, resourceId);
+    if (resourcePropertyShapes.length === 0) {
         return [];
     }
-    return resourceComponents.filter(c => c.property.id === predicateId);
+    return resourcePropertyShapes.filter(c => c.property.id === predicateId);
 }
 
 export const loadStatementBrowserData = data => dispatch => {
@@ -1091,7 +1093,7 @@ export function canAddProperty(state, resourceId) {
     // Check if one of the template is strict
     for (const templateId of templateIds) {
         const template = state.statementBrowser.templates[templateId];
-        if (template && template.isStrict) {
+        if (template && template.isClosed) {
             return false;
         }
     }
@@ -1100,7 +1102,7 @@ export function canAddProperty(state, resourceId) {
 
 /**
  * Can add value in property resource
- * (compare the number of values with maxOccurs)
+ * (compare the number of values with maxCount)
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
  * @param {String} propertyId Property ID
@@ -1109,9 +1111,9 @@ export function canAddProperty(state, resourceId) {
 export function canAddValue(state, resourceId, propertyId) {
     const property = state.statementBrowser.properties.byId[propertyId];
     if (property) {
-        const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, property.existingPredicateId);
-        if (typeComponents && typeComponents.length > 0) {
-            if (typeComponents[0].maxOccurs && property.valueIds.length >= parseInt(typeComponents[0].maxOccurs)) {
+        const typePropertyShapes = getPropertyShapesByResourceIDAndPredicateID(state, resourceId, property.existingPredicateId);
+        if (typePropertyShapes && typePropertyShapes.length > 0) {
+            if (typePropertyShapes[0].maxCount && property.valueIds.length >= parseInt(typePropertyShapes[0].maxCount)) {
                 return false;
             }
             return true;
@@ -1123,7 +1125,7 @@ export function canAddValue(state, resourceId, propertyId) {
 
 /**
  * Can delete property in resource
- * (check if minOccurs>=1)
+ * (check if minCount>=1)
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
  * @param {String} propertyId Property ID
@@ -1132,9 +1134,9 @@ export function canAddValue(state, resourceId, propertyId) {
 export function canDeleteProperty(state, resourceId, propertyId) {
     const property = state.statementBrowser.properties.byId[propertyId];
     if (property) {
-        const typeComponents = getComponentsByResourceIDAndPredicateID(state, resourceId, property.existingPredicateId);
-        if (typeComponents && typeComponents.length > 0) {
-            if (typeComponents[0].minOccurs >= 1) {
+        const typePropertyShapes = getPropertyShapesByResourceIDAndPredicateID(state, resourceId, property.existingPredicateId);
+        if (typePropertyShapes && typePropertyShapes.length > 0) {
+            if (typePropertyShapes[0].minCount >= 1) {
                 return false;
             }
             return true;
@@ -1149,13 +1151,13 @@ export function canDeleteProperty(state, resourceId, propertyId) {
  *
  * @param {Object} state Current state of the Store
  * @param {String} resourceId Resource ID
- * @return {Object[]} list of suggested components
+ * @return {Object[]} list of suggested propertyShapes
  */
 export function getSuggestedProperties(state, resourceId) {
-    const components = getComponentsByResourceID(state, resourceId);
+    const propertyShapes = getPropertyShapesByResourceID(state, resourceId);
     const existingPropertyIds = getExistingPredicatesByResource(state, resourceId);
 
-    return components.filter(x => !existingPropertyIds.includes(x.property.id));
+    return propertyShapes.filter(x => !existingPropertyIds.includes(x.property.id));
 }
 
 /**
@@ -1167,19 +1169,24 @@ export function getSuggestedProperties(state, resourceId) {
  */
 export const updateResourceClassesAction =
     ({ resourceId, classes, syncBackend = false }) =>
-    (dispatch, getState) => {
+    async (dispatch, getState) => {
         const resource = getState().statementBrowser.resources.byId[resourceId];
+        let apiResponse = Promise.resolve();
         if (resource) {
-            dispatch(updateResourceClasses({ resourceId, classes: uniq(classes?.filter(c => c) ?? []) }));
-            // Fetch templates
-            const templatesOfClassesLoading = classes && classes?.filter(c => c).map(classID => dispatch(fetchTemplatesOfClassIfNeeded(classID)));
-            // Add required properties
-            Promise.all(templatesOfClassesLoading).then(() => dispatch(createRequiredPropertiesInResource(resourceId)));
-            if (syncBackend) {
-                return updateResourceClassesApi(resourceId, uniq(classes?.filter(c => c) ?? []));
+            try {
+                if (syncBackend) {
+                    apiResponse = await updateResourceClassesApi(resourceId, uniq(classes?.filter(c => c) ?? []));
+                }
+                dispatch(updateResourceClasses({ resourceId, classes: uniq(classes?.filter(c => c) ?? []) }));
+                // Fetch templates
+                const templatesOfClassesLoading = classes && classes?.filter(c => c).map(classID => dispatch(fetchTemplatesOfClassIfNeeded(classID)));
+                // Add required properties
+                Promise.all(templatesOfClassesLoading).then(() => dispatch(createRequiredPropertiesInResource(resourceId)));
+            } catch (e) {
+                return Promise.reject();
             }
         }
-        return Promise.resolve();
+        return syncBackend ? apiResponse : Promise.resolve();
     };
 
 /**
@@ -1310,7 +1317,7 @@ export function fillResourceWithTemplate({ templateID, resourceId, syncBackend =
         dispatch(fetchTemplateIfNeeded(templateID)).then(async templateDate => {
             const template = templateDate;
             // Check if it's a template
-            if (template && template?.components?.length > 0) {
+            if (template && template?.propertyShapes?.length > 0) {
                 // TODO : handle the case where the template isFetching
                 if (!template.predicate || template?.predicate.id === PREDICATES.HAS_CONTRIBUTION) {
                     // update the class of the current resource
@@ -1323,10 +1330,10 @@ export function fillResourceWithTemplate({ templateID, resourceId, syncBackend =
                     );
                     // Add properties
                     const statements = { properties: [], values: [] };
-                    for (const component of template?.components) {
+                    for (const propertyShape of template?.propertyShapes) {
                         statements.properties.push({
-                            existingPredicateId: component.property.id,
-                            label: component.property.label,
+                            existingPredicateId: propertyShape.property.id,
+                            label: propertyShape.property.label,
                         });
                     }
                     dispatch(fillStatements({ statements, resourceId, syncBackend }));
@@ -1358,10 +1365,10 @@ export function fillResourceWithTemplate({ templateID, resourceId, syncBackend =
                     await dispatch(fillStatements({ statements, resourceId, syncBackend }));
                     // Add properties
                     const instanceStatements = { properties: [], values: [] };
-                    for (const component of template?.components) {
+                    for (const propertyShape of template?.propertyShapes) {
                         instanceStatements.properties.push({
-                            existingPredicateId: component.property.id,
-                            label: component.property.label,
+                            existingPredicateId: propertyShape.property.id,
+                            label: propertyShape.property.label,
                         });
                     }
                     await dispatch(
@@ -1450,6 +1457,13 @@ export function selectResourceAction(data) {
 export const goToResourceHistory = data => (dispatch, getState) => {
     if (!getState().statementBrowser.resources.byId[data.id]) {
         dispatch(
+            createResource({
+                label: '',
+                existingResourceId: data.id,
+                resourceId: data.id,
+            }),
+        );
+        dispatch(
             fetchStatementsForResource({
                 resourceId: data.id,
             }),
@@ -1511,23 +1525,23 @@ export function addStatements(statements, resourceId, depth) {
 
         return Promise.all(
             resourceStatements.map(async statement => {
-                // Check whether there already exist a property for this, then combine
-                let propertyId = getPropertyIdByByResourceAndPredicateId(getState(), resourceId, statement.predicate.id);
-                if (!propertyId) {
-                    // Create the property
-                    propertyId = guid();
-                    dispatch(
-                        createProperty({
-                            propertyId,
-                            resourceId,
-                            existingPredicateId: statement.predicate.id,
-                            isExistingProperty: true,
-                            ...statement.predicate,
-                        }),
-                    );
-                }
                 let addStatement = Promise.resolve();
                 if (!statementExists(getState(), statement.id)) {
+                    // Check whether there already exist a property for this, then combine
+                    let propertyId = getPropertyIdByByResourceAndPredicateId(getState(), resourceId, statement.predicate.id);
+                    if (!propertyId) {
+                        // Create the property
+                        propertyId = guid();
+                        dispatch(
+                            createProperty({
+                                propertyId,
+                                resourceId,
+                                existingPredicateId: statement.predicate.id,
+                                isExistingProperty: true,
+                                ...statement.predicate,
+                            }),
+                        );
+                    }
                     // add the value if the statement doesn't exist
                     const valueId = guid();
                     addStatement = dispatch(
@@ -1550,10 +1564,21 @@ export function addStatements(statements, resourceId, depth) {
                     // check if statement.object.id is not already loaded (propertyIds.length===0)
                     const resource = getState().statementBrowser.resources.byId[statement.object.id];
                     // resource.propertyIds?.length === 0
-                    if (filterStatementsBySubjectId(statements, statement.object.id)?.length && resource?.propertyIds?.length === 0) {
+                    if (
+                        filterStatementsBySubjectId(statements, statement.object.id)?.length &&
+                        (resource?.propertyIds?.length === 0 || resource.fetchedDepth < depth)
+                    ) {
                         // Add required properties and add statements
                         return dispatch(createRequiredPropertiesInResource(statement.object.id))
-                            .then(() => dispatch(addStatements(statements, statement.object.id, depth - 1)))
+                            .then(() =>
+                                dispatch(
+                                    addStatements(
+                                        statements.filter(s => s.subject.id !== resourceId),
+                                        statement.object.id,
+                                        depth - 1,
+                                    ),
+                                ),
+                            )
                             .then(() => {
                                 // Set the resource as fetched
                                 dispatch(
@@ -1648,31 +1673,31 @@ export const fetchStatementsForResource =
 /**
  * Check if the input filed is Literal
  *  (if one of the default data type: Date, String, Number)
- * @param {Object[]} components Array of components
+ * @param {Object[]} propertyShapes Array of propertyShapes
  * @return {Boolean} if this input field is Literal
  */
-export const isLiteral = components => {
-    let isLiteral = false;
-    for (const typeId of components.map(tc => tc.value?.id)) {
+export const isLiteral = propertyShapes => {
+    let _isLiteral = false;
+    for (const typeId of propertyShapes.map(tc => tc.value?.id)) {
         if (
             DATA_TYPES.filter(dt => dt._class === ENTITIES.LITERAL)
                 .map(t => t.classId)
                 .includes(typeId)
         ) {
-            isLiteral = true;
+            _isLiteral = true;
             break;
         }
     }
-    return isLiteral;
+    return _isLiteral;
 };
 
 /**
  * Get the type of value
- * @param {Object[]} components Array of components
+ * @param {Object[]} propertyShapes Array of propertyShapes
  * @return {Object=} the class of value or null
  */
-export const getValueClass = components =>
-    components && components.length > 0 && components[0].value && components[0].value.id ? components[0].value : null;
+export const getValueClass = propertyShapes =>
+    propertyShapes && propertyShapes.length > 0 && propertyShapes[0].value && propertyShapes[0].value.id ? propertyShapes[0].value : null;
 
 /**
  * Check if the class has an inline format
@@ -1747,4 +1772,105 @@ export function getSubjectIdByValue(state, valueId) {
     const value = state.statementBrowser.values.byId[valueId];
     const predicate = state.statementBrowser.properties.byId[value.propertyId];
     return predicate?.resourceId;
+}
+
+/**
+ * Get CSV Table by value ID
+ * @param {Object} state Current state of the Store
+ * @param {String} valueId Value ID
+ * @return {Object} Table
+ */
+export function getTableByValueId(state, valueId) {
+    const value = state.statementBrowser.values.byId[valueId];
+    const columnsPropertyId = getPropertyIdByByResourceAndPredicateId(state, value.resourceId, PREDICATES.CSVW_COLUMNS);
+    const rowsPropertyId = getPropertyIdByByResourceAndPredicateId(state, value.resourceId, PREDICATES.CSVW_ROWS);
+    let cols = state.statementBrowser.properties.byId[columnsPropertyId];
+    cols =
+        cols?.valueIds?.map(v => {
+            const c = state.statementBrowser.values.byId[v];
+            const titlesPropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_TITLES);
+            const numberPropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_NUMBER);
+            let titles = state.statementBrowser.properties.byId[titlesPropertyId];
+            let number = state.statementBrowser.properties.byId[numberPropertyId];
+            titles = titles?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            number = number?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            return { ...c, titles, number };
+        }) ?? [];
+    let lines = state.statementBrowser.properties.byId[rowsPropertyId];
+    let isTitlesColumnsExist = false;
+    lines =
+        lines?.valueIds?.map(v => {
+            const r = state.statementBrowser.values.byId[v];
+            const cellsPropertyId = getPropertyIdByByResourceAndPredicateId(state, r.resourceId, PREDICATES.CSVW_CELLS);
+            const numberPropertyId = getPropertyIdByByResourceAndPredicateId(state, r.resourceId, PREDICATES.CSVW_NUMBER);
+            const titlesPropertyId = getPropertyIdByByResourceAndPredicateId(state, r.resourceId, PREDICATES.CSVW_TITLES);
+            if (titlesPropertyId) {
+                isTitlesColumnsExist = true;
+            }
+            let cells = state.statementBrowser.properties.byId[cellsPropertyId];
+            let number = state.statementBrowser.properties.byId[numberPropertyId];
+            number = number?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            let titles = state.statementBrowser.properties.byId[titlesPropertyId];
+            titles = titles?.valueIds?.map(n => state.statementBrowser.values.byId[n])?.[0] ?? {};
+            cells =
+                cells?.valueIds?.map(w => {
+                    const c = state.statementBrowser.values.byId[w];
+                    const valuePropertyId = getPropertyIdByByResourceAndPredicateId(state, c.resourceId, PREDICATES.CSVW_VALUE);
+                    let _value = state.statementBrowser.properties.byId[valuePropertyId];
+                    _value = _value?.valueIds.map(l => state.statementBrowser.values.byId[l])?.[0] ?? {};
+                    return { ...c, value: _value, row: r };
+                }) ?? [];
+            return { ...r, cells, number, titles };
+        }) ?? [];
+    // Assumption : If the row title is Row X it essentially means that no row title was given by the user
+    // Row X is the "default" row title automatically assigned by the Python and R libs.
+    if (isTitlesColumnsExist) {
+        const findTitleNotRowX = lines.find(r => !REGEX.CSW_ROW_TITLES_VALUE.test(r.titles?.label?.toLowerCase?.() ?? ''));
+        if (!findTitleNotRowX) {
+            isTitlesColumnsExist = false;
+        }
+    }
+    // cols: sortBy(cols, obj => parseInt(obj.number.label ?? '0', 10))
+    return {
+        cols: isTitlesColumnsExist
+            ? [
+                  {
+                      existingResourceId: 'titles',
+                      id: '',
+                      label: '',
+                      classes: ['Column'],
+                      titles: {
+                          id: '',
+                          label: '',
+                      },
+                      number: {
+                          id: '',
+                          label: '',
+                      },
+                  },
+                  ...cols,
+              ]
+            : cols,
+        lines: sortBy(lines, obj => parseInt(obj.number.label ?? '0', 10)),
+        isTitlesColumnsExist,
+    };
+}
+
+/**
+ * Get Depth of value by id
+ * @param {Object} state Current state of the Store
+ * @param {String} valueId Value ID
+ * @return {Integer} Depth
+ */
+export function getDepthByValueId(state, valueId) {
+    const value = state.statementBrowser.values.byId[valueId];
+    const resource = state.statementBrowser.resources.byId[value.resourceId];
+    if (resource.propertyIds.length === 0) {
+        return 0;
+    }
+    const property = state.statementBrowser.properties.byId[resource.propertyIds[0]];
+    if (!property && property.valueIds === 0) {
+        return 1;
+    }
+    return 1 + getDepthByValueId(state, property.valueIds[0]);
 }

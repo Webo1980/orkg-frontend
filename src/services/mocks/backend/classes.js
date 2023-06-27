@@ -1,12 +1,11 @@
 import { rest } from 'msw';
 import { classesUrl } from 'services/backend/classes';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import { DClocationResources, QBDatasetClasses } from 'services/mocks/backend/__mocks__/Classes';
 
 const resources = [
     rest.get(classesUrl, (req, res, ctx) => {
         const query = req.url.searchParams.get('q');
-
         if (query === 'qb:') {
             return res(ctx.json(QBDatasetClasses));
         }
@@ -126,6 +125,21 @@ const resources = [
             return res(ctx.json(MAPPING[id]));
         }
         return res(ctx.json({ root: id, statements: [] }));
+    }),
+    rest.post(classesUrl, async (req, res, ctx) => {
+        const { label, uri } = await req.json();
+
+        return res(
+            ctx.json({
+                id: `C${faker.datatype.number()}`,
+                label,
+                uri,
+                description: null,
+                _class: 'class',
+                created_at: '2020-06-22T10:38:53.178764Z',
+                created_by: '00000000-0000-0000-0000-000000000000',
+            }),
+        );
     }),
 ];
 

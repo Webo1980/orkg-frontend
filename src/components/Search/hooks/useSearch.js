@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { CLASSES, ENTITIES } from 'constants/graphSettings';
+import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
 import { getArrayParamFromQueryString, getParamFromQueryString } from 'utils';
 import { getClassById, getClasses } from 'services/backend/classes';
 import { getResources, getResourcesByClass } from 'services/backend/resources';
@@ -9,6 +9,9 @@ import { getPaperByDOI } from 'services/backend/misc';
 import DEFAULT_FILTERS from 'constants/searchDefaultFilters';
 import REGEX from 'constants/regex';
 import { toast } from 'react-toastify';
+import { getStatementsByPredicateAndLiteral } from 'services/backend/statements';
+import ROUTES from 'constants/routes';
+import { reverse } from 'named-urls';
 
 const IGNORED_CLASSES = [CLASSES.CONTRIBUTION, CLASSES.CONTRIBUTION_DELETED, CLASSES.PAPER_DELETED, CLASSES.COMPARISON_DRAFT];
 
@@ -44,8 +47,6 @@ export const useSearch = () => {
                 resultsResponse = await getPredicates({
                     page,
                     items: itemsPerFilter,
-                    sortBy: 'id',
-                    desc: true,
                     q: searchQuery,
                     returnContent: true,
                 });
@@ -53,8 +54,6 @@ export const useSearch = () => {
                 resultsResponse = await getResources({
                     page,
                     items: itemsPerFilter,
-                    sortBy: 'id',
-                    desc: true,
                     q: searchQuery,
                     exclude: DEFAULT_FILTERS.map(df => df.id)
                         .concat(IGNORED_CLASSES)
@@ -65,8 +64,6 @@ export const useSearch = () => {
                 resultsResponse = await getClasses({
                     page,
                     items: itemsPerFilter,
-                    sortBy: 'id',
-                    desc: true,
                     q: searchQuery,
                     returnContent: true,
                 });
@@ -74,8 +71,6 @@ export const useSearch = () => {
                 resultsResponse = await getResourcesByClass({
                     page,
                     items: itemsPerFilter,
-                    sortBy: 'id',
-                    desc: true,
                     q: searchQuery,
                     id: filterType,
                     returnContent: true,
@@ -85,11 +80,30 @@ export const useSearch = () => {
 
             // for papers, try to find a DOI
             const doi = searchQuery.startsWith('http') ? searchQuery.trim().substring(searchQuery.trim().indexOf('10.')) : searchQuery;
-            if (filterType === CLASSES.PAPER && REGEX.DOI.test(doi)) {
+            if (filterType === CLASSES.PAPER && REGEX.DOI_ID.test(doi)) {
                 try {
                     const paper = await getPaperByDOI(doi);
                     resultsResponse.push({ label: paper.title, id: paper.id, class: CLASSES.PAPER });
                 } catch (e) {}
+            }
+
+            // try to find an author by literal
+            if (filterType === CLASSES.AUTHOR) {
+                const authorLiteral = await getStatementsByPredicateAndLiteral({
+                    literal: searchQuery,
+                    predicateId: PREDICATES.HAS_AUTHOR,
+                    items: 1,
+                    returnContent: true,
+                });
+
+                if (authorLiteral.length > 0) {
+                    resultsResponse.push({
+                        label: searchQuery,
+                        // id: authorLiteral[0].subject.id,
+                        class: CLASSES.AUTHOR,
+                        customRoute: reverse(ROUTES.AUTHOR_LITERAL, { authorString: encodeURIComponent(searchQuery) }),
+                    });
+                }
             }
         } catch (e) {
             toast.error('Something went wrong while loading search results.');

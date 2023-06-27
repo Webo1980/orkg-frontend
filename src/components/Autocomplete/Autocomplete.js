@@ -27,6 +27,7 @@ import { asyncLocalStorage, compareOption } from 'utils';
 import getExternalData from './3rdPartyRegistries/index';
 import CustomOption from './CustomOption';
 import OntologiesModal from './OntologiesModal';
+import TreeSelector from './TreeSelector';
 
 export const StyledAutoCompleteInputFormControl = styled.div`
     padding-top: 0 !important;
@@ -178,7 +179,7 @@ function Autocomplete(props) {
         }
         let responseJson;
         if (props.optionsClass) {
-            responseJson = await getResourcesByClass({ id: props.optionsClass, q: value.trim(), page, items: PAGE_SIZE, exact });
+            responseJson = await getResourcesByClass({ id: props.optionsClass, q: value?.trim(), page, items: PAGE_SIZE, exact });
         } else {
             const isURI = new RegExp(REGEX.URL).test(value.trim());
             if (props.entityType === ENTITIES.CLASS && isURI) {
@@ -201,7 +202,7 @@ function Autocomplete(props) {
                 responseJson = await getEntities(props.entityType, {
                     page,
                     items: PAGE_SIZE,
-                    q: value.trim(),
+                    q: value?.trim(),
                     exclude: props.excludeClasses ? props.excludeClasses : null,
                     exact,
                 });
@@ -349,7 +350,7 @@ function Autocomplete(props) {
             } else {
                 if (selectedOntologies.find(ontology => ontology.id === 'ORKG') || props.optionsClass) {
                     const orkgResponseItems = await orkgLookup(value, page);
-                    responseItems.push(...orkgResponseItems.content);
+                    responseItems.push(...(orkgResponseItems?.content ?? []));
 
                     // TODO: check if this this is still needed?
                     if (responseItems.length > PAGE_SIZE) {
@@ -364,7 +365,7 @@ function Autocomplete(props) {
                     props.entityType === ENTITIES.CLASS
                 ) {
                     const olsResponseItems = await olsLookup(value, page);
-                    responseItems.push(...olsResponseItems.content);
+                    responseItems.push(...(olsResponseItems?.content ?? []));
                     hasMore = hasMore || !olsResponseItems.last;
                 }
 
@@ -785,10 +786,13 @@ function Autocomplete(props) {
 
     return (
         <ConditionalWrapper
-            condition={props.copyValueButton}
+            condition={props.copyValueButton || props.showTreeSelector}
             wrapper={children => (
                 <ConditionalWrapper condition={props.inputGroup} wrapper={children => <InputGroup size="sm">{children}</InputGroup>}>
                     {children}
+                    {props.showTreeSelector && props.value && props.value.id && (
+                        <TreeSelector value={props.value} handleExternalSelect={handleExternalSelect} isDisabled={props.isDisabled} />
+                    )}
                     {props.copyValueButton && props.value && props.value.id && (
                         <>
                             <Button disabled={!props.value || !props.value.label} onClick={handleCopyClick} outline>
@@ -934,6 +938,7 @@ Autocomplete.propTypes = {
     cacheOptions: PropTypes.bool,
     fixedOptions: PropTypes.array,
     onOntologySelectorIsOpenStatusChange: PropTypes.func,
+    showTreeSelector: PropTypes.bool,
 };
 
 Autocomplete.defaultProps = {
@@ -954,5 +959,6 @@ Autocomplete.defaultProps = {
     allowCreateDuplicate: false,
     cacheOptions: false,
     fixedOptions: [],
+    showTreeSelector: false,
 };
 export default withTheme(Autocomplete);

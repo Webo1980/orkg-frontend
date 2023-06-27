@@ -2,13 +2,13 @@ import { useState, forwardRef } from 'react';
 import { Container, Button, ListGroup, FormGroup, Label, Input } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import PaperCard from 'components/PaperCard/PaperCard';
+import PaperCard from 'components/Cards/PaperCard/PaperCard';
 import useResearchFieldPapers from 'components/ResearchField/hooks/useResearchFieldPapers';
+import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import ROUTES from 'constants/routes';
 import { Link } from 'react-router-dom';
 import ContentLoader from 'react-content-loader';
 import { SubTitle } from 'components/styled';
-import { useSelector } from 'react-redux';
 import { stringifySort } from 'utils';
 import Tippy from '@tippyjs/react';
 import TitleBar from 'components/TitleBar/TitleBar';
@@ -19,6 +19,8 @@ const SortButton = forwardRef((props, ref) => (
         {stringifySort(props.sort)} <Icon icon={faChevronDown} />
     </Button>
 ));
+
+SortButton.displayName = 'SortButton';
 
 SortButton.propTypes = {
     sort: PropTypes.string.isRequired,
@@ -39,7 +41,12 @@ const Papers = ({ id, boxShadow, showBreadcrumbs }) => {
         setIncludeSubFields,
     } = useResearchFieldPapers({ researchFieldId: id, initialSort: 'combined', initialIncludeSubFields: true });
     const [tippy, setTippy] = useState({});
-    const isCurationAllowed = useSelector(state => state.auth.user?.isCurationAllowed);
+
+    const visibilityText =
+        {
+            [VISIBILITY_FILTERS.FEATURED]: 'featured',
+            [VISIBILITY_FILTERS.UNLISTED]: 'unlisted',
+        }[sort] || '';
 
     return (
         <>
@@ -76,9 +83,9 @@ const Papers = ({ id, boxShadow, showBreadcrumbs }) => {
                                             disabled={isLoading}
                                         >
                                             <option value="combined">Top recent</option>
-                                            <option value="newest">Recently added</option>
-                                            <option value="featured">Featured</option>
-                                            {isCurationAllowed && <option value="unlisted">Unlisted</option>}
+                                            <option value={VISIBILITY_FILTERS.ALL_LISTED}>Recently added</option>
+                                            <option value={VISIBILITY_FILTERS.FEATURED}>Featured</option>
+                                            <option value={VISIBILITY_FILTERS.UNLISTED}>Unlisted</option>
                                         </Input>
                                     </FormGroup>
                                     <FormGroup check>
@@ -129,7 +136,13 @@ const Papers = ({ id, boxShadow, showBreadcrumbs }) => {
                                 style={{ cursor: 'pointer' }}
                                 className="list-group-item list-group-item-action text-center"
                                 onClick={!isLoading ? handleLoadMore : undefined}
-                                onKeyDown={e => (e.keyCode === 13 ? (!isLoading ? handleLoadMore : undefined) : undefined)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        if (!isLoading) {
+                                            handleLoadMore();
+                                        }
+                                    }
+                                }}
                                 role="button"
                                 tabIndex={0}
                             >
@@ -142,8 +155,7 @@ const Papers = ({ id, boxShadow, showBreadcrumbs }) => {
                 {papers.length === 0 && !isLoading && (
                     <div className={boxShadow ? 'container box rounded' : ''}>
                         <div className="p-5 text-center mt-4 mb-4">
-                            There are no {sort === 'featured' ? 'featured' : sort === 'unlisted' ? 'unlisted' : ''} papers for this research field,
-                            yet
+                            There are no {visibilityText} papers for this research field, yet
                             <br />
                             <br />
                             <Link to={ROUTES.ADD_PAPER.GENERAL_DATA}>

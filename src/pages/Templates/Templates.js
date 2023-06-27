@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { getStatementsByObjectAndPredicate } from 'services/backend/statements';
 import { getResourcesByClass } from 'services/backend/resources';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
-import TemplateCard from 'components/Templates/TemplateCard';
+import TemplateCard from 'components/Cards/TemplateCard/TemplateCard';
 import { reverse } from 'named-urls';
 import { debounce } from 'lodash';
 import ROUTES from 'constants/routes';
@@ -54,7 +54,7 @@ const Templates = () => {
                 ({
                     ...statements,
                     content: statements.content
-                        .filter(statement => statement.subject.classes.includes(CLASSES.TEMPLATE))
+                        .filter(statement => statement.subject.classes.includes(CLASSES.NODE_SHAPE))
                         .map(st => ({ id: st.subject.id, label: st.subject.label, source: resourceId })),
                 }), // return the template Object
         );
@@ -67,15 +67,13 @@ const Templates = () => {
         } else if (researchProblem) {
             apiCalls = getTemplatesOfResourceId(researchProblem.id, PREDICATES.TEMPLATE_OF_RESEARCH_PROBLEM);
         } else if (fClass) {
-            apiCalls = getTemplatesOfResourceId(fClass.id, PREDICATES.TEMPLATE_OF_CLASS);
+            apiCalls = getTemplatesOfResourceId(fClass.id, PREDICATES.SHACL_TARGET_CLASS);
         } else {
             apiCalls = getResourcesByClass({
-                id: CLASSES.TEMPLATE,
+                id: CLASSES.NODE_SHAPE,
                 page,
                 q: label,
                 items: pageSize,
-                sortBy: 'created_at',
-                desc: true,
             });
         }
 
@@ -151,6 +149,16 @@ const Templates = () => {
         setFilterLabel(e.target.value);
     };
 
+    const infoContainerText = (
+        <>
+            Templates allows to specify the structure of content types, and they can be used when describing research contributions.{' '}
+            <a href="https://orkg.org/about/19/Templates" rel="noreferrer" target="_blank">
+                Learn more in the help center
+            </a>
+            .
+        </>
+    );
+
     return (
         <>
             <TitleBar
@@ -174,14 +182,12 @@ const Templates = () => {
             >
                 View all templates
             </TitleBar>
-            <Container className="box rounded pt-4 pb-2 ps-5 pe-5 clearfix">
-                <Alert color="info" fade={false}>
-                    Templates allows to specify the structure of content types, and they can be used when describing research contributions. Further
-                    information about templates can be also found in the{' '}
-                    <a href="https://orkg.org/about/19/Templates" target="_blank" rel="noopener noreferrer">
-                        ORKG help center
-                    </a>
-                </Alert>
+            {infoContainerText && (
+                <Container className="p-0 rounded mb-3 p-3" style={{ background: '#dcdee6' }}>
+                    {infoContainerText}
+                </Container>
+            )}
+            <Container className="box rounded pt-4 pb-2 ps-4 pe-4 clearfix">
                 <Form className="mb-3">
                     <Row>
                         <Col md={6}>

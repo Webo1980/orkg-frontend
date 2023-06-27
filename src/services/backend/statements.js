@@ -1,8 +1,10 @@
+import { CLASSES, PREDICATES, RESOURCES } from 'constants/graphSettings';
 import { url } from 'constants/misc';
-import { submitGetRequest, submitPostRequest, submitDeleteRequest, submitPutRequest } from 'network';
-import queryString from 'query-string';
-import { PREDICATES, MISC, CLASSES, RESOURCES } from 'constants/graphSettings';
-import { filterStatementsBySubjectId, getTemplateComponentData, filterObjectOfStatementsByPredicateAndClass, sortMethod } from 'utils';
+import { flatten } from 'lodash';
+import { submitDeleteRequest, submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
+import qs from 'qs';
+import { filterObjectOfStatementsByPredicateAndClass, filterStatementsBySubjectId, getPropertyShapeData, sortMethod } from 'utils';
+import { getResource } from './resources';
 
 export const statementsUrl = `${url}statements/`;
 
@@ -52,7 +54,7 @@ export const updateStatements = (statementIds, { subject_id = null, predicate_id
 
 export const getAllStatements = ({ page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort },
         {
             skipNull: true,
@@ -69,11 +71,10 @@ export const deleteStatementsByIds = ids => submitDeleteRequest(`${statementsUrl
 
 export const getStatementsBySubject = ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
 
@@ -90,11 +91,10 @@ export const getStatementsBySubject = ({ id, page = 0, items: size = 9999, sortB
  * @return {Promise} Promise object
  */
 export const getStatementsBundleBySubject = ({ id, maxLevel = 10, blacklist = [] }) => {
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { maxLevel, blacklist: blacklist?.join(',') },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
     return submitGetRequest(`${statementsUrl}${encodeURIComponent(id)}/bundle/?${params}`);
@@ -102,11 +102,10 @@ export const getStatementsBundleBySubject = ({ id, maxLevel = 10, blacklist = []
 
 export const getStatementsBySubjects = ({ ids, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { ids: ids.join(), page, size, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
     return submitGetRequest(`${statementsUrl}subjects/?${params}`).then(res =>
@@ -117,28 +116,28 @@ export const getStatementsBySubjects = ({ ids, page = 0, items: size = 9999, sor
     );
 };
 
-export const getStatementsByObject = async ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
+export const getStatementsByObject = async ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true, returnContent = true }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
 
-    const statements = await submitGetRequest(`${statementsUrl}object/${encodeURIComponent(id)}/?${params}`).then(res => res.content);
+    const statements = await submitGetRequest(`${statementsUrl}object/${encodeURIComponent(id)}/?${params}`).then(res =>
+        returnContent ? res.content : res,
+    );
 
     return statements;
 };
 
 export const getStatementsByPredicate = ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true, returnContent = true }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
 
@@ -147,11 +146,10 @@ export const getStatementsByPredicate = ({ id, page = 0, items: size = 9999, sor
 
 export const getStatementsBySubjectAndPredicate = ({ subjectId, predicateId, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
 
@@ -168,11 +166,10 @@ export const getStatementsByObjectAndPredicate = ({
     returnContent = true,
 }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
 
@@ -181,15 +178,24 @@ export const getStatementsByObjectAndPredicate = ({
     );
 };
 
-export const getStatementsByPredicateAndLiteral = ({ predicateId, literal, subjectClass = null, items: size = 9999 }) => {
-    const params = queryString.stringify(
-        { size, subjectClass },
+export const getStatementsByPredicateAndLiteral = ({
+    literal,
+    predicateId,
+    subjectClass = null,
+    items: size = 9999,
+    page = 0,
+    sortBy = 'created_at',
+    desc = true,
+    returnContent = true,
+}) => {
+    const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
+    const params = qs.stringify(
+        { size, subjectClass, page, sort, q: literal },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
-    return submitGetRequest(`${statementsUrl}predicate/${predicateId}/literal/${literal}/?${params}`).then(res => res.content);
+    return submitGetRequest(`${statementsUrl}predicate/${predicateId}/literals/?${params}`).then(res => (returnContent ? res.content : res));
 };
 
 /**
@@ -198,11 +204,11 @@ export const getStatementsByPredicateAndLiteral = ({ predicateId, literal, subje
  * @param {String} templateId Template Id
  */
 export const getTemplateById = async templateId => {
+    const subject = await getResource(templateId);
     const response = await getStatementsBundleBySubject({ id: templateId, maxLevel: 2, blacklist: [CLASSES.RESEARCH_FIELD] }).catch(() => null);
-    if (!response) {
+    if (!subject) {
         return Promise.reject(new Error('Template not found'));
     }
-    const subject = filterStatementsBySubjectId(response.statements, templateId)?.[0]?.subject ?? { label: '', created_by: MISC.UNKNOWN_ID };
     const statements = filterStatementsBySubjectId(response.statements, templateId);
     const templatePredicate = filterObjectOfStatementsByPredicateAndClass(
         response.statements,
@@ -212,7 +218,7 @@ export const getTemplateById = async templateId => {
         templateId,
     );
 
-    const templateClass = filterObjectOfStatementsByPredicateAndClass(response.statements, PREDICATES.TEMPLATE_OF_CLASS, true, null, templateId);
+    const targetClass = filterObjectOfStatementsByPredicateAndClass(response.statements, PREDICATES.SHACL_TARGET_CLASS, true, null, templateId);
     const templateFormatLabel = filterObjectOfStatementsByPredicateAndClass(
         response.statements,
         PREDICATES.TEMPLATE_LABEL_FORMAT,
@@ -221,10 +227,10 @@ export const getTemplateById = async templateId => {
         templateId,
     );
 
-    const templateIsStrict = filterObjectOfStatementsByPredicateAndClass(response.statements, PREDICATES.TEMPLATE_STRICT, true, null, templateId);
-    const templateComponents = filterObjectOfStatementsByPredicateAndClass(
+    const templateIsClosed = filterObjectOfStatementsByPredicateAndClass(response.statements, PREDICATES.SHACL_CLOSED, true, null, templateId);
+    const templatePropertyShapes = filterObjectOfStatementsByPredicateAndClass(
         response.statements,
-        PREDICATES.HAS_TEMPLATE_COMPONENT,
+        PREDICATES.SHACL_PROPERTY,
         false,
         null,
         templateId,
@@ -246,23 +252,28 @@ export const getTemplateById = async templateId => {
         templateId,
     );
 
-    const components = templateComponents.map(component =>
-        getTemplateComponentData(component, filterStatementsBySubjectId(response.statements, component.id)),
+    const propertyShapes = templatePropertyShapes.map(propertyShape =>
+        getPropertyShapeData(propertyShape, filterStatementsBySubjectId(response.statements, propertyShape.id)),
+    );
+
+    const propertyShapesStatements = templatePropertyShapes.map(propertyShape =>
+        filterStatementsBySubjectId(response.statements, propertyShape.id).map(s => s.id),
     );
 
     return {
         id: templateId,
         ...subject,
-        statements: statements.map(s => s.id),
+        statements: [...statements.map(s => s.id), ...flatten(propertyShapesStatements)],
         predicate: templatePredicate,
         labelFormat: templateFormatLabel ? templateFormatLabel.label : '',
         hasLabelFormat: !!templateFormatLabel,
-        isStrict: !!templateIsStrict,
-        components: components?.length > 0 ? components.sort((c1, c2) => sortMethod(c1.order, c2.order)) : [],
-        class: templateClass
+        isClosed: !!templateIsClosed,
+        propertyShapes: propertyShapes?.length > 0 ? propertyShapes.sort((c1, c2) => sortMethod(c1.order, c2.order)) : [],
+        class: targetClass
             ? {
-                  id: templateClass.id,
-                  label: templateClass.label,
+                  id: targetClass.id,
+                  label: targetClass.label,
+                  uri: targetClass.uri,
               }
             : {},
         researchFields: researchFields.map(statement => ({
@@ -333,12 +344,41 @@ export const getParentResearchProblems = (researchProblemId, parents = []) => {
 export const getTemplatesByClass = classID =>
     getStatementsByObjectAndPredicate({
         objectId: classID,
-        predicateId: PREDICATES.TEMPLATE_OF_CLASS,
+        predicateId: PREDICATES.SHACL_TARGET_CLASS,
     })
         .then(statements =>
             statements
-                .filter(statement => statement.subject.classes?.includes(CLASSES.TEMPLATE))
+                .filter(statement => statement.subject.classes?.includes(CLASSES.NODE_SHAPE))
                 .map(st => st.subject.id)
                 .filter(c => c),
         )
         .catch(() => []);
+
+/**
+ * Load template flow by ID
+ *
+ * @param {String} id template ID
+ * @param {Array} loadedNodes Set of templates {id: String, ...restOfProperties, neighbors}
+ */
+export const loadTemplateFlowByID = (id, loadedNodes) => {
+    if (!loadedNodes.has(id)) {
+        loadedNodes.add(id);
+        return getTemplateById(id).then(t => {
+            const promises = t.propertyShapes
+                .filter(ps => ps.value)
+                .map(ps =>
+                    getTemplatesByClass(ps.value.id).then(templateIds => {
+                        if (templateIds.length) {
+                            return loadTemplateFlowByID(templateIds[0], loadedNodes);
+                        }
+                        return Promise.resolve([]);
+                    }),
+                );
+            return Promise.all(promises).then(neighborNodes => ({
+                ...t,
+                neighbors: neighborNodes,
+            }));
+        });
+    }
+    return Promise.resolve([]);
+};

@@ -1,36 +1,49 @@
-import { useState } from 'react';
-import { Button, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { faBackward, faComments, faEllipsisV, faExternalLinkAlt, faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faProjectDiagram, faPen, faTimes, faEllipsisV, faBackward } from '@fortawesome/free-solid-svg-icons';
+import DiscussionModal from 'components/DiscussionModal/DiscussionModal';
+import useDiscussionCount from 'components/DiscussionModal/hooks/useDiscussionCount';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
-import PapersWithCodeModal from 'components/PapersWithCodeModal/PapersWithCodeModal';
+import PreventModal from 'components/Resource/PreventModal/PreventModal';
+import AccessPaperButton from 'components/ViewPaper/PaperHeaderBar/AccessPaperButton';
+import Publish from 'components/ViewPaper/Publish/Publish';
 import ReproducePaperModal from 'components/ViewPaper/ReproducePaper/ReproducePaperModal';
-import PropTypes from 'prop-types';
-import { NavLink } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
 import { reverse } from 'named-urls';
+import PropTypes from 'prop-types';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import Publish from 'components/ViewPaper/Publish/Publish';
-import ViewPaperButton from 'components/ViewPaper/PaperHeaderBar/ViewPaperButton';
+import { NavLink } from 'react-router-dom';
+import { Button, ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 import { getPaperLink } from 'slices/viewPaperSlice';
 
 function PaperMenuBar(props) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [isOpenPWCModal, setIsOpenPWCModal] = useState(false);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
+    const [isOpenDiscussionModal, setIsOpenDiscussionModal] = useState(false);
     const id = useSelector(state => state.viewPaper.paperResource?.id);
     const label = useSelector(state => state.viewPaper.paperResource?.label);
     const doi = useSelector(state => state.viewPaper.doi?.label);
     const paperLink = useSelector(getPaperLink);
     const [showReproducePaperModalDialog, setShowReproducePaperModalDialog] = useState(false);
+
+    const { discussionCount, isLoading, getCount: refreshCount } = useDiscussionCount(id);
+
     return (
         <>
-            <ViewPaperButton paperLink={paperLink} doi={doi} title={label} />
-            <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setShowReproducePaperModalDialog(v => !v)}>
+            <AccessPaperButton paperLink={paperLink} doi={doi} title={label} />
+            <Button
+                className="flex-shrink-0"
+                color="secondary"
+                size="sm"
+                style={{ marginRight: 2 }}
+                onClick={() => setShowReproducePaperModalDialog(v => !v)}
+            >
                 <Icon icon={faBackward} style={{ margin: '2px 4px 0 0' }} /> Reproducibility Score
             </Button>
-            <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => props.toggle('showGraphModal')}>
-                <Icon icon={faProjectDiagram} style={{ margin: '2px 4px 0 0' }} /> Graph view
+            <Button className="flex-shrink-0" color="secondary" size="sm" style={{ marginRight: 2 }} onClick={() => setIsOpenDiscussionModal(true)}>
+                <Icon icon={faComments} style={{ margin: '2px 4px 0 0' }} /> Discussion{' '}
+                {!isLoading && discussionCount !== null && `(${discussionCount})`}
             </Button>
             {!props.editMode && (
                 <RequireAuthentication
@@ -63,6 +76,7 @@ function PaperMenuBar(props) {
                     <Icon icon={faEllipsisV} />
                 </DropdownToggle>
                 <DropdownMenu end>
+                    <DropdownItem onClick={() => props.toggle('showGraphModal')}>Graph view</DropdownItem>
                     <RequireAuthentication component={DropdownItem} onClick={() => setShowPublishDialog(v => !v)}>
                         Publish
                     </RequireAuthentication>
@@ -73,12 +87,35 @@ function PaperMenuBar(props) {
                 </DropdownMenu>
             </ButtonDropdown>
 
-            <PapersWithCodeModal isOpen={isOpenPWCModal} toggle={() => setIsOpenPWCModal(v => !v)} label={label} />
             <ReproducePaperModal
                 showReproducePaperModalDialog={showReproducePaperModalDialog}
                 toggleReproducePaperModalDialog={() => setShowReproducePaperModalDialog(v => !v)}
             />
+
+            <PreventModal
+                isOpen={isOpenPWCModal}
+                toggle={() => setIsOpenPWCModal(v => !v)}
+                header="We are working on it!"
+                content={
+                    <>
+                        This resource was imported from an external source and our provenance feature is in active development, and due to that, this
+                        resource cannot be edited. <br />
+                        Meanwhile, you can visit{' '}
+                        <a
+                            href={label ? `https://paperswithcode.com/search?q_meta=&q_type=&q=${label}` : 'https://paperswithcode.com/'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            paperswithcode <Icon icon={faExternalLinkAlt} className="me-1" />
+                        </a>{' '}
+                        website to suggest changes.
+                    </>
+                }
+            />
+
             <Publish showDialog={showPublishDialog} toggle={() => setShowPublishDialog(v => !v)} />
+
+            {isOpenDiscussionModal && <DiscussionModal entityId={id} toggle={() => setIsOpenDiscussionModal(v => !v)} refreshCount={refreshCount} />}
         </>
     );
 }

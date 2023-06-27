@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { getResource } from 'services/backend/resources';
 import { getComparison, getResourceData } from 'services/similarity/index';
@@ -19,6 +19,7 @@ import {
     setErrors,
     extendAndSortProperties,
     setHiddenGroups,
+    setIsEmbeddedMode,
 } from 'slices/comparisonSlice';
 import {
     filterObjectOfStatementsByPredicateAndClass,
@@ -33,14 +34,14 @@ import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
 import { uniq, without } from 'lodash';
 import ROUTES from 'constants/routes.js';
-import queryString from 'query-string';
+import qs from 'qs';
 import { useSelector, useDispatch } from 'react-redux';
 import { getComparisonConfiguration, generateFilterControlData } from './helpers';
 
 const DEFAULT_COMPARISON_METHOD = 'path';
 
-function useComparison({ id }) {
-    const location = useLocation();
+function useComparison({ id, isEmbeddedMode = false }) {
+    const { search } = useLocation();
     const navigate = useNavigate();
     const params = useParams();
     const comparisonId = id || params.comparisonId;
@@ -56,7 +57,7 @@ function useComparison({ id }) {
     const contributions = useSelector(state => state.comparison.contributions);
     const isLoadingResult = useSelector(state => state.comparison.isLoadingResult);
     const data = useSelector(state => state.comparison.data);
-    const hiddenGroups = useSelector(state => state.comparison.hiddenGroups);
+    const properties = useSelector(state => state.comparison.properties);
 
     /**
      * Load comparison meta data and comparison config
@@ -194,7 +195,7 @@ function useComparison({ id }) {
         _transpose = transpose,
         hasPreviousVersion = comparisonResource?.id || comparisonResource?.hasPreviousVersion?.id,
     }) => {
-        const qParams = queryString.stringify(
+        const qParams = qs.stringify(
             {
                 contributions: _contributionsList.join(','),
                 properties: _predicatesList.map(predicate => encodeURIComponent(predicate)).join(','),
@@ -203,8 +204,8 @@ function useComparison({ id }) {
                 hasPreviousVersion,
             },
             {
-                skipNull: true,
-                skipEmptyString: true,
+                skipNulls: true,
+                arrayFormat: 'comma',
                 encode: false,
             },
         );
@@ -230,17 +231,19 @@ function useComparison({ id }) {
      * Parse previous version from query param
      */
     useEffect(() => {
-        if (!comparisonId && queryString.parse(location.search)?.hasPreviousVersion) {
-            getResource(queryString.parse(location.search).hasPreviousVersion).then(prevVersion => dispatch(setHasPreviousVersion(prevVersion)));
+        if (!comparisonId && qs.parse(search, { ignoreQueryPrefix: true })?.hasPreviousVersion) {
+            getResource(qs.parse(search, { ignoreQueryPrefix: true }).hasPreviousVersion).then(prevVersion =>
+                dispatch(setHasPreviousVersion(prevVersion)),
+            );
         }
-    }, [comparisonId, dispatch, location.search]);
+    }, [comparisonId, dispatch, search]);
 
     /**
      * Get research field of the first contribution if no research field is found
      */
     useEffect(() => {
         // get Research field of the first contributions
-        if (!comparisonResource?.researchField) {
+        if (!comparisonResource?.researchField && contributions[0]?.paperId) {
             getStatementsBySubjectAndPredicate({
                 subjectId: contributions[0]?.paperId,
                 predicateId: PREDICATES.HAS_RESEARCH_FIELD,
@@ -262,19 +265,19 @@ function useComparison({ id }) {
             // Update browser title
             document.title = 'Comparison - ORKG';
 
-            dispatch(setConfigurationAttribute({ attribute: 'responseHash', value: getParamFromQueryString(location.search, 'response_hash') }));
+            dispatch(setConfigurationAttribute({ attribute: 'responseHash', value: getParamFromQueryString(search, 'response_hash') }));
             dispatch(
                 setConfigurationAttribute({
                     attribute: 'comparisonType',
-                    value: getParamFromQueryString(location.search, 'type') ?? DEFAULT_COMPARISON_METHOD,
+                    value: getParamFromQueryString(search, 'type') ?? DEFAULT_COMPARISON_METHOD,
                 }),
             );
-            dispatch(setConfigurationAttribute({ attribute: 'transpose', value: getParamFromQueryString(location.search, 'transpose', true) }));
-            const contributionsIDs = without(uniq(getArrayParamFromQueryString(location.search, 'contributions')), undefined, null, '') ?? [];
+            dispatch(setConfigurationAttribute({ attribute: 'transpose', value: getParamFromQueryString(search, 'transpose', true) }));
+            const contributionsIDs = without(uniq(getArrayParamFromQueryString(search, 'contributions')), undefined, null, '') ?? [];
             dispatch(setConfigurationAttribute({ attribute: 'contributionsList', value: contributionsIDs }));
-            dispatch(setConfigurationAttribute({ attribute: 'predicatesList', value: getArrayParamFromQueryString(location.search, 'properties') }));
+            dispatch(setConfigurationAttribute({ attribute: 'predicatesList', value: getArrayParamFromQueryString(search, 'properties') }));
         }
-    }, [comparisonId, dispatch, loadComparisonMetaData, location.search]);
+    }, [comparisonId, dispatch, loadComparisonMetaData, search]);
 
     /**
      * Update comparison if:
@@ -288,11 +291,16 @@ function useComparison({ id }) {
         }
     }, [contributionsList?.length, getComparisonResult]);
 
+    useEffect(() => {
+        dispatch(setIsEmbeddedMode(isEmbeddedMode));
+    }, [isEmbeddedMode, dispatch]);
+
     return {
         comparisonResource,
         isLoadingResult,
         data,
         contributions,
+        properties,
         navigateToNewURL,
     };
 }

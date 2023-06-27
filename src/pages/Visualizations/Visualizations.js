@@ -1,12 +1,17 @@
+import { useEffect } from 'react';
 import { getStatementsBySubjects } from 'services/backend/statements';
 import ListPage from 'components/ListPage/ListPage';
-import VisualizationCard from 'components/VisualizationCard/VisualizationCard';
+import VisualizationCard from 'components/Cards/VisualizationCard/VisualizationCard';
 import { CLASSES } from 'constants/graphSettings';
 import { find } from 'lodash';
 import { getResourcesByClass } from 'services/backend/resources';
 import { getVisualizationData } from 'utils';
 
 const Visualizations = () => {
+    useEffect(() => {
+        document.title = 'Visualizations list - ORKG';
+    });
+
     const renderListItem = visualization => <VisualizationCard visualization={visualization} key={`vis${visualization.id}`} />;
 
     const fetchItems = async ({ page, pageSize }) => {
@@ -33,6 +38,16 @@ const Visualizations = () => {
         };
     };
 
+    const infoContainerText = (
+        <>
+            ORKG visualizations are generated from ORKG comparisons.{' '}
+            <a href="https://orkg.org/about/15/Comparisons" rel="noreferrer" target="_blank">
+                Learn more in the help center
+            </a>
+            .
+        </>
+    );
+
     return (
         <ListPage
             label="visualizations"
@@ -40,6 +55,7 @@ const Visualizations = () => {
             renderListItem={renderListItem}
             fetchItems={fetchItems}
             pageSize={10}
+            infoContainerText={infoContainerText}
         />
     );
 };

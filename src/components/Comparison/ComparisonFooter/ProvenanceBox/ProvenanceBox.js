@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Row, Card, CardBody, CardTitle, Button } from 'reactstrap';
+import { useState } from 'react';
+import { Row, Button } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import ObservatoryModal from 'components/ObservatoryModal/ObservatoryModal';
@@ -11,8 +11,10 @@ import ROUTES from 'constants/routes';
 import styled from 'styled-components';
 import { isEmpty } from 'lodash';
 import moment from 'moment';
+import { ORGANIZATIONS_TYPES, CONFERENCE_REVIEW_MISC } from 'constants/organizationsTypes';
 import { useSelector } from 'react-redux';
 import UserAvatar from 'components/UserAvatar/UserAvatar';
+import { getOrganizationLogoUrl } from 'services/backend/organizations';
 
 const StyledOrganizationCard = styled.div`
     border: 0;
@@ -47,6 +49,7 @@ const StyledOrganizationCard = styled.div`
 function ProvenanceBox() {
     const [showAssignObservatory, setShowAssignObservatory] = useState(false);
     const id = useSelector(state => state.comparison.comparisonResource.id);
+    const anonymized = useSelector(state => state.comparison.comparisonResource?.anonymized ?? false);
     const user = useSelector(state => state.auth.user);
     const { createdBy } = useCreator();
     const { observatory, updateCallBack } = useProvenance();
@@ -54,12 +57,16 @@ function ProvenanceBox() {
     if (isEmpty(observatory) && !createdBy && (!user || (!!user && !user.isCurationAllowed))) {
         return null;
     }
-
     const isDoubleBlind =
-        observatory?.organization?.metadata?.is_double_blind && moment().format('YYYY-MM-DD') < observatory?.organization?.metadata?.date;
+        observatory?.metadata?.review_process === CONFERENCE_REVIEW_MISC.DOUBLE_BLIND &&
+        moment().format('YYYY-MM-DD') < observatory?.metadata?.start_date;
+
+    if ((isDoubleBlind || anonymized) && !observatory && !user.isCurationAllowed) {
+        return null;
+    }
 
     return (
-        <div className="container box rounded-3 mt-4">
+        <div id="provenance" className="container box rounded-3 mt-4">
             <Row>
                 <div className="col-8 d-flex align-items-center ">
                     <div className="pt-4 pb-4 ps-4 pe-4">
@@ -74,11 +81,15 @@ function ProvenanceBox() {
                                     )}
                                 </p>
                                 <h4 className="mb-3">
-                                    <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })}>{observatory.name}</Link>
+                                    {observatory?.metadata ? (
+                                        <Link to={reverse(ROUTES.EVENT_SERIES, { id: observatory.display_id })}>{observatory.name}</Link>
+                                    ) : (
+                                        <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })}>{observatory.name}</Link>
+                                    )}
                                 </h4>
                             </>
                         )}
-                        {createdBy?.id && !isDoubleBlind && (
+                        {createdBy?.id && !isDoubleBlind && !anonymized && (
                             <>
                                 <div className="mb-1">
                                     <i>Added by:</i>
@@ -97,18 +108,20 @@ function ProvenanceBox() {
                 </div>
                 {observatory && observatory.organization && (
                     <div className="col-4">
-                        <div className={!observatory.organization.logo ? 'm-4' : ''}>
+                        <div className={!observatory.organization.id ? 'm-4' : ''}>
                             <StyledOrganizationCard className="card h-100 border-0">
-                                <Link className="logoContainer" to={reverse(ROUTES.ORGANIZATION, { id: observatory.organization.display_id })}>
-                                    {observatory.organization.logo ? (
-                                        <img
-                                            className="mx-auto p-2"
-                                            src={observatory.organization.logo}
-                                            alt={`${observatory.organization.name} logo`}
-                                        />
-                                    ) : (
-                                        observatory.organization.name
-                                    )}
+                                <Link
+                                    className="logoContainer"
+                                    to={reverse(ROUTES.ORGANIZATION, {
+                                        type: ORGANIZATIONS_TYPES.find(t => t.id === observatory.organization.type)?.label,
+                                        id: observatory.organization.display_id,
+                                    })}
+                                >
+                                    <img
+                                        className="mx-auto p-2"
+                                        src={getOrganizationLogoUrl(observatory.organization?.id)}
+                                        alt={`${observatory.organization.name} logo`}
+                                    />
                                 </Link>
                             </StyledOrganizationCard>
                         </div>

@@ -1,13 +1,14 @@
 import { faCalendar, faCheckCircle, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import Tippy from '@tippyjs/react';
 import AuthorBadges from 'components/Badges/AuthorBadges/AuthorBadges';
 import ResearchFieldBadge from 'components/Badges/ResearchFieldBadge/ResearchFieldBadge';
-import useMarkFeaturedUnlisted from 'components/MarkFeaturedUnlisted/hooks/useMarkFeaturedUnlisted';
 import MarkFeatured from 'components/MarkFeaturedUnlisted/MarkFeatured/MarkFeatured';
 import MarkUnlisted from 'components/MarkFeaturedUnlisted/MarkUnlisted/MarkUnlisted';
-import useDeletePapers from 'components/ViewPaper/hooks/useDeletePapers';
-import ReproducePaperModal from 'components/ViewPaper/ReproducePaper/ReproducePaperModal';
+import useMarkFeaturedUnlisted from 'components/MarkFeaturedUnlisted/hooks/useMarkFeaturedUnlisted';
 import OpenCitations from 'components/ViewPaper/OpenCitations/OpenCitations';
+import ReproducePaperModal from 'components/ViewPaper/ReproducePaper/ReproducePaperModal';
+import useDeletePapers from 'components/ViewPaper/hooks/useDeletePapers';
 import ROUTES from 'constants/routes';
 import moment from 'moment';
 import { reverse } from 'named-urls';
@@ -15,10 +16,9 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Button, Alert } from 'reactstrap';
+import { Alert, Button } from 'reactstrap';
 import { getAltMetrics } from 'services/altmetric/index';
 import { loadPaper } from 'slices/viewPaperSlice';
-import Tippy from '@tippyjs/react';
 import EditPaperDialog from './EditDialog/EditPaperDialog';
 
 const PaperHeader = props => {
@@ -38,7 +38,7 @@ const PaperHeader = props => {
         unlisted: viewPaper.paperResource.unlisted,
         featured: viewPaper.paperResource.featured,
     });
-    
+
     useEffect(() => {
         if (!viewPaper.doi?.label) {
             return;
@@ -100,11 +100,9 @@ const PaperHeader = props => {
                     <div className="flex-shrink-0 me-2">
                         <Tippy content="The paper is 30% reproducible, click to see the full report">
                             <small>
-                                <a href='#'  onClick={() => setShowReproducePaperModalDialog(v => !v)}>
-                                    
-                                </a>
+                                <a href="#" onClick={() => setShowReproducePaperModalDialog(v => !v)}></a>
                             </small>
-                        </Tippy>    
+                        </Tippy>
                     </div>
                 )}
             </div>
@@ -113,8 +111,7 @@ const PaperHeader = props => {
 
             {(viewPaper.publicationMonth?.label || viewPaper.publicationYear?.label) && (
                 <span className="badge bg-light me-2">
-                    <Icon icon={faCalendar} className="text-secondary" />{' '}
-                    {viewPaper.publicationMonth?.label ? moment(viewPaper.publicationMonth.label, 'M').format('MMMM') : ''}{' '}
+                    <Icon icon={faCalendar} /> {viewPaper.publicationMonth?.label ? moment(viewPaper.publicationMonth.label, 'M').format('MMMM') : ''}{' '}
                     {viewPaper.publicationYear?.label ? viewPaper.publicationYear.label : ''}
                 </span>
             )}
@@ -160,14 +157,16 @@ const PaperHeader = props => {
                         </Button>
                     )}
                 </div>
-                {isCurationAllowed && viewPaper.verified && (
-                    <div className="mt-3 justify-content-end">
-                        <Icon icon={faCheckCircle} className="mt-1 me-1 text-success" />
-                        Verified
-                    </div>
+                {viewPaper.verified && (
+                    <Tippy content="The paper metadata was verified by an ORKG curator">
+                        <div className="mt-3 justify-content-end">
+                            <Icon icon={faCheckCircle} className="mt-1 me-1 text-success" />
+                            Verified
+                        </div>
+                    </Tippy>
                 )}
             </div>
-            
+
             <ReproducePaperModal
                 showReproducePaperModalDialog={showReproducePaperModalDialog}
                 toggleReproducePaperModalDialog={() => setShowReproducePaperModalDialog(v => !v)}

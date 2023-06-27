@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import ListPage from 'components/ListPage/ListPage';
-import ListCard from 'components/List/ListCard';
+import ListCard from 'components/Cards/ListCard/ListCard';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import { CLASSES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
@@ -14,6 +15,10 @@ import { getResourcesByClass } from 'services/backend/resources';
 import { getStatementsBySubjects } from 'services/backend/statements';
 
 const Lists = () => {
+    useEffect(() => {
+        document.title = 'Lists list - ORKG';
+    });
+
     const user = useSelector(state => state.auth.user);
 
     const renderListItem = versions => <ListCard key={versions[0]?.id} versions={versions} showBadge={false} />;
@@ -73,6 +78,16 @@ const Lists = () => {
         </>
     );
 
+    const infoContainerText = (
+        <>
+            ORKG lists provide a way to organize state-of-the-art literature for a specific research domain.{' '}
+            <a href="https://orkg.org/about/17/Lists" rel="noreferrer" target="_blank">
+                Learn more in the help center
+            </a>
+            .
+        </>
+    );
+
     return (
         <ListPage
             label="lists"
@@ -80,6 +95,7 @@ const Lists = () => {
             renderListItem={renderListItem}
             fetchItems={fetchItems}
             buttons={buttons}
+            infoContainerText={infoContainerText}
         />
     );
 };

@@ -1,13 +1,13 @@
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import PaperCard from 'components/PaperCard/PaperCard';
+import PaperCard from 'components/Cards/PaperCard/PaperCard';
 import { getPaperData } from 'utils';
 import ListPage from 'components/ListPage/ListPage';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import ComparisonPopup from 'components/ComparisonPopup/ComparisonPopup';
 import { CLASSES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { DropdownItem, DropdownMenu, DropdownToggle, UncontrolledButtonDropdown } from 'reactstrap';
@@ -19,6 +19,10 @@ const Papers = () => {
     const [reset, setReset] = useState(false);
     const [statements, setStatements] = useState([]);
     const user = useSelector(state => state.auth.user);
+
+    useEffect(() => {
+        document.title = 'Papers list - ORKG';
+    });
 
     const renderListItem = paper => {
         const paperCardData = statements.find(({ id }) => id === paper.id);
@@ -95,6 +99,16 @@ const Papers = () => {
         </>
     );
 
+    const infoContainerText = (
+        <>
+            ORKG papers describe scholarly articles in a structured and semantic manner.{' '}
+            <a href="https://orkg.org/about/20/Papers" rel="noreferrer" target="_blank">
+                Learn more in the help center
+            </a>
+            .
+        </>
+    );
+
     return (
         <>
             <ListPage
@@ -106,6 +120,7 @@ const Papers = () => {
                 disableSearch={verified !== null}
                 reset={reset}
                 setReset={setReset}
+                infoContainerText={infoContainerText}
             />
             <ComparisonPopup />
         </>

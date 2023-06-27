@@ -190,7 +190,7 @@ const TableCellForm = ({ value, contributionId, propertyId, closeForm }) => {
                                 entityType={entityType}
                                 excludeClasses={
                                     entityType === ENTITIES.RESOURCE && !valueClass
-                                        ? `${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE},${CLASSES.TEMPLATE_COMPONENT},${CLASSES.PAPER_DELETED},${CLASSES.CONTRIBUTION_DELETED},${CLASSES.EXTERNAL}`
+                                        ? `${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.NODE_SHAPE},${CLASSES.PROPERTY_SHAPE},${CLASSES.PAPER_DELETED},${CLASSES.CONTRIBUTION_DELETED},${CLASSES.EXTERNAL}`
                                         : null
                                 }
                                 optionsClass={entityType === ENTITIES.RESOURCE && valueClass ? valueClass.id : undefined}
@@ -246,16 +246,16 @@ const TableCellForm = ({ value, contributionId, propertyId, closeForm }) => {
                                 )}
                             </>
                         )}
-                        {((!editMode && !valueClass) || (editMode && !valueClass && value._class === ENTITIES.LITERAL)) && (
-                            <DatatypeSelector
-                                entity={editMode ? value._class : null}
-                                disableBorderRadiusLeft={true}
-                                disableBorderRadiusRight={false}
-                                valueType={inputDataType}
-                                setValueType={handleSetValueType}
-                                menuPortalTarget={document.body} // use a portal to ensure the menu isn't blocked by other elements
-                            />
-                        )}
+                        <DatatypeSelector
+                            valueClass={valueClass}
+                            isDisabled={!((!editMode && !valueClass) || (editMode && !valueClass && value._class === ENTITIES.LITERAL))}
+                            entity={editMode ? value._class : null}
+                            disableBorderRadiusLeft={true}
+                            disableBorderRadiusRight={false}
+                            valueType={inputDataType}
+                            setValueType={handleSetValueType}
+                            menuPortalTarget={document.body} // use a portal to ensure the menu isn't blocked by other elements
+                        />
                     </InputGroup>
                 </span>
             </Tippy>

@@ -1,57 +1,24 @@
-import { useState } from 'react';
-import { Carousel, CarouselItem, Card, CardBody, CardFooter, CardTitle, CardSubtitle } from 'reactstrap';
-import { Link } from 'react-router-dom';
-import ROUTES from 'constants/routes';
-import Dotdotdot from 'react-dotdotdot';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faFile, faCubes } from '@fortawesome/free-solid-svg-icons';
+import ObservatoryItem from 'components/ObservatoriesCarousel/ObservatoryItem';
 import { CarouselIndicatorsStyled } from 'components/styled';
-import Tippy from '@tippyjs/react';
-import styled from 'styled-components';
-import Gravatar from 'react-gravatar';
-import { reverse } from 'named-urls';
-import ContentLoader from 'react-content-loader';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
+import ContentLoader from 'react-content-loader';
+import { Carousel } from 'reactstrap';
+import styled from 'styled-components';
 
 const CarouselContainer = styled.div`
     width: 100%;
+    & .carousel-item.active {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: 100%;
+    }
 
     & li {
         width: 10px !important;
         height: 10px !important;
         border-radius: 100% !important;
         background-color: ${props => props.theme.primary} !important;
-    }
-`;
-
-const ObservatoryCardStyled = styled.div`
-    cursor: initial;
-    .orgLogo {
-        border: 1px;
-        padding: 2px;
-    }
-
-    .observatoryName {
-        font-weight: bold;
-    }
-    &:hover {
-        .observatoryName {
-            text-decoration: underline;
-        }
-    }
-`;
-
-const StyledGravatar = styled(Gravatar)`
-    border: 2px solid ${props => props.theme.secondary};
-    cursor: pointer;
-    &:hover {
-        border: 2px solid ${props => props.theme.primaryColor};
-    }
-`;
-
-const CardFooterStyled = styled(CardFooter)`
-    && {
-        background: ${props => props.theme.lightLighter};
     }
 `;
 
@@ -79,70 +46,24 @@ function ObservatoriesCarousel(props) {
         setActiveIndex(newIndex);
     };
 
-    const slides = () =>
-        props.observatories.map(observatory => (
-            <CarouselItem onExiting={() => setAnimating(true)} onExited={() => setAnimating(false)} className="pb-1 mb-4" key={`fp${observatory.id}`}>
-                <ObservatoryCardStyled className="">
-                    {!observatory.logo && (
-                        <Card style={{ border: 0 }}>
-                            <Link to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })} style={{ textDecoration: 'none' }}>
-                                <CardBody className="pt-0 mb-0">
-                                    <CardTitle tag="h5">{observatory.name}</CardTitle>
-                                    <CardSubtitle tag="h6" style={{ height: '20px' }} className="mb-1 text-muted">
-                                        <Dotdotdot clamp={2}>{observatory.description}</Dotdotdot>
-                                    </CardSubtitle>
-                                </CardBody>
-                            </Link>
-                            <div className="mt-3 mb-3 ps-2 pe-2">
-                                <Link
-                                    className="text-center d-flex"
-                                    to={reverse(ROUTES.OBSERVATORY, { id: observatory.display_id })}
-                                    style={{ textDecoration: 'none', height: '80px', width: '100%', overflow: 'hidden' }}
-                                >
-                                    {observatory.orgs.slice(0, 2).map(
-                                        (
-                                            o, // show only two logos
-                                        ) => (
-                                            <div key={`imageLogo${o.id}`} className="flex-grow-1">
-                                                <img className="orgLogo" height="60px" src={o.logo} alt={`${o.name} logo`} />
-                                            </div>
-                                        ),
-                                    )}
-                                </Link>
-                            </div>
-                            <CardFooterStyled className="text-muted">
-                                <small>
-                                    <Icon icon={faCubes} className="me-1" /> {observatory.comparisons ?? 0} comparisons
-                                    <Icon icon={faFile} className="me-1 ms-2" />
-                                    {observatory.resources ?? 0} papers
-                                </small>
-                                <div className="float-end" style={{ height: '25px' }}>
-                                    {observatory.contributors.slice(0, 5).map(contributor => (
-                                        <Tippy key={`contributor${contributor.id}`} content={contributor.display_name}>
-                                            <Link className="ms-1" to={reverse(ROUTES.USER_PROFILE, { userId: contributor.id })}>
-                                                <StyledGravatar className="rounded-circle" md5={contributor.gravatar_id} size={24} />
-                                            </Link>
-                                        </Tippy>
-                                    ))}
-                                </div>
-                            </CardFooterStyled>
-                        </Card>
-                    )}
-                </ObservatoryCardStyled>
-            </CarouselItem>
-        ));
-
     return (
-        <CarouselContainer>
-            {!props.isLoading ? (
-                props.observatories.length ? (
-                    <Carousel activeIndex={activeIndex} next={next} previous={previous}>
-                        {slides()}
-
+        <CarouselContainer className="flex-grow-1 d-flex">
+            {!props.isLoading &&
+                (props.observatories.length ? (
+                    <Carousel className="flex-grow-1 d-flex" activeIndex={activeIndex} next={next} previous={previous}>
+                        {props.observatories.map((observatory, index) => (
+                            <ObservatoryItem
+                                key={observatory.id}
+                                observatory={observatory}
+                                onExiting={() => setAnimating(true)}
+                                onExited={() => setAnimating(false)}
+                                active={activeIndex === index}
+                            />
+                        ))}
                         <CarouselIndicatorsStyled items={props.observatories} activeIndex={activeIndex} onClickHandler={goToIndex} />
                     </Carousel>
                 ) : (
-                    <div className="pt-4 pb-4 ps-4 pe-4 text-center">
+                    <div className="flex-grow-1 mt-4 text-center">
                         No observatories yet
                         <br />
                         <small>
@@ -151,8 +72,8 @@ function ObservatoriesCarousel(props) {
                             </a>
                         </small>
                     </div>
-                )
-            ) : (
+                ))}
+            {props.isLoading && (
                 <div style={{ height: '130px' }} className="pt-4 pb-1 ps-4 pe-4">
                     <ContentLoader
                         width={300}

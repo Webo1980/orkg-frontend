@@ -1,24 +1,24 @@
-import { faAngleDown, faExclamationTriangle, faMagic, faFlask } from '@fortawesome/free-solid-svg-icons';
+import env from '@beam-australia/react-env';
+import { faAngleDown, faExclamationTriangle, faFlask, faMagic } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Tippy from '@tippyjs/react';
 import Abstract from 'components/AddPaper/Abstract/Abstract';
 import AbstractModal from 'components/AddPaper/AbstractModal/AbstractModal';
+import BioAssaysModal from 'components/AddPaper/BioAssaysModal/BioAssaysModal';
 import EntityRecognition from 'components/AddPaper/EntityRecognition/EntityRecognition';
-import useDetermineResearchField from 'components/AddPaper/EntityRecognition/useDetermineResearchField';
-import useEntityRecognition from 'components/AddPaper/hooks/useEntityRecognition';
 import useBioassays from 'components/AddPaper/hooks/useBioassays';
+import useFeedbacks from 'components/AddPaper/hooks/useFeedbacks';
 import Confirm from 'components/Confirmation/Confirmation';
 import AddContributionButton from 'components/ContributionTabs/AddContributionButton';
 import ContributionTab from 'components/ContributionTabs/ContributionTab';
-import { StyledContributionTabs } from 'components/ContributionTabs/styled';
 import StatementBrowser from 'components/StatementBrowser/StatementBrowser';
+import Tabs from 'components/Tabs/Tabs';
 import Tooltip from 'components/Utils/Tooltip';
-import Tabs, { TabPane } from 'rc-tabs';
+import { BIOASSAYS_FIELDS_LIST } from 'constants/nlpFieldLists';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import BIOASSAYS_FIELDS_LIST from 'constants/bioassayFieldList';
-import BioAssaysModal from 'components/AddPaper/BioAssaysModal/BioAssaysModal';
 import { Button, Col, Row, UncontrolledAlert } from 'reactstrap';
+import { determineActiveNERService } from 'services/orkgNlp/index';
 import {
     createContributionAction as createContribution,
     deleteContributionAction as deleteContribution,
@@ -31,6 +31,7 @@ import {
     updateContributionLabelAction as updateContributionLabel,
 } from 'slices/addPaperSlice';
 import { updateSettings } from 'slices/statementBrowserSlice';
+import useEntityRecognition from 'components/AddPaper/hooks/useEntityRecognition';
 import ContributionsHelpTour from './ContributionsHelpTour';
 
 const Contributions = () => {
@@ -46,33 +47,35 @@ const Contributions = () => {
         contributions,
         selectedContribution,
         abstract,
+        extractedResearchField,
+        extractedContributionData,
     } = useSelector(state => state.addPaper);
+
     const [isOpenAbstractModal, setIsOpenAbstractModal] = useState(false);
-    const [isComputerScienceField, setIsComputerScienceField] = useState(false);
+    const [activeNERService, setActiveNERService] = useState(null);
+    const { handleSaveFeedback } = useEntityRecognition({ activeNERService });
     const { resources, properties, values } = useSelector(state => state.statementBrowser);
-    const { determineField } = useDetermineResearchField();
 
     const isBioassayField = BIOASSAYS_FIELDS_LIST.includes(selectedResearchField);
 
-    const { handleSaveFeedback } = useEntityRecognition();
     const { handleSaveBioassaysFeedback } = useBioassays();
+    const { handleSavePredicatesRecommendationFeedback } = useFeedbacks();
 
     const [isOpenBioassays, setIsOpenBioassays] = useState(false);
 
     const dispatch = useDispatch();
 
     useEffect(() => {
-        (async () => setIsComputerScienceField(await determineField({ field: selectedResearchField })))();
-    }, [determineField, selectedResearchField]);
+        (async () => setActiveNERService(await determineActiveNERService(selectedResearchField)))();
+    }, [selectedResearchField]);
 
     useEffect(() => {
         // if there is no contribution yet, create the first one
-        if (contributions.allIds.length === 0) {
+        if (contributions.allIds.length === 0 && extractedContributionData?.length === 0) {
             dispatch(
                 createContribution({
                     selectAfterCreation: true,
                     prefillStatements: true,
-                    researchField: selectedResearchField,
                 }),
             );
             dispatch(
@@ -81,15 +84,37 @@ const Contributions = () => {
                 }),
             );
         }
-    }, [contributions.allIds.length, dispatch, selectedResearchField]);
+        if (contributions.allIds.length === 0 && extractedContributionData?.length > 0) {
+            extractedContributionData?.map(c => {
+                dispatch(
+                    createContribution({
+                        selectAfterCreation: true,
+                        fillStatements: true,
+                        statements: c.statements,
+                    }),
+                );
+                dispatch(
+                    updateSettings({
+                        openExistingResourcesInDialog: true,
+                    }),
+                );
+                return null;
+            });
+        }
+    }, [contributions.allIds.length, dispatch, extractedContributionData]);
 
     const handleNextClick = async () => {
-        if (isComputerScienceField) {
+        if (activeNERService) {
             handleSaveFeedback();
         }
         if (isBioassayField) {
             handleSaveBioassaysFeedback();
         }
+        if (env('IS_TESTING_SERVER') === 'true') {
+            // because this feature is disabled in production
+            handleSavePredicatesRecommendationFeedback(properties);
+        }
+
         // save add paper
         dispatch(
             saveAddPaper({
@@ -100,7 +125,7 @@ const Contributions = () => {
                 doi,
                 publishedIn,
                 url,
-                selectedResearchField,
+                selectedResearchField: selectedResearchField || extractedResearchField?.id,
                 contributions,
                 resources,
                 properties,
@@ -111,12 +136,12 @@ const Contributions = () => {
     };
 
     const toggleDeleteContribution = async id => {
-        const result = await Confirm({
+        const deleteContributionPrompt = await Confirm({
             title: 'Are you sure?',
             message: 'Are you sure you want to delete this contribution?',
         });
 
-        if (result) {
+        if (deleteContributionPrompt) {
             // delete the contribution and select the first one in the remaining list
             const selectedId = contributions.allIds.filter(i => i !== id)[0];
             dispatch(deleteContribution({ id, selectAfterDeletion: contributions.byId[selectedId] }));
@@ -129,6 +154,7 @@ const Contributions = () => {
 
     const handleChange = (contributionId, label) => {
         const contribution = contributions.byId[contributionId];
+
         dispatch(
             updateContributionLabel({
                 label,
@@ -142,7 +168,7 @@ const Contributions = () => {
         dispatch(openTour(step));
     };
 
-    const showAbstractWarning = isComputerScienceField && !abstract;
+    const showAbstractWarning = activeNERService && !abstract;
     const onTabChange = key => {
         handleSelectContribution(key);
     };
@@ -188,7 +214,7 @@ const Contributions = () => {
                             <Icon icon={faFlask} /> Add Bioassay
                         </Button>
                     )}
-                    {!isComputerScienceField ? (
+                    {!activeNERService ? (
                         <Button onClick={() => dispatch(toggleAbstractDialog())} outline size="sm" color="smart">
                             {!showAbstractWarning ? <Icon icon={faMagic} /> : <Icon icon={faExclamationTriangle} className="text-warning" />} Abstract
                             annotator
@@ -219,51 +245,47 @@ const Contributions = () => {
             )}
             <Row className="mt-2 g-0">
                 <Col md="9">
-                    <StyledContributionTabs>
-                        <Tabs
-                            renderTabBar={renderTabBar}
-                            tabBarExtraContent={<AddContributionButton onClick={() => dispatch(createContribution({ selectAfterCreation: true }))} />}
-                            moreIcon={<Icon size="lg" icon={faAngleDown} />}
-                            activeKey={selectedContribution}
-                            onChange={onTabChange}
-                            destroyInactiveTabPane={true}
-                        >
-                            {contributions.allIds.map(contributionId => {
-                                const contribution = contributions.byId[contributionId];
-                                return (
-                                    <TabPane
-                                        tab={
-                                            <ContributionTab
-                                                handleChangeContributionLabel={handleChange}
-                                                isSelected={contribution.id === selectedContribution}
-                                                canDelete={contributions.allIds.length !== 1}
-                                                contribution={contribution}
-                                                key={contribution.id}
-                                                toggleDeleteContribution={toggleDeleteContribution}
-                                                enableEdit={true}
-                                            />
-                                        }
+                    <Tabs
+                        renderTabBar={renderTabBar}
+                        tabBarExtraContent={<AddContributionButton onClick={() => dispatch(createContribution({ selectAfterCreation: true }))} />}
+                        moreIcon={<Icon size="lg" icon={faAngleDown} />}
+                        activeKey={selectedContribution}
+                        onChange={onTabChange}
+                        destroyInactiveTabPane={true}
+                        items={contributions.allIds.map(contributionId => {
+                            const contribution = contributions.byId[contributionId];
+                            return {
+                                label: (
+                                    <ContributionTab
+                                        handleChangeContributionLabel={handleChange}
+                                        isSelected={contribution.id === selectedContribution}
+                                        canDelete={contributions.allIds.length !== 1}
+                                        contribution={contribution}
                                         key={contribution.id}
-                                    >
-                                        <div className="contributionData">
-                                            <StatementBrowser
-                                                enableEdit={true}
-                                                syncBackend={false}
-                                                openExistingResourcesInDialog={false}
-                                                initialSubjectId={contribution.resourceId}
-                                                initialSubjectLabel={contribution.label}
-                                                renderTemplateBox={true}
-                                            />
-                                        </div>
-                                    </TabPane>
-                                );
-                            })}
-                        </Tabs>
-                    </StyledContributionTabs>
+                                        toggleDeleteContribution={toggleDeleteContribution}
+                                        enableEdit={true}
+                                    />
+                                ),
+                                key: contribution.id,
+                                children: (
+                                    <div className="contributionData p-4">
+                                        <StatementBrowser
+                                            enableEdit={true}
+                                            syncBackend={false}
+                                            openExistingResourcesInDialog={false}
+                                            initialSubjectId={contribution.resourceId}
+                                            initialSubjectLabel={contribution.label}
+                                            renderTemplateBox={true}
+                                        />
+                                    </div>
+                                ),
+                            };
+                        })}
+                    />
                 </Col>
 
-                <Col lg="3" className="ps-lg-3 mt-5">
-                    {isComputerScienceField && <EntityRecognition />}
+                <Col lg="3" className="ps-lg-3 mt-2">
+                    <EntityRecognition title={title} abstract={abstract} activeNERService={activeNERService} />
                 </Col>
             </Row>
 

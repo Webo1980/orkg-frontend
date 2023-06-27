@@ -232,15 +232,15 @@ describe('ValueItem', () => {
         await waitForElementToBeRemoved(() => screen.queryByText(/Saving/i));
         await waitFor(() => expect(screen.getByText('New text')).toBeInTheDocument());
         expect(screen.getAllByText('Text')).toHaveLength(2);
-        expect(screen.queryByText(/Date/i)).toBeNull();
+        expect(screen.queryByText('Date')).toBeNull();
     });
 });
 
 describe('ValueItem', () => {
-    it('should not show datatype selector on resource edit', async () => {
+    it('should show datatype selector disabled on resource edit', async () => {
         setup();
         await clickOnEditValueButton(screen, VALUE_IDS.Resource);
-        expect(screen.queryByText(/Resource/i)).toBeNull();
+        expect(screen.queryByText(/Resource/i).className.includes('--is-disabled')).toBe(true);
     });
 });
 

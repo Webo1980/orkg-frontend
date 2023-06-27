@@ -2,12 +2,10 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import HeaderSearchButton from 'components/HeaderSearchButton/HeaderSearchButton';
 import ContentLoader from 'react-content-loader';
+import usePaginate from 'components/hooks/usePaginate';
 import PropTypes from 'prop-types';
-import { useCallback, useEffect, useState } from 'react';
-import { usePrevious } from 'react-use';
 import { Container, ListGroup } from 'reactstrap';
 import TitleBar from 'components/TitleBar/TitleBar';
-import { upperFirst } from 'lodash';
 
 const ListPage = ({
     label,
@@ -20,97 +18,16 @@ const ListPage = ({
     disableSearch = false,
     hideTitleBar = false,
     reset = false,
+    infoContainerText = null,
     setReset = () => {},
 }) => {
-    const [results, setResults] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [hasNextPage, setHasNextPage] = useState(false);
-    const [page, setPage] = useState(0);
-    const [isLastPageReached, setIsLastPageReached] = useState(false);
-    const [totalElements, setTotalElements] = useState(0);
-    const prevPage = usePrevious(page);
-
-    useEffect(() => {
-        document.title = `${upperFirst(label)} list - ORKG`;
+    const { results, isLoading, isLastPageReached, totalElements, hasNextPage, page, loadNextPage, handleKeyDown } = usePaginate({
+        fetchItems,
+        fetchItemsExtraParams: { resourceClass },
+        pageSize,
+        reset,
+        setReset,
     });
-
-    const load = useCallback(async () => {
-        startLoading();
-        try {
-            const { items, last: _last, totalElements: _totalElements } = await fetchItems({ resourceClass, page, pageSize });
-
-            if (items.length) {
-                addResults({
-                    results: items,
-                    last: _last,
-                    totalElements: _totalElements,
-                });
-            } else {
-                noResults();
-            }
-        } catch (e) {
-            console.log(e);
-            errorOccurred();
-        }
-    }, [fetchItems, page, pageSize, resourceClass]);
-
-    // load more data if "page" changes
-    const loadMore = useCallback(() => {
-        if (page === prevPage) {
-            return;
-        }
-        load();
-    }, [page, prevPage, load]);
-
-    useEffect(() => {
-        if (!reset) {
-            return;
-        }
-        setResults([]);
-        setIsLoading(false);
-        setHasNextPage(false);
-        setPage(0);
-        setIsLastPageReached(false);
-        setTotalElements(0);
-        setReset(false);
-        load();
-    }, [load, reset, setReset]);
-
-    useEffect(() => {
-        loadMore();
-    }, [loadMore]);
-
-    const startLoading = () => {
-        setIsLoading(true);
-    };
-
-    const noResults = () => {
-        setIsLastPageReached(true);
-        setHasNextPage(false);
-        setIsLoading(false);
-    };
-
-    const errorOccurred = () => {
-        setIsLastPageReached(true);
-        setHasNextPage(false);
-        setIsLoading(false);
-    };
-
-    const addResults = ({ results: _results, last, totalElements }) => {
-        setResults(prevResults => [...prevResults, ..._results]);
-        setIsLoading(false);
-        setHasNextPage(!last);
-        setIsLastPageReached(last);
-        setTotalElements(totalElements);
-    };
-
-    const loadNextPage = () => setPage(prevPage => prevPage + 1);
-
-    const handleKeyDown = e => {
-        if (e.key === 'Enter') {
-            loadNextPage();
-        }
-    };
 
     return (
         <>
@@ -130,9 +47,14 @@ const ListPage = ({
                     View {label}
                 </TitleBar>
             )}
+            {infoContainerText && (
+                <Container className="p-0 rounded mb-3 p-3" style={{ background: '#dcdee6' }}>
+                    {infoContainerText}
+                </Container>
+            )}
             <Container className="p-0">
                 {results.length > 0 && (
-                    <ListGroup flush className="box rounded" style={{ overflow: 'hidden' }}>
+                    <ListGroup flush className={`${boxShadow ? 'box' : ''} rounded`} style={{ overflow: 'hidden' }}>
                         {results.map(renderListItem)}
                         {!isLoading && hasNextPage && (
                             <div
@@ -186,7 +108,7 @@ const ListPage = ({
 
 ListPage.propTypes = {
     label: PropTypes.string.isRequired,
-    resourceClass: PropTypes.string.isRequired,
+    resourceClass: PropTypes.string,
     renderListItem: PropTypes.func.isRequired,
     fetchItems: PropTypes.func.isRequired,
     pageSize: PropTypes.number,
@@ -196,6 +118,7 @@ ListPage.propTypes = {
     reset: PropTypes.bool,
     setReset: PropTypes.func,
     hideTitleBar: PropTypes.bool,
+    infoContainerText: PropTypes.object,
 };
 
 export default ListPage;

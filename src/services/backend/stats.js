@@ -1,6 +1,7 @@
 import { url } from 'constants/misc';
+import { getContributorInformationById } from 'services/backend/contributors';
 import { submitGetRequest } from 'network';
-import queryString from 'query-string';
+import qs from 'qs';
 
 export const statsUrl = `${url}stats/`;
 
@@ -9,6 +10,32 @@ export const getStats = (extra = []) => submitGetRequest(`${statsUrl}?extra=${ex
 export const getResearchFieldsStats = () => submitGetRequest(`${statsUrl}fields`);
 
 export const getComparisonsCountByObservatoryId = id => submitGetRequest(`${statsUrl}${encodeURIComponent(id)}/observatoryComparisonsCount`);
+
+/**
+ * Get statistics of observatories
+ * @param {Number} page Page number
+ * @param {Number} size Number of items per page
+ * @param {String} sortBy Sort field (total | papers | comparisons)
+ * @param {Boolean} desc  ascending order and descending order.
+ * @return {Object} List of observatories
+ */
+export const getObservatoriesStats = ({ page = 0, size = 9999, sortBy = 'total', desc = true }) => {
+    const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
+    const params = qs.stringify(
+        { page, size, sort },
+        {
+            skipNulls: true,
+        },
+    );
+    return submitGetRequest(`${statsUrl}observatories?${params}`);
+};
+
+/**
+ * Get statistics of an observatory by id
+ * @param {Number} id Observatory id
+ * @return {Object} Stats of observatory
+ */
+export const getObservatoryStatsById = id => submitGetRequest(`${statsUrl}observatories/${id}/`);
 
 /**
  * Get top contributors
@@ -21,7 +48,7 @@ export const getComparisonsCountByObservatoryId = id => submitGetRequest(`${stat
  * @param {Boolean} subfields whether include the subfields or not
  * @return {Object} List of contributors
  */
-export const getTopContributors = ({
+export const getTopContributors = async ({
     researchFieldId = null,
     days = null,
     page = 0,
@@ -31,48 +58,34 @@ export const getTopContributors = ({
     subfields = true,
 }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    if (researchFieldId) {
-        const params = queryString.stringify(
-            { days, sort },
-            {
-                skipNull: true,
-                skipEmptyString: true,
-            },
-        );
-        return submitGetRequest(`${statsUrl}research-field/${researchFieldId}/${subfields ? 'subfields/' : ''}top/contributors?${params}`).then(
-            result => {
-                result = {
-                    content: result,
-                    last: true,
-                    totalElements: result.length,
-                };
-                return result;
-            },
-        );
-    }
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size, sort, days },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
-    return submitGetRequest(`${statsUrl}top/contributors?${params}`).then(result => ({
-        ...result,
-        content: result.content.map(c => ({
-            profile: c.profile,
-            counts: { total: c.contributions },
-        })),
-    }));
+    let apiCall = null;
+    if (researchFieldId) {
+        apiCall = await submitGetRequest(`${statsUrl}research-field/${researchFieldId}/${subfields ? 'subfields/' : ''}top/contributors?${params}`);
+    } else {
+        apiCall = await submitGetRequest(`${statsUrl}top/contributors?${params}`);
+    }
+
+    const uniqContributorsInfosRequests = apiCall.content.map(c => getContributorInformationById(c.contributor));
+    const uniqContributorsInfos = await Promise.all(uniqContributorsInfosRequests);
+
+    return {
+        ...apiCall,
+        content: apiCall.content.map(c => ({ ...c, ...uniqContributorsInfos.find(i => c.contributor === i.id) })),
+    };
 };
 
 export const getChangelogs = ({ researchFieldId = null, page = 0, items = 9999, sortBy = 'createdAt', desc = true }) => {
     const sort = sortBy ? `${sortBy},${desc ? 'desc' : 'asc'}` : null;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size: items, sort },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
     return submitGetRequest(`${statsUrl}${researchFieldId ? `research-field/${researchFieldId}/` : ''}top/changelog?${params}`);
@@ -80,11 +93,10 @@ export const getChangelogs = ({ researchFieldId = null, page = 0, items = 9999, 
 
 export const getTopResearchProblems = ({ page = 0, items = 9999, sortBy = 'created_at', desc = true, subfields = true }) => {
     // const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = queryString.stringify(
+    const params = qs.stringify(
         { page, size: items /* , sort, desc */ },
         {
-            skipNull: true,
-            skipEmptyString: true,
+            skipNulls: true,
         },
     );
     return submitGetRequest(`${statsUrl}top/research-problems?${params}`);

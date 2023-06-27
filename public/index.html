@@ -55,6 +55,7 @@
                     blob:
                     localhost:*
                     http://127.0.0.1/*
+                    127.0.0.1:*
                     https://orkg.org
                     https://*.orkg.org
                     https://support.tib.eu
@@ -71,9 +72,10 @@
                     https://opencitations.net
                     https://*.wikidata.org
                     https://*.wikipedia.org/api/
-                    http://dbpedia.org/sparql
+                    https://dbpedia.org/sparql
                     https://api.unpaywall.org
                     https://api.github.com
+                    https://raw.githubusercontent.com
                 ;"
         />
         -->
@@ -98,9 +100,7 @@
         <meta property="og:image" content="%PUBLIC_URL%/og_image.png" />
     </head>
     <body>
-        <noscript>
-            You need to enable JavaScript to run this app.
-        </noscript>
+        <noscript> You need to enable JavaScript to run this app. </noscript>
         <div id="root"></div>
         <!--
             This HTML file is a template.
@@ -117,13 +117,13 @@
             if (window.__ENV) {
                 const chatwoot_token = window.__ENV.REACT_APP_CHATWOOT_WEBSITE_TOKEN;
                 if (chatwoot_token && !chatwoot_token.includes('REACT_APP_CHATWOOT_WEBSITE_TOKEN')) {
-                    (function(d, t) {
+                    (function (d, t) {
                         var BASE_URL = 'https://app.chatwoot.com';
                         var g = d.createElement(t),
                             s = d.getElementsByTagName(t)[0];
                         g.src = BASE_URL + '/packs/js/sdk.js';
                         s.parentNode.insertBefore(g, s);
-                        g.onload = function() {
+                        g.onload = function () {
                             window.chatwootSDK.run({
                                 websiteToken: chatwoot_token,
                                 baseUrl: BASE_URL,

@@ -1,7 +1,7 @@
 import { createReference, setUsedReferences as setUsedReferencesAction } from 'slices/reviewSlice';
 import { sanitize } from 'dompurify';
 import PropTypes from 'prop-types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Showdown from 'showdown';
 import footnotes from 'showdown-footnotes';
@@ -23,6 +23,21 @@ const MarkdownRenderer = ({ text, id }) => {
     const referenceRegex = useMemo(() => /\[@(.*?)\]/gi, []);
     const dispatch = useDispatch();
 
+    const formatReferenceKey = useCallback(key => key.slice(0, -1).slice(2, key.length), []);
+
+    const getReferenceByKey = useCallback(
+        key => {
+            // citation-js formats reference keys by formating punctuation and other 'unsafe' characters.
+            // copied the code from the repo
+            // https://github.com/citation-js/citation-js/blob/7f41e3080ba6b9b57158fd6a8ce3b5110e042a1e/packages/plugin-bibtex/src/mapping/shared.js#L11
+            const unsafeChars = /(?:<\/?.*?>|[\u0020-\u002F\u003A-\u0040\u005B-\u005E\u0060\u007B-\u007F])+/g;
+            return references.find(
+                reference => reference?.parsedReference?.id === key || reference?.parsedReference?.id === key.toString().replace(unsafeChars, ''),
+            );
+        },
+        [references],
+    );
+
     const inlineReferences = {
         type: 'lang',
         regex: referenceRegex,
@@ -38,10 +53,6 @@ const MarkdownRenderer = ({ text, id }) => {
         },
     };
 
-    const formatReferenceKey = useCallback(key => key.slice(0, -1).slice(2, key.length), []);
-
-    const getReferenceByKey = useCallback(key => references.find(reference => reference?.parsedReference?.id === key), [references]);
-
     useEffect(() => {
         if (!text) {
             return;
@@ -49,15 +60,14 @@ const MarkdownRenderer = ({ text, id }) => {
         const _usedReferences = {};
         const matches = text.match(referenceRegex);
 
-        matches &&
-            matches.length &&
+        if (matches && matches.length) {
             matches.map(async key => {
                 const keyFormatted = formatReferenceKey(key);
                 const reference = getReferenceByKey(keyFormatted);
 
                 if (reference) {
                     _usedReferences[reference.parsedReference.id] = reference;
-                } else if (REGEX.DOI.test(keyFormatted) && !fetchedDois.includes(keyFormatted)) {
+                } else if (REGEX.DOI_ID.test(keyFormatted) && !fetchedDois.includes(keyFormatted)) {
                     setFetchedDois(v => [...v, keyFormatted]);
                     try {
                         const data = await Cite.async(keyFormatted);
@@ -67,11 +77,9 @@ const MarkdownRenderer = ({ text, id }) => {
                             return null;
                         }
 
-                        parsedReference['citation-label'] = 'KEY_PLACEHOLDER'; // citation-js doesn't accept citation keys with dots in them, so use a placeholder which is later replaced
                         parsedReference.id = keyFormatted;
-                        const bibtex = data.format('bibtex').replace('KEY_PLACEHOLDER', keyFormatted);
+                        const bibtex = data.format('bibtex');
                         parsedReference['citation-label'] = keyFormatted;
-
                         dispatch(createReference({ contributionId, bibtex, parsedReference }));
                     } catch (e) {
                         console.log(e);
@@ -79,6 +87,7 @@ const MarkdownRenderer = ({ text, id }) => {
                 }
                 return null;
             });
+        }
         dispatch(setUsedReferencesAction({ references: _usedReferences, sectionId: id }));
     }, [text, references, referenceRegex, getReferenceByKey, dispatch, id, formatReferenceKey, fetchedDois, contributionId]);
 

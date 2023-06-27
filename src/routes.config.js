@@ -69,7 +69,11 @@ import ContentType from 'pages/ContentType/ContentType';
 import ContentTypes from 'pages/ContentType/ContentTypes';
 import Diagrams from 'pages/Diagrams/Diagrams';
 import Diagram from 'pages/Diagrams/Diagram';
-import ResearchProblem from './pages/ResearchProblem';
+import ConferenceDetails from 'pages/Conferences/ConferenceDetails';
+import AddConference from 'pages/Conferences/AddConference';
+import ResearchProblem from 'pages/ResearchProblem';
+import AuthorLiteral from 'pages/AuthorLiteral';
+import TemplateNew from 'pages/Templates/TemplateNew';
 
 // use lazy loading of pages that contain large dependencies
 // run "npm run analyze" to ensure the listed dependencies are not loaded elsewhere and thus end up in the bundle
@@ -88,6 +92,10 @@ const routes = [
     },
     {
         path: ROUTES.RESOURCE,
+        element: ResourceDetails,
+    },
+    {
+        path: ROUTES.RESOURCE_TABS,
         element: ResourceDetails,
     },
     {
@@ -115,6 +123,10 @@ const routes = [
         element: ClassDetails,
     },
     {
+        path: ROUTES.CLASS_TABS,
+        element: ClassDetails,
+    },
+    {
         path: ROUTES.ADD_CLASS,
         element: requireAuthentication(AddClass),
     },
@@ -127,8 +139,12 @@ const routes = [
         element: Template,
     },
     {
-        path: ROUTES.ADD_TEMPLATE,
+        path: ROUTES.TEMPLATE_TABS,
         element: Template,
+    },
+    {
+        path: ROUTES.ADD_TEMPLATE,
+        element: TemplateNew,
     },
     {
         path: ROUTES.USER_SETTINGS,
@@ -140,6 +156,10 @@ const routes = [
     },
     {
         path: ROUTES.USER_PROFILE,
+        element: UserProfile,
+    },
+    {
+        path: ROUTES.USER_PROFILE_TABS,
         element: UserProfile,
     },
     {
@@ -177,6 +197,10 @@ const routes = [
     },
     {
         path: ROUTES.OBSERVATORIES,
+        element: Observatories,
+    },
+    {
+        path: ROUTES.OBSERVATORIES_RESEARCH_FIELD,
         element: Observatories,
     },
     {
@@ -223,6 +247,10 @@ const routes = [
     {
         path: ROUTES.AUTHOR_PAGE,
         element: AuthorPage,
+    },
+    {
+        path: ROUTES.AUTHOR_LITERAL,
+        element: AuthorLiteral,
     },
     {
         path: ROUTES.CHANGELOG,
@@ -420,6 +448,14 @@ const routes = [
     {
         path: ROUTES.NEW_DIAGRAM,
         element: Diagram,
+    },
+    {
+        path: ROUTES.ADD_EVENT,
+        element: requireAuthentication(AddConference),
+    },
+    {
+        path: ROUTES.EVENT_SERIES,
+        element: ConferenceDetails,
     },
 ];
 

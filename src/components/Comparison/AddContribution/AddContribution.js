@@ -38,8 +38,7 @@ const StyledLoadMoreButton = styled.div`
 `;
 
 const StyledListGroupItem = styled(ListGroupItem)`
-    overflow-wrap: break-word;
-    word-break: break-all;
+    overflow-wrap: anywhere;
 
     &:last-child {
         border-bottom-right-radius: ${props => (props.rounded === 'true' ? '0 !important' : '')};
@@ -68,7 +67,7 @@ export default function AddContribution(props) {
         const doi = searchQuery.startsWith('http') ? searchQuery.substring(searchQuery.indexOf('10.')) : searchQuery;
 
         // The entry is a DOI, check if it exists in the database
-        if (doi.trim().match(new RegExp(REGEX.DOI))) {
+        if (doi.trim().match(new RegExp(REGEX.DOI_ID))) {
             getPaperByDOI(doi.trim())
                 .then(result =>
                     getStatementsBySubjectAndPredicate({
@@ -100,8 +99,6 @@ export default function AddContribution(props) {
             getResourcesByClass({
                 page: page || currentPage,
                 items: numberOfPaper,
-                sortBy: 'id',
-                desc: true,
                 q: searchQuery,
                 id: CLASSES.PAPER,
                 returnContent: true,

@@ -5,7 +5,7 @@ import ROUTES from 'constants/routes';
 import { isString, sortBy, uniqBy } from 'lodash';
 import { unescape } from 'he';
 import { reverse } from 'named-urls';
-import queryString from 'query-string';
+import qs from 'qs';
 import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
 import slugifyString from 'slugify';
@@ -20,9 +20,8 @@ const cookies = new Cookies();
  * @param {String} param parameter name
  * @return {Array} the list of values
  */
-
 export function getArrayParamFromQueryString(locationSearch, param) {
-    const values = queryString.parse(locationSearch, { arrayFormat: 'comma' })[param];
+    const values = qs.parse(locationSearch, { comma: true, ignoreQueryPrefix: true })[param];
     if (!values) {
         return [];
     }
@@ -40,9 +39,8 @@ export function getArrayParamFromQueryString(locationSearch, param) {
  * @param {Boolean} boolean return false instead of null
  * @return {String|Boolean} value
  */
-
 export function getParamFromQueryString(locationSearch, param, boolean = false) {
-    const value = queryString.parse(locationSearch)[param];
+    const value = qs.parse(locationSearch, { ignoreQueryPrefix: true })[param];
     if (!value) {
         return boolean ? false : null;
     }
@@ -97,10 +95,10 @@ export const getErrorMessage = (errors, field = null) => {
         return null;
     }
     if (field === null) {
-        return errors.message ? errors.message : null;
+        return errors.message ? errors.message?.replace?.('Predicate', 'Property') : null;
     }
     const fieldError = errors.errors ? errors.errors.find(e => e.field === field) : null;
-    return fieldError ? capitalize(fieldError.message) : null;
+    return fieldError ? capitalize(fieldError.message).replace('Predicate', 'Property') : null;
 };
 
 /**
@@ -294,12 +292,7 @@ export const getAuthorData = (resource, statements) => {
  */
 export const getComparisonData = (resource, comparisonStatements) => {
     const description = filterObjectOfStatementsByPredicateAndClass(comparisonStatements, PREDICATES.DESCRIPTION, true);
-    const contributions = filterObjectOfStatementsByPredicateAndClass(
-        comparisonStatements,
-        PREDICATES.COMPARE_CONTRIBUTION,
-        false,
-        CLASSES.CONTRIBUTION,
-    );
+    const contributions = filterObjectOfStatementsByPredicateAndClass(comparisonStatements, PREDICATES.COMPARE_CONTRIBUTION, false);
     const references = filterObjectOfStatementsByPredicateAndClass(comparisonStatements, PREDICATES.REFERENCE, false);
     const doi = filterObjectOfStatementsByPredicateAndClass(comparisonStatements, PREDICATES.HAS_DOI, true);
     const hasPreviousVersion = filterObjectOfStatementsByPredicateAndClass(
@@ -362,56 +355,48 @@ export const getComparisonData = (resource, comparisonStatements) => {
 };
 
 /**
- * Parse template component statements and return a component object
- * @param {Object} component
- * @param {Array} componentStatements
+ * Parse template propertyShape statements and return a propertyShape object
+ * @param {Object} propertyShape
+ * @param {Array} propertyShapeStatements
  */
-export const getTemplateComponentData = (component, componentStatements) => {
-    const property = filterObjectOfStatementsByPredicateAndClass(
-        componentStatements,
-        PREDICATES.TEMPLATE_COMPONENT_PROPERTY,
+export const getPropertyShapeData = (propertyShape, propertyShapeStatements) => {
+    const property = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_PATH, true, null, propertyShape.id);
+    const datatype = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_DATATYPE, true, null, propertyShape.id);
+    const shClass = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_CLASS, true, null, propertyShape.id);
+    const value = shClass || datatype;
+
+    const minInclusive = filterObjectOfStatementsByPredicateAndClass(
+        propertyShapeStatements,
+        PREDICATES.SHACL_MIN_INCLUSIVE,
         true,
         null,
-        component.id,
+        propertyShape.id,
     );
-    const value = filterObjectOfStatementsByPredicateAndClass(componentStatements, PREDICATES.TEMPLATE_COMPONENT_VALUE, true, null, component.id);
-
-    const validationRules = filterObjectOfStatementsByPredicateAndClass(
-        componentStatements,
-        PREDICATES.TEMPLATE_COMPONENT_VALIDATION_RULE,
-        false,
-        null,
-        component.id,
-    );
-
-    const minOccurs = filterObjectOfStatementsByPredicateAndClass(
-        componentStatements,
-        PREDICATES.TEMPLATE_COMPONENT_OCCURRENCE_MIN,
+    const maxInclusive = filterObjectOfStatementsByPredicateAndClass(
+        propertyShapeStatements,
+        PREDICATES.SHACL_MAX_INCLUSIVE,
         true,
         null,
-        component.id,
+        propertyShape.id,
     );
+    const pattern = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_PATTERN, true, null, propertyShape.id);
 
-    const maxOccurs = filterObjectOfStatementsByPredicateAndClass(
-        componentStatements,
-        PREDICATES.TEMPLATE_COMPONENT_OCCURRENCE_MAX,
-        true,
-        null,
-        component.id,
-    );
+    const minCount = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_MIN_COUNT, true, null, propertyShape.id);
+
+    const maxCount = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_MAX_COUNT, true, null, propertyShape.id);
 
     const requiredProperty = filterObjectOfStatementsByPredicateAndClass(
-        componentStatements,
+        propertyShapeStatements,
         PREDICATES.TEMPLATE_COMPONENT_REQUIRED_PROPERTY,
         true,
         null,
-        component.id
+        propertyShape.id,
     );
 
-    const order = filterObjectOfStatementsByPredicateAndClass(componentStatements, PREDICATES.TEMPLATE_COMPONENT_ORDER, true, null, component.id);
+    const order = filterObjectOfStatementsByPredicateAndClass(propertyShapeStatements, PREDICATES.SHACL_ORDER, true, null, propertyShape.id);
 
     return {
-        id: component.id,
+        id: propertyShape.id,
         property: property
             ? {
                   id: property.id,
@@ -422,20 +407,16 @@ export const getTemplateComponentData = (component, componentStatements) => {
             ? {
                   id: value.id,
                   label: value.label,
+                  uri: value.uri,
               }
             : null,
-        minOccurs: minOccurs ? minOccurs.label : 0,
-        maxOccurs: maxOccurs ? maxOccurs.label : null,
+        minCount: minCount ? minCount.label : 0,
+        maxCount: maxCount ? maxCount.label : null,
         order: order ? order.label : null,
-        requiredProperty: requiredProperty ? requiredProperty.label==='true' : false,
-        validationRules:
-            validationRules && Object.keys(validationRules).length > 0
-                ? validationRules.reduce((obj, item) => {
-                      const rule = item.label.split(/#(.+)/)[0];
-                      const _value = item.label.split(/#(.+)/)[1];
-                      return Object.assign(obj, { [rule]: _value });
-                  }, {})
-                : {},
+        requiredProperty: requiredProperty ? requiredProperty.label === 'true' : false,
+        minInclusive: minInclusive?.label ?? null,
+        maxInclusive: maxInclusive?.label ?? null,
+        pattern: pattern?.label ?? null,
     };
 };
 
@@ -467,11 +448,11 @@ export const sortMethod = (a, b) => {
     a = a === null || a === undefined ? -Infinity : a;
     b = b === null || b === undefined ? -Infinity : b;
     // check if a and b are numbers (contains only digits)
-    const aisnum = /^\d+$/.test(a);
-    const bisnum = /^\d+$/.test(b);
+    const aisnum = /^(\d|.)+$/.test(a);
+    const bisnum = /^(\d|.)+$/.test(b);
     if (aisnum && bisnum) {
-        a = parseInt(a);
-        b = parseInt(b);
+        a = parseFloat(a);
+        b = parseFloat(b);
     } else {
         // force any string values to lowercase
         a = typeof a === 'string' ? a.toLowerCase() : a;
@@ -550,13 +531,13 @@ export function listToTree(list) {
     return roots;
 }
 
-function convertTreeToFlat(treeStructure) {
+export function convertTreeToFlat(treeStructure, childrenAttribute = 'versions') {
     const flatten = (children, extractChildren) =>
         Array.prototype.concat.apply(
             children,
             children.map(x => flatten(extractChildren(x) || [], extractChildren)),
         );
-    const extractChildren = x => x.versions ?? [];
+    const extractChildren = x => x[childrenAttribute] ?? [];
     const flat = flatten(extractChildren(treeStructure), extractChildren);
     return flat;
 }
@@ -574,7 +555,7 @@ export const groupVersionsOfComparisons = (comparisons, sortFunc = (a, b) => new
     // 3- We flat the versions  inside the roots
     for (let i = 0; i < result.length; i += 1) {
         // Always the new version if the main resource
-        const arrayVersions = [...convertTreeToFlat(result[i]), result[i]].sort(sortFunc);
+        const arrayVersions = [...convertTreeToFlat(result[i], 'versions'), result[i]].sort(sortFunc);
         result[i] = { ...arrayVersions[0], versions: arrayVersions };
     }
     // 4- We sort the roots
@@ -721,7 +702,7 @@ export const getResourceLink = (classId, id) => {
         [CLASSES.AUTHOR]: [ROUTES.AUTHOR_PAGE, 'authorId'],
         [CLASSES.COMPARISON]: [ROUTES.COMPARISON, 'comparisonId'],
         [CLASSES.VENUE]: [ROUTES.VENUE_PAGE, 'venueId'],
-        [CLASSES.TEMPLATE]: [ROUTES.TEMPLATE, 'id'],
+        [CLASSES.NODE_SHAPE]: [ROUTES.TEMPLATE, 'id'],
         [CLASSES.VISUALIZATION]: [ROUTES.VISUALIZATION, 'id'],
         [CLASSES.CONTRIBUTION]: [ROUTES.CONTRIBUTION, 'id'],
         [CLASSES.SMART_REVIEW_PUBLISHED]: [ROUTES.REVIEW, 'id'],
@@ -801,7 +782,7 @@ export const getResourceTypeLabel = classId => {
             label = 'venue';
             break;
         }
-        case CLASSES.TEMPLATE: {
+        case CLASSES.NODE_SHAPE: {
             label = 'template';
             break;
         }

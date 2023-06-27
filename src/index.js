@@ -1,21 +1,25 @@
+import env from '@beam-australia/react-env';
+import { plugins } from '@citation-js/core';
+import { MatomoProvider, createInstance } from '@jonkoops/matomo-tracker-react';
+import App from 'App';
+import theme from 'assets/scss/ThemeVariables';
+import { MathJaxContext } from 'better-react-mathjax';
+import MATH_JAX_CONFIG from 'constants/mathJax';
+import REGEX from 'constants/regex';
+import 'fast-text-encoding/text.min';
+import 'jspdf/dist/polyfills.es.js';
 import 'react-app-polyfill/ie9';
 import 'react-app-polyfill/stable';
-import 'fast-text-encoding/text';
-import 'jspdf/dist/polyfills.es.js';
-import { createRoot } from 'react-dom/client';
-import theme from 'assets/scss/ThemeVariables';
-import { Provider } from 'react-redux';
 import { CookiesProvider } from 'react-cookie';
-import { ThemeProvider } from 'styled-components';
-import { MatomoProvider, createInstance } from '@jonkoops/matomo-tracker-react';
 import { DndProvider } from 'react-dnd';
-import env from '@beam-australia/react-env';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
 import { HistoryRouter as Router } from 'redux-first-history/rr6';
-import rootReducer from './slices/rootReducer';
-import configureStore from './store';
-import { unregister } from './registerServiceWorker';
-import App from './App';
+import { unregister } from 'registerServiceWorker';
+import rootReducer from 'slices/rootReducer';
+import configureStore from 'store';
+import { ThemeProvider } from 'styled-components';
 
 const matomoInstance =
     env('MATOMO_TRACKER') === 'true'
@@ -33,6 +37,21 @@ const matomoInstance =
           })
         : undefined;
 
+// https://github.com/citation-js/citation-js/issues/182
+plugins.input.add('@doi/api', {
+    parseType: {
+        dataType: 'String',
+        predicate: REGEX.DOI_URL,
+        extends: '@else/url',
+    },
+});
+plugins.input.add('@doi/id', {
+    parseType: {
+        dataType: 'String',
+        predicate: REGEX.DOI_ID,
+    },
+});
+
 const { store, history } = configureStore();
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -43,11 +62,13 @@ const render = () => {
             <CookiesProvider>
                 <Provider store={store}>
                     <ThemeProvider theme={theme}>
-                        <MatomoProvider value={matomoInstance}>
-                            <Router basename={env('PUBLIC_URL')} history={history}>
-                                <App />
-                            </Router>
-                        </MatomoProvider>
+                        <MathJaxContext config={MATH_JAX_CONFIG}>
+                            <MatomoProvider value={matomoInstance}>
+                                <Router basename={env('PUBLIC_URL')} history={history}>
+                                    <App />
+                                </Router>
+                            </MatomoProvider>
+                        </MathJaxContext>
                     </ThemeProvider>
                 </Provider>
             </CookiesProvider>

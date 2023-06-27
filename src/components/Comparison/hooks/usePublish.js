@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import ROUTES from 'constants/routes.js';
-import { createResourceStatement, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
+import { createResourceStatement, getStatementsBySubject, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { generateDoi, createObject } from 'services/backend/misc';
 import { createLiteral } from 'services/backend/literals';
 import { getComparison, createResourceData } from 'services/similarity/index';
 import { useSelector, useDispatch } from 'react-redux';
 import { reverse } from 'named-urls';
 import { useNavigate } from 'react-router-dom';
-import { filterObjectOfStatementsByPredicateAndClass, getPublicUrl } from 'utils';
+import { filterObjectOfStatementsByPredicateAndClass, getPublicUrl, getErrorMessage, getComparisonData } from 'utils';
 import { setDoi } from 'slices/comparisonSlice';
 import { getComparisonURLConfig, getPropertyObjectFromData, activatedContributionsToList } from 'components/Comparison/hooks/helpers';
 import { saveAuthors } from 'components/AuthorsInput/helpers';
 import { PREDICATES, CLASSES, ENTITIES, MISC } from 'constants/graphSettings';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import { getConferences } from 'services/backend/organizations';
+import { getConferencesSeries, getConferenceById } from 'services/backend/conferences-series';
+import { CONFERENCE_REVIEW_MISC } from 'constants/organizationsTypes';
 
 function usePublish() {
     const comparisonResource = useSelector(state => state.comparison.comparisonResource);
@@ -27,7 +28,9 @@ function usePublish() {
     const [references, setReferences] = useState(
         comparisonResource?.references && comparisonResource.references.length > 0 ? comparisonResource.references : [''],
     );
-    const [subject, setSubject] = useState(comparisonResource && comparisonResource.subject ? comparisonResource.subject : undefined);
+    const [researchField, setResearchField] = useState(
+        comparisonResource && comparisonResource.researchField ? comparisonResource.researchField : undefined,
+    );
     const [comparisonCreators, setComparisonCreators] = useState(comparisonResource?.authors ?? []);
     const [conferencesList, setConferencesList] = useState([]);
     const [conference, setConference] = useState(null);
@@ -51,10 +54,13 @@ function usePublish() {
     };
 
     useEffect(() => {
+        if (comparisonResource.hasPreviousVersion) {
+            return;
+        }
         setTitle(comparisonResource && comparisonResource.label ? comparisonResource.label : '');
         setDescription(comparisonResource && comparisonResource.description ? comparisonResource.description : '');
         setReferences(comparisonResource?.references && comparisonResource.references.length > 0 ? comparisonResource.references : ['']);
-        setSubject(comparisonResource && comparisonResource.subject ? comparisonResource.subject : undefined);
+        setResearchField(comparisonResource && comparisonResource.researchField ? comparisonResource.researchField : undefined);
         setComparisonCreators(
             comparisonResource.authors
                 ? comparisonResource.authors
@@ -62,10 +68,39 @@ function usePublish() {
         );
     }, [comparisonResource, displayName]);
 
+    const getConference = async conferenceId => {
+        if (!conferenceId || conferenceId === MISC.UNKNOWN_ID) {
+            return null;
+        }
+        try {
+            return await getConferenceById(conferenceId);
+        } catch (e) {
+            return null;
+        }
+    };
+
+    // populate the publish model with metadata when republishing an existing comparison
+    useEffect(() => {
+        if (!comparisonResource?.hasPreviousVersion?.id) {
+            return;
+        }
+        const fetchData = async () => {
+            const statements = await getStatementsBySubject({ id: comparisonResource.hasPreviousVersion.id });
+            const comparisonData = getComparisonData(statements[0].subject, statements);
+            setTitle(comparisonData.label);
+            setDescription(comparisonData.description);
+            setResearchField(comparisonData.researchField);
+            setComparisonCreators(comparisonData.authors);
+            setReferences(comparisonData.references.length > 0 ? comparisonData.references.map(reference => reference.label) : ['']);
+            setConference((await getConference(comparisonData.organization_id)) ?? null);
+        };
+        fetchData();
+    }, [comparisonResource?.hasPreviousVersion?.id]);
+
     useEffect(() => {
         const getConferencesList = () => {
-            getConferences().then(response => {
-                setConferencesList(response);
+            getConferencesSeries().then(response => {
+                setConferencesList(response.content);
             });
         };
         getConferencesList();
@@ -108,20 +143,23 @@ function usePublish() {
                                                 text: reference,
                                             })),
                                     }),
-                                ...(subject &&
-                                    subject.id && {
+                                ...(researchField &&
+                                    researchField.id && {
                                         [PREDICATES.HAS_SUBJECT]: [
                                             {
-                                                '@id': subject.id,
+                                                '@id': researchField.id,
                                             },
                                         ],
                                     }),
                                 [PREDICATES.COMPARE_CONTRIBUTION]: contributionsList.map(contributionID => ({
                                     '@id': contributionID,
                                 })),
-                                [PREDICATES.HAS_PROPERTY]: predicatesList.map(predicateID => {
-                                    const property = comparisonType === 'merge' ? predicateID : getPropertyObjectFromData(data, { id: predicateID });
-                                    return { '@id': property.id, '@type': ENTITIES.PREDICATE };
+                                ...(comparisonType === 'merge' && {
+                                    [PREDICATES.HAS_PROPERTY]: predicatesList.map(predicateID => {
+                                        const property =
+                                            comparisonType === 'merge' ? predicateID : getPropertyObjectFromData(data, { id: predicateID });
+                                        return { '@id': property.id, '@type': ENTITIES.PREDICATE };
+                                    }),
                                 }),
                                 ...(comparisonResource.hasPreviousVersion && {
                                     [PREDICATES.HAS_PREVIOUS_VERSION]: [
@@ -131,7 +169,7 @@ function usePublish() {
                                     ],
                                 }),
                                 ...(conference &&
-                                    conference.metadata?.is_double_blind && {
+                                    conference.metadata?.review_process === CONFERENCE_REVIEW_MISC.DOUBLE_BLIND && {
                                         [PREDICATES.IS_ANONYMIZED]: [
                                             {
                                                 text: true,
@@ -165,7 +203,7 @@ function usePublish() {
                 publishDOI(id);
             }
         } catch (error) {
-            toast.error(`Error publishing a comparison : ${error.message}`);
+            toast.error(`Error publishing a comparison : ${getErrorMessage(error)}`);
             setIsLoading(false);
         }
     };
@@ -190,7 +228,7 @@ function usePublish() {
                     resource_type: 'Dataset',
                     resource_id: comparisonId,
                     title,
-                    subject: subject ? subject.label : '',
+                    subject: researchField ? researchField.label : '',
                     description,
                     related_resources: contributionsList,
                     authors: comparisonCreatorsORCID.map(c => ({ creator: c.label, orcid: c.orcid })),
@@ -232,8 +270,8 @@ function usePublish() {
         setReferences(list);
     };
 
-    const handleSelectField = ({ _id, label }) =>
-        setSubject({
+    const handleSelectField = ({ id: _id, label }) =>
+        setResearchField({
             id: _id,
             label,
         });
@@ -246,7 +284,7 @@ function usePublish() {
         title,
         description,
         comparisonCreators,
-        subject,
+        researchField,
         inputValue,
         conference,
         references,
@@ -255,7 +293,7 @@ function usePublish() {
         isOpenResearchFieldModal,
         setTitle,
         setDescription,
-        setSubject,
+        setResearchField,
         setInputValue,
         setIsOpenResearchFieldModal,
         setAssignDOI,

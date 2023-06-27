@@ -130,15 +130,19 @@ const ValueForm = props => {
     return (
         <div>
             <InputGroup size="sm">
-                {((!editMode && !valueClass) || (editMode && !valueClass && value._class === ENTITIES.LITERAL)) && (
-                    <DatatypeSelector entity={editMode ? value._class : null} valueType={inputDataType} setValueType={setInputDataType} />
-                )}
+                <DatatypeSelector
+                    valueClass={valueClass}
+                    isDisabled={!((!editMode && !valueClass) || (editMode && !valueClass && value._class === ENTITIES.LITERAL))}
+                    entity={editMode ? value._class : null}
+                    valueType={inputDataType}
+                    setValueType={setInputDataType}
+                />
                 {!editMode && inputFormType === 'autocomplete' ? (
                     <AutoComplete
                         entityType={entityType}
                         excludeClasses={
                             entityType === ENTITIES.RESOURCE && !valueClass
-                                ? `${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.TEMPLATE},${CLASSES.TEMPLATE_COMPONENT},${CLASSES.PAPER_DELETED},${CLASSES.CONTRIBUTION_DELETED},${CLASSES.EXTERNAL}`
+                                ? `${CLASSES.CONTRIBUTION},${CLASSES.PROBLEM},${CLASSES.NODE_SHAPE},${CLASSES.PROPERTY_SHAPE},${CLASSES.PAPER_DELETED},${CLASSES.CONTRIBUTION_DELETED},${CLASSES.EXTERNAL}`
                                 : null
                         }
                         optionsClass={entityType === ENTITIES.RESOURCE && valueClass ? valueClass.id : undefined}

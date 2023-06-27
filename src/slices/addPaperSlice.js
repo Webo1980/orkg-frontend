@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { LOCATION_CHANGE, guid } from 'utils';
+import { LOCATION_CHANGE, guid, getErrorMessage } from 'utils';
 import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
 import { mergeWith, isArray, uniqBy, merge } from 'lodash';
@@ -17,23 +17,25 @@ import {
 } from 'slices/statementBrowserSlice';
 
 const initialState = {
+    title: '',
+    authors: [],
+    abstract: '',
+    publicationMonth: '',
+    publicationYear: '',
+    doi: '',
+    publishedIn: '',
+    researchFields: [],
     isTourOpen: false,
     showAbstractDialog: false,
     abstractDialogView: 'annotator', // annotator | input | list
     currentStep: 1,
     shouldBlockNavigation: false,
     tourStartAt: 0,
-    title: '',
-    authors: [],
-    abstract: '',
-    publicationMonth: '',
-    publicationYear: '',
     entry: '',
     showLookupTable: false,
-    doi: '',
-    publishedIn: '',
-    researchFields: [],
     selectedResearchField: '',
+    extractedResearchField: null,
+    extractedContributionData: [],
     selectedContribution: '',
     paperNewResourceId: null,
     url: '',
@@ -45,8 +47,10 @@ const initialState = {
     nerResources: [],
     nerProperties: [],
     nerRawResponse: {},
+    predicatesRawResponse: {},
     bioassayText: '',
     bioassayRawResponse: [],
+    pdfName: null,
 };
 
 export const addPaperSlice = createSlice({
@@ -204,6 +208,9 @@ export const addPaperSlice = createSlice({
         setNerRawResponse: (state, { payload }) => {
             state.nerRawResponse = payload;
         },
+        setPredicatesRawResponse: (state, { payload }) => {
+            state.predicatesRawResponse = payload;
+        },
         setBioassayText: (state, { payload }) => {
             state.bioassayText = payload;
         },
@@ -211,8 +218,8 @@ export const addPaperSlice = createSlice({
             state.bioassayRawResponse = payload;
         },
     },
-    extraReducers: {
-        [LOCATION_CHANGE]: () => initialState,
+    extraReducers: builder => {
+        builder.addCase(LOCATION_CHANGE, () => initialState);
     },
 });
 
@@ -242,6 +249,7 @@ export const {
     setNerResources,
     setNerProperties,
     setNerRawResponse,
+    setPredicatesRawResponse,
     setBioassayText,
     setBioassayRawResponse,
 } = addPaperSlice.actions;
@@ -376,6 +384,7 @@ export const saveAddPaperAction = data => async dispatch => {
     newProperties = newProperties.map(propertyId => ({ id: propertyId, label: data.properties.byId[propertyId].label }));
     newProperties = uniqBy(newProperties, 'label');
     newProperties = newProperties.map(property => ({ [property.label]: `_${property.id}` }));
+
     const paperObj = {
         // Set new predicates label and temp ID
         predicates: newProperties,
@@ -411,11 +420,10 @@ export const saveAddPaperAction = data => async dispatch => {
     try {
         const paper = await saveFullPaper(paperObj);
         dispatch(saveAddPaper(paper.id));
-
         dispatch(blockNavigation({ status: false }));
     } catch (e) {
         console.log(e);
-        toast.error('Something went wrong while saving this paper.');
+        toast.error(`Something went wrong while saving this paper: ${getErrorMessage(e)}`);
         dispatch(previousStep());
     }
 };

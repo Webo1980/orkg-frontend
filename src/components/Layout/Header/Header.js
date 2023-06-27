@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Button,
     UncontrolledButtonDropdown as ButtonDropdown,
@@ -9,12 +9,9 @@ import {
     Nav,
     Navbar,
     NavbarToggler,
-    Tooltip,
-    ButtonGroup,
-    Row,
     Badge,
 } from 'reactstrap';
-import { Link, NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink as RouterNavLink, useLocation } from 'react-router-dom';
 import Jumbotron from 'components/Home/Jumbotron';
 import { ReactComponent as Logo } from 'assets/img/logo.svg';
 import { ReactComponent as LogoWhite } from 'assets/img/logo_white.svg';
@@ -22,12 +19,10 @@ import { FontAwesomeIcon, FontAwesomeIcon as Icon } from '@fortawesome/react-fon
 import { faChevronDown, faUser, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import ROUTES from 'constants/routes.js';
 import { Cookies } from 'react-cookie';
-import Gravatar from 'react-gravatar';
 import { useSelector, useDispatch } from 'react-redux';
 import Authentication from 'components/Authentication/Authentication';
 import { openAuthDialog, updateAuth, resetAuth } from 'slices/authSlice';
 import { getUserInformation } from 'services/backend/users';
-import greetingTime from 'greeting-time';
 import styled, { createGlobalStyle } from 'styled-components';
 import { reverse } from 'named-urls';
 import env from '@beam-australia/react-env';
@@ -37,6 +32,8 @@ import { scrollbarWidth } from '@xobotyi/scrollbar-width';
 import AboutMenu from 'components/Layout/Header/AboutMenu';
 import ContentTypesMenu from 'components/Layout/Header/ContentTypesMenu';
 import Nfdi4dsButton from 'components/Layout/Header/Nfdi4dsButton';
+import { ORGANIZATIONS_MISC, ORGANIZATIONS_TYPES } from 'constants/organizationsTypes';
+import UserTooltip from 'components/Layout/Header/UserTooltip';
 import SearchForm from './SearchForm';
 import AddNew from './AddNew';
 
@@ -77,11 +74,6 @@ const StyledLink = styled(Link)`
     }
 `;
 
-const StyledGravatar = styled(Gravatar)`
-    border: 3px solid ${props => props.theme.dark};
-    cursor: pointer;
-`;
-
 const StyledTopBar = styled.div`
     @media (max-width: ${props => props.theme.gridBreakpoints.md}) {
         .navbar-collapse {
@@ -115,70 +107,22 @@ const StyledTopBar = styled.div`
     margin-bottom: 0;
     padding-top: 72px;
 
-    // For the background
-    background: #5f6474 url(${HomeBannerBg});
-    background-position-x: 0%, 0%;
-    background-position-y: 0%, 0%;
-    background-size: auto, auto;
-    background-size: cover;
+    &.home-page {
+        // For the background
+        background: #5f6474 url(${HomeBannerBg});
+        background-position-x: 0%, 0%;
+        background-position-y: 0%, 0%;
+        background-size: auto, auto;
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center 10%;
+        background-repeat: no-repeat;
+    }
     position: relative;
-    background-attachment: fixed;
-    background-position: center 10%;
-    background-repeat: no-repeat;
-`;
-
-const StyledAuthTooltip = styled(Tooltip)`
-    & .tooltip {
-        opacity: 1 !important;
-    }
-    & .tooltip-inner {
-        font-size: 16px;
-        background-color: ${props => props.theme.secondary};
-        max-width: 430px;
-        box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.13);
-
-        .btn {
-            border-color: ${props => props.theme.secondary};
-            background-color: ${props => props.theme.dark};
-
-            &:hover {
-                background-color: ${props => props.theme.secondaryDarker};
-            }
-        }
-    }
-
-    & .arrow:before {
-        border-bottom-color: ${props => props.theme.secondary} !important;
-    }
-
-    @media (max-width: ${props => props.theme.gridBreakpoints.sm}) {
-        .btn-group {
-            width: 100%;
-            flex-direction: column;
-            .btn:first-child {
-                border-radius: ${props => props.theme.borderRadius} ${props => props.theme.borderRadius} 0 0;
-            }
-            .btn:last-child {
-                border-radius: 0 0 ${props => props.theme.borderRadius} ${props => props.theme.borderRadius};
-            }
-        }
-        .col-3 {
-            display: none;
-        }
-        .col-9 {
-            flex: 0 0 100%;
-            max-width: 100% !important;
-        }
-    }
 `;
 
 const StyledNavbar = styled(Navbar)`
     &&& {
-        &:not(.home-page) {
-            box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.13);
-            background: white;
-        }
-
         background: transparent;
         border: 0;
 
@@ -206,7 +150,12 @@ const StyledNavbar = styled(Navbar)`
             }
         }
 
-        &.home-page {
+        &:not(.transparent-navbar) {
+            box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.13);
+            background: white;
+        }
+
+        &.transparent-navbar {
             & .nav-link {
                 color: white;
                 &:hover {
@@ -238,23 +187,19 @@ const Header = () => {
     const [isOpenNavBar, setIsOpenNavBar] = useState(false);
     const [isOpenAboutMenu, setIsOpenAboutMenu] = useState(false);
     const [isOpenViewMenu, setIsOpenViewMenu] = useState(false);
-    const [userTooltipOpen, setUserTooltipOpen] = useState(false);
     const [logoutTimeoutId, setLogoutTimeoutId] = useState(null);
 
     const location = useLocation();
-    const [isHomePageStyle, setIsHomePageStyle] = useState(location.pathname === ROUTES.HOME);
+    const isHomePath = location.pathname === ROUTES.HOME;
+    const [isTransparentNavbar, setIsTransparentNavbar] = useState(isHomePath);
+    const [isHomePage, setIsHomePage] = useState(isHomePath);
     const user = useSelector(state => state.auth.user);
-    const userPopup = useRef(null);
     const dispatch = useDispatch();
-    const navigate = useNavigate();
 
     useEffect(() => {
-        setIsHomePageStyle(location.pathname === ROUTES.HOME);
-    }, [location.pathname]);
-
-    const toggleUserTooltip = useCallback(() => {
-        setUserTooltipOpen(v => !userTooltipOpen);
-    }, [userTooltipOpen]);
+        setIsHomePage(isHomePath);
+        setIsTransparentNavbar(isHomePath);
+    }, [isHomePath]);
 
     useEffect(() => {
         const userInformation = () => {
@@ -287,32 +232,25 @@ const Header = () => {
 
         const handleScroll = () => {
             if (window.pageYOffset > 0) {
-                if (isHomePageStyle) {
-                    setIsHomePageStyle(false);
+                if (isTransparentNavbar) {
+                    setIsTransparentNavbar(false);
                 }
-            } else if (!isHomePageStyle && location.pathname === ROUTES.HOME) {
-                setIsHomePageStyle(true);
+            } else if (!isTransparentNavbar && location.pathname === ROUTES.HOME) {
+                setIsTransparentNavbar(true);
             }
         };
 
-        const handleClickOutside = event => {
-            if (userPopup.current && !userPopup.current.contains(event.target) && userTooltipOpen) {
-                toggleUserTooltip();
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
         window.addEventListener('scroll', handleScroll);
         userInformation();
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
             window.removeEventListener('scroll', handleScroll);
             if (logoutTimeoutId) {
                 clearTimeout(logoutTimeoutId); // clear timeout
                 setLogoutTimeoutId(null);
             }
         };
-    }, [dispatch, isHomePageStyle, location.pathname, logoutTimeoutId, toggleUserTooltip, user, userTooltipOpen]);
+    }, [dispatch, isTransparentNavbar, location.pathname, logoutTimeoutId, user]);
 
     useEffect(() => {
         const tokenExpired = () => {
@@ -350,15 +288,6 @@ const Header = () => {
         setIsOpenAboutMenu(false);
     };
 
-    const handleSignOut = () => {
-        dispatch(resetAuth());
-        const cookies = new Cookies();
-        cookies.remove('token', { path: env('PUBLIC_URL') });
-        cookies.remove('token_expires_in', { path: env('PUBLIC_URL') });
-        toggleUserTooltip();
-        navigate('/', { state: { signedOut: true } });
-    };
-
     const requireAuthentication = (e, redirectRoute) => {
         if (!user) {
             dispatch(openAuthDialog({ action: 'signin', signInRequired: true, redirectRoute }));
@@ -369,32 +298,30 @@ const Header = () => {
         }
     };
 
-    const email = user && user.email ? user.email : 'example@example.com';
-    const greeting = greetingTime(new Date());
     const cookieInfoDismissed = cookies.get('cookieInfoDismissed') ? cookies.get('cookieInfoDismissed') : null;
 
     const navbarClasses = `
-            ${isHomePageStyle ? 'home-page' : ''}
-            ${isHomePageStyle && isOpenNavBar ? 'shadow' : ''}
+            ${isTransparentNavbar ? 'transparent-navbar' : ''}
+            ${isTransparentNavbar && isOpenNavBar ? 'shadow' : ''}
         `;
 
     return (
-        <StyledTopBar className={isHomePageStyle ? 'home-page' : ''}>
+        <StyledTopBar className={isHomePage ? 'home-page' : ''}>
             <StyledNavbar
-                light={!isHomePageStyle}
-                dark={isHomePageStyle}
+                light={!isTransparentNavbar}
+                dark={isTransparentNavbar}
                 className={navbarClasses}
                 expand="md"
                 fixed="top"
                 id="main-navbar"
-                container={!isHomePageStyle ? true : 'sm'}
+                container={!isTransparentNavbar ? true : 'sm'}
                 style={{ display: 'flex', width: '100%', transition: 'width 1s ease-in-out' }}
             >
                 <GlobalStyle scrollbarWidth={scrollbarWidth(true)} cookieInfoDismissed={cookieInfoDismissed} />
 
                 <StyledLink to={ROUTES.HOME} className="me-4 p-0" onClick={closeMenu}>
-                    {!isHomePageStyle && <Logo />}
-                    {isHomePageStyle && <LogoWhite />}
+                    {!isTransparentNavbar && <Logo />}
+                    {isTransparentNavbar && <LogoWhite />}
                 </StyledLink>
 
                 <NavbarToggler onClick={toggleNavBar} />
@@ -467,14 +394,22 @@ const Header = () => {
                                 <DropdownItem
                                     tag={RouterNavLink}
                                     end
-                                    to={ROUTES.ORGANIZATIONS}
+                                    to={reverse(ROUTES.ORGANIZATIONS, {
+                                        type: ORGANIZATIONS_TYPES.find(o => o.id === ORGANIZATIONS_MISC.GENERAL).label,
+                                    })}
                                     onClick={closeMenu}
-                                    className="d-flex justify-content-between"
                                 >
-                                    Organizations{' '}
-                                    <small className="ms-2">
-                                        <Badge color="info">Beta</Badge>
-                                    </small>
+                                    Organizations
+                                </DropdownItem>
+                                <DropdownItem
+                                    tag={RouterNavLink}
+                                    end
+                                    to={reverse(ROUTES.ORGANIZATIONS, {
+                                        type: ORGANIZATIONS_TYPES.find(o => o.id === ORGANIZATIONS_MISC.EVENT).label,
+                                    })}
+                                    onClick={closeMenu}
+                                >
+                                    Conferences
                                 </DropdownItem>
                                 <DropdownItem divider />
 
@@ -569,64 +504,9 @@ const Header = () => {
 
                     <SearchForm placeholder="Search..." onSearch={closeMenu} />
 
-                    <AddNew isHomePageStyle={isHomePageStyle} onAdd={closeMenu} />
+                    <AddNew isHomePageStyle={isTransparentNavbar} onAdd={closeMenu} />
 
-                    {!!user && (
-                        <div className="ms-2">
-                            <StyledGravatar className="rounded-circle" email={email} size={40} id="TooltipExample" />
-                            <StyledAuthTooltip
-                                fade={false}
-                                trigger="click"
-                                innerClassName="pe-3 ps-3 pt-3 pb-3 clearfix"
-                                placement="bottom-end"
-                                isOpen={userTooltipOpen}
-                                target="TooltipExample"
-                                toggle={toggleUserTooltip}
-                                innerRef={userPopup}
-                            >
-                                <Row>
-                                    <div className="col-3 text-center">
-                                        <Link onClick={toggleUserTooltip} to={reverse(ROUTES.USER_PROFILE, { userId: user.id })}>
-                                            <StyledGravatar
-                                                className="rounded-circle"
-                                                style={{ border: '3px solid #fff' }}
-                                                email={email}
-                                                size={76}
-                                                id="TooltipExample"
-                                            />
-                                        </Link>
-                                    </div>
-                                    <div className="col-9 text-start">
-                                        <span className="ms-1">
-                                            {greeting} {user.displayName}
-                                        </span>
-                                        <ButtonGroup className="mt-2" size="sm">
-                                            <Button
-                                                color="secondary"
-                                                onClick={toggleUserTooltip}
-                                                tag={Link}
-                                                to={reverse(ROUTES.USER_PROFILE, { userId: user.id })}
-                                            >
-                                                Profile
-                                            </Button>
-                                            <Button
-                                                color="secondary"
-                                                className="text-nowrap"
-                                                onClick={toggleUserTooltip}
-                                                tag={Link}
-                                                to={reverse(ROUTES.USER_SETTINGS_DEFAULT)}
-                                            >
-                                                My account
-                                            </Button>
-                                            <Button onClick={handleSignOut} className="text-nowrap">
-                                                Sign out
-                                            </Button>
-                                        </ButtonGroup>
-                                    </div>
-                                </Row>
-                            </StyledAuthTooltip>
-                        </div>
-                    )}
+                    {!!user && <UserTooltip />}
 
                     {!user && (
                         <Button

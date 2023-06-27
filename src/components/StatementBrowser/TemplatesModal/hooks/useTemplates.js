@@ -6,10 +6,11 @@ import { getResearchProblems, getResearchFields, getCommonClasses } from 'slices
 import { uniqBy, differenceBy, debounce } from 'lodash';
 import { getResourcesByClass } from 'services/backend/resources';
 import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
+import useUsedTemplates from './useUsedTemplates';
 
 const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => {
     const filterOptions = [
-        { id: CLASSES.TEMPLATE, label: 'label', predicate: null, placeholder: 'Search template by label', entityType: null },
+        { id: CLASSES.NODE_SHAPE, label: 'label', predicate: null, placeholder: 'Search template by label', entityType: null },
         {
             id: CLASSES.RESEARCH_FIELD,
             label: 'research field',
@@ -24,7 +25,7 @@ const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => 
             placeholder: 'Search a research problem',
             entityType: ENTITIES.RESOURCE,
         },
-        { id: CLASSES.CLASS, label: 'class', predicate: PREDICATES.TEMPLATE_OF_CLASS, placeholder: 'Search a class', entityType: ENTITIES.CLASS },
+        { id: CLASSES.CLASS, label: 'class', predicate: PREDICATES.SHACL_TARGET_CLASS, placeholder: 'Search a class', entityType: ENTITIES.CLASS },
     ];
 
     const [selectedFilter, setSelectedFilter] = useState(filterOptions[0]);
@@ -39,8 +40,6 @@ const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => 
     const [page, setPage] = useState(0);
     const [isLastPageReached, setIsLastPageReached] = useState(false);
     const [totalElements, setTotalElements] = useState(0);
-    const [isLoadingUsedTemplates, setIsLoadingUsedTemplates] = useState(false);
-    const [usedTemplates, setUsedTemplates] = useState([]);
 
     const selectedResource = useSelector(state => (!isContributionEditor ? state.statementBrowser.selectedResource : null));
 
@@ -60,6 +59,7 @@ const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => 
             : getResearchProblems(state),
     );
 
+    const { usedTemplates, isLoadingUsedTemplates } = useUsedTemplates({ resourceId: selectedResource });
     /**
      * Fetch the templates of a resource
      *
@@ -82,7 +82,7 @@ const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => 
                     ({
                         ...statements,
                         content: statements.content
-                            .filter(statement => statement.subject.classes.includes(CLASSES.TEMPLATE))
+                            .filter(statement => statement.subject.classes.includes(CLASSES.NODE_SHAPE))
                             .map(st => ({ id: st.subject.id, label: st.subject.label })),
                     }), // return the template Object
             ),
@@ -97,12 +97,10 @@ const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => 
                 searchCall = getTemplatesOfResourceId(target.id, sf.predicate, page);
             } else {
                 searchCall = getResourcesByClass({
-                    id: CLASSES.TEMPLATE,
+                    id: CLASSES.NODE_SHAPE,
                     page,
-                    q: label,
+                    q: label?.trim(),
                     items: pageSize,
-                    sortBy: 'created_at',
-                    desc: true,
                 });
             }
 
@@ -166,26 +164,6 @@ const useTemplates = ({ onlyFeatured = true, isContributionEditor = false }) => 
         setIsNextPageLoading(true);
         debouncedGetLoadMoreResults.current(selectedFilter, targetFilter, labelFilter);
     }, [labelFilter, onlyFeatured, selectedFilter, targetFilter]);
-
-    useEffect(() => {
-        setIsLoadingUsedTemplates(true);
-        const apiCalls = resource?.classes?.map(c => getTemplatesOfResourceId(c, PREDICATES.TEMPLATE_OF_CLASS, 0));
-        Promise.all(apiCalls)
-            .then(tmpl => {
-                setUsedTemplates(
-                    tmpl
-                        .map((c, index) => c.content.map(t => ({ ...t, classId: resource?.classes[index] })))
-                        .filter(r => r.length)
-                        .flat(),
-                );
-                setIsLoadingUsedTemplates(false);
-            })
-            .catch(() => {
-                setUsedTemplates([]);
-                setIsLoadingUsedTemplates(false);
-            });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getTemplatesOfResourceId, JSON.stringify(resource?.classes)]);
 
     const handleSelectedFilterChange = selected => {
         setTemplates([]);

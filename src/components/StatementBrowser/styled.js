@@ -7,8 +7,7 @@ export const StyledStatementItem = styled(ListGroupItem)`
     cursor: default;
     background-color: ${props => props.theme.lightLighter} !important;
     border-color: ${props => props.theme.lightDarker} !important;
-    overflow-wrap: break-word;
-    word-break: break-all;
+    overflow-wrap: anywhere;
     flex: 1;
 
     &.selectable {
@@ -111,7 +110,7 @@ export const StyledDropdownToggle = styled(DropdownToggle).withConfig({
 
 export const ValueItemStyle = styled(ListGroupItem)`
     background-color: #fff;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     padding: 8px 0px !important;
 
     &:last-child {
@@ -171,7 +170,7 @@ export const ValueItemStyle = styled(ListGroupItem)`
     .typeCircle {
         width: 18px;
         height: 18px;
-        line-height: 18px;
+        line-height: 15px;
         text-align: center;
         color: white;
         display: inline-block;
@@ -373,8 +372,7 @@ export const TemplateHeaderStyle = styled.div`
     position: relative;
     display: block;
     padding: 0.55rem 1.25rem;
-    overflow-wrap: break-word;
-    word-break: break-all;
+    overflow-wrap: anywhere;
 
     .headerOptions {
         visibility: none;
@@ -413,40 +411,6 @@ export const TemplateHeaderStyle = styled.div`
         .span {
             background-color: ${props => props.theme.dark};
             color: ${props => props.theme.secondary};
-        }
-    }
-`;
-
-export const PulsateIcon = styled.span`
-    animation: pulsate 1s ease-out;
-    animation-iteration-count: infinite;
-    opacity: 0;
-
-    /* you dont need the stuff below, but its what I used to create the loading circle */
-    border: 3px solid ${props => props.theme.primary};
-    border-radius: 30px;
-    height: 18px;
-    width: 18px;
-    position: absolute;
-    display: inline-block;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    cursor: pointer;
-
-    @keyframes pulsate {
-        0% {
-            -webkit-transform: scale(0.1, 0.1);
-            opacity: 0;
-        }
-        50% {
-            opacity: 1;
-        }
-        100% {
-            -webkit-transform: scale(1.2, 1.2);
-            opacity: 0;
         }
     }
 `;
