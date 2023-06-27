@@ -56,7 +56,6 @@ const ReproducePaperModal = props => {
         // get the contribution label
         const contributionResource = contributions.find(c => c.id === selectedContribution);
         if (contributionResource) {
-            setLoadingContributionFailed(false);
             dispatch(
                 selectContribution({
                     contributionId: cId,
