@@ -10,6 +10,7 @@ import { Cookies } from 'react-cookie';
 import env from '@beam-australia/react-env';
 import slugifyString from 'slugify';
 import { LOCATION_CHANGE as LOCATION_CHANGE_RFH } from 'redux-first-history';
+import { string } from 'joi';
 
 const cookies = new Cookies();
 
