@@ -54,3 +54,12 @@ export type Predicate = {
     created_at: string;
     created_by: string;
 };
+
+export type Literal = {
+    id: string;
+    label: string;
+    datatype: string;
+    _class: 'literal';
+    created_at: string;
+    created_by: string;
+};
