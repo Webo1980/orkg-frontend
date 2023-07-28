@@ -1,19 +1,19 @@
 import { url } from 'constants/misc';
 import { submitGetRequest, submitPostRequest } from 'network';
-import { getOrganizationLogoUrl } from 'services/backend/organizations';
-import { getOrganization } from './organizations';
+import { getOrganizationLogoUrl, getOrganization } from 'services/backend/organizations';
+
 
 export const conferenceSeriesUrl = `${url}conference-series/`;
-export const createConference = (organization_id, name, url, display_id, metadata) =>
+export const createConference = (organization_id: string, name: string, url: string, display_id: string, metadata: any): Promise<any> =>
     submitPostRequest(`${conferenceSeriesUrl}`, { 'Content-Type': 'application/json' }, { organization_id, name, display_id, url, metadata });
 
 export const getConferencesSeries = () => submitGetRequest(`${conferenceSeriesUrl}`);
 
-export const getSeriesListByConferenceId = id => submitGetRequest(`${conferenceSeriesUrl}${encodeURIComponent(id)}/series`);
+export const getSeriesListByConferenceId = (id: string) => submitGetRequest(`${conferenceSeriesUrl}${encodeURIComponent(id)}/series`);
 
-export const getConferenceById = id => submitGetRequest(`${conferenceSeriesUrl}${encodeURIComponent(id)}/`);
+export const getConferenceById = (id: string) => submitGetRequest(`${conferenceSeriesUrl}${encodeURIComponent(id)}/`);
 
-export const getConferenceAndOrganizationInformation = organizationId =>
+export const getConferenceAndOrganizationInformation = (organizationId: string) =>
     getConferenceById(organizationId)
         .then(async confResponse => {
             try {

@@ -44,7 +44,17 @@ export type Resource = {
     observatory_id: string;
     organization_id: string;
     formatted_label: string;
+    type: string;
+    resource_type: string;
+    resource_id: string;
+    title: string;
+    subject: string;
+    description: string;
+    related_resources?: any[]; // Replace 'any' with the appropriate type if possible
+    authors?: string[]; // Replace 'string' with the type of authors if possible
+    url: string;
 };
+
 
 export type Predicate = {
     id: string;

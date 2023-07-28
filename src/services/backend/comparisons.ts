@@ -6,6 +6,7 @@ import qs from 'qs';
 import { getResource } from 'services/backend/resources';
 import { getStatementsByObjectAndPredicate, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
 import { filterObjectOfStatementsByPredicateAndClass, filterSubjectOfStatementsByPredicateAndClass } from 'utils';
+import { Predicate } from 'services/backend/types';
 
 export const comparisonUrl = `${url}comparisons/`;
 
@@ -18,8 +19,8 @@ export const comparisonUrl = `${url}comparisons/`;
  * @param {Array} comparisonId comparison id
  * @return {Array} List of versions (comparisons resources)
  */
-export const getComparisonVersionsById = comparisonId => {
-    const getVersions = (id, versions = [], checked = []) => {
+export const getComparisonVersionsById = (comparisonId: string) => {
+    const getVersions = (id: string, versions: any[] = [], checked: any[] = []): Promise<any[]> => {
         if (!id) {
             return Promise.resolve(versions);
         }
@@ -46,14 +47,14 @@ export const getComparisonVersionsById = comparisonId => {
             if (previousVersion && !versions.find(v => v.id === previousVersion.id)) {
                 versions.push(previousVersion);
             }
-            nextVersions.forEach(nextVersion => {
+            nextVersions.forEach((nextVersion: any) => {
                 if (nextVersion && !versions.find(v => v.id === nextVersion.id)) {
                     versions.push(nextVersion);
                 }
             });
             return Promise.all([
                 getVersions(previousVersion?.id, versions, checked),
-                ...nextVersions.map(nextVersion => getVersions(nextVersion?.id, versions, checked)),
+                ...nextVersions.map((nextVersion: any) => getVersions(nextVersion?.id, versions, checked)),
             ]).then(v => uniqBy(flatten(v), 'id'));
         });
     };
@@ -62,13 +63,13 @@ export const getComparisonVersionsById = comparisonId => {
         const restOfNodes = getVersions(comparisonId, []);
 
         return Promise.all([currentNode, restOfNodes]).then(c =>
-            uniqBy(flatten(c), 'id').sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+            uniqBy(flatten(c), 'id').sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
         );
     }
     return Promise.resolve([]);
 };
 
-export const getAuthorsByComparisonId = ({ id, page = 0, items = 9999 }) => {
-    const params = qs.stringify({ page, size: items });
+export const getAuthorsByComparisonId = ({ id, page = 0, items = 9999 }: { id: string; page?: number; items?: number }): Promise<Predicate> => {
+    const params: string = qs.stringify({ page, size: items });
     return submitGetRequest(`${comparisonUrl}${encodeURIComponent(id)}/authors?${params}`);
 };

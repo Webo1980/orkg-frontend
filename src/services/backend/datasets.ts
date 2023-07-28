@@ -1,6 +1,7 @@
 import { url } from 'constants/misc';
 import { submitGetRequest } from 'network';
 import qs from 'qs';
+import { PaginatedResponse, Predicate } from 'services/backend/types';
 
 export const datasetsUrl = `${url}datasets/`;
 
@@ -12,7 +13,17 @@ export const datasetsUrl = `${url}datasets/`;
  * Each benchmark on the dataset is define by the following attributes:
  * model_name, score, metric, paper_title, code_urls
  * */
-export const getDatasetBenchmarksByDatasetId = ({ datasetId, problemId, page = 0, size = 9999 }) => {
+export const getDatasetBenchmarksByDatasetId = ({
+    datasetId,
+    problemId,
+    page = 0,
+    size = 9999,
+}: {
+    datasetId: string;
+    problemId: string;
+    page: number;
+    size: number;
+}): Promise<PaginatedResponse<Predicate>> => {
     const params = qs.stringify(
         { page, size },
         {
@@ -25,7 +36,15 @@ export const getDatasetBenchmarksByDatasetId = ({ datasetId, problemId, page = 0
 /**
  * Get the list of research problems of a dataset
  * */
-export const getResearchProblemsByDatasetId = ({ datasetId, page = 0, size = 9999 }) => {
+export const getResearchProblemsByDatasetId = ({
+    datasetId,
+    page = 0,
+    size = 9999,
+}: {
+    datasetId: string;
+    page: number;
+    size: number;
+}): Promise<PaginatedResponse<Predicate>> => {
     const params = qs.stringify(
         { page, size },
         {
@@ -38,7 +57,19 @@ export const getResearchProblemsByDatasetId = ({ datasetId, page = 0, size = 999
 /**
  * Get the datasets for a research problem: (a.k.a. Benchmark Summary)
  * */
-export const getDatasetsBenchmarksByResearchProblemId = ({ id, page = 0, size = 9999, sortBy = 'totalPapers', desc = true }) => {
+export const getDatasetsBenchmarksByResearchProblemId = ({
+    id,
+    page = 0,
+    size = 9999,
+    sortBy = 'totalPapers',
+    desc = true,
+}: {
+    id: string;
+    page: number;
+    size: number;
+    sortBy: string;
+    desc: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },

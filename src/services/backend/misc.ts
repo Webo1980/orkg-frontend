@@ -1,26 +1,37 @@
 import { url } from 'constants/misc';
 import { ENTITIES } from 'constants/graphSettings';
 import { submitGetRequest, submitPostRequest } from 'network';
-import { getClasses, getClassById } from './classes';
-import { getPredicates, getPredicate } from './predicates';
-import { getResources, getResource } from './resources';
+import { getClasses, getClassById } from 'services/backend/classes';
+import { getPredicates, getPredicate } from 'services/backend/predicates';
+import { getResources, getResource } from 'services/backend/resources';
+import { Resource } from 'services/backend/types';
 
 export const doisUrl = `${url}dois/`;
 
-export const getPaperByDOI = doi => submitGetRequest(`${url}widgets/?doi=${doi}`);
+export const getPaperByDOI = (doi: string) => submitGetRequest(`${url}widgets/?doi=${doi}`);
 
-export const getPaperByTitle = title => submitGetRequest(`${url}widgets/?title=${title}`);
+export const getPaperByTitle = (title: string) => submitGetRequest(`${url}widgets/?title=${title}`);
 
-export const generateDoi = ({ type, resource_type, resource_id, title, subject, description, related_resources = [], authors = [], url }) =>
+export const generateDoi = ({
+    type,
+    resource_type,
+    resource_id,
+    title,
+    subject,
+    description,
+    related_resources = [],
+    authors = [],
+    url,
+}: Resource): Promise<Resource> =>
     submitPostRequest(
         doisUrl,
         { 'Content-Type': 'application/json' },
         { type, resource_type, resource_id, title, subject, description, related_resources, authors, url },
     );
 
-export const createObject = payload => submitPostRequest(`${url}objects/`, { 'Content-Type': 'application/json' }, payload);
+export const createObject = (payload: string) => submitPostRequest(`${url}objects/`, { 'Content-Type': 'application/json' }, payload);
 
-export const getEntities = (entityType, params) => {
+export const getEntities = (entityType: any, params: any) => {
     // { page = 0, items: size = 9999, sortBy = 'created_at', desc = true, q = null, exact = false, returnContent = false }
     // for resources there additional parameter: exclude
     // for resources there additional parameter: uri
@@ -43,7 +54,7 @@ export const getEntities = (entityType, params) => {
  * @param {String} id - Entity ID
  * @return {Promise} Promise object
  */
-export const getEntity = (entityType = ENTITIES.RESOURCE, id) => {
+export const getEntity = (entityType: string = ENTITIES.RESOURCE, id: string): Promise<any> => {
     switch (entityType) {
         case ENTITIES.RESOURCE:
             return getResource(id);

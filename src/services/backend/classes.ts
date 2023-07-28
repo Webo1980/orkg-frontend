@@ -55,7 +55,7 @@ export const getChildrenByID = ({
     page = 0,
     size = 9999,
 }: {
-    id?: string | undefined;
+    id: string;
     page?: number;
     size?: number;
 }): Promise<PaginatedResponse<Predicate> | Predicate[]> => {
@@ -65,7 +65,7 @@ export const getChildrenByID = ({
             skipNulls: true,
         },
     );
-    return submitGetRequest(`${classesUrl}${encodeURIComponent(id ?? ' ')}/children?${params}`);
+    return submitGetRequest(`${classesUrl}${encodeURIComponent(id)}/children?${params}`);
 };
 
 /**
@@ -117,12 +117,12 @@ export const getAllRootClasses = () => submitGetRequest(`${classesUrl}roots`);
 /**
  * Get hierarchy by class ID
  */
-export const getHierarchyByID = ({ id, page = 0, size = 9999 }: { id?: string; page?: number; size?: number }): Promise<Predicate> => {
+export const getHierarchyByID = ({ id, page = 0, size = 9999 }: { id: string; page?: number; size?: number }): Promise<Predicate> => {
     const params = qs.stringify(
         { page, size },
         {
             skipNulls: true,
         },
     );
-    return submitGetRequest(`${classesUrl}${encodeURIComponent(id ?? ' ')}/hierarchy?${params}`);
+    return submitGetRequest(`${classesUrl}${encodeURIComponent(id)}/hierarchy?${params}`);
 };
