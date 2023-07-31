@@ -111,7 +111,13 @@ export const getErrorMessage = (errors, field = null) => {
  * @param {String} subjectID Subject ID
  * @param {Boolean} isUnique if this predicate is unique and has one value
  */
-export const filterObjectOfStatementsByPredicateAndClass = (statementsArray, predicateID, isUnique = true, classID = null, subjectID = null) => {
+export const filterObjectOfStatementsByPredicateAndClass = (
+    statementsArray,
+    predicateID,
+    isUnique = true,
+    classID = null | undefined,
+    subjectID = string | null,
+) => {
     if (!statementsArray) {
         return isUnique ? null : [];
     }

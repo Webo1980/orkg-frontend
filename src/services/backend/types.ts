@@ -64,3 +64,13 @@ export type Predicate = {
     created_at: string;
     created_by: string;
 };
+
+export type Statement = {
+    id: string;
+    predicate: { id: string };
+    subject: {
+        classes: any; id: string 
+};
+    object: { classes?: string[], [key: string]: any };
+    created_at: string;
+}

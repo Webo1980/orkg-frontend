@@ -5,7 +5,7 @@ import { submitGetRequest } from 'network';
 import qs from 'qs';
 import { getResource } from 'services/backend/resources';
 import { getStatementsByObjectAndPredicate, getStatementsBySubjectAndPredicate } from 'services/backend/statements';
-import { filterObjectOfStatementsByPredicateAndClass, filterSubjectOfStatementsByPredicateAndClass } from 'utils';
+import {  filterSubjectOfStatementsByPredicateAndClass,filterObjectOfStatementsByPredicateAndClass } from 'utils-d';
 import { Predicate } from 'services/backend/types';
 
 export const comparisonUrl = `${url}comparisons/`;

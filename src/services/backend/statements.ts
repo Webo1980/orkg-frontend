@@ -2,13 +2,14 @@ import { CLASSES, PREDICATES, RESOURCES } from 'constants/graphSettings';
 import { url } from 'constants/misc';
 import { flatten } from 'lodash';
 import { submitDeleteRequest, submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
-import qs from 'qs';
+import qs, { IStringifyOptions } from 'qs';
 import { filterObjectOfStatementsByPredicateAndClass, filterStatementsBySubjectId, getPropertyShapeData, sortMethod } from 'utils';
-import { getResource } from './resources';
+import { getResource } from 'services/backend/resources';
+import { PaginatedResponse, Predicate } from 'services/backend/types';
 
 export const statementsUrl = `${url}statements/`;
 
-export const createResourceStatement = (subjectId, predicateId, objectId) =>
+export const createResourceStatement = (subjectId: string, predicateId: string, objectId: string) =>
     submitPostRequest(
         `${statementsUrl}`,
         { 'Content-Type': 'application/json' },
@@ -19,7 +20,7 @@ export const createResourceStatement = (subjectId, predicateId, objectId) =>
         },
     );
 
-export const createLiteralStatement = (subjectId, predicateId, literalId) =>
+export const createLiteralStatement = (subjectId: string, predicateId: string, literalId: string) =>
     submitPostRequest(
         `${statementsUrl}`,
         { 'Content-Type': 'application/json' },
@@ -30,7 +31,10 @@ export const createLiteralStatement = (subjectId, predicateId, literalId) =>
         },
     );
 
-export const updateStatement = (id, { subject_id = null, predicate_id = null, object_id = null }) =>
+export const updateStatement = (
+    id: string,
+    { subject_id = null, predicate_id = null, object_id = null }: { subject_id: string; predicate_id: string; object_id: string },
+): Promise<any> =>
     submitPutRequest(
         `${statementsUrl}${id}`,
         { 'Content-Type': 'application/json' },
@@ -41,7 +45,10 @@ export const updateStatement = (id, { subject_id = null, predicate_id = null, ob
         },
     );
 
-export const updateStatements = (statementIds, { subject_id = null, predicate_id = null, object_id = null }) =>
+export const updateStatements = (
+    statementIds,
+    { subject_id = null, predicate_id = null, object_id = null }: { subject_id: string; predicate_id: string; object_id: string },
+): Promise<any> =>
     submitPutRequest(
         `${statementsUrl}?ids=${statementIds.join()}`,
         { 'Content-Type': 'application/json' },
@@ -52,24 +59,43 @@ export const updateStatements = (statementIds, { subject_id = null, predicate_id
         },
     );
 
-export const getAllStatements = ({ page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
+export const getAllStatements = ({
+    page = 0,
+    items: size = 9999,
+    sortBy = 'created_at',
+    desc = true,
+}: {
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = qs.stringify(
-        { page, size, sort },
-        {
-            skipNull: true,
-            skipEmptyString: true,
-        },
-    );
+    const params: string = qs.stringify({ page, size, sort }, {
+        skipNull: true,
+        skipEmptyString: true,
+    } as IStringifyOptions);
 
     return submitGetRequest(`${statementsUrl}?${params}`).then(res => res.content);
 };
 
-export const deleteStatementById = id => submitDeleteRequest(statementsUrl + encodeURIComponent(id));
+export const deleteStatementById = (id: string) => submitDeleteRequest(statementsUrl + encodeURIComponent(id));
 
-export const deleteStatementsByIds = ids => submitDeleteRequest(`${statementsUrl}?ids=${ids.join()}`);
+export const deleteStatementsByIds = (ids: string) => submitDeleteRequest(`${statementsUrl}?ids=${ids.join()}`);
 
-export const getStatementsBySubject = ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
+export const getStatementsBySubject = ({
+    id,
+    page = 0,
+    items: size = 9999,
+    sortBy = 'created_at',
+    desc = true,
+}: {
+    id: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },
@@ -90,7 +116,7 @@ export const getStatementsBySubject = ({ id, page = 0, items: size = 9999, sortB
  * @param {Array} blacklist - List of classes ids to ignore while parsing the graph
  * @return {Promise} Promise object
  */
-export const getStatementsBundleBySubject = ({ id, maxLevel = 10, blacklist = [] }) => {
+export const getStatementsBundleBySubject = ({ id, maxLevel = 10, blacklist = [] }: { id: string; maxLevel: number; blacklist: string[] }) => {
     const params = qs.stringify(
         { maxLevel, blacklist: blacklist?.join(',') },
         {
@@ -100,7 +126,19 @@ export const getStatementsBundleBySubject = ({ id, maxLevel = 10, blacklist = []
     return submitGetRequest(`${statementsUrl}${encodeURIComponent(id)}/bundle/?${params}`);
 };
 
-export const getStatementsBySubjects = ({ ids, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
+export const getStatementsBySubjects = ({
+    ids,
+    page = 0,
+    items: size = 9999,
+    sortBy = 'created_at',
+    desc = true,
+}: {
+    ids: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { ids: ids.join(), page, size, sort },
@@ -116,7 +154,21 @@ export const getStatementsBySubjects = ({ ids, page = 0, items: size = 9999, sor
     );
 };
 
-export const getStatementsByObject = async ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true, returnContent = true }) => {
+export const getStatementsByObject = async ({
+    id,
+    page = 0,
+    items: size = 9999,
+    sortBy = 'created_at',
+    desc = true,
+    returnContent = true,
+}: {
+    id: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+    returnContent: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },
@@ -132,7 +184,21 @@ export const getStatementsByObject = async ({ id, page = 0, items: size = 9999, 
     return statements;
 };
 
-export const getStatementsByPredicate = ({ id, page = 0, items: size = 9999, sortBy = 'created_at', desc = true, returnContent = true }) => {
+export const getStatementsByPredicate = ({
+    id,
+    page = 0,
+    items: size = 9999,
+    sortBy = 'created_at',
+    desc = true,
+    returnContent = true,
+}: {
+    id: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+    returnContent: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },
@@ -144,7 +210,21 @@ export const getStatementsByPredicate = ({ id, page = 0, items: size = 9999, sor
     return submitGetRequest(`${statementsUrl}predicate/${encodeURIComponent(id)}/?${params}`).then(res => (returnContent ? res.content : res));
 };
 
-export const getStatementsBySubjectAndPredicate = ({ subjectId, predicateId, page = 0, items: size = 9999, sortBy = 'created_at', desc = true }) => {
+export const getStatementsBySubjectAndPredicate = ({
+    subjectId,
+    predicateId,
+    page = 0,
+    items: size = 9999,
+    sortBy = 'created_at',
+    desc = true,
+}: {
+    subjectId: string;
+    predicateId: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },
@@ -164,7 +244,15 @@ export const getStatementsByObjectAndPredicate = ({
     sortBy = 'created_at',
     desc = true,
     returnContent = true,
-}) => {
+}: {
+    objectId: string;
+    predicateId: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+    returnContent: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },
@@ -187,7 +275,16 @@ export const getStatementsByPredicateAndLiteral = ({
     sortBy = 'created_at',
     desc = true,
     returnContent = true,
-}) => {
+}: {
+    literal: string;
+    predicateId: string;
+    subjectClass: string | null;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+    returnContent: true;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { size, subjectClass, page, sort, q: literal },
@@ -203,9 +300,10 @@ export const getStatementsByPredicateAndLiteral = ({
  *
  * @param {String} templateId Template Id
  */
-export const getTemplateById = async templateId => {
+export const getTemplateById = async (templateId: string) => {
     const subject = await getResource(templateId);
     const response = await getStatementsBundleBySubject({ id: templateId, maxLevel: 2, blacklist: [CLASSES.RESEARCH_FIELD] }).catch(() => null);
+
     if (!subject) {
         return Promise.reject(new Error('Template not found'));
     }
@@ -252,11 +350,11 @@ export const getTemplateById = async templateId => {
         templateId,
     );
 
-    const propertyShapes = templatePropertyShapes.map(propertyShape =>
+    const propertyShapes = templatePropertyShapes.map((propertyShape: any) =>
         getPropertyShapeData(propertyShape, filterStatementsBySubjectId(response.statements, propertyShape.id)),
     );
 
-    const propertyShapesStatements = templatePropertyShapes.map(propertyShape =>
+    const propertyShapesStatements = templatePropertyShapes.map((propertyShape: any) =>
         filterStatementsBySubjectId(response.statements, propertyShape.id).map(s => s.id),
     );
 
@@ -276,11 +374,11 @@ export const getTemplateById = async templateId => {
                   uri: targetClass.uri,
               }
             : {},
-        researchFields: researchFields.map(statement => ({
+        researchFields: researchFields.map((statement: any) => ({
             id: statement.id,
             label: statement.label,
         })),
-        researchProblems: researchProblems.map(statement => ({
+        researchProblems: researchProblems.map((statement: any) => ({
             id: statement.id,
             label: statement.label,
         })),
@@ -290,9 +388,13 @@ export const getTemplateById = async templateId => {
 /**
  * Get Parents of research field
  *
- * @param {String} researchFieldId research field Id
+ * @param {string} researchFieldId research field Id
  */
-export const getParentResearchFields = (researchFieldId, parents = []) => {
+interface Parent {
+    id: number;
+    label: string;
+}
+export const getParentResearchFields = (researchFieldId: number, parents: Parent[] = []): Promise<Parent[]> => {
     if (researchFieldId === RESOURCES.RESEARCH_FIELD_MAIN) {
         parents.push({ id: researchFieldId, label: 'Research Field' });
         return Promise.resolve(parents);
@@ -303,9 +405,11 @@ export const getParentResearchFields = (researchFieldId, parents = []) => {
     }).then(parentResearchField => {
         if (parentResearchField && parentResearchField[0]) {
             parents.push(parentResearchField[0].object);
+
             if (parents.find(p => p.id === parentResearchField[0].subject.id)) {
                 return Promise.resolve(parents);
             }
+
             return getParentResearchFields(parentResearchField[0].subject.id, parents);
         }
         return Promise.resolve(parents);
@@ -353,6 +457,11 @@ export const getTemplatesByClass = classID =>
                 .filter(c => c),
         )
         .catch(() => []);
+
+
+
+
+        
 
 /**
  * Load template flow by ID

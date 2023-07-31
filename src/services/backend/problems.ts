@@ -2,12 +2,21 @@ import { url } from 'constants/misc';
 import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import { submitGetRequest } from 'network';
 import qs from 'qs';
+import { PaginatedResponse, Predicate } from 'services/backend/types';
 
-export const problemsUrl = `${url}problems/`;
+export const problemsUrl: string = `${url}problems/`;
 
-export const getResearchFieldsByResearchProblemId = problemId => submitGetRequest(`${problemsUrl}${encodeURIComponent(problemId)}/fields`);
+export const getResearchFieldsByResearchProblemId = (problemId: string) => submitGetRequest(`${problemsUrl}${encodeURIComponent(problemId)}/fields`);
 
-export const getContributorsByResearchProblemId = ({ id, page = 0, items = 9999 }) => {
+export const getContributorsByResearchProblemId = ({
+    id,
+    page = 0,
+    items = 9999,
+}: {
+    id: string;
+    page: number;
+    items: number;
+}): Promise<PaginatedResponse<Predicate>> => {
     const params = qs.stringify(
         { page, size: items },
         {
@@ -17,7 +26,15 @@ export const getContributorsByResearchProblemId = ({ id, page = 0, items = 9999 
     return submitGetRequest(`${problemsUrl}${encodeURIComponent(id)}/users?${params}`);
 };
 
-export const getAuthorsByResearchProblemId = ({ id, page = 0, items = 9999 }) => {
+export const getAuthorsByResearchProblemId = ({
+    id,
+    page = 0,
+    items = 9999,
+}: {
+    id: string;
+    page: number;
+    items: number;
+}): Promise<PaginatedResponse<Predicate>> => {
     const params = qs.stringify(
         { page, size: items },
         {
@@ -35,7 +52,15 @@ export const getContentByResearchProblemIdAndClasses = ({
     desc = true,
     visibility = VISIBILITY_FILTERS.ALL_LISTED,
     classes = [],
-}) => {
+}: {
+    id: string;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+    visibility: string;
+    classes: [];
+}): Promise<PaginatedResponse<Predicate>> => {
     // Sort is not supported in this endpoint
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(

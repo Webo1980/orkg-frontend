@@ -101,14 +101,20 @@ export const getContentByObservatoryIdAndClasses = ({
     return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/class?${params}`);
 };
 
-export const createObservatory = (observatory_name, organization_id, description, research_field, display_id) =>
+export const createObservatory = (
+    observatory_name: string,
+    organization_id: string | undefined,
+    description: string,
+    research_field: any,
+    display_id: string
+) =>
     submitPostRequest(
         observatoriesUrl,
         { 'Content-Type': 'application/json' },
         { observatory_name, organization_id, description, research_field, display_id },
     );
 
-export const getObservatoryAndOrganizationInformation = (observatoryId, organizationId) => {
+export const getObservatoryAndOrganizationInformation = (observatoryId: string, organizationId: string) => {
     if (observatoryId && observatoryId !== MISC.UNKNOWN_ID) {
         return getObservatoryById(observatoryId)
             .then(obsResponse => {

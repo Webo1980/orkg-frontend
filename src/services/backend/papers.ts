@@ -5,11 +5,12 @@ import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { indexContribution } from 'services/similarity';
 import { toast } from 'react-toastify';
 import qs from 'qs';
+import {PaginatedResponse, Predicate } from './types';
 
 export const papersUrl = `${url}papers/`;
 
 // Save full paper and index contributions in the similarity service
-export const saveFullPaper = (data, mergeIfExists = false) =>
+export const saveFullPaper = (data:string, mergeIfExists:boolean = false) =>
     submitPostRequest(`${papersUrl}?mergeIfExists=${mergeIfExists}`, { 'Content-Type': 'application/json' }, data).then(async paper => {
         Promise.all(await indexContributionsByPaperId(paper.id)).catch(() =>
             toast.warning('Similarity service seems to be down, skipping paper indexing'),
@@ -17,23 +18,23 @@ export const saveFullPaper = (data, mergeIfExists = false) =>
         return paper;
     });
 
-export const getIsVerified = id => submitGetRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
+export const getIsVerified = (id:string) => submitGetRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
 
-export const markAsVerified = id => submitPutRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
+export const markAsVerified = (id:string) => submitPutRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
 
-export const markAsUnverified = id => submitDeleteRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
+export const markAsUnverified = (id:string) => submitDeleteRequest(`${papersUrl}${id}/metadata/verified`, { 'Content-Type': 'application/json' });
 
-export const indexContributionsByPaperId = async paperId => {
+export const indexContributionsByPaperId = async (paperId:String) => {
     const contributionStatements = await getStatementsBySubjectAndPredicate({
         subjectId: paperId,
         predicateId: PREDICATES.HAS_CONTRIBUTION,
     });
 
-    return contributionStatements.map(statement => indexContribution(statement.object.id));
+    return contributionStatements.map((statement:any) => indexContribution(statement.object.id));
 };
 
-export const getOriginalPaperId = paperId => {
-    const getPaperId = async id => {
+export const getOriginalPaperId = (paperId:string) => {
+    const getPaperId = async (id:string):Promise<any> => {
         const statements = await getStatementsByObjectAndPredicate({
             objectId: id,
             predicateId: PREDICATES.HAS_PREVIOUS_VERSION,
@@ -55,7 +56,16 @@ export const getPapersLinkedToResource = async ({
     sortBy = 'paper.created_at',
     desc = true,
     returnContent = false,
-}) => {
+}:
+{
+    id?:string;
+    page?: number;
+    size?: number;
+    items?:number;
+    sortBy?: string;
+    desc?: boolean;
+    returnContent?:boolean;
+}): Promise<PaginatedResponse<Predicate> | Predicate[]> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { linkedTo: id, page, size, sort, desc },
