@@ -63,3 +63,13 @@ export type Literal = {
     created_at: string;
     created_by: string;
 };
+
+export type Class = {
+    id: string;
+    label: string;
+    uri: string | null;
+    description: string | null;
+    _class: 'class';
+    created_at: string;
+    created_by: string;
+};
