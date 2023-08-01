@@ -5,7 +5,7 @@ import { submitDeleteRequest, submitGetRequest, submitPostRequest, submitPutRequ
 import qs, { IStringifyOptions } from 'qs';
 import { filterObjectOfStatementsByPredicateAndClass, filterStatementsBySubjectId, getPropertyShapeData, sortMethod } from 'utils';
 import { getResource } from 'services/backend/resources';
-import { PaginatedResponse, Predicate } from 'services/backend/types';
+import { PaginatedResponse, Predicate,Statement,CombinedType } from 'services/backend/types';
 
 export const statementsUrl = `${url}statements/`;
 
@@ -244,6 +244,7 @@ export const getStatementsByObjectAndPredicate = ({
     sortBy = 'created_at',
     desc = true,
     returnContent = true,
+    parentResearchField = [],
 }: {
     objectId: string;
     predicateId: string;
@@ -252,6 +253,7 @@ export const getStatementsByObjectAndPredicate = ({
     sortBy: string;
     desc: boolean;
     returnContent: boolean;
+    parentResearchField?: any[];
 }): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
@@ -391,19 +393,24 @@ export const getTemplateById = async (templateId: string) => {
  * @param {string} researchFieldId research field Id
  */
 interface Parent {
-    id: number;
+    id: string;
     label: string;
 }
-export const getParentResearchFields = (researchFieldId: number, parents: Parent[] = []): Promise<Parent[]> => {
-    if (researchFieldId === RESOURCES.RESEARCH_FIELD_MAIN) {
-        parents.push({ id: researchFieldId, label: 'Research Field' });
-        return Promise.resolve(parents);
-    }
-    return getStatementsByObjectAndPredicate({
+// Add the return type for the getParentResearchFields function
+export const getParentResearchFields = (researchFieldId: string, parents: Parent[] = []): Promise<Parent[]> =>
+    // ... (existing code)
+    getStatementsByObjectAndPredicate({
         objectId: researchFieldId,
         predicateId: PREDICATES.HAS_SUB_RESEARCH_FIELD,
-    }).then(parentResearchField => {
-        if (parentResearchField && parentResearchField[0]) {
+        page: 0,
+        items: 9999,
+        sortBy: 'created_at',
+        desc: true,
+        returnContent: true,
+    }).then((response: PaginatedResponse<Predicate>) => {
+        // Make sure to specify the response type
+        const parentResearchField = response.content[0]?.parentResearchField;
+        if (parentResearchField) {
             parents.push(parentResearchField[0].object);
 
             if (parents.find(p => p.id === parentResearchField[0].subject.id)) {
@@ -414,27 +421,33 @@ export const getParentResearchFields = (researchFieldId: number, parents: Parent
         }
         return Promise.resolve(parents);
     });
-};
 
 /**
  * Get Parents of research problems
  *
  * @param {String} researchProblemId research problem Id
  */
-export const getParentResearchProblems = (researchProblemId, parents = []) => {
+export const getParentResearchProblems = (researchProblemId: string, parents: Parent[] = []): Promise<Parent[]> => {
     if (parents.length > 5) {
         return Promise.resolve(parents);
     }
     return getStatementsByObjectAndPredicate({
         objectId: researchProblemId,
-        predicateId: PREDICATES.SUB_PROBLEM,
-    }).then(parentResearchProblem => {
-        if (parentResearchProblem && parentResearchProblem[0]) {
+        predicateId: PREDICATES.HAS_SUB_RESEARCH_FIELD,
+        page: 0,
+        items: 9999,
+        sortBy: 'created_at',
+        desc: true,
+        returnContent: true,
+        parentResearchField: [], // Provide a default value for parentResearchField
+    }).then((response: Promise<CombinedType> => {
+        const parentResearchProblem = response.content[0]?.parentResearchProblem;
+        if (parentResearchProblem && parentResearchProblem.content[0]) {
             if (parents.length === 0) {
-                parents.push(parentResearchProblem[0].object);
+                parents.push(parentResearchProblem.content[0].object);
             }
-            parents.push(parentResearchProblem[0].subject);
-            return getParentResearchProblems(parentResearchProblem[0].subject.id, parents);
+            parents.push(parentResearchProblem.content[0].subject);
+            return getParentResearchProblems(parentResearchProblem.content[0].subject.id, parents);
         }
         return Promise.resolve(parents);
     });
@@ -447,8 +460,14 @@ export const getParentResearchProblems = (researchProblemId, parents = []) => {
  */
 export const getTemplatesByClass = classID =>
     getStatementsByObjectAndPredicate({
-        objectId: classID,
-        predicateId: PREDICATES.SHACL_TARGET_CLASS,
+        objectId: researchFieldId,
+        predicateId: PREDICATES.HAS_SUB_RESEARCH_FIELD,
+        page: 0,
+        items: 9999,
+        sortBy: 'created_at',
+        desc: true,
+        returnContent: true,
+        parentResearchField: [],
     })
         .then(statements =>
             statements
@@ -457,11 +476,6 @@ export const getTemplatesByClass = classID =>
                 .filter(c => c),
         )
         .catch(() => []);
-
-
-
-
-        
 
 /**
  * Load template flow by ID

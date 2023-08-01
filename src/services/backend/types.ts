@@ -55,7 +55,6 @@ export type Resource = {
     url: string;
 };
 
-
 export type Predicate = {
     id: string;
     label: string;
@@ -63,14 +62,20 @@ export type Predicate = {
     _class: 'predicate';
     created_at: string;
     created_by: string;
+    parentResearchField: any[];
 };
 
 export type Statement = {
     id: string;
     predicate: { id: string };
     subject: {
-        classes: any; id: string 
-};
-    object: { classes?: string[], [key: string]: any };
+        classes: any;
+        id: string;
+    };
+    object: { classes?: string[]; [key: string]: any };
     created_at: string;
-}
+    content: any[];
+};
+
+// eslint-disable-next-line no-undef
+export type CombinedType = PaginatedResponse<any> | Statement;
