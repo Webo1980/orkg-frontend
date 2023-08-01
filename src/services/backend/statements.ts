@@ -1,11 +1,11 @@
-import { CLASSES, PREDICATES, RESOURCES } from 'constants/graphSettings';
+import { CLASSES, PREDICATES } from 'constants/graphSettings';
 import { url } from 'constants/misc';
 import { flatten } from 'lodash';
 import { submitDeleteRequest, submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
 import qs, { IStringifyOptions } from 'qs';
 import { filterObjectOfStatementsByPredicateAndClass, filterStatementsBySubjectId, getPropertyShapeData, sortMethod } from 'utils';
 import { getResource } from 'services/backend/resources';
-import { PaginatedResponse, Predicate,Statement,CombinedType } from 'services/backend/types';
+import { PaginatedResponse, Predicate, CombinedType, Parent } from 'services/backend/types';
 
 export const statementsUrl = `${url}statements/`;
 
@@ -300,7 +300,7 @@ export const getStatementsByPredicateAndLiteral = ({
 /**
  * Load template by ID
  *
- * @param {String} templateId Template Id
+ * @param {string} templateId Template Id
  */
 export const getTemplateById = async (templateId: string) => {
     const subject = await getResource(templateId);
@@ -361,7 +361,7 @@ export const getTemplateById = async (templateId: string) => {
     );
 
     return {
-        id: templateId,
+        ids: templateId,
         ...subject,
         statements: [...statements.map(s => s.id), ...flatten(propertyShapesStatements)],
         predicate: templatePredicate,
@@ -392,10 +392,7 @@ export const getTemplateById = async (templateId: string) => {
  *
  * @param {string} researchFieldId research field Id
  */
-interface Parent {
-    id: string;
-    label: string;
-}
+
 // Add the return type for the getParentResearchFields function
 export const getParentResearchFields = (researchFieldId: string, parents: Parent[] = []): Promise<Parent[]> =>
     // ... (existing code)
@@ -427,6 +424,7 @@ export const getParentResearchFields = (researchFieldId: string, parents: Parent
  *
  * @param {String} researchProblemId research problem Id
  */
+// Assuming 'combineType' is a typo, and you meant 'CombinedType'
 export const getParentResearchProblems = (researchProblemId: string, parents: Parent[] = []): Promise<Parent[]> => {
     if (parents.length > 5) {
         return Promise.resolve(parents);
@@ -440,14 +438,15 @@ export const getParentResearchProblems = (researchProblemId: string, parents: Pa
         desc: true,
         returnContent: true,
         parentResearchField: [], // Provide a default value for parentResearchField
-    }).then((response: Promise<CombinedType> => {
-        const parentResearchProblem = response.content[0]?.parentResearchProblem;
-        if (parentResearchProblem && parentResearchProblem.content[0]) {
+    }).then((response: CombinedType) => {
+        // Corrected the type annotation for response
+        const parentResearchProblem = response.content[0]?.parentResearchField; // Use 'parentResearchField' instead of 'parentResearchProblem'
+        if (parentResearchProblem && parentResearchProblem[0]) {
             if (parents.length === 0) {
-                parents.push(parentResearchProblem.content[0].object);
+                parents.push(parentResearchProblem[0].object);
             }
-            parents.push(parentResearchProblem.content[0].subject);
-            return getParentResearchProblems(parentResearchProblem.content[0].subject.id, parents);
+            parents.push(parentResearchProblem[0].subject);
+            return getParentResearchProblems(parentResearchProblem[0].subject.id, parents);
         }
         return Promise.resolve(parents);
     });
@@ -457,8 +456,9 @@ export const getParentResearchProblems = (researchProblemId: string, parents: Pa
  * Get Template by Class
  *
  * @param {String} classID class ID
+ * @param {string} researchFieldId research field Id
  */
-export const getTemplatesByClass = classID =>
+export const getTemplatesByClass = (researchFieldId: string) =>
     getStatementsByObjectAndPredicate({
         objectId: researchFieldId,
         predicateId: PREDICATES.HAS_SUB_RESEARCH_FIELD,
@@ -471,7 +471,7 @@ export const getTemplatesByClass = classID =>
     })
         .then(statements =>
             statements
-                .filter(statement => statement.subject.classes?.includes(CLASSES.NODE_SHAPE))
+                .filter((statement: { subject: { classes: string | string[] } }) => statement.subject.classes?.includes(CLASSES.NODE_SHAPE))
                 .map(st => st.subject.id)
                 .filter(c => c),
         )
@@ -483,7 +483,7 @@ export const getTemplatesByClass = classID =>
  * @param {String} id template ID
  * @param {Array} loadedNodes Set of templates {id: String, ...restOfProperties, neighbors}
  */
-export const loadTemplateFlowByID = (id, loadedNodes) => {
+export const loadTemplateFlowByID = (id: string, loadedNodes: string[]) => {
     if (!loadedNodes.has(id)) {
         loadedNodes.add(id);
         return getTemplateById(id).then(t => {

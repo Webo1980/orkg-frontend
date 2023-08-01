@@ -1,4 +1,5 @@
 export type PaginatedResponse<T> = {
+    filter: any;
     content: T[];
     pageable: {
         sort: {
@@ -78,4 +79,9 @@ export type Statement = {
 };
 
 // eslint-disable-next-line no-undef
-export type CombinedType = PaginatedResponse<any> | Statement;
+export type CombinedType = PaginatedResponse<Predicate> | Statement;
+
+export type Parent = {
+    id: string;
+    label: string;
+};
