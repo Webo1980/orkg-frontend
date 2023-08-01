@@ -2,6 +2,7 @@ import { url } from 'constants/misc';
 import { getContributorInformationById } from 'services/backend/contributors';
 import { submitGetRequest } from 'network';
 import qs from 'qs';
+import { PaginatedResponse, Predicate } from 'services/backend/types';
 
 export const statsUrl = `${url}stats/`;
 
@@ -9,7 +10,8 @@ export const getStats = (extra = []) => submitGetRequest(`${statsUrl}?extra=${ex
 
 export const getResearchFieldsStats = () => submitGetRequest(`${statsUrl}fields`);
 
-export const getComparisonsCountByObservatoryId = id => submitGetRequest(`${statsUrl}${encodeURIComponent(id)}/observatoryComparisonsCount`);
+export const getComparisonsCountByObservatoryId = (id: string) =>
+    submitGetRequest(`${statsUrl}${encodeURIComponent(id)}/observatoryComparisonsCount`);
 
 /**
  * Get statistics of observatories
@@ -19,7 +21,18 @@ export const getComparisonsCountByObservatoryId = id => submitGetRequest(`${stat
  * @param {Boolean} desc  ascending order and descending order.
  * @return {Object} List of observatories
  */
-export const getObservatoriesStats = ({ page = 0, size = 9999, sortBy = 'total', desc = true }) => {
+export const getObservatoriesStats = ({
+    page = 0,
+    size = 9999,
+    sortBy = 'total',
+    desc = true,
+}: {
+    page: number;
+    size: number;
+    sortBy: string;
+    desc: boolean;
+
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort },
@@ -35,7 +48,7 @@ export const getObservatoriesStats = ({ page = 0, size = 9999, sortBy = 'total',
  * @param {Number} id Observatory id
  * @return {Object} Stats of observatory
  */
-export const getObservatoryStatsById = id => submitGetRequest(`${statsUrl}observatories/${id}/`);
+export const getObservatoryStatsById = (id: string) => submitGetRequest(`${statsUrl}observatories/${id}/`);
 
 /**
  * Get top contributors
@@ -56,7 +69,15 @@ export const getTopContributors = async ({
     sortBy = 'contributions',
     desc = true,
     subfields = true,
-}) => {
+}: {
+    researchFieldId: null;
+    days: null;
+    page: number;
+    size: number;
+    sortBy: string;
+    desc: boolean;
+    subfields: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size, sort, days },
@@ -80,7 +101,19 @@ export const getTopContributors = async ({
     };
 };
 
-export const getChangelogs = ({ researchFieldId = null, page = 0, items = 9999, sortBy = 'createdAt', desc = true }) => {
+export const getChangelogs = ({
+    researchFieldId = null,
+    page = 0,
+    items = 9999,
+    sortBy = 'createdAt',
+    desc = true,
+}: {
+    researchFieldId: null;
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     const sort = sortBy ? `${sortBy},${desc ? 'desc' : 'asc'}` : null;
     const params = qs.stringify(
         { page, size: items, sort },
@@ -91,7 +124,19 @@ export const getChangelogs = ({ researchFieldId = null, page = 0, items = 9999, 
     return submitGetRequest(`${statsUrl}${researchFieldId ? `research-field/${researchFieldId}/` : ''}top/changelog?${params}`);
 };
 
-export const getTopResearchProblems = ({ page = 0, items = 9999, sortBy = 'created_at', desc = true, subfields = true }) => {
+export const getTopResearchProblems = ({
+    page = 0,
+    items = 9999,
+    sortBy = 'created_at',
+    desc = true,
+    subfields = true,
+}: {
+    page: number;
+    items: number;
+    sortBy: string;
+    desc: boolean;
+    subfields: boolean;
+}): Promise<PaginatedResponse<Predicate>> => {
     // const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
         { page, size: items /* , sort, desc */ },
