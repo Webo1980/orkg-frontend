@@ -13,6 +13,7 @@ import { getParentResearchFields } from 'services/backend/statements';
 import { COMPUTER_SCIENCE_FIELDS_LIST, AGRICULTURE_FIELDS_LIST } from 'constants/nlpFieldLists';
 import { guid } from 'utils';
 import fetch from 'cross-fetch';
+import { Configuration, OpenAIApi } from 'openai';
 
 export const nlpServiceUrl = env('NLP_SERVICE_URL');
 
@@ -175,6 +176,26 @@ export const getRecommendedPredicates = async ({ title, abstract }) => {
         },
     );
     return payload;
+};
+
+export const getGPTRecommendations = async ({ inputPrompt }) => {
+    const configuration = new Configuration({
+        organization: '',
+        apiKey: '',
+    });
+    // to-do: remove the api key
+    const openai = new OpenAIApi(configuration);
+    // const response = await openai.createCompletion({
+    //     model: 'text-davinci-003',
+    //     prompt: inputPrompt,
+    //     max_tokens: 500,
+    //     temperature: 0,
+    // });
+    const completion = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'system', content: inputPrompt }],
+    });
+    return completion.data.choices[0].message.content;
 };
 
 export const getTemplateRecommendations = async ({ title, abstract, topN = 5 }) => {

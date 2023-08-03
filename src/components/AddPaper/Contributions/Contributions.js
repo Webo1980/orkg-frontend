@@ -6,6 +6,7 @@ import Abstract from 'components/AddPaper/Abstract/Abstract';
 import AbstractModal from 'components/AddPaper/AbstractModal/AbstractModal';
 import BioAssaysModal from 'components/AddPaper/BioAssaysModal/BioAssaysModal';
 import EntityRecognition from 'components/AddPaper/EntityRecognition/EntityRecognition';
+import GPTRecommender from 'components/GPTRecommender/GPTRecommender';
 import useBioassays from 'components/AddPaper/hooks/useBioassays';
 import useFeedbacks from 'components/AddPaper/hooks/useFeedbacks';
 import Confirm from 'components/Confirmation/Confirmation';
@@ -285,7 +286,7 @@ const Contributions = () => {
                 </Col>
 
                 <Col lg="3" className="ps-lg-3 mt-2">
-                    <EntityRecognition title={title} abstract={abstract} activeNERService={activeNERService} />
+                    <GPTRecommender selectedResearchFieldId={selectedResearchField} />
                 </Col>
             </Row>
 
