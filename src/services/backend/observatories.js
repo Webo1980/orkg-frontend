@@ -82,6 +82,18 @@ export const getContentByObservatoryIdAndClasses = ({
     return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/class?${params}`);
 };
 
+export const getPapersByObservatoryIdAndFilters = ({ id, page = 0, items = 9999, sortBy = 'created_at', desc = true, filters = [] }) => {
+    // Sort is not supported in this endpoint
+    const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
+    const params = qs.stringify(
+        { page, size: items, sort, filterConfig: JSON.stringify(filters) },
+        {
+            skipNulls: true,
+        },
+    );
+    return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/papers?${params}`);
+};
+
 export const createObservatory = (observatory_name, organization_id, description, research_field, display_id) =>
     submitPostRequest(
         observatoriesUrl,
@@ -141,3 +153,17 @@ export const getObservatoryAndOrganizationInformation = (observatoryId, organiza
     }
     return Promise.resolve(null);
 };
+
+/**
+ * Get the list of filters for the observatory
+ *
+ * @param {String} id observatory id
+ * @return {Array} List of filters
+ */
+export const getFiltersByObservatoryId = id => submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/`);
+
+/**
+ * create filter in observatory observatory
+ */
+export const createFiltersInObservatory = (id, { label, path, range }) =>
+    submitPostRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/`, { 'Content-Type': 'application/json' }, { label, path, range });

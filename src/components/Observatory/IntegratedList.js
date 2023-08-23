@@ -1,16 +1,18 @@
-import { Container, ListGroup, FormGroup, Label, Input } from 'reactstrap';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import useObservatoryContent from 'components/Observatory/hooks/useObservatoryContent';
-import { VISIBILITY_FILTERS } from 'constants/contentTypes';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import CardFactory from 'components/Cards/CardFactory/CardFactory';
+
+import Filters from 'components/Observatory/Filters/Filters';
+import useObservatoryContent from 'components/Observatory/hooks/useObservatoryContent';
 import { SubTitle, SubtitleSeparator } from 'components/styled';
+import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import { CLASSES } from 'constants/graphSettings';
-import ContentLoader from 'react-content-loader';
 import PropTypes from 'prop-types';
-import { toast } from 'react-toastify';
-import { useLocation } from 'react-router';
 import qs from 'qs';
+import ContentLoader from 'react-content-loader';
+import { useLocation } from 'react-router';
+import { toast } from 'react-toastify';
+import { Container, FormGroup, Input, Label, ListGroup } from 'reactstrap';
 
 const DEFAULT_CLASSES_FILTER = [
     { id: CLASSES.PAPER, label: 'Paper' },
@@ -26,17 +28,33 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
     const location = useLocation();
     const params = qs.parse(location.search, { ignoreQueryPrefix: true });
 
-    const { items, sort, isLoading, hasNextPage, isLastPageReached, totalElements, page, classesFilter, handleLoadMore, setClassesFilter, setSort } =
-        useObservatoryContent({
-            observatoryId: id,
-            slug,
-            initialSort: params.sort ?? 'combined',
-            initialClassFilterOptions: DEFAULT_CLASSES_FILTER,
-            initClassesFilter: params.classesFilter
-                ? DEFAULT_CLASSES_FILTER.filter(i => params.classesFilter.split(',').includes(i.id))
-                : DEFAULT_CLASSES_FILTER,
-            updateURL: true,
-        });
+    const {
+        items,
+        sort,
+        isLoading,
+        hasNextPage,
+        isLastPageReached,
+        totalElements,
+        page,
+        classesFilter,
+        filters,
+        isLoadingFilters,
+        setFilters,
+        handleLoadMore,
+        setClassesFilter,
+        setSort,
+        refreshFilter,
+        showResult,
+    } = useObservatoryContent({
+        observatoryId: id,
+        slug,
+        initialSort: params.sort ?? 'combined',
+        initialClassFilterOptions: DEFAULT_CLASSES_FILTER,
+        initClassesFilter: params.classesFilter
+            ? DEFAULT_CLASSES_FILTER.filter(i => params.classesFilter.split(',').includes(i.id))
+            : DEFAULT_CLASSES_FILTER,
+        updateURL: true,
+    });
 
     const handleSelect = classFilter => {
         if (classesFilter.map(i => i.id).includes(classFilter.id) && classesFilter.length === 1) {
@@ -57,55 +75,58 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
 
     return (
         <>
-            <Container className="d-md-flex align-items-center mt-4 mb-4">
-                <div className="d-flex flex-md-grow-1 align-items-center">
-                    <h1 className="h5 mb-0 me-2">Content</h1>
-                    <>
-                        <SubtitleSeparator />
-                        <SubTitle>
-                            <small className="text-muted text-small mt-1">
-                                {totalElements === 0 && isLoading ? <Icon icon={faSpinner} spin /> : <>{`${totalElements} items`}</>}
-                            </small>
-                        </SubTitle>
-                    </>
-                </div>
-                <div
-                    className="d-md-flex mt-sm-2  me-md-2 rounded"
-                    style={{ fontSize: '0.875rem', padding: '0.25rem 1.25rem', color: '#646464', backgroundColor: '#dcdee6' }}
-                >
-                    <div className="me-1"> Show:</div>
-                    {DEFAULT_CLASSES_FILTER.map(({ id: _id, label }) => (
-                        <FormGroup check key={_id} className="mb-0">
-                            <Label check className="mb-0 ms-2" style={{ fontSize: '0.875rem' }}>
-                                <Input
-                                    onChange={() => handleSelect({ id: _id, label })}
-                                    checked={classesFilter.map(i => i.id).includes(_id)}
-                                    type="checkbox"
-                                    disabled={isLoading}
-                                />
-                                {label}
-                            </Label>
-                        </FormGroup>
-                    ))}
-                </div>
-                <div className="mt-sm-2">
-                    <div className="mb-0">
-                        <Input
-                            value={sort}
-                            onChange={e => setSort(e.target.value)}
-                            bsSize="sm"
-                            type="select"
-                            name="sort"
-                            id="sortComparisons"
-                            disabled={isLoading}
-                        >
-                            <option value="combined">Top recent</option>
-                            <option value={VISIBILITY_FILTERS.ALL_LISTED}>Recently added</option>
-                            <option value={VISIBILITY_FILTERS.FEATURED}>Featured</option>
-                            <option value={VISIBILITY_FILTERS.UNLISTED}>Unlisted</option>
-                        </Input>
+            <Container className="d-md-flex mt-4 mb-3 flex-md-column">
+                <div className="d-md-flex align-items-center">
+                    <div className="d-flex flex-md-grow-1 align-items-center">
+                        <h1 className="h5 mb-0 me-2">Content</h1>
+                        <>
+                            <SubtitleSeparator />
+                            <SubTitle>
+                                <small className="text-muted text-small mt-1">
+                                    {totalElements === 0 && isLoading ? <Icon icon={faSpinner} spin /> : <>{`${totalElements} items`}</>}
+                                </small>
+                            </SubTitle>
+                        </>
+                    </div>
+                    <div
+                        className="d-md-flex mt-sm-2  me-md-2 rounded"
+                        style={{ fontSize: '0.875rem', padding: '0.25rem 1.25rem', color: '#646464', backgroundColor: '#dcdee6' }}
+                    >
+                        <div className="me-1"> Show:</div>
+                        {DEFAULT_CLASSES_FILTER.map(({ id: _id, label }) => (
+                            <FormGroup check key={_id} className="mb-0">
+                                <Label check className="mb-0 ms-2" style={{ fontSize: '0.875rem' }}>
+                                    <Input
+                                        onChange={() => handleSelect({ id: _id, label })}
+                                        checked={classesFilter.map(i => i.id).includes(_id)}
+                                        type="checkbox"
+                                        disabled={isLoading}
+                                    />
+                                    {label}
+                                </Label>
+                            </FormGroup>
+                        ))}
+                    </div>
+                    <div className="mt-sm-2">
+                        <div className="mb-0">
+                            <Input
+                                value={sort}
+                                onChange={e => setSort(e.target.value)}
+                                bsSize="sm"
+                                type="select"
+                                name="sort"
+                                id="sortComparisons"
+                                disabled={isLoading}
+                            >
+                                <option value="combined">Top recent</option>
+                                <option value={VISIBILITY_FILTERS.ALL_LISTED}>Recently added</option>
+                                <option value={VISIBILITY_FILTERS.FEATURED}>Featured</option>
+                                <option value={VISIBILITY_FILTERS.UNLISTED}>Unlisted</option>
+                            </Input>
+                        </div>
                     </div>
                 </div>
+                <Filters id={id} filters={filters} refreshFilter={refreshFilter} setFilters={setFilters} showResult={showResult} />
             </Container>
             <Container className="p-0">
                 {items.length > 0 && (

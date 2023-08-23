@@ -1,11 +1,12 @@
+import useObservatoryFilters from 'components/Observatory/hooks/useObservatoryFilters';
+import { VISIBILITY_FILTERS } from 'constants/contentTypes';
+import ROUTES from 'constants/routes.js';
 import { find, flatten } from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
-import { getContentByObservatoryIdAndClasses } from 'services/backend/observatories';
-import { VISIBILITY_FILTERS } from 'constants/contentTypes';
+import { useNavigate } from 'react-router-dom';
+import { getContentByObservatoryIdAndClasses, getPapersByObservatoryIdAndFilters } from 'services/backend/observatories';
 import { getStatementsBySubjects } from 'services/backend/statements';
 import { getDataBasedOnType, groupVersionsOfComparisons, mergeAlternate, reverseWithSlug } from 'utils';
-import { useNavigate } from 'react-router-dom';
-import ROUTES from 'constants/routes.js';
 
 function useObservatoryContent({ observatoryId, slug, initialSort, initialClassFilterOptions, initClassesFilter, pageSize = 30, updateURL = false }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -19,47 +20,60 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
     const [totalElements, setTotalElements] = useState(0);
     const navigate = useNavigate();
 
+    const { isLoading: isLoadingFilters, filters, refreshFilter, setFilters } = useObservatoryFilters({ id: observatoryId });
+
     const loadData = useCallback(
-        (page, total) => {
+        (page, activeFilters = []) => {
             setIsLoading(true);
             let contentService;
-            if (sort === 'combined') {
-                // in case of combined sort we list 50% featured and 50% unfeatured items
-                const noFeaturedContentService = getContentByObservatoryIdAndClasses({
-                    id: observatoryId,
-                    page,
-                    items: Math.round(pageSize / 2),
-                    sortBy: 'created_at',
-                    desc: true,
-                    visibility: VISIBILITY_FILTERS.NON_FEATURED,
-                    classes: classesFilter.map(c => c.id),
-                });
-                const featuredContentService = getContentByObservatoryIdAndClasses({
-                    id: observatoryId,
-                    page,
-                    items: Math.round(pageSize / 2),
-                    sortBy: 'created_at',
-                    desc: true,
-                    visibility: VISIBILITY_FILTERS.FEATURED,
-                    classes: classesFilter.map(c => c.id),
-                });
-                contentService = Promise.all([noFeaturedContentService, featuredContentService]).then(([noFeaturedContent, featuredContent]) => {
-                    const combinedComparisons = mergeAlternate(noFeaturedContent.content, featuredContent.content);
-                    return {
-                        content: combinedComparisons,
-                        totalElements: page === 0 ? noFeaturedContent.totalElements + featuredContent.totalElements : total,
-                        last: noFeaturedContent.last && featuredContent.last,
-                    };
-                });
+            if (activeFilters.length === 0) {
+                if (sort === 'combined') {
+                    // in case of combined sort we list 50% featured and 50% unfeatured items
+                    const noFeaturedContentService = getContentByObservatoryIdAndClasses({
+                        id: observatoryId,
+                        page,
+                        items: Math.round(pageSize / 2),
+                        sortBy: 'created_at',
+                        desc: true,
+                        visibility: VISIBILITY_FILTERS.NON_FEATURED,
+                        classes: classesFilter.map(c => c.id),
+                    });
+                    const featuredContentService = getContentByObservatoryIdAndClasses({
+                        id: observatoryId,
+                        page,
+                        items: Math.round(pageSize / 2),
+                        sortBy: 'created_at',
+                        desc: true,
+                        visibility: VISIBILITY_FILTERS.FEATURED,
+                        classes: classesFilter.map(c => c.id),
+                    });
+                    contentService = Promise.all([noFeaturedContentService, featuredContentService]).then(([noFeaturedContent, featuredContent]) => {
+                        const combinedComparisons = mergeAlternate(noFeaturedContent.content, featuredContent.content);
+                        return {
+                            content: combinedComparisons,
+                            totalElements: noFeaturedContent.totalElements + featuredContent.totalElements,
+                            last: noFeaturedContent.last && featuredContent.last,
+                        };
+                    });
+                } else {
+                    contentService = getContentByObservatoryIdAndClasses({
+                        id: observatoryId,
+                        page,
+                        items: pageSize,
+                        sortBy: 'created_at',
+                        desc: true,
+                        visibility: sort,
+                        classes: classesFilter.map(c => c.id),
+                    }).then(response => ({ ...response, content: response.content }));
+                }
             } else {
-                contentService = getContentByObservatoryIdAndClasses({
+                contentService = getPapersByObservatoryIdAndFilters({
                     id: observatoryId,
-                    page,
+                    page: 0,
                     items: pageSize,
                     sortBy: 'created_at',
                     desc: true,
-                    visibility: sort,
-                    classes: classesFilter.map(c => c.id),
+                    filters: activeFilters,
                 }).then(response => ({ ...response, content: response.content }));
             }
 
@@ -142,8 +156,18 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
 
     const handleLoadMore = () => {
         if (!isLoading) {
-            loadData(currentPage, totalElements);
+            loadData(currentPage);
         }
+    };
+
+    const showResult = () => {
+        const activeFilters = filters.filter(f => f.value).map(f => ({ path: f.path, range: f.range, value: f.value[0]?.id ?? f.value }));
+        setItems([]);
+        setHasNextPage(false);
+        setIsLastPageReached(false);
+        setCurrentPage(0);
+        setTotalElements(0);
+        loadData(0, activeFilters);
     };
 
     return {
@@ -156,9 +180,14 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
         page: currentPage,
         classFilterOptions,
         classesFilter,
+        filters,
+        isLoadingFilters,
+        refreshFilter,
+        setFilters,
         setClassesFilter,
         handleLoadMore,
         setSort,
+        showResult,
     };
 }
 export default useObservatoryContent;
