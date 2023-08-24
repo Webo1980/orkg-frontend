@@ -82,11 +82,19 @@ export const getContentByObservatoryIdAndClasses = ({
     return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/class?${params}`);
 };
 
-export const getPapersByObservatoryIdAndFilters = ({ id, page = 0, items = 9999, sortBy = 'created_at', desc = true, filters = [] }) => {
+export const getPapersByObservatoryIdAndFilters = ({
+    id,
+    page = 0,
+    items = 9999,
+    sortBy = 'created_at',
+    desc = true,
+    filters = [],
+    visibility = VISIBILITY_FILTERS.ALL_LISTED,
+}) => {
     // Sort is not supported in this endpoint
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
     const params = qs.stringify(
-        { page, size: items, sort, filterConfig: JSON.stringify(filters) },
+        { page, size: items, sort, visibility, filterConfig: JSON.stringify(filters) },
         {
             skipNulls: true,
         },

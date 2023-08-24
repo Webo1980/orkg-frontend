@@ -73,6 +73,8 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
             [VISIBILITY_FILTERS.UNLISTED]: 'unlisted',
         }[sort] || '';
 
+    const activeFilters = filters.filter(f => f.value);
+
     return (
         <>
             <Container className="d-md-flex mt-4 mb-3 flex-md-column">
@@ -98,7 +100,7 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
                                 <Label check className="mb-0 ms-2" style={{ fontSize: '0.875rem' }}>
                                     <Input
                                         onChange={() => handleSelect({ id: _id, label })}
-                                        checked={classesFilter.map(i => i.id).includes(_id)}
+                                        checked={classesFilter.map(i => i.id).includes(_id) && (activeFilters.length === 0 || _id === CLASSES.PAPER)}
                                         type="checkbox"
                                         disabled={isLoading}
                                     />

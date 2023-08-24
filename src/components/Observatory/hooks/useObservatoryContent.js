@@ -74,6 +74,7 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
                     sortBy: 'created_at',
                     desc: true,
                     filters: activeFilters,
+                    visibility: sort === 'combined' ? null : sort,
                 }).then(response => ({ ...response, content: response.content }));
             }
 
