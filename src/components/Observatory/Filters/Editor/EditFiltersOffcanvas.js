@@ -1,12 +1,13 @@
 import arrayMove from 'array-move';
 import EditFilterModal from 'components/Observatory/Filters/Editor/EditFilterModal';
 import SortableFilterItem from 'components/Observatory/Filters/SortableFilterItem';
+import Confirm from 'components/Confirmation/Confirmation';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { Button, Offcanvas, OffcanvasBody, OffcanvasHeader, Alert } from 'reactstrap';
-import { createFiltersInObservatory } from 'services/backend/observatories';
+import { createFiltersInObservatory, deleteFilterOfObservatory } from 'services/backend/observatories';
 import { getErrorMessage } from 'utils';
 
 const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter, setFilters }) => {
@@ -38,8 +39,16 @@ const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter, setF
         setShowEditDialog(v => !v);
     };
 
-    const deleteFilter = filter => {
-        console.log('Delete filter');
+    const deleteFilter = async filter => {
+        const isConfirmed = await Confirm({
+            title: 'Are you sure?',
+            message: 'Do you want to remove this filter from the observatory?',
+        });
+
+        if (isConfirmed) {
+            await deleteFilterOfObservatory(id, filter.id);
+            refreshFilter();
+        }
     };
     const handleUpdateOrder = ({ dragIndex, hoverIndex }) => {
         setFilters(arrayMove(filters, dragIndex, hoverIndex));

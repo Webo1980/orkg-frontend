@@ -1,7 +1,7 @@
 import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import { MISC } from 'constants/graphSettings';
 import { url } from 'constants/misc';
-import { submitGetRequest, submitPostRequest, submitPutRequest } from 'network';
+import { submitGetRequest, submitPostRequest, submitPutRequest, submitDeleteRequest } from 'network';
 import qs from 'qs';
 import { getOrganization, getOrganizationLogoUrl } from 'services/backend/organizations';
 
@@ -167,3 +167,12 @@ export const getFiltersByObservatoryId = id => submitGetRequest(`${observatories
  */
 export const createFiltersInObservatory = (id, { label, path, range }) =>
     submitPostRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/`, { 'Content-Type': 'application/json' }, { label, path, range });
+
+/**
+ * Delete a filter from an observatory
+ *
+ * @param {String} observatoryId observatory id
+ * @param {String} filterId filter id
+ */
+export const deleteFilterOfObservatory = (observatoryId, filterId) =>
+    submitDeleteRequest(`${observatoriesUrl}${encodeURIComponent(observatoryId)}/filters/${filterId}`);
