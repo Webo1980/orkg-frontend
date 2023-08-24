@@ -45,6 +45,7 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
         setSort,
         refreshFilter,
         showResult,
+        resetFilters,
     } = useObservatoryContent({
         observatoryId: id,
         slug,
@@ -128,7 +129,14 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
                         </div>
                     </div>
                 </div>
-                <Filters id={id} filters={filters} refreshFilter={refreshFilter} setFilters={setFilters} showResult={showResult} />
+                <Filters
+                    id={id}
+                    filters={filters}
+                    refreshFilter={refreshFilter}
+                    setFilters={setFilters}
+                    showResult={showResult}
+                    resetFilters={resetFilters}
+                />
             </Container>
             <Container className="p-0">
                 {items.length > 0 && (

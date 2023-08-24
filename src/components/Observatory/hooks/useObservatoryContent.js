@@ -139,6 +139,8 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
         setTotalElements(0);
     }, [observatoryId, sort, classesFilter]);
 
+    const countActiveFilters = filters.filter(f => f.value).length === 0;
+
     // update url
     useEffect(() => {
         if (updateURL) {
@@ -152,8 +154,10 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
     }, [observatoryId, slug, sort, classesFilter, navigate, updateURL]);
 
     useEffect(() => {
-        loadData(0);
-    }, [loadData]);
+        if (countActiveFilters) {
+            loadData(0);
+        }
+    }, [loadData, countActiveFilters]);
 
     const handleLoadMore = () => {
         if (!isLoading) {
@@ -177,6 +181,10 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
         loadData(0, activeFilters);
     };
 
+    const resetFilters = () => {
+        setFilters(f => f.map(v => ({ ...v, value: null })));
+    };
+
     return {
         items,
         isLoading,
@@ -195,6 +203,7 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
         handleLoadMore,
         setSort,
         showResult,
+        resetFilters,
     };
 }
 export default useObservatoryContent;

@@ -8,7 +8,7 @@ import { Fragment, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Button, Card, CardFooter, Col, Container, Label, Offcanvas, OffcanvasBody, OffcanvasHeader, Row } from 'reactstrap';
 
-const Filters = ({ id, filters, refreshFilter, setFilters, showResult }) => {
+const Filters = ({ id, filters, refreshFilter, setFilters, showResult, resetFilters }) => {
     const isCurator = useSelector(state => state.auth.user?.isCurationAllowed);
     const [showEditPanel, setShowEditPanel] = useState(false);
     const [showAllFiltersPanel, setShowAllFiltersPanel] = useState(false);
@@ -47,9 +47,18 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult }) => {
                                 </Button>
                             </Col>
                         )}
-                        <Button disabled={!isShowResultActive} size="sm" color="primary" onClick={showResult}>
-                            Show result
-                        </Button>
+                        <Col>
+                            <Button disabled={!isShowResultActive} size="sm" color="primary" onClick={showResult}>
+                                Show result
+                            </Button>
+                        </Col>
+                        {isShowResultActive && (
+                            <Col>
+                                <Button size="sm" color="light" onClick={resetFilters}>
+                                    Reset
+                                </Button>
+                            </Col>
+                        )}
                         {isCurator && (
                             <Col>
                                 <Button size="sm" color="secondary" onClick={() => setShowEditPanel(v => !v)}>
@@ -87,7 +96,7 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult }) => {
                             ))}
                         </div>
                         <div>
-                            <Button color="secondary" className="me-2">
+                            <Button color="secondary" className="me-2" onClick={resetFilters}>
                                 Reset
                             </Button>
                             <Button color="primary" className="me-2" onClick={showResult}>
@@ -107,6 +116,7 @@ Filters.propTypes = {
     refreshFilter: PropTypes.func,
     setFilters: PropTypes.func,
     showResult: PropTypes.func,
+    resetFilters: PropTypes.func,
 };
 
 export default Filters;

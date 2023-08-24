@@ -3,11 +3,11 @@ import { getConfigByClassId } from 'constants/DataTypes';
 import { ENTITIES } from 'constants/graphSettings';
 import { isArray } from 'lodash';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from 'reactstrap';
 
 const FilterInputField = ({ filter, setFilters }) => {
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState(filter?.value ?? '');
 
     const updateValue = _value => {
         setValue(_value);
@@ -26,6 +26,10 @@ const FilterInputField = ({ filter, setFilters }) => {
     let inputFormType = 'text';
     const config = getConfigByClassId(filter.range);
     inputFormType = config.inputFormType;
+
+    useEffect(() => {
+        setValue(filter?.value ?? '');
+    }, [filter]);
 
     const Forms = {
         boolean: (
@@ -49,7 +53,7 @@ const FilterInputField = ({ filter, setFilters }) => {
                     entityType={ENTITIES.RESOURCE}
                     optionsClass={filter.range}
                     placeholder="Select or type to enter a resource"
-                    onChange={(selected, action) => {
+                    onChange={selected => {
                         updateValue(selected);
                     }}
                     value={value}
