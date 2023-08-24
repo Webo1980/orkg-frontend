@@ -1,5 +1,6 @@
 import AutoComplete from 'components/Autocomplete/Autocomplete';
-import { CLASSES, ENTITIES } from 'constants/graphSettings';
+import { getConfigByClassId } from 'constants/DataTypes';
+import { ENTITIES } from 'constants/graphSettings';
 import { isArray } from 'lodash';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
@@ -23,23 +24,8 @@ const FilterInputField = ({ filter, setFilters }) => {
         );
     };
     let inputFormType = 'text';
-
-    if (filter.range) {
-        switch (filter.range) {
-            case CLASSES.DATE:
-                inputFormType = 'date';
-                break;
-            case CLASSES.BOOLEAN:
-                inputFormType = 'boolean';
-                break;
-            case 'ID':
-                inputFormType = 'autocomplete';
-                break;
-            default:
-                inputFormType = 'text';
-                break;
-        }
-    }
+    const config = getConfigByClassId(filter.range);
+    inputFormType = config.inputFormType;
 
     const Forms = {
         boolean: (
@@ -61,6 +47,7 @@ const FilterInputField = ({ filter, setFilters }) => {
             <>
                 <AutoComplete
                     entityType={ENTITIES.RESOURCE}
+                    optionsClass={filter.range}
                     placeholder="Select or type to enter a resource"
                     onChange={(selected, action) => {
                         updateValue(selected);

@@ -1,7 +1,7 @@
 import useObservatoryFilters from 'components/Observatory/hooks/useObservatoryFilters';
 import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import ROUTES from 'constants/routes.js';
-import { find, flatten } from 'lodash';
+import { find, flatten, isArray } from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getContentByObservatoryIdAndClasses, getPapersByObservatoryIdAndFilters } from 'services/backend/observatories';
@@ -161,7 +161,13 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
     };
 
     const showResult = () => {
-        const activeFilters = filters.filter(f => f.value).map(f => ({ path: f.path, range: f.range, value: f.value[0]?.id ?? f.value }));
+        let activeFilters = filters.filter(f => f.value);
+        activeFilters = filters.map(f => {
+            if (isArray(f.value)) {
+                return { path: f.path, range: f.range, value: f.value.map(v => v.id) };
+            }
+            return { path: f.path, range: f.range, value: f.value };
+        });
         setItems([]);
         setHasNextPage(false);
         setIsLastPageReached(false);

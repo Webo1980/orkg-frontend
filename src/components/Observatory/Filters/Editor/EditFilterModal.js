@@ -21,19 +21,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
             toast.warning('All fields are required!');
             return;
         }
-        const sameID = [
-            CLASSES.STRING,
-            CLASSES.INTEGER,
-            CLASSES.DECIMAL,
-            CLASSES.BOOLEAN,
-            CLASSES.STRING,
-            CLASSES.RESOURCE,
-            CLASSES.URI,
-            CLASSES.CLASS,
-            CLASSES.PREDICATE,
-            CLASSES.DATE,
-        ];
-        await handleSave({ label, path: path?.split(','), range: sameID.includes(range.id) ? range.id : 'ID' });
+        await handleSave({ label, path: path?.split(','), range: range.id });
         toggle();
     };
 
