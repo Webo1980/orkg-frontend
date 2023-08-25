@@ -16,6 +16,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
     const [label, setLabel] = useState(filter ? filter.label : '');
     const [path, setPath] = useState(filter ? filter.path : []);
     const [range, setRange] = useState(filter ? filter.range : null);
+    const [featured, setFeatured] = useState(filter ? filter.featured : false);
     const [isLoadingEntities, setIsLoadingEntities] = useState(false);
     const classAutocompleteRef = useRef(null);
     const pathAutocompleteRef = useRef(null);
@@ -25,7 +26,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
             toast.warning('All fields are required!');
             return;
         }
-        await handleSave({ label, path: path?.map(p => p.id), range: range.id });
+        await handleSave(filter?.id ?? null, { label, path: path?.map(p => p.id), range: range.id, featured });
         toggle();
     };
 
@@ -45,6 +46,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
             setRange(null);
         }
         setLabel(filter ? filter.label : '');
+        setFeatured(filter ? filter.featured : false);
     }, [filter]);
 
     return (
@@ -92,7 +94,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
                         </FormText>
                     </FormGroup>
                     <FormGroup>
-                        <Label for="label">Range</Label>
+                        <Label for="range">Range</Label>
                         <AutoComplete
                             entityType={ENTITIES.CLASS}
                             placeholder="Select or type to enter a class"
@@ -119,13 +121,26 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
                         />
                         <FormText>Select the class of the value</FormText>
                     </FormGroup>
+                    <FormGroup switch>
+                        <Input
+                            type="switch"
+                            checked={featured}
+                            onClick={() => {
+                                setFeatured(!featured);
+                            }}
+                            id="featured"
+                        />
+                        <Label check for="featured">
+                            Show this filter by default on the observatory page
+                        </Label>
+                    </FormGroup>
                 </ModalBody>
                 <ModalFooter>
                     <Button color="light" onClick={toggle}>
                         Cancel
                     </Button>
                     <ButtonWithLoading isLoading={isSaving} color="primary" onClick={handleSaveClick}>
-                        Save
+                        {!filter ? 'Create' : 'Save'}
                     </ButtonWithLoading>
                 </ModalFooter>
             </ModalWithLoading>

@@ -8,8 +8,8 @@ const useObservatoryFilters = ({ id }) => {
     const loadObservatoryFilters = useCallback(oId => {
         if (oId) {
             setIsLoading(true);
-            // Get the observatory stats
-            getFiltersByObservatoryId(oId)
+            // Get the observatory filters
+            getFiltersByObservatoryId({ id: oId })
                 .then(result => {
                     setFilters(result.content);
                     setIsLoading(false);

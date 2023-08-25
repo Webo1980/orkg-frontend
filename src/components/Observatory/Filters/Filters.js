@@ -19,6 +19,8 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult, resetFilt
 
     const isShowResultActive = filters.some(f => f.value);
 
+    const countFeaturedFilters = filters.filter(f => f.featured).length;
+
     return (
         <Container className="p-0 mt-1">
             <Card className="border-0">
@@ -28,7 +30,7 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult, resetFilt
                         <Col>
                             <SubtitleSeparator />
                         </Col>
-                        {filters.slice(0, 2).map(filter => (
+                        {filters.slice(0, countFeaturedFilters > 2 ? countFeaturedFilters : 2).map(filter => (
                             <Fragment key={filter.id}>
                                 <Col>
                                     <Label for="exampleEmail" className="col-form-label">

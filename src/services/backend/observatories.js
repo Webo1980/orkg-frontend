@@ -1,7 +1,7 @@
 import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import { MISC } from 'constants/graphSettings';
 import { url } from 'constants/misc';
-import { submitGetRequest, submitPostRequest, submitPutRequest, submitDeleteRequest } from 'network';
+import { submitGetRequest, submitPostRequest, submitPutRequest, submitDeleteRequest, submitPatchRequest } from 'network';
 import qs from 'qs';
 import { getOrganization, getOrganizationLogoUrl } from 'services/backend/organizations';
 
@@ -168,13 +168,36 @@ export const getObservatoryAndOrganizationInformation = (observatoryId, organiza
  * @param {String} id observatory id
  * @return {Array} List of filters
  */
-export const getFiltersByObservatoryId = id => submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/`);
+export const getFiltersByObservatoryId = ({ id, page = 0, items = 9999, sortBy = 'featured', desc = true }) => {
+    const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
+    const params = qs.stringify(
+        { page, size: items, sort },
+        {
+            skipNulls: true,
+        },
+    );
+    return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/?${params}`);
+};
 
 /**
- * create filter in observatory observatory
+ * create filter in observatory
  */
-export const createFiltersInObservatory = (id, { label, path, range }) =>
-    submitPostRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/`, { 'Content-Type': 'application/json' }, { label, path, range });
+export const createFiltersInObservatory = (id, { label, path, range, featured }) =>
+    submitPostRequest(
+        `${observatoriesUrl}${encodeURIComponent(id)}/filters/`,
+        { 'Content-Type': 'application/json' },
+        { label, path, range, featured },
+    );
+
+/**
+ * update filter in observatory
+ */
+export const updateFiltersOfObservatory = (observatoryId, filterId, { label, path, range, featured }) =>
+    submitPatchRequest(
+        `${observatoriesUrl}${encodeURIComponent(observatoryId)}/filters/${filterId}`,
+        { 'Content-Type': 'application/json' },
+        { label, path, range, featured },
+    );
 
 /**
  * Delete a filter from an observatory

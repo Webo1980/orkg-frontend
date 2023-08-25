@@ -1,13 +1,12 @@
-import arrayMove from 'array-move';
-import EditFilterModal from 'components/Observatory/Filters/Editor/EditFilterModal';
-import SortableFilterItem from 'components/Observatory/Filters/SortableFilterItem';
 import Confirm from 'components/Confirmation/Confirmation';
+import EditFilterModal from 'components/Observatory/Filters/Editor/EditFilterModal';
+import FilterItem from 'components/Observatory/Filters/FilterItem';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { Button, Offcanvas, OffcanvasBody, OffcanvasHeader, Alert } from 'reactstrap';
-import { createFiltersInObservatory, deleteFilterOfObservatory } from 'services/backend/observatories';
+import { Alert, Button, Offcanvas, OffcanvasBody, OffcanvasHeader } from 'reactstrap';
+import { createFiltersInObservatory, deleteFilterOfObservatory, updateFiltersOfObservatory } from 'services/backend/observatories';
 import { getErrorMessage } from 'utils';
 
 const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter, setFilters }) => {
@@ -16,9 +15,15 @@ const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter, setF
     const [currentFilter, setCurrentFilter] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
 
-    const handleSaveFilter = filter => {
+    const handleSaveFilter = (filterId, filter) => {
         setIsSaving(true);
-        return createFiltersInObservatory(id, filter)
+        let saveAPICall;
+        if (filterId) {
+            saveAPICall = updateFiltersOfObservatory(id, filterId, filter);
+        } else {
+            saveAPICall = createFiltersInObservatory(id, filter);
+        }
+        return saveAPICall
             .then(() => {
                 refreshFilter();
                 setCurrentFilter(null);
@@ -50,24 +55,14 @@ const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter, setF
             refreshFilter();
         }
     };
-    const handleUpdateOrder = ({ dragIndex, hoverIndex }) => {
-        setFilters(arrayMove(filters, dragIndex, hoverIndex));
-    };
 
     return (
         <Offcanvas direction="end" isOpen={isOpen} toggle={toggle}>
             <OffcanvasHeader toggle={toggle}>Edit filters</OffcanvasHeader>
             <OffcanvasBody>
                 <div className="mb-3">
-                    {filters.map((filter, index) => (
-                        <SortableFilterItem
-                            key={filter.id}
-                            filter={filter}
-                            filterIndex={index}
-                            editFilter={openEditFilterModal}
-                            removeFilter={deleteFilter}
-                            handleUpdate={handleUpdateOrder}
-                        />
+                    {filters.map(filter => (
+                        <FilterItem key={filter.id} filter={filter} editFilter={openEditFilterModal} removeFilter={deleteFilter} />
                     ))}
                     {filters.length === 0 && <Alert color="light">No filters in this observatory yet!</Alert>}
                 </div>
