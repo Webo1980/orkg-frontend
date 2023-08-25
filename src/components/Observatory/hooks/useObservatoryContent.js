@@ -1,5 +1,6 @@
 import useObservatoryFilters from 'components/Observatory/hooks/useObservatoryFilters';
 import { VISIBILITY_FILTERS } from 'constants/contentTypes';
+import { CLASSES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes.js';
 import { find, flatten, isArray } from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
@@ -60,8 +61,6 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
                         id: observatoryId,
                         page,
                         items: pageSize,
-                        sortBy: 'created_at',
-                        desc: true,
                         visibility: sort,
                         classes: classesFilter.map(c => c.id),
                     }).then(response => ({ ...response, content: response.content }));
@@ -166,12 +165,25 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
     };
 
     const showResult = () => {
-        let activeFilters = filters.filter(f => f.value);
-        activeFilters = filters.map(f => {
+        let activeFilters = filters.filter(f => (isArray(f.value) ? f.value.length > 0 : f.value));
+        activeFilters = activeFilters.map(f => {
             if (isArray(f.value)) {
-                return { path: f.path, range: f.range, value: f.value.map(v => v.id) };
+                // Because the backend does not support an instance of a sub-class for matching
+                const notResource = [
+                    CLASSES.STRING,
+                    CLASSES.INTEGER,
+                    CLASSES.DECIMAL,
+                    CLASSES.BOOLEAN,
+                    CLASSES.STRING,
+                    CLASSES.RESOURCE,
+                    CLASSES.URI,
+                    CLASSES.CLASS,
+                    CLASSES.PREDICATE,
+                    CLASSES.DATE,
+                ];
+                return { path: f.path, range: !notResource.includes(f.range) ? CLASSES.RESOURCE : f.range, value: f.value.map(v => v.id) };
             }
-            return { path: f.path, range: f.range, value: f.value };
+            return { path: f.path, range: f.range, value: [f.value] };
         });
         setItems([]);
         setHasNextPage(false);

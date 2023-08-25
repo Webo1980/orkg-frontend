@@ -168,15 +168,14 @@ export const getObservatoryAndOrganizationInformation = (observatoryId, organiza
  * @param {String} id observatory id
  * @return {Array} List of filters
  */
-export const getFiltersByObservatoryId = ({ id, page = 0, items = 9999, sortBy = 'featured', desc = true }) => {
-    const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
+export const getFiltersByObservatoryId = ({ id, page = 0, items = 9999 }) => {
     const params = qs.stringify(
-        { page, size: items, sort },
+        { page, size: items },
         {
             skipNulls: true,
         },
     );
-    return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/?${params}`);
+    return submitGetRequest(`${observatoriesUrl}${encodeURIComponent(id)}/filters/?${params}&sort=featured,desc&sort=label,asc`);
 };
 
 /**

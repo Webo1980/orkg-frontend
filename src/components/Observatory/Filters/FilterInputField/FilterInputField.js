@@ -1,6 +1,6 @@
 import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { getConfigByClassId } from 'constants/DataTypes';
-import { ENTITIES } from 'constants/graphSettings';
+import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import { isArray } from 'lodash';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
@@ -23,10 +23,12 @@ const FilterInputField = ({ filter, setFilters }) => {
             }),
         );
     };
-    let inputFormType = 'text';
+    let inputFormType;
     const config = getConfigByClassId(filter.range);
     inputFormType = config.inputFormType;
-
+    if (CLASSES.STRING === filter.range) {
+        inputFormType = 'text';
+    }
     useEffect(() => {
         setValue(filter?.value ?? '');
     }, [filter]);
@@ -51,7 +53,7 @@ const FilterInputField = ({ filter, setFilters }) => {
             <>
                 <AutoComplete
                     entityType={ENTITIES.RESOURCE}
-                    optionsClass={filter.range}
+                    baseClass={filter.range}
                     placeholder="Select or type to enter a resource"
                     onChange={selected => {
                         updateValue(selected);
@@ -75,7 +77,7 @@ const FilterInputField = ({ filter, setFilters }) => {
                     type={inputFormType}
                     bsSize="sm"
                     value={value}
-                    onChange={(e, _value) => setValue(e ? e.target.value : _value)}
+                    onChange={(e, _value) => updateValue(e ? e.target.value : _value)}
                     className="flex-grow d-flex"
                     autoFocus
                 />

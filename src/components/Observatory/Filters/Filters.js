@@ -19,7 +19,9 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult, resetFilt
 
     const isShowResultActive = filters.some(f => f.value);
 
-    const countFeaturedFilters = filters.filter(f => f.featured).length;
+    const _filters = filters.filter(f => f.value).length > 0 ? filters.filter(f => f.value) : filters;
+
+    const countFeaturedFilters = _filters.filter(f => f.featured).length;
 
     return (
         <Container className="p-0 mt-1">
@@ -30,7 +32,7 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult, resetFilt
                         <Col>
                             <SubtitleSeparator />
                         </Col>
-                        {filters.slice(0, countFeaturedFilters > 2 ? countFeaturedFilters : 2).map(filter => (
+                        {_filters.slice(0, countFeaturedFilters > 2 ? countFeaturedFilters : 2).map(filter => (
                             <Fragment key={filter.id}>
                                 <Col>
                                     <Label for="exampleEmail" className="col-form-label">

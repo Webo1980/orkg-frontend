@@ -27,24 +27,41 @@ export const getResources = ({
     items: size = 9999,
     sortBy = 'created_at',
     desc = true,
-    q = null,
+    q = '',
     exclude = null,
     exact = false,
+    baseClass = null,
     returnContent = false,
 }) => {
     const sort = `${sortBy},${desc ? 'desc' : 'asc'}`;
-    const params = qs.stringify(
-        {
-            page,
-            size,
-            exact,
-            ...(q ? { q } : { sort, desc }),
-            ...(exclude ? { exclude } : {}),
-        },
-        {
-            skipNulls: true,
-        },
-    );
+    let params = {};
+    if (baseClass) {
+        params = qs.stringify(
+            {
+                page,
+                size,
+                baseClass,
+                q,
+            },
+            {
+                skipNulls: false,
+            },
+        );
+    } else {
+        params = qs.stringify(
+            {
+                page,
+                size,
+                exact,
+                baseClass,
+                ...(q ? { q } : { sort, desc }),
+                ...(exclude ? { exclude } : {}),
+            },
+            {
+                skipNulls: true,
+            },
+        );
+    }
 
     return submitGetRequest(`${resourcesUrl}?${params}`).then(res => (returnContent ? res.content : res));
 };

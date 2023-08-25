@@ -23,7 +23,7 @@ import { createClass, getClasses } from 'services/backend/classes';
 import { createLiteral } from 'services/backend/literals';
 import { getEntities, getEntity } from 'services/backend/misc';
 import { createPredicate, getPredicate } from 'services/backend/predicates';
-import { createResource, getResource, getResourcesByClass } from 'services/backend/resources';
+import { createResource, getResource, getResourcesByClass, getResources } from 'services/backend/resources';
 import { createLiteralStatement } from 'services/backend/statements';
 import { getAllOntologies, getOntologyTerms, getTermMatchingAcrossOntologies, olsBaseUrl, selectTerms } from 'services/ols/index';
 import styled, { withTheme } from 'styled-components';
@@ -178,7 +178,9 @@ function Autocomplete(props) {
             value = value.substring(1, value.length - 1).trim();
         }
         let responseJson;
-        if (props.optionsClass) {
+        if (props.baseClass) {
+            responseJson = await getResources({ baseClass: props.baseClass, q: value?.trim(), page, items: PAGE_SIZE });
+        } else if (props.optionsClass) {
             responseJson = await getResourcesByClass({ id: props.optionsClass, q: value?.trim(), page, items: PAGE_SIZE, exact });
         } else {
             const isURI = new RegExp(REGEX.URL).test(value.trim());
@@ -902,6 +904,7 @@ Autocomplete.propTypes = {
     entityType: PropTypes.string,
     excludeClasses: PropTypes.string,
     optionsClass: PropTypes.string,
+    baseClass: PropTypes.string,
     placeholder: PropTypes.string,
     onItemSelected: PropTypes.func,
     onChange: PropTypes.func,
