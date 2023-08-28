@@ -88,6 +88,10 @@ const routes = [
         element: Home,
     },
     {
+        path: ROUTES.HOME_WITH_RESEARCH_FIELD,
+        element: Home,
+    },
+    {
         path: ROUTES.RESOURCES,
         element: Resources,
     },
@@ -241,6 +245,7 @@ const routes = [
         path: ROUTES.RESEARCH_FIELD_NO_SLUG,
         element: ResearchField,
     },
+
     {
         path: ROUTES.RESEARCH_FIELDS,
         element: ResearchFields,

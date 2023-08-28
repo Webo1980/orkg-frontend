@@ -166,6 +166,7 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                     <hr className="mt-1 mb-1" />
                 </>
             )}
+
             {!isLoading && stats && researchFields.length > 0 && (
                 <div className="mt-3">
                     <div>
@@ -176,8 +177,13 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                                         role="button"
                                         disabled={has(stats, field.id) && stats[field.id] === 0}
                                         onClick={() => handleFieldSelect(field)}
+                                        to={reverseWithSlug(ROUTES.HOME_WITH_RESEARCH_FIELD, {
+                                            researchFieldId: selectedResearchField.id,
+                                            slug: selectedResearchField.label,
+                                        })}
                                     >
-                                        <CardTitle className="card-title m-0 text-center">{field.label}</CardTitle>
+                                        <CardTitle className="card-title m-0 text-center"> {field.label}</CardTitle>
+
                                         <PaperAmount>{has(stats, field.id) ? stats[field.id] : 0} papers</PaperAmount>
                                     </Card>
                                 </AnimationContainer>
