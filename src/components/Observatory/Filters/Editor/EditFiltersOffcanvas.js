@@ -9,7 +9,7 @@ import { Alert, Button, Offcanvas, OffcanvasBody, OffcanvasHeader } from 'reacts
 import { createFiltersInObservatory, deleteFilterOfObservatory, updateFiltersOfObservatory } from 'services/backend/observatories';
 import { getErrorMessage } from 'utils';
 
-const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter, setFilters }) => {
+const EditFiltersOffcanvas = ({ id, filters, isOpen, toggle, refreshFilter }) => {
     const isCurator = useSelector(state => state.auth.user?.isCurationAllowed);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [currentFilter, setCurrentFilter] = useState(null);
@@ -89,7 +89,6 @@ EditFiltersOffcanvas.propTypes = {
     isOpen: PropTypes.bool,
     toggle: PropTypes.func,
     refreshFilter: PropTypes.func,
-    setFilters: PropTypes.func,
 };
 
 export default EditFiltersOffcanvas;

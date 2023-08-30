@@ -181,21 +181,21 @@ export const getFiltersByObservatoryId = ({ id, page = 0, items = 9999 }) => {
 /**
  * create filter in observatory
  */
-export const createFiltersInObservatory = (id, { label, path, range, featured }) =>
+export const createFiltersInObservatory = (id, { label, path, range, featured, exact }) =>
     submitPostRequest(
         `${observatoriesUrl}${encodeURIComponent(id)}/filters/`,
         { 'Content-Type': 'application/json' },
-        { label, path, range, featured },
+        { label, path, range, featured, exact },
     );
 
 /**
  * update filter in observatory
  */
-export const updateFiltersOfObservatory = (observatoryId, filterId, { label, path, range, featured }) =>
+export const updateFiltersOfObservatory = (observatoryId, filterId, { label, path, range, featured, exact }) =>
     submitPatchRequest(
         `${observatoriesUrl}${encodeURIComponent(observatoryId)}/filters/${filterId}`,
         { 'Content-Type': 'application/json' },
-        { label, path, range, featured },
+        { label, path, range, featured, exact },
     );
 
 /**

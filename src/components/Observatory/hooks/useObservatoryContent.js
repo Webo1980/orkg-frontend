@@ -181,9 +181,14 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
                     CLASSES.PREDICATE,
                     CLASSES.DATE,
                 ];
-                return { path: f.path, range: !notResource.includes(f.range) ? CLASSES.RESOURCE : f.range, value: f.value.map(v => v.id) };
+                return {
+                    path: f.path,
+                    range: !notResource.includes(f.range) ? CLASSES.RESOURCE : f.range,
+                    value: f.value.map(v => v.id),
+                    exact: f.exact,
+                };
             }
-            return { path: f.path, range: f.range, value: [f.value] };
+            return { path: f.path, range: f.range, value: [f.value], exact: f.exact };
         });
         setItems([]);
         setHasNextPage(false);

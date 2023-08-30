@@ -74,7 +74,6 @@ const Filters = ({ id, filters, refreshFilter, setFilters, showResult, resetFilt
                                     toggle={() => setShowEditPanel(v => !v)}
                                     filters={filters}
                                     refreshFilter={refreshFilter}
-                                    setFilters={setFilters}
                                 />
                             </Col>
                         )}

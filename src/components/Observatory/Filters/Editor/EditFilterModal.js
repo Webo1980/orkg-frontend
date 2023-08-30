@@ -4,11 +4,12 @@ import ModalWithLoading from 'components/ModalWithLoading/ModalWithLoading';
 import DATA_TYPES from 'constants/DataTypes.js';
 import { CLASSES, ENTITIES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes.js';
+import { motion } from 'framer-motion';
 import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, FormGroup, FormText, Input, Label, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
+import { Alert, Button, FormGroup, FormText, Input, Label, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 import { getClassById } from 'services/backend/classes';
 import { getPredicate } from 'services/backend/predicates';
 
@@ -17,6 +18,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
     const [path, setPath] = useState(filter ? filter.path : []);
     const [range, setRange] = useState(filter ? filter.range : null);
     const [featured, setFeatured] = useState(filter ? filter.featured : false);
+    const [exact, setExact] = useState(filter ? filter.exact : true);
     const [isLoadingEntities, setIsLoadingEntities] = useState(false);
     const classAutocompleteRef = useRef(null);
     const pathAutocompleteRef = useRef(null);
@@ -26,7 +28,7 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
             toast.warning('All fields are required!');
             return;
         }
-        await handleSave(filter?.id ?? null, { label, path: path?.map(p => p.id), range: range.id, featured });
+        await handleSave(filter?.id ?? null, { label, path: path?.map(p => p.id), range: range.id, featured, exact });
         toggle();
     };
 
@@ -47,7 +49,13 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
         }
         setLabel(filter ? filter.label : '');
         setFeatured(filter ? filter.featured : false);
+        setExact(filter ? filter.exact : true);
     }, [filter]);
+
+    const handleExactOptionChange = e => {
+        const { value } = e.target;
+        setExact(value === 'exact');
+    };
 
     return (
         <div>
@@ -89,9 +97,57 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
                             isMulti={true}
                             isDisabled={isLoadingEntities}
                         />
-                        <FormText>
-                            Select the path of properties to the value after the contribution node, they should be in the correct order
-                        </FormText>
+                        <FormText>Select the path of properties to the value, they should be in the correct order</FormText>
+                    </FormGroup>
+                    <FormGroup check>
+                        <Input name="exact" type="radio" id="exactTrue" value="exact" checked={exact} onChange={handleExactOptionChange} />{' '}
+                        <Label for="exactTrue">
+                            Exact match
+                            <FormText className="ms-1">
+                                Selecting this option will search for paths that exactly match the provided path, starting from the contribution node.
+                                This means that only paths that match the entire provided path, without any additional elements, will be considered.
+                            </FormText>
+                        </Label>
+                    </FormGroup>
+                    <FormGroup check className="mb-1">
+                        <Input name="exact" type="radio" id="exactFalse" value="anywhere" checked={!exact} onChange={handleExactOptionChange} />{' '}
+                        <Label for="exactFalse">
+                            Match anywhere{' '}
+                            <FormText className="ms-1">
+                                Selecting this option will search for paths that contain the provided path anywhere within the subgraph of the
+                                contribution node. This means that even if the provided path is a part of a longer path, it will still be considered a
+                                match.
+                                {!exact && (
+                                    <div className="mt-2">
+                                        <motion.div
+                                            style={{ originX: 1, originY: 0 }}
+                                            initial="initial"
+                                            exit="initial"
+                                            animate="animate"
+                                            variants={{
+                                                initial: { scale: 0, opacity: 0, y: -10 },
+                                                animate: {
+                                                    scale: 1,
+                                                    opacity: 1,
+                                                    y: 0,
+                                                    transition: {
+                                                        type: 'spring',
+                                                        duration: 0.4,
+                                                        delayChildren: 0.2,
+                                                        staggerChildren: 0.05,
+                                                    },
+                                                },
+                                            }}
+                                        >
+                                            <Alert color="warning" className="mb-0">
+                                                Note that this option might lead to slower execution. Additionally, it can only search within a path
+                                                of length 10
+                                            </Alert>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </FormText>
+                        </Label>
                     </FormGroup>
                     <FormGroup>
                         <Label for="range">Range</Label>
@@ -121,14 +177,14 @@ const EditFilterModal = ({ isSaving, isOpen, toggle, handleSave, filter = null }
                         />
                         <FormText>Select the class of the value</FormText>
                     </FormGroup>
-                    <FormGroup switch>
+                    <FormGroup check>
                         <Input
-                            type="switch"
+                            id="featured"
+                            type="checkbox"
                             checked={featured}
-                            onClick={() => {
+                            onChange={() => {
                                 setFeatured(!featured);
                             }}
-                            id="featured"
                         />
                         <Label check for="featured">
                             Show this filter by default on the observatory page
