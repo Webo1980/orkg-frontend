@@ -66,7 +66,7 @@ function Autocomplete(props) {
     const [selectedOntologies, setSelectedOntologies] = useState(DEFAULT_SOURCES);
 
     // Pagination params
-    const PAGE_SIZE = 3;
+    const PAGE_SIZE = props.ols ? 3 : 12;
     const defaultAdditional = {
         page: 0,
     };
