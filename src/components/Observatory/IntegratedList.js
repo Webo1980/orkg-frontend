@@ -168,7 +168,13 @@ const IntegratedList = ({ id, slug, boxShadow }) => {
                 {items.length === 0 && !isLoading && (
                     <div className={boxShadow ? 'container box rounded' : ''}>
                         <div className="p-5 text-center mt-4 mb-4">
-                            There are no {visibilityText} {classesFilter.map(c => c.label).join(', ')} for this observatory, yet
+                            There are no {visibilityText}{' '}
+                            {classesFilter
+                                .filter(f => activeFilters.length === 0 || f.id === CLASSES.PAPER)
+                                .map(c => c.label)
+                                .join(', ')}{' '}
+                            for this observatory
+                            {activeFilters.length !== 0 && ' that matches this filter'}, yet
                             <br />
                             <br />
                         </div>
