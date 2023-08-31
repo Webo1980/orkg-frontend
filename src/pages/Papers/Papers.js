@@ -54,6 +54,8 @@ const Papers = () => {
 
         // promise to prevent blocking loading of the additional paper data
         if (items.length > 0) {
+            // eslint-disable-next-line no-debugger
+            debugger;
             getStatementsBySubjects({ ids: items.map(p => p.id) }).then(_statements =>
                 setStatements(prevStatements => [...prevStatements, ..._statements]),
             );

@@ -181,7 +181,7 @@ export default function AddContribution(props) {
                     <Label for="title">Paper title or DOI</Label>
                     <InputGroup>
                         <Input
-                            value={searchPaper}
+                            value={searchPaper || props.similarPapers}
                             placeholder="Search contributions by paper title or DOI..."
                             type="text"
                             name="title"
@@ -332,6 +332,7 @@ export default function AddContribution(props) {
 }
 AddContribution.propTypes = {
     showDialog: PropTypes.bool.isRequired,
+    similarPapers: PropTypes.string,
     toggle: PropTypes.func.isRequired,
     onAddContributions: PropTypes.func.isRequired,
     allowCreate: PropTypes.bool,

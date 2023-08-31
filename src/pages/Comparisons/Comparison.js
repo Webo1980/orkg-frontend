@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCookies } from 'react-cookie';
 import { setConfigurationAttribute } from 'slices/comparisonSlice';
 import EditModeHeader from 'components/EditModeHeader/EditModeHeader';
+import RelatedPapersCarousel from 'components/Comparison/ComparisonCarousel/RelatedPapers/RelatedPaperCarousel';
 
 const Comparison = () => {
     const { comparisonId } = useParams();
@@ -76,6 +77,12 @@ const Comparison = () => {
                 <DataSources />
             </Container>
             {isPublished && <ProvenanceBox />}
+            <Container className="box rounded p-0 clearfix position-relative" style={{ backgroundColor: '#14a2b8' }}>
+                <div>
+                    <h1>Add Related Papers</h1>
+                    <RelatedPapersCarousel />
+                </div>
+            </Container>
         </div>
     );
 };
