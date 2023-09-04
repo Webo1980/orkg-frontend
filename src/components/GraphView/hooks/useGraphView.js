@@ -92,8 +92,6 @@ const useGraphView = ({ resourceId }) => {
             const bundle = await getStatementsBundleBySubject({
                 id: nodeId,
                 maxLevel: parseInt(maxLevel, 10) + 1,
-
-                // blacklist: [CLASSES.RESEARCH_FIELD],
                 blacklist: blackList.map(c => c.id),
             });
 
