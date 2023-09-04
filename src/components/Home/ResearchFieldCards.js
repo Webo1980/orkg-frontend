@@ -19,7 +19,7 @@ import { reverseWithSlug } from 'utils';
 /* Bootstrap card column is not working correctly working with vertical alignment,
 thus used custom styling here */
 
-const Card = styled.div`
+const Card = styled(Link)`
     cursor: pointer;
     background: #e86161 !important;
     color: #fff !important;
@@ -196,6 +196,10 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                                             role="button"
                                             disabled={has(stats, field.id) && stats[field.id] === 0}
                                             onClick={() => handleFieldSelect(field)}
+                                            to={reverseWithSlug(ROUTES.HOME_WITH_RESEARCH_FIELD, {
+                                                researchFieldId: selectedResearchField.id,
+                                                slug: selectedResearchField.label,
+                                            })}
                                         >
                                             <CardTitle className="card-title m-0 text-center">{field.label}</CardTitle>
                                             <PaperAmount>{has(stats, field.id) ? stats[field.id] : 0} papers</PaperAmount>
