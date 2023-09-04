@@ -158,6 +158,7 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
                                             inputId="target-class"
                                             cssClasses="form-control-sm"
                                             isValidNewOption={false}
+                                            ols={false}
                                         />
                                     </div>
                                 </div>
@@ -202,6 +203,7 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
                             },
                         }}
                         edges={edges}
+                        // on rendering the nodes filter the black list. then the nodes will be rendered
                         nodes={nodes}
                         selections={selections}
                         collapsedNodeIds={collapsed}
