@@ -12,6 +12,7 @@ import { GraphCanvas, lightTheme, useSelection } from 'reagraph';
 import RobotoFont from 'components/GraphView/roboto-medium-webfont.woff';
 import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { ENTITIES } from 'constants/graphSettings';
+import { intersection } from 'lodash';
 
 const LazyGraphViewModal = ({ toggle, resourceId }) => {
     const [layoutType, setLayoutType] = useState('forceDirected2d');
@@ -70,6 +71,13 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
     const handleResearchFieldSelect = selected => {
         setBlackListClasses(!selected ? [] : selected);
     };
+    const renderBlackListClasses = nodes.filter(
+        node =>
+            intersection(
+                blackListClasses.map(c => c.id),
+                node.data.classes,
+            ).length === 0,
+    );
 
     return (
         <Modal size="lg" isOpen toggle={toggle} style={{ maxWidth: '90%', marginBottom: 0 }}>
@@ -203,8 +211,7 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
                             },
                         }}
                         edges={edges}
-                        // on rendering the nodes filter the black list. then the nodes will be rendered
-                        nodes={nodes}
+                        nodes={renderBlackListClasses}
                         selections={selections}
                         collapsedNodeIds={collapsed}
                         layoutType={layoutType}
