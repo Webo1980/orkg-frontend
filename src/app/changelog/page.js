@@ -15,18 +15,18 @@ class Changelog extends Component {
         document.title = 'Changelog - ORKG';
 
         // NEXT-CODE
-        // this.setState({
-        //     changelogText: marked(changelogPath),
-        // });
+        this.setState({
+            changelogText: marked(changelogPath),
+        });
 
         // CRA-CODE
-        fetch(changelogPath)
-            .then(response => response.text())
-            .then(text => {
-                this.setState({
-                    changelogText: marked(text),
-                });
-            });
+        // fetch(changelogPath)
+        //     .then(response => response.text())
+        //     .then(text => {
+        //         this.setState({
+        //             changelogText: marked(text),
+        //         });
+        //     });
     };
 
     render() {
