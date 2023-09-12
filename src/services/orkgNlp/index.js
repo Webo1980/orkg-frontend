@@ -11,7 +11,6 @@ import { getPredicate } from 'services/backend/predicates';
 import { getResources } from 'services/backend/resources';
 import { getParentResearchFields } from 'services/backend/statements';
 import { COMPUTER_SCIENCE_FIELDS_LIST, AGRICULTURE_FIELDS_LIST } from 'constants/nlpFieldLists';
-import fetch from 'cross-fetch';
 
 export const nlpServiceUrl = env('NLP_SERVICE_URL');
 
