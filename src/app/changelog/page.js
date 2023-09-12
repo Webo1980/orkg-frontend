@@ -5,7 +5,6 @@ import { Container } from 'reactstrap';
 import { marked } from 'marked';
 import TitleBar from 'components/TitleBar/TitleBar';
 import changelogPath from 'app/changelog/CHANGELOG.md';
-import env from 'components/NextJsMigration/env';
 
 class Changelog extends Component {
     state = {
@@ -15,19 +14,19 @@ class Changelog extends Component {
     componentDidMount = () => {
         document.title = 'Changelog - ORKG';
 
-        if (env('IS_NEXT')) {
-            this.setState({
-                changelogText: marked(changelogPath),
-            });
-        } else {
-            fetch(changelogPath)
-                .then(response => response.text())
-                .then(text => {
-                    this.setState({
-                        changelogText: marked(text),
-                    });
+        // NEXT-CODE
+        // this.setState({
+        //     changelogText: marked(changelogPath),
+        // });
+
+        // CRA-CODE
+        fetch(changelogPath)
+            .then(response => response.text())
+            .then(text => {
+                this.setState({
+                    changelogText: marked(text),
                 });
-        }
+            });
     };
 
     render() {
