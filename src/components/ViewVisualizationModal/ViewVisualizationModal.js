@@ -1,3 +1,4 @@
+import Link from 'components/NextJsMigration/Link';
 import { faCalendar, faLink, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import Tippy from '@tippyjs/react';
@@ -8,7 +9,6 @@ import moment from 'moment';
 import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { downloadJPG, downloadPDF } from 'libs/googleChartDownloadFunctions';
 import {
     Badge,
@@ -62,7 +62,7 @@ const ViewVisualizationModal = ({ isOpen, toggle, data, onEditVisualization }) =
                 <div className="d-flex">
                     <h5>{data.label ?? 'No Title'}</h5>
                     <Tippy content="Go to resource page">
-                        <Link target="_blank" className="ms-2 resourceLink" to={`${reverse(ROUTES.RESOURCE, { id: data.id })}?noRedirect`}>
+                        <Link target="_blank" className="ms-2 resourceLink" href={`${reverse(ROUTES.RESOURCE, { id: data.id })}?noRedirect`}>
                             <Icon icon={faLink} className="text-primary" />
                         </Link>
                     </Tippy>
@@ -79,7 +79,7 @@ const ViewVisualizationModal = ({ isOpen, toggle, data, onEditVisualization }) =
                                 return (
                                     <Link
                                         className="d-inline-block me-2 mb-2"
-                                        to={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.id })}
+                                        href={reverse(ROUTES.AUTHOR_PAGE, { authorId: author.id })}
                                         key={`author${author.id}`}
                                     >
                                         <Badge color="light">

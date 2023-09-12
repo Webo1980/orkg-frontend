@@ -1,5 +1,5 @@
+import Link from 'components/NextJsMigration/Link';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { reverse } from 'named-urls';
 import styled from 'styled-components';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -72,7 +72,7 @@ const UserAvatar = ({ userId, size, appendToTooltip, showDisplayName, linkTarget
                     plugins={[hideOnEsc]}
                 >
                     <StyledUserAvatar tabIndex="0">
-                        <Link to={reverse(ROUTES.USER_PROFILE, { userId })} target={linkTarget}>
+                        <Link href={reverse(ROUTES.USER_PROFILE, { userId })} target={linkTarget}>
                             {!isLoadingContributor && (
                                 <>
                                     <StyledGravatar className="rounded-circle" md5={contributor?.gravatar_id ?? 'example@example.com'} size={size} />

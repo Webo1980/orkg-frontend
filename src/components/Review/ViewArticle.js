@@ -1,3 +1,4 @@
+import Link from 'components/NextJsMigration/Link';
 import Tippy from '@tippyjs/react';
 import { toggleHistoryModal as toggleHistoryModalAction } from 'slices/reviewSlice';
 import AuthorBadges from 'components/Badges/AuthorBadges/AuthorBadges';
@@ -18,10 +19,10 @@ import { CLASSES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
 import { reverse } from 'named-urls';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import useParams from 'components/NextJsMigration/useParams';
 import { Alert, Button, Container } from 'reactstrap';
 import SectionComparison from 'components/Review/SectionComparison';
-import env from '@beam-australia/react-env';
+import env from 'components/NextJsMigration/env';
 
 const ViewArticle = () => {
     const { id } = useParams();
@@ -59,7 +60,7 @@ const ViewArticle = () => {
                 {newVersionAvailable && (
                     <Alert color="warning" fade={false} className="box">
                         Warning: a newer version of this article is available.{' '}
-                        <Link to={reverse(ROUTES.REVIEW, { id: latestVersionId })}>View latest version</Link>
+                        <Link href={reverse(ROUTES.REVIEW, { id: latestVersionId })}>View latest version</Link>
                     </Alert>
                 )}
                 <main>
@@ -81,7 +82,7 @@ const ViewArticle = () => {
                                 </div>
                                 <div className="my-3">
                                     <Alert color="info" fade={false} className="d-none d-print-block">
-                                        Read the full and interactive version of this article on the ORKG website: <Link to={url}>{url}</Link>
+                                        Read the full and interactive version of this article on the ORKG website: <Link href={url}>{url}</Link>
                                     </Alert>
                                     <ResearchFieldBadge researchField={researchField} />
                                     <AuthorBadges authors={authors} />{' '}
@@ -115,7 +116,7 @@ const ViewArticle = () => {
                                                             <>
                                                                 <div className="mt-3 mb-2">
                                                                     <Link
-                                                                        to={
+                                                                        href={
                                                                             section.type.id === CLASSES.RESOURCE_SECTION
                                                                                 ? `${reverse(ROUTES.RESOURCE, {
                                                                                       id: section.contentLink.objectId,

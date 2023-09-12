@@ -21,7 +21,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { guid } from 'utils';
 import { toast } from 'react-toastify';
 import { ENTITIES, CLASSES, MISC, RESOURCES } from 'constants/graphSettings';
-import validationSchema from '../helpers/validationSchema';
+import validationSchema from 'components/StatementBrowser/ValueForm/helpers/validationSchema';
 
 const useValueForm = ({ valueId, resourceId, propertyId, syncBackend }) => {
     const dispatch = useDispatch();

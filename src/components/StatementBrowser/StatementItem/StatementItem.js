@@ -1,3 +1,4 @@
+import Link from 'components/NextJsMigration/Link';
 import { forwardRef } from 'react';
 import { toggleEditPropertyLabel } from 'slices/statementBrowserSlice';
 import { faPen, faTrash, faCheck, faTimes, faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -13,9 +14,8 @@ import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { ENTITIES } from 'constants/graphSettings';
 import { useSelector } from 'react-redux';
 import { reverse } from 'named-urls';
-import { Link } from 'react-router-dom';
 import ROUTES from 'constants/routes.js';
-import useStatementItem from './hooks/useStatementItem';
+import useStatementItem from 'components/StatementBrowser/StatementItem/hooks/useStatementItem';
 
 // eslint-disable-next-line react/display-name
 const StatementItem = forwardRef((props, ref) => {
@@ -52,7 +52,7 @@ const StatementItem = forwardRef((props, ref) => {
                                         disabled={!preferences.showDescriptionTooltips}
                                     >
                                         <Link
-                                            to={reverse(ROUTES.PROPERTY, { id: property.existingPredicateId })}
+                                            href={reverse(ROUTES.PROPERTY, { id: property.existingPredicateId })}
                                             target={!propertiesAsLinks ? '_blank' : '_self'}
                                             className={!propertiesAsLinks ? 'text-dark' : ''}
                                         >

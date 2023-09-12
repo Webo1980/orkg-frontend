@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import { useDrag, useDrop } from 'react-dnd';
 import { useSelector } from 'react-redux';
 import ItemTypes from 'constants/dndTypes';
-import TemplateComponentValue from './Value/TemplateComponentValue';
-import TemplateComponentProperty from './Property/TemplateComponentProperty';
+import TemplateComponentValue from 'components/Templates/Tabs/PropertyShapesTab/PropertyShape/Value/TemplateComponentValue';
+import TemplateComponentProperty from 'components/Templates/Tabs/PropertyShapesTab/PropertyShape/Property/TemplateComponentProperty';
 
 function PropertyShape(props) {
     const editMode = useSelector(state => state.templateEditor.editMode);

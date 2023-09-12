@@ -2,7 +2,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faFacebook, faTwitter, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import Tippy, { useSingleton } from '@tippyjs/react';
 import PropTypes from 'prop-types';
-import { getFacebookSharerLink, getTwitterSharerLink, getLinkedInSharerLink } from './helpers';
+import { getFacebookSharerLink, getTwitterSharerLink, getLinkedInSharerLink } from 'components/ShareLinkMarker/helpers';
 
 const ShareCreatedContent = ({ typeOfLink, title }) => {
     const [source, target] = useSingleton();

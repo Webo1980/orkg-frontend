@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent, waitForElementToBeRemoved } from 'testUtils';
 import { ENTITIES } from 'constants/graphSettings';
 import selectEvent from 'react-select-event';
-import StatementBrowser from '../StatementBrowser';
+import StatementBrowser from 'components/StatementBrowser/StatementBrowser';
 
 jest.mock(
     'react-flip-move',
@@ -79,7 +79,7 @@ describe('ClassesItem', () => {
         await selectEvent.select(screen.getByRole('combobox', { name: /Specify the classes of the resource/i }), 'R40006');
         await waitFor(() => screen.getByRole('button', { name: 'Done' }));
         fireEvent.click(screen.getByRole('button', { name: 'Done' }));
-        expect(screen.queryAllByText(/Template/i)).toHaveLength(2);
+        expect(screen.queryAllByText(/Template/i)).toHaveLength(3);
         await waitFor(() => expect(screen.queryAllByText(/Basic reproduction number/i)).toHaveLength(2));
         await waitFor(() => expect(screen.getByText(/Location/i)).toBeInTheDocument());
     });

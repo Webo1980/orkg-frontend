@@ -9,12 +9,11 @@ import PropTypes from 'prop-types';
 import { useId, useState } from 'react';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Input, Label, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import { GraphCanvas, lightTheme, useSelection } from 'reagraph';
-import RobotoFont from 'components/GraphView/roboto-medium-webfont.woff';
+// import RobotoFont from 'components/GraphView/roboto-medium-webfont.woff';
 
 const LazyGraphViewModal = ({ toggle, resourceId }) => {
     const [layoutType, setLayoutType] = useState('forceDirected2d');
     const [layoutSelectionOpen, setLayoutSelectionOpen] = useState(false);
-
     const depthId = useId();
 
     const { nodes, edges, setDepth, depth, fetchIncomingStatements, isLoadingStatements, collapsed, setCollapsed, graphRef, toggleExpandNode } =
@@ -169,7 +168,7 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
                                   }
                                 : {}
                         }
-                        labelFontUrl={RobotoFont}
+                        // labelFontUrl={RobotoFont}
                         renderNode={renderedNode => <Node renderedNode={renderedNode} toggleExpandNode={toggleExpandNode} collapsed={collapsed} />}
                         contextMenu={({ data, onClose }) => (
                             <ContextMenu

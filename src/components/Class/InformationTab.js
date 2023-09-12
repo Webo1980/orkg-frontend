@@ -1,3 +1,4 @@
+import Link from 'components/NextJsMigration/Link';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import ClassInlineItem from 'components/Class/ClassInlineItem/ClassInlineItem';
 import StatementActionButton from 'components/StatementBrowser/StatementActionButton/StatementActionButton';
@@ -10,7 +11,6 @@ import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Button, Table } from 'reactstrap';
 import { deleteParentByID, getChildrenByID, getParentByID, setParentClassByID } from 'services/backend/classes';
@@ -197,17 +197,16 @@ function InformationTab({ id, label, uri, editMode, callBackToReloadTree, showSt
                         <th scope="row">Template</th>
                         <td>
                             {template ? (
-                                <Link to={reverse(ROUTES.TEMPLATE, { id: template.id })}>{template.label}</Link>
+                                <Link href={reverse(ROUTES.TEMPLATE, { id: template.id })}>{template.label}</Link>
                             ) : (
                                 <i>
-                                    Not Defined <Link to={`${reverse(ROUTES.ADD_TEMPLATE)}?classID=${id}`}>Create a template</Link>
+                                    Not Defined <Link href={`${reverse(ROUTES.ADD_TEMPLATE)}?classID=${id}`}>Create a template</Link>
                                 </i>
                             )}
                         </td>
                     </tr>
                 </tbody>
             </Table>
-
             {showStatementsBrowser && (
                 <StatementBrowser
                     rootNodeType={ENTITIES.CLASS}

@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import { Button } from 'reactstrap';
 import { deleteStatementById } from 'services/backend/statements';
 import { deleteValue, isValueHasFormattedLabel, setIsDeletingValue, setIsHelpModalOpen, toggleEditValue } from 'slices/statementBrowserSlice';
-import InfoTippy from './InfoTippy';
+import InfoTippy from 'components/StatementBrowser/ValueItem/ValueItemOptions/InfoTippy';
 
 const ValueItemOptions = ({ id, enableEdit, syncBackend, handleOnClick }) => {
     const value = useSelector(state => state.statementBrowser.values.byId[id]);
