@@ -183,6 +183,7 @@ const RootLayout = ({ children }) => {
                           https://api.unpaywall.org
                           https://raw.githubusercontent.com
                           https://fonts.gstatic.com
+                          https://mastodon.social
                       ;"
                 />
 
