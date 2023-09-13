@@ -7,6 +7,7 @@ import TabsContainer from 'components/Class/TabsContainer';
 import ImportCSVInstances from 'components/ClassInstances/ImportCSVInstances';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import TitleBar from 'components/TitleBar/TitleBar';
+import useIsEditMode from 'components/Utils/hooks/useIsEditMode';
 import ROUTES from 'constants/routes.js';
 import InternalServerError from 'app/error';
 import NotFound from 'app/not-found';
@@ -22,7 +23,7 @@ function ClassDetails() {
     const [isLoading, setIsLoading] = useState(true);
     const [keyInstances, setKeyInstances] = useState(1);
     const [modalImportIsOpen, setModalImportIsOpen] = useState(false);
-    const [editMode, setEditMode] = useState(false);
+    const { isEditMode, toggleIsEditMode } = useIsEditMode();
     const { id } = useParams();
 
     useEffect(() => {
@@ -72,19 +73,19 @@ function ClassDetails() {
                                 >
                                     <Icon icon={faFileCsv} /> Import instances
                                 </RequireAuthentication>
-                                {!editMode ? (
+                                {!isEditMode ? (
                                     <RequireAuthentication
                                         component={Button}
                                         className="flex-shrink-0"
                                         color="secondary"
                                         size="sm"
-                                        onClick={() => setEditMode(v => !v)}
+                                        onClick={toggleIsEditMode}
                                         style={{ marginRight: 2 }}
                                     >
                                         <Icon icon={faPen} /> Edit
                                     </RequireAuthentication>
                                 ) : (
-                                    <Button className="flex-shrink-0" color="secondary-darker" size="sm" onClick={() => setEditMode(v => !v)}>
+                                    <Button className="flex-shrink-0" color="secondary-darker" size="sm" onClick={toggleIsEditMode}>
                                         <Icon icon={faTimes} /> Stop editing
                                     </Button>
                                 )}
@@ -98,7 +99,7 @@ function ClassDetails() {
                             </i>
                         )}
                     </TitleBar>
-                    <TabsContainer id={id} editMode={editMode} uri={uri} label={label} key={keyInstances} />
+                    <TabsContainer id={id} editMode={isEditMode} uri={uri} label={label} key={keyInstances} setLabel={setLabel} />
                     <ImportCSVInstances
                         classId={id}
                         showDialog={modalImportIsOpen}

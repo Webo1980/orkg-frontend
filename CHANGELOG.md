@@ -3,6 +3,38 @@ Changelog](https://keepachangelog.com/en/1.0.0/) and we adhere to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [v0.121.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.120.0...v0.121.0) - 2023-09-08
+
+### Changes
+
+- fix(List): list items were not deleted [`#1195`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1195)
+- feat(Home): integrate Mastodon timeline [`#1191`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1191)
+
+---
+## [v0.120.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.119.0...v0.120.0) - 2023-09-07
+
+### Changes
+
+- feat(StatementBrowser): support ordered lists [`#1150`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1150)
+- fix(Review): outline links not working and comparisons break on link click [`#1192`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1192)
+- fix(QualityReport): correctly evaluate DOI and property descriptions [`#1189`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1189)
+
+---
+## [v0.119.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.118.0...v0.119.0) - 2023-08-30
+
+### Changes
+
+- fix(useIsEditMode): Ensure user is signed in before enabling edit mode [`#1181`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1181)
+- feat(Class): support updating class labels for curators or in case of unused class [`#1182`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1182)
+- fix(Property): Changing the label of a property clears the statements browser [`#1183`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1183)
+- ux: persist edit mode via URL for entities pages [`#1180`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1180)
+- fix(StatementBrowser): validation for large integer and decimal values [`#1179`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1179)
+- feat(Review): show link to comparison [`#1177`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1177)
+- ux(Resource): display loading indicator instead of '0' instances before loading [`#1176`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1176)
+- feat(AddPaperModal): support BibTeX and PDF upload [`#1174`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1174)
+- feat(Template): add description and export citation of resource in latex format [`#1171`](https://gitlab.com/TIBHannover/orkg/orkg-frontend/merge_requests/1171)
+
+---
 ## [v0.118.0](https://gitlab.com/TIBHannover/orkg/orkg-frontend/compare/v0.117.0...v0.118.0) - 2023-08-17
 
 ### Changes

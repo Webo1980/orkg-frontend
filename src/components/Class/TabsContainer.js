@@ -1,6 +1,8 @@
+import InformationTab from 'components/Class/InformationTab';
+import TreeView from 'components/Class/TreeView';
 import ClassInstances from 'components/ClassInstances/ClassInstances';
-import { TabHeaderStyle } from 'components/Tabs/styled';
 import Tabs from 'components/Tabs/Tabs';
+import { TabHeaderStyle } from 'components/Tabs/styled';
 import ROUTES from 'constants/routes.js';
 import { reverse } from 'named-urls';
 import PropTypes from 'prop-types';
@@ -8,10 +10,8 @@ import { useState } from 'react';
 import useRouter from 'components/NextJsMigration/useRouter';
 import useParams from 'components/NextJsMigration/useParams';
 import { Col, Container, Row } from 'reactstrap';
-import InformationTab from 'components/Class/InformationTab';
-import TreeView from 'components/Class/TreeView';
 
-function TabsContainer({ id, label, uri, editMode }) {
+function TabsContainer({ id, label, uri, editMode, setLabel }) {
     const { activeTab } = useParams();
     const [reloadTree, setReloadTree] = useState(false);
     const router = useRouter();
@@ -21,7 +21,7 @@ function TabsContainer({ id, label, uri, editMode }) {
             `${reverse(ROUTES.CLASS_TABS, {
                 id,
                 activeTab: key,
-            })}?noRedirect`,
+            })}?noRedirect&isEditMode=${editMode}`,
         );
     };
 
@@ -50,6 +50,7 @@ function TabsContainer({ id, label, uri, editMode }) {
                                         label={label}
                                         editMode={editMode}
                                         callBackToReloadTree={() => setReloadTree(v => !v)}
+                                        setLabel={setLabel}
                                     />
                                 ),
                             },
@@ -71,6 +72,7 @@ TabsContainer.propTypes = {
     label: PropTypes.string,
     uri: PropTypes.string,
     editMode: PropTypes.bool.isRequired,
+    setLabel: PropTypes.func.isRequired,
 };
 
 export default TabsContainer;

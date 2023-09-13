@@ -28,7 +28,7 @@ const AddProperty = () => {
                 const newProperty = await createPredicate(label);
                 toast.success('Property created successfully');
                 setIsLoading(false);
-                router.push(reverse(ROUTES.PROPERTY, { id: newProperty.id }));
+                router.push(`${reverse(ROUTES.PROPERTY, { id: newProperty.id })}?isEditMode=true`);
             } catch (error) {
                 console.error(error);
                 toast.error(`Error creating property ${error.message}`);

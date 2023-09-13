@@ -21,7 +21,7 @@ import {
     setHiddenGroups,
     setIsEmbeddedMode,
 } from 'slices/comparisonSlice';
-import { filterObjectOfStatementsByPredicateAndClass, getErrorMessage, getComparisonData, asyncLocalStorage } from 'utils';
+import { filterObjectOfStatementsByPredicateAndClass, getErrorMessage, getComparisonData, asyncLocalStorage, addAuthorsToStatements } from 'utils';
 import useParams from 'components/NextJsMigration/useParams';
 import { PREDICATES, CLASSES } from 'constants/graphSettings';
 import { reverse } from 'named-urls';
@@ -74,51 +74,53 @@ function useComparison({ id, isEmbeddedMode = false }) {
                     })
                     .then(([_comparisonResource, configurationData]) => {
                         // Get meta data and config of a comparison
-                        getStatementsBySubject({ id: cId }).then(statements => {
-                            const comparisonObject = getComparisonData(_comparisonResource, statements);
-                            dispatch(setComparisonResource(comparisonObject));
+                        getStatementsBySubject({ id: cId })
+                            .then(statements => addAuthorsToStatements(statements))
+                            .then(statements => {
+                                const comparisonObject = getComparisonData(_comparisonResource, statements);
+                                dispatch(setComparisonResource(comparisonObject));
 
-                            const { url } = configurationData.data;
-                            if (url) {
-                                dispatch(setConfiguration(getComparisonConfiguration(url)));
-                            } else {
-                                dispatch(
-                                    setConfigurationAttribute({
-                                        attribute: 'predicatesList',
-                                        value: filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_PROPERTY, false)?.map(
-                                            p => p.id,
-                                        ),
-                                    }),
-                                );
-                                const contributionsIDs =
-                                    without(
-                                        uniq(
-                                            filterObjectOfStatementsByPredicateAndClass(
-                                                statements,
-                                                PREDICATES.COMPARE_CONTRIBUTION,
-                                                false,
-                                                CLASSES.CONTRIBUTION,
-                                            )?.map(c => c.id) ?? [],
-                                        ),
-                                        undefined,
-                                        null,
-                                        '',
-                                    ) ?? [];
-                                dispatch(setConfigurationAttribute({ attribute: 'contributionsList', value: contributionsIDs }));
-                            }
-                            if (
-                                !filterObjectOfStatementsByPredicateAndClass(
-                                    statements,
-                                    PREDICATES.COMPARE_CONTRIBUTION,
-                                    false,
-                                    CLASSES.CONTRIBUTION,
-                                )?.map(c => c.id)
-                            ) {
-                                dispatch(setIsLoadingResult(false));
-                            }
-                            dispatch(setIsLoadingMetadata(false));
-                            dispatch(setIsFailedLoadingMetadata(false));
-                        });
+                                const { url } = configurationData.data;
+                                if (url) {
+                                    dispatch(setConfiguration(getComparisonConfiguration(url)));
+                                } else {
+                                    dispatch(
+                                        setConfigurationAttribute({
+                                            attribute: 'predicatesList',
+                                            value: filterObjectOfStatementsByPredicateAndClass(statements, PREDICATES.HAS_PROPERTY, false)?.map(
+                                                p => p.id,
+                                            ),
+                                        }),
+                                    );
+                                    const contributionsIDs =
+                                        without(
+                                            uniq(
+                                                filterObjectOfStatementsByPredicateAndClass(
+                                                    statements,
+                                                    PREDICATES.COMPARE_CONTRIBUTION,
+                                                    false,
+                                                    CLASSES.CONTRIBUTION,
+                                                )?.map(c => c.id) ?? [],
+                                            ),
+                                            undefined,
+                                            null,
+                                            '',
+                                        ) ?? [];
+                                    dispatch(setConfigurationAttribute({ attribute: 'contributionsList', value: contributionsIDs }));
+                                }
+                                if (
+                                    !filterObjectOfStatementsByPredicateAndClass(
+                                        statements,
+                                        PREDICATES.COMPARE_CONTRIBUTION,
+                                        false,
+                                        CLASSES.CONTRIBUTION,
+                                    )?.map(c => c.id)
+                                ) {
+                                    dispatch(setIsLoadingResult(false));
+                                }
+                                dispatch(setIsLoadingMetadata(false));
+                                dispatch(setIsFailedLoadingMetadata(false));
+                            });
                     })
                     .catch(error => {
                         let errorMessage = null;

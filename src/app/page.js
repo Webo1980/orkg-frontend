@@ -14,6 +14,7 @@ import { Helmet } from 'react-helmet';
 import env from 'components/NextJsMigration/env';
 import HomeAlerts from 'components/HomeAlerts/HomeAlerts';
 import HelpTour from 'components/Home/HelpTour';
+import MastodonTimeline from 'components/Home/MastodonTimeline';
 
 export default function Home() {
     const { selectedResearchField, handleFieldSelect, researchFields, isLoadingFields } = useResearchFieldSelector({
@@ -53,7 +54,7 @@ export default function Home() {
                     </div>
                 </Col>
                 <Col md="4">
-                    {/* <TwitterTimeline /> */}
+                    <MastodonTimeline />
 
                     <div className="mt-3 box rounded p-3">
                         <h2 className="h5 mb-0 mt-0">ORKG stories</h2>

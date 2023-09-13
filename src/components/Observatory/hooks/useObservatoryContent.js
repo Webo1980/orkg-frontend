@@ -3,8 +3,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { getContentByObservatoryIdAndClasses } from 'services/backend/observatories';
 import { VISIBILITY_FILTERS } from 'constants/contentTypes';
 import { getStatementsBySubjects } from 'services/backend/statements';
-import { getDataBasedOnType, groupVersionsOfComparisons, mergeAlternate, reverseWithSlug } from 'utils';
 import useRouter from 'components/NextJsMigration/useRouter';
+import { addAuthorsToStatementBundle, getDataBasedOnType, groupVersionsOfComparisons, mergeAlternate, reverseWithSlug } from 'utils';
 import ROUTES from 'constants/routes.js';
 
 function useObservatoryContent({ observatoryId, slug, initialSort, initialClassFilterOptions, initClassesFilter, pageSize = 30, updateURL = false }) {
@@ -69,6 +69,7 @@ function useObservatoryContent({ observatoryId, slug, initialSort, initialClassF
                     getStatementsBySubjects({
                         ids: result.content.map(p => p.id),
                     })
+                        .then(statements => addAuthorsToStatementBundle(statements))
                         .then(contentsStatements => {
                             const dataObjects = contentsStatements.map(statements => {
                                 const resourceSubject = find(result.content, {

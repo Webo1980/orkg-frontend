@@ -9,9 +9,11 @@ import ButtonWithLoading from 'components/ButtonWithLoading/ButtonWithLoading';
 import { EditModeContainer, Title } from 'components/EditModeHeader/EditModeHeader';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
 import ItemMetadata from 'components/Search/ItemMetadata';
+import ExportCitation from 'components/ExportCitation/ExportCitation';
 import ShaclFlowModal from 'components/Templates/ShaclFlow/ShaclFlowModal';
 import TabsContainer from 'components/Templates/TabsContainer';
 import TemplateEditorHeaderBar from 'components/Templates/TemplateEditorHeaderBar';
+import useContributor from 'components/hooks/useContributor';
 import TitleBar from 'components/TitleBar/TitleBar';
 import ROUTES from 'constants/routes.js';
 import { reverse } from 'named-urls';
@@ -22,6 +24,7 @@ import useParams from 'components/NextJsMigration/useParams';
 import VisibilitySensor from 'react-visibility-sensor';
 import { Button, ButtonDropdown, ButtonGroup, Container, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 import { loadTemplate, saveTemplate, setDiagramMode, setEditMode } from 'slices/templateEditorSlice';
+import { CLASSES } from 'constants/graphSettings';
 
 const Template = () => {
     const { id } = useParams();
@@ -42,10 +45,13 @@ const Template = () => {
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
     const [showHeaderBar, setShowHeaderBar] = useState(false);
+    const [showExportCitation, setShowExportCitation] = useState(false);
 
     const handleShowHeaderBar = isVisible => {
         setShowHeaderBar(!isVisible);
     };
+
+    const { contributor } = useContributor({ userId: createdBy });
 
     useEffect(() => {
         if (id) {
@@ -123,6 +129,7 @@ const Template = () => {
                                 <Icon icon={faEllipsisV} />
                             </DropdownToggle>
                             <DropdownMenu end>
+                                <DropdownItem onClick={() => setShowExportCitation(v => !v)}>Export citation</DropdownItem>
                                 <DropdownItem tag={Link} end href={`${reverse(ROUTES.RESOURCE, { id })}?noRedirect`}>
                                     View resource
                                 </DropdownItem>
@@ -168,6 +175,16 @@ const Template = () => {
             {showHeaderBar && <TemplateEditorHeaderBar />}
             <TabsContainer id={id} />
             {diagramMode && <ShaclFlowModal />}
+            {showExportCitation && (
+                <ExportCitation
+                    id={id}
+                    title={label}
+                    authors={[contributor?.display_name]}
+                    classId={CLASSES.TEMPLATE}
+                    isOpen={showExportCitation}
+                    toggle={() => setShowExportCitation(v => !v)}
+                />
+            )}
         </>
     );
 };

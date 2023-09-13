@@ -1,35 +1,36 @@
 'use client';
 
-import Link from 'components/NextJsMigration/Link';
-import { useState, useEffect, useCallback } from 'react';
-import { Container, Button, UncontrolledButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
-import { getResource } from 'services/backend/resources';
-import InternalServerError from 'app/error';
-import EditableHeader from 'components/EditableHeader';
-import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
-import NotFound from 'app/not-found';
-import useRouter from 'components/NextJsMigration/useRouter';
-import useParams from 'components/NextJsMigration/useParams';
-import ROUTES from 'constants/routes.js';
-import CONTENT_TYPES from 'constants/contentTypes';
-import { useSelector } from 'react-redux';
+import { faEllipsisV, faExternalLinkAlt, faPen, faPlus, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash, faExternalLinkAlt, faTimes, faPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
-import { ENTITIES } from 'constants/graphSettings';
-import useDeleteResource from 'components/Resource/hooks/useDeleteResource';
+import InternalServerError from 'app/error';
+import NotFound from 'app/not-found';
+import EditModeHeader from 'components/EditModeHeader/EditModeHeader';
+import EditableHeader from 'components/EditableHeader';
+import GraphViewModal from 'components/GraphView/GraphViewModal';
 import MarkFeatured from 'components/MarkFeaturedUnlisted/MarkFeatured/MarkFeatured';
 import MarkUnlisted from 'components/MarkFeaturedUnlisted/MarkUnlisted/MarkUnlisted';
 import useMarkFeaturedUnlisted from 'components/MarkFeaturedUnlisted/hooks/useMarkFeaturedUnlisted';
-import { reverseWithSlug } from 'utils';
-import TitleBar from 'components/TitleBar/TitleBar';
-import EditModeHeader from 'components/EditModeHeader/EditModeHeader';
-import ItemMetadata from 'components/Search/ItemMetadata';
-import TabsContainer from 'components/Resource/Tabs/TabsContainer';
-import DEDICATED_PAGE_LINKS from 'components/Resource/hooks/redirectionSettings';
-import getPreventEditCase from 'components/Resource/hooks/preventEditing';
-import PreventModal from 'components/Resource/PreventModal/PreventModal';
-import GraphViewModal from 'components/GraphView/GraphViewModal';
+import Link from 'components/NextJsMigration/Link';
+import useParams from 'components/NextJsMigration/useParams';
+import useRouter from 'components/NextJsMigration/useRouter';
 import useSearchParams from 'components/NextJsMigration/useSearchParams';
+import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
+import PreventModal from 'components/Resource/PreventModal/PreventModal';
+import TabsContainer from 'components/Resource/Tabs/TabsContainer';
+import getPreventEditCase from 'components/Resource/hooks/preventEditing';
+import DEDICATED_PAGE_LINKS from 'components/Resource/hooks/redirectionSettings';
+import useDeleteResource from 'components/Resource/hooks/useDeleteResource';
+import ItemMetadata from 'components/Search/ItemMetadata';
+import TitleBar from 'components/TitleBar/TitleBar';
+import useIsEditMode from 'components/Utils/hooks/useIsEditMode';
+import CONTENT_TYPES from 'constants/contentTypes';
+import { ENTITIES } from 'constants/graphSettings';
+import ROUTES from 'constants/routes.js';
+import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Button, Container, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledButtonDropdown } from 'reactstrap';
+import { getResource } from 'services/backend/resources';
+import { reverseWithSlug } from 'utils';
 
 function Resource() {
     const { id } = useParams();
@@ -39,7 +40,7 @@ function Resource() {
     const [error, setError] = useState(null);
     const [resource, setResource] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    const [editMode, setEditMode] = useState(false);
+    const { isEditMode, toggleIsEditMode } = useIsEditMode();
     const [isOpenGraphViewModal, setIsOpenGraphViewModal] = useState(false);
     const [preventEditCase, setPreventEditCase] = useState(null);
     const isCurationAllowed = useSelector(state => state.auth.user?.isCurationAllowed);
@@ -132,19 +133,19 @@ function Resource() {
                                         <Icon icon={faExternalLinkAlt} className="me-1" /> {dedicatedLink.label} view
                                     </Button>
                                 )}
-                                {!editMode && (
+                                {!isEditMode && (
                                     <RequireAuthentication
                                         component={Button}
                                         className="float-end"
                                         color="secondary"
                                         size="sm"
-                                        onClick={() => (!isCurationAllowed && preventEditCase ? setIsOpenPreventModal(true) : setEditMode(v => !v))}
+                                        onClick={() => (!isCurationAllowed && preventEditCase ? setIsOpenPreventModal(true) : toggleIsEditMode())}
                                     >
                                         <Icon icon={faPen} /> Edit
                                     </RequireAuthentication>
                                 )}
-                                {editMode && (
-                                    <Button className="flex-shrink-0" color="secondary-darker" size="sm" onClick={() => setEditMode(v => !v)}>
+                                {isEditMode && (
+                                    <Button className="flex-shrink-0" color="secondary-darker" size="sm" onClick={toggleIsEditMode}>
                                         <Icon icon={faTimes} /> Stop editing
                                     </Button>
                                 )}
@@ -161,10 +162,10 @@ function Resource() {
                     >
                         Resource view
                     </TitleBar>
-                    {editMode && preventEditCase?.warningOnEdit && preventEditCase.warningOnEdit}
-                    <EditModeHeader isVisible={editMode} />
-                    <Container className={`box clearfix pt-4 pb-4 ps-4 pe-4 ${editMode ? 'rounded-bottom' : 'rounded'}`}>
-                        {!editMode ? (
+                    {isEditMode && preventEditCase?.warningOnEdit && preventEditCase.warningOnEdit}
+                    <EditModeHeader isVisible={isEditMode} />
+                    <Container className={`box clearfix pt-4 pb-4 ps-4 pe-4 ${isEditMode ? 'rounded-bottom' : 'rounded'}`}>
+                        {!isEditMode ? (
                             <h3 className="" style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }}>
                                 {resource.label || (
                                     <i>
@@ -183,7 +184,7 @@ function Resource() {
                         ) : (
                             <>
                                 <EditableHeader id={id} value={resource.label} onChange={handleHeaderChange} entityType={ENTITIES.RESOURCE} />
-                                {editMode && isCurationAllowed && (
+                                {isEditMode && isCurationAllowed && (
                                     <Button color="danger" size="sm" className="mt-2 mb-3" style={{ marginLeft: 'auto' }} onClick={deleteResource}>
                                         <Icon icon={faTrash} /> Delete resource
                                     </Button>
@@ -191,9 +192,9 @@ function Resource() {
                             </>
                         )}
 
-                        <ItemMetadata item={resource} showCreatedAt={true} showCreatedBy={true} showProvenance={true} editMode={editMode} />
+                        <ItemMetadata item={resource} showCreatedAt={true} showCreatedBy={true} showProvenance={true} editMode={isEditMode} />
                     </Container>
-                    <TabsContainer classes={resource?.classes} id={id} editMode={editMode} />
+                    <TabsContainer classes={resource?.classes} id={id} editMode={isEditMode} />
 
                     {preventEditCase && (
                         <PreventModal

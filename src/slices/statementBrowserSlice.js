@@ -189,6 +189,9 @@ export const statementBrowserSlice = createSlice({
             const propertyIndex = state.properties.byId[payload.propertyId].valueIds.indexOf(payload.id);
             state.properties.byId[payload.propertyId].valueIds.splice(propertyIndex, 1);
         },
+        updateOrderValues: (state, { payload }) => {
+            state.properties.byId[payload.propertyId].valueIds = payload.valueIds;
+        },
         setSavingValue: (state, { payload: { id, status } }) => {
             state.values.byId[id].isSaving = status;
         },
@@ -433,6 +436,10 @@ export const statementBrowserSlice = createSlice({
             // prevent reset location that is triggered by the edit mode query param change
             if (
                 state.keyToKeepStateOnLocationChange === match(ROUTES.CONTENT_TYPE)(payload.location.pathname)?.params?.id ||
+                state.keyToKeepStateOnLocationChange === match(ROUTES.RESOURCE)(payload.location.pathname)?.params?.id ||
+                state.keyToKeepStateOnLocationChange === match(ROUTES.RESOURCE_TABS)(payload.location.pathname)?.params?.id ||
+                state.keyToKeepStateOnLocationChange === match(ROUTES.CLASS)(payload.location.pathname)?.params?.id ||
+                state.keyToKeepStateOnLocationChange === match(ROUTES.CLASS_TABS)(payload.location.pathname)?.params?.id ||
                 state.keyToKeepStateOnLocationChange === match(ROUTES.VIEW_PAPER)(payload.location.pathname)?.params?.resourceId ||
                 state.keyToKeepStateOnLocationChange === match(ROUTES.VIEW_PAPER_CONTRIBUTION)(payload.location.pathname)?.params?.contributionId
             ) {
@@ -493,6 +500,7 @@ export const {
     createTemplate,
     setIsFetchingTemplatesOfClass,
     setIsFetchingTemplateData,
+    updateOrderValues,
 } = statementBrowserSlice.actions;
 
 export default statementBrowserSlice.reducer;
@@ -1409,6 +1417,7 @@ export function addStatements(statements, resourceId, depth) {
             resourceStatements,
             [
                 resourceStatements => resourceStatements.predicate.label.toLowerCase(),
+                resourceStatements => resourceStatements.index, // in case the statement is part of a list
                 resourceStatements => resourceStatements.object.label.toLowerCase(),
             ],
             ['asc'],
@@ -1765,4 +1774,14 @@ export function getDepthByValueId(state, valueId) {
         return 1;
     }
     return 1 + getDepthByValueId(state, property.valueIds[0]);
+}
+
+export function checkIfIsList({ state, propertyId }) {
+    if (!propertyId) {
+        return false;
+    }
+    const { selectedResource } = state.statementBrowser;
+    const subjectResource = state.statementBrowser.resources.byId[selectedResource];
+    const property = state.statementBrowser.properties.byId[propertyId];
+    return property?.existingPredicateId === PREDICATES.HAS_LIST_ELEMENT && subjectResource?.classes?.includes(CLASSES.LIST);
 }

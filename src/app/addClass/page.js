@@ -54,7 +54,7 @@ const AddClass = () => {
                 }
                 toast.success('Class created successfully');
                 setIsLoading(false);
-                router.push(reverse(ROUTES.CLASS, { id: newClass.id }));
+                router.push(`${reverse(ROUTES.CLASS, { id: newClass.id })}?isEditMode=true`);
             } catch (error) {
                 console.error(error);
                 setIsLoading(false);
