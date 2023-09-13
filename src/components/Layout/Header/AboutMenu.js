@@ -11,6 +11,7 @@ import { reverse } from 'named-urls';
 import styled from 'styled-components';
 import { groupBy, get } from 'lodash';
 import ContentLoader from 'react-content-loader';
+import usePathname from 'components/NextJsMigration/usePathname';
 
 const StyledButtonDropdown = styled(UncontrolledButtonDropdown)`
     @media (max-width: ${props => props.theme.gridBreakpoints.md}) {
@@ -26,6 +27,7 @@ const AboutMenu = ({ closeMenu }) => {
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
         const getItems = async () => {
@@ -57,6 +59,7 @@ const AboutMenu = ({ closeMenu }) => {
                                 exact
                                 href={reverseWithSlug(ROUTES.ABOUT, { id, slug: title })}
                                 onClick={() => closeMenu()}
+                                active={pathname === reverseWithSlug(ROUTES.ABOUT, { id, slug: title })}
                             >
                                 {title}
                             </DropdownItem>
@@ -81,6 +84,7 @@ const AboutMenu = ({ closeMenu }) => {
                                             tag={Link}
                                             end
                                             href={reverseWithSlug(ROUTES.ABOUT, { id, slug: title })}
+                                            active={pathname === reverseWithSlug(ROUTES.ABOUT, { id, slug: title })}
                                             onClick={() => closeMenu()}
                                         >
                                             {title}

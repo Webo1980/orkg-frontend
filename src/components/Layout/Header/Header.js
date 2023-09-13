@@ -336,31 +336,57 @@ const Header = () => {
                                 View <FontAwesomeIcon style={{ marginTop: '4px' }} icon={faChevronDown} pull="right" />
                             </DropdownToggle>
                             <DropdownMenu>
-                                <DropdownItem tag={Link} end href={ROUTES.COMPARISONS} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.COMPARISONS} onClick={closeMenu} active={pathname === ROUTES.COMPARISONS}>
                                     Comparisons
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.PAPERS} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.PAPERS} onClick={closeMenu} active={pathname === ROUTES.PAPERS}>
                                     Papers
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.VISUALIZATIONS} onClick={closeMenu}>
+                                <DropdownItem
+                                    tag={Link}
+                                    end
+                                    href={ROUTES.VISUALIZATIONS}
+                                    onClick={closeMenu}
+                                    active={pathname === ROUTES.VISUALIZATIONS}
+                                >
                                     Visualizations
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.REVIEWS} onClick={closeMenu} className="d-flex justify-content-between">
+                                <DropdownItem
+                                    tag={Link}
+                                    end
+                                    href={ROUTES.REVIEWS}
+                                    onClick={closeMenu}
+                                    className="d-flex justify-content-between"
+                                    active={pathname === ROUTES.REVIEWS}
+                                >
                                     Reviews{' '}
                                     <small className="ms-2">
                                         <Badge color="info">Beta</Badge>
                                     </small>
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.LISTS} onClick={closeMenu} className="d-flex justify-content-between">
+                                <DropdownItem
+                                    tag={Link}
+                                    end
+                                    href={ROUTES.LISTS}
+                                    onClick={closeMenu}
+                                    className="d-flex justify-content-between"
+                                    active={pathname === ROUTES.LISTS}
+                                >
                                     Lists{' '}
                                     <small className="ms-2">
                                         <Badge color="info">Beta</Badge>
                                     </small>
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.BENCHMARKS} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.BENCHMARKS} onClick={closeMenu} active={pathname === ROUTES.BENCHMARKS}>
                                     Benchmarks
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.RESEARCH_FIELDS} onClick={closeMenu}>
+                                <DropdownItem
+                                    tag={Link}
+                                    end
+                                    href={ROUTES.RESEARCH_FIELDS}
+                                    onClick={closeMenu}
+                                    active={pathname === ROUTES.RESEARCH_FIELDS}
+                                >
                                     Research fields
                                 </DropdownItem>
                                 {/** <DropdownItem tag={Link} end to={ROUTES.DIAGRAMS} onClick={closeMenu}>
@@ -375,6 +401,7 @@ const Header = () => {
                                     href={ROUTES.OBSERVATORIES}
                                     onClick={closeMenu}
                                     className="d-flex justify-content-between"
+                                    active={pathname === ROUTES.OBSERVATORIES}
                                 >
                                     Observatories{' '}
                                     <small className="ms-2">
@@ -385,7 +412,7 @@ const Header = () => {
                                     tag={Link}
                                     end
                                     href={reverse(ROUTES.ORGANIZATIONS, {
-                                        type: ORGANIZATIONS_TYPES.find(o => o.id === ORGANIZATIONS_MISC.GENERAL).label,
+                                        id: ORGANIZATIONS_TYPES.find(o => o.id === ORGANIZATIONS_MISC.GENERAL).label,
                                     })}
                                     onClick={closeMenu}
                                 >
@@ -395,7 +422,7 @@ const Header = () => {
                                     tag={Link}
                                     end
                                     href={reverse(ROUTES.ORGANIZATIONS, {
-                                        type: ORGANIZATIONS_TYPES.find(o => o.id === ORGANIZATIONS_MISC.EVENT).label,
+                                        id: ORGANIZATIONS_TYPES.find(o => o.id === ORGANIZATIONS_MISC.EVENT).label,
                                     })}
                                     onClick={closeMenu}
                                 >
@@ -405,13 +432,13 @@ const Header = () => {
 
                                 <DropdownItem header>Advanced views</DropdownItem>
 
-                                <DropdownItem tag={Link} end href={ROUTES.RESOURCES} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.RESOURCES} onClick={closeMenu} active={pathname === ROUTES.RESOURCES}>
                                     Resources
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.PROPERTIES} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.PROPERTIES} onClick={closeMenu} active={pathname === ROUTES.PROPERTIES}>
                                     Properties
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.CLASSES} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.CLASSES} onClick={closeMenu} active={pathname === ROUTES.CLASSES}>
                                     Classes
                                 </DropdownItem>
                             </DropdownMenu>
@@ -423,7 +450,7 @@ const Header = () => {
                                 Tools <FontAwesomeIcon style={{ marginTop: '4px' }} icon={faChevronDown} pull="right" />
                             </DropdownToggle>
                             <DropdownMenu>
-                                <DropdownItem tag={Link} end href={ROUTES.TOOLS} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.TOOLS} onClick={closeMenu} active={pathname === ROUTES.TOOLS}>
                                     Tools overview
                                 </DropdownItem>
                                 <DropdownItem divider />
@@ -433,10 +460,17 @@ const Header = () => {
                                     end
                                     href={ROUTES.CONTRIBUTION_EDITOR}
                                     onClick={e => requireAuthentication(e, ROUTES.CONTRIBUTION_EDITOR)}
+                                    active={pathname === ROUTES.CONTRIBUTION_EDITOR}
                                 >
                                     Contribution editor
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.CSV_IMPORT} onClick={e => requireAuthentication(e, ROUTES.CSV_IMPORT)}>
+                                <DropdownItem
+                                    tag={Link}
+                                    end
+                                    href={ROUTES.CSV_IMPORT}
+                                    onClick={e => requireAuthentication(e, ROUTES.CSV_IMPORT)}
+                                    active={pathname === ROUTES.CSV_IMPORT}
+                                >
                                     CSV import
                                 </DropdownItem>
                                 <DropdownItem
@@ -444,15 +478,16 @@ const Header = () => {
                                     end
                                     href={ROUTES.PDF_ANNOTATION}
                                     onClick={e => requireAuthentication(e, ROUTES.PDF_ANNOTATION)}
+                                    active={pathname === ROUTES.PDF_ANNOTATION}
                                 >
                                     Survey table import
                                 </DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.TEMPLATES} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.TEMPLATES} onClick={closeMenu} active={pathname === ROUTES.TEMPLATES}>
                                     Templates
                                 </DropdownItem>
                                 <DropdownItem divider />
                                 <DropdownItem header>Data export</DropdownItem>
-                                <DropdownItem tag={Link} end href={ROUTES.DATA} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.DATA} onClick={closeMenu} active={pathname === ROUTES.DATA}>
                                     Data Access
                                 </DropdownItem>
                             </DropdownMenu>
@@ -466,7 +501,7 @@ const Header = () => {
                             <DropdownMenu>
                                 <AboutMenu closeMenu={closeMenu} />
                                 <DropdownItem divider />
-                                <DropdownItem tag={Link} end href={ROUTES.HELP_CENTER} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.HELP_CENTER} onClick={closeMenu} active={pathname === ROUTES.HELP_CENTER}>
                                     Help center
                                 </DropdownItem>
                                 <DropdownItem
@@ -479,7 +514,7 @@ const Header = () => {
                                     GitLab <Icon size="sm" icon={faExternalLinkAlt} />
                                 </DropdownItem>
                                 <DropdownItem divider />
-                                <DropdownItem tag={Link} end href={ROUTES.STATS} onClick={closeMenu}>
+                                <DropdownItem tag={Link} end href={ROUTES.STATS} onClick={closeMenu} active={pathname === ROUTES.STATS}>
                                     Statistics
                                 </DropdownItem>
                             </DropdownMenu>

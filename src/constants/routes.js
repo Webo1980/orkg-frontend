@@ -20,7 +20,7 @@ const routes = {
     TEMPLATE: '/template/:id',
     TEMPLATE_TABS: '/template/:id/:activeTab',
     ADD_TEMPLATE: '/template/',
-    ORGANIZATIONS: '/organizations/:type',
+    ORGANIZATIONS: '/organizations/:id',
     OBSERVATORIES: '/observatories',
     OBSERVATORIES_RESEARCH_FIELD: '/observatories/:researchFieldId',
     ADD_ORGANIZATION: '/addOrganization/:type',

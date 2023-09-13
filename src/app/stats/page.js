@@ -55,7 +55,7 @@ const Stats = () => {
                 <Row>
                     <ColoredStatsBox number={stats.users} label="Users" isLoading={isLoading} />
                     <ColoredStatsBox
-                        link={reverse(ROUTES.ORGANIZATIONS, { type: capitalize(ORGANIZATIONS_MISC.GENERAL) })}
+                        link={reverse(ROUTES.ORGANIZATIONS, { id: capitalize(ORGANIZATIONS_MISC.GENERAL) })}
                         number={stats.organizations}
                         label="Organizations"
                         isLoading={isLoading}

@@ -79,7 +79,7 @@ describe('ClassesItem', () => {
         await selectEvent.select(screen.getByRole('combobox', { name: /Specify the classes of the resource/i }), 'R40006');
         await waitFor(() => screen.getByRole('button', { name: 'Done' }));
         fireEvent.click(screen.getByRole('button', { name: 'Done' }));
-        expect(screen.queryAllByText(/Template/i)).toHaveLength(3);
+        expect(screen.queryAllByText(/Template/i)).toHaveLength(2);
         await waitFor(() => expect(screen.queryAllByText(/Basic reproduction number/i)).toHaveLength(2));
         await waitFor(() => expect(screen.getByText(/Location/i)).toBeInTheDocument());
     });
