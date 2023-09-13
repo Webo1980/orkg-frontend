@@ -31,6 +31,7 @@ const initialState = {
     templateID: '',
     isClosed: false,
     hasLabelFormat: false,
+    isFlashCard: false,
     labelFormat: '',
     error: null,
     propertyShapes: [],
@@ -59,6 +60,9 @@ export const templateEditorSlice = createSlice({
         },
         updateHasLabelFormat: (state, { payload }) => {
             state.hasLabelFormat = payload;
+        },
+        updateUseAsInputForm: (state, { payload }) => {
+            state.isFlashCard = payload;
         },
         updateLabelFormat: (state, { payload }) => {
             state.labelFormat = payload;
@@ -90,6 +94,7 @@ export const templateEditorSlice = createSlice({
             description: payload.description,
             labelFormat: payload.labelFormat,
             hasLabelFormat: payload.hasLabelFormat,
+            isFlashCard: payload.isFlashCard,
             isClosed: payload.isClosed,
             statements: payload.statements,
             predicate: payload.predicate,
@@ -141,6 +146,7 @@ export const {
     updatePredicate,
     updateIsClosed,
     updateHasLabelFormat,
+    updateUseAsInputForm,
     updateLabelFormat,
     updateClass,
     updateResearchProblems,
@@ -299,6 +305,22 @@ export const saveTemplate = () => async (dispatch, getState) => {
                                     },
                                 ],
                             }),
+                            ...(propertyShape.placeholder && {
+                                [PREDICATES.PLACEHOLDER]: [
+                                    {
+                                        text: propertyShape.placeholder,
+                                        datatype: 'xsd:string',
+                                    },
+                                ],
+                            }),
+                            ...(propertyShape.description && {
+                                [PREDICATES.DESCRIPTION]: [
+                                    {
+                                        text: propertyShape.description,
+                                        datatype: 'xsd:string',
+                                    },
+                                ],
+                            }),
                             [PREDICATES.SHACL_ORDER]: [
                                 {
                                     text: index,
@@ -348,6 +370,9 @@ export const saveTemplate = () => async (dispatch, getState) => {
         if (data.hasLabelFormat && data.labelFormat) {
             const labelFormatLiteral = await createLiteral(data.labelFormat);
             promises.push(createResourceStatement(templateResource, PREDICATES.TEMPLATE_LABEL_FORMAT, labelFormatLiteral.id));
+            // save the option to use the formatted label as input form
+            const isFlashCardLiteral = await createLiteral(data.isFlashCard, 'xsd:boolean');
+            promises.push(createResourceStatement(templateResource, PREDICATES.TEMPLATE_IS_FLASH_CARD, isFlashCardLiteral.id));
         }
 
         return Promise.all(promises)

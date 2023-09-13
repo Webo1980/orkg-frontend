@@ -63,6 +63,8 @@ const PropertyShapesTab = () => {
                     order: null,
                     maxInclusive: null,
                     minInclusive: null,
+                    placeholder: '',
+                    description: '',
                 },
             ];
             setShowAddProperty(false);
@@ -138,17 +140,10 @@ const PropertyShapesTab = () => {
                     propertyShapes.length > 0 &&
                     propertyShapes.map((templateProperty, index) => (
                         <PropertyShape
+                            id={index}
                             key={`tc${templateProperty.property.id}`}
                             handleDeletePropertyShape={handleDeletePropertyShape}
-                            id={index}
                             moveCard={moveCard}
-                            property={templateProperty.property}
-                            value={templateProperty.value}
-                            minCount={templateProperty.minCount}
-                            maxCount={templateProperty.maxCount}
-                            minInclusive={templateProperty.minInclusive}
-                            maxInclusive={templateProperty.maxInclusive}
-                            pattern={templateProperty.pattern}
                             handlePropertiesSelect={handlePropertiesSelect}
                             handleClassOfPropertySelect={handleClassOfPropertySelect}
                         />

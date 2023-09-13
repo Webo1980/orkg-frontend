@@ -734,13 +734,34 @@ export function getPropertyIdByByResourceAndPredicateId(state, resourceId, exist
     const propertyIds = resource.propertyIds ?? [];
     let propertyId;
     if (propertyIds?.length > 0) {
-        propertyId = propertyIds.find(propertyId => {
-            const property = state.statementBrowser.properties.byId[propertyId];
+        propertyId = propertyIds.find(_propertyId => {
+            const property = state.statementBrowser.properties.byId[_propertyId];
             return property.existingPredicateId === existingPredicateId;
         });
         return propertyId ?? null; // return a list without null values (predicates that aren't in the database)
     }
     return null;
+}
+
+/**
+ * Get the list of values by resource by existing predicate id
+ *
+ * @param {Object} state - Current state of the Store
+ * @param {String} resourceId - Resource ID
+ * @param {String} existingPredicateId - existing predicate ID
+ * @return {String} - values id
+ */
+export function getValuesByByResourceAndPredicateId(state, resourceId, existingPredicateId) {
+    const propertyId = getPropertyIdByByResourceAndPredicateId(state, resourceId, existingPredicateId);
+
+    if (!propertyId) {
+        return null;
+    }
+    const property = state.statementBrowser.properties.byId[propertyId];
+    if (!property) {
+        return [];
+    }
+    return property.valueIds;
 }
 
 /**

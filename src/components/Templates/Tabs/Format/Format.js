@@ -1,5 +1,5 @@
 import { FormGroup, Label, FormText, Input, Table } from 'reactstrap';
-import { updateHasLabelFormat, updateLabelFormat } from 'slices/templateEditorSlice';
+import { updateHasLabelFormat, updateLabelFormat, updateUseAsInputForm } from 'slices/templateEditorSlice';
 import { useSelector, useDispatch } from 'react-redux';
 
 const Format = () => {
@@ -8,6 +8,7 @@ const Format = () => {
     const editMode = useSelector(state => state.templateEditor.editMode);
     const hasLabelFormat = useSelector(state => state.templateEditor.hasLabelFormat);
     const labelFormat = useSelector(state => state.templateEditor.labelFormat);
+    const isFlashCard = useSelector(state => state.templateEditor.isFlashCard);
 
     const handleChangeLabelFormat = event => {
         dispatch(updateLabelFormat(event.target.value));
@@ -15,6 +16,10 @@ const Format = () => {
 
     const handleSwitchHasLabelFormat = event => {
         dispatch(updateHasLabelFormat(event.target.checked));
+    };
+
+    const handleSwitchUseAsInputForm = event => {
+        dispatch(updateUseAsInputForm(event.target.checked));
     };
 
     return (
@@ -35,6 +40,19 @@ const Format = () => {
                 </div>
                 {hasLabelFormat && propertyShapes?.length > 0 && (
                     <div className="mt-3">
+                        <div className="mb-3">
+                            <Input
+                                onChange={handleSwitchUseAsInputForm}
+                                checked={isFlashCard}
+                                id="switchUseAsInputForm"
+                                type="switch"
+                                name="useAsInputForm"
+                                disabled={!editMode}
+                            />{' '}
+                            <Label for="switchUseAsInputForm" className="mb-0">
+                                Use the formatted text as an input form
+                            </Label>
+                        </div>
                         <FormGroup className="mb-4">
                             <Label for="formatted-label">Formatted label</Label>
                             <Input

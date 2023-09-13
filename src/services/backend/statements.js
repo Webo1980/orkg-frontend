@@ -227,6 +227,14 @@ export const getTemplateById = async templateId => {
         templateId,
     );
 
+    const templateIsFlashCard = filterObjectOfStatementsByPredicateAndClass(
+        response.statements,
+        PREDICATES.TEMPLATE_IS_FLASH_CARD,
+        true,
+        null,
+        templateId,
+    );
+
     const descriptionLabel = filterObjectOfStatementsByPredicateAndClass(response.statements, PREDICATES.DESCRIPTION, true, null, templateId);
 
     const templateIsClosed = filterObjectOfStatementsByPredicateAndClass(response.statements, PREDICATES.SHACL_CLOSED, true, null, templateId);
@@ -271,6 +279,7 @@ export const getTemplateById = async templateId => {
         description: descriptionLabel ? descriptionLabel.label : '',
         hasLabelFormat: !!templateFormatLabel,
         isClosed: templateIsClosed?.label === 'true' || templateIsClosed?.label === 'True',
+        isFlashCard: templateIsFlashCard?.label === 'true' || templateIsFlashCard?.label === 'True',
         propertyShapes: propertyShapes?.length > 0 ? propertyShapes.sort((c1, c2) => sortMethod(c1.order, c2.order)) : [],
         class: targetClass
             ? {

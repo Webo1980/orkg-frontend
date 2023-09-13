@@ -8,6 +8,8 @@ import NoData from 'components/StatementBrowser/NoData/NoData';
 import NotFound from 'components/StatementBrowser/NotFound/NotFound';
 import PropertySuggestions from 'components/StatementBrowser/PropertySuggestions/PropertySuggestions';
 import StatementItemWrapper from 'components/StatementBrowser/StatementItem/StatementItemWrapper';
+import StatementMenuHeader from 'components/StatementBrowser/Statements/StatementMenuHeader/StatementMenuHeader';
+import ItemPreviewFactory from 'components/StatementBrowser/ValueItem/ItemPreviewFactory/ItemPreviewFactory';
 import { StyledLevelBox, StyledStatementItem } from 'components/StatementBrowser/styled';
 import ConditionalWrapper from 'components/Utils/ConditionalWrapper';
 import { ENTITIES } from 'constants/graphSettings';
@@ -19,13 +21,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Col, ListGroup, Row } from 'reactstrap';
 import {
     getSuggestedProperties,
-    initializeWithoutContribution,
     initializeWithResource,
+    initializeWithoutContribution,
     setInitialPath,
     updateSettings,
 } from 'slices/statementBrowserSlice';
-import ItemPreviewFactory from '../ValueItem/ItemPreviewFactory/ItemPreviewFactory';
-import StatementMenuHeader from './StatementMenuHeader/StatementMenuHeader';
 
 const Statements = props => {
     const selectedResource = useSelector(state => state.statementBrowser.selectedResource);
@@ -98,21 +98,21 @@ const Statements = props => {
         }
 
         return (
-            <ConditionalWrapper
-                condition={!props.resourcesAsLinks && resource?.classes}
-                wrapper={children => (
-                    <ItemPreviewFactory id={selectedResource} classes={resource?.classes}>
-                        {children}
-                    </ItemPreviewFactory>
-                )}
-            >
-                <div>
-                    <Row>
-                        <Col lg={props.propertySuggestionsComponent ? 9 : 12}>
-                            <ClassesItem
-                                enableEdit={(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) && props.enableEdit}
-                                syncBackend={syncBackend}
-                            />
+            <div>
+                <Row>
+                    <Col lg={props.propertySuggestionsComponent ? 9 : 12}>
+                        <ClassesItem
+                            enableEdit={(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) && props.enableEdit}
+                            syncBackend={syncBackend}
+                        />
+                        <ConditionalWrapper
+                            condition={!props.resourcesAsLinks && resource?.classes}
+                            wrapper={children => (
+                                <ItemPreviewFactory id={selectedResource} classes={resource?.classes} enableEdit={props.enableEdit}>
+                                    {children}
+                                </ItemPreviewFactory>
+                            )}
+                        >
                             <ListGroup tag="div" className="listGroupEnlarge">
                                 {selectedResource && !resource.isFetching ? (
                                     <>
@@ -148,14 +148,14 @@ const Statements = props => {
                                     <AddProperty resourceId={selectedResource} syncBackend={syncBackend} />
                                 )}
                             </ListGroup>
-                        </Col>
-                        {(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) &&
-                            props.enableEdit &&
-                            suggestedProperties.length > 0 &&
-                            propertySuggestionsComponent}
-                    </Row>
-                </div>
-            </ConditionalWrapper>
+                        </ConditionalWrapper>
+                    </Col>
+                    {(shared <= 1 || (props.canEditSharedRootLevel && level === 0)) &&
+                        props.enableEdit &&
+                        suggestedProperties.length > 0 &&
+                        propertySuggestionsComponent}
+                </Row>
+            </div>
         );
     };
 

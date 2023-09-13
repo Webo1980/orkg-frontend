@@ -23,6 +23,7 @@ const DragHandler = styled.div`
 function TemplateComponentProperty(props) {
     const [isEditing, setIsEditing] = useState(false);
     const editMode = useSelector(state => state.templateEditor.editMode);
+    const property = useSelector(state => state.templateEditor.propertyShapes[props.id].property);
 
     return (
         <PropertyStyle className="col-4" tabIndex="0">
@@ -33,14 +34,14 @@ function TemplateComponentProperty(props) {
             )}
             {!isEditing ? (
                 <div className="propertyLabel">
-                    {props.property?.id ? (
-                        <Link to={reverse(ROUTES.PROPERTY, { id: props.property.id })} target="_blank" className="text-dark">
-                            <DescriptionTooltip id={props.property.id} _class={ENTITIES.PREDICATE}>
-                                {props.property.label}
+                    {property?.id ? (
+                        <Link to={reverse(ROUTES.PROPERTY, { id: property.id })} target="_blank" className="text-dark">
+                            <DescriptionTooltip id={property.id} _class={ENTITIES.PREDICATE}>
+                                {property.label}
                             </DescriptionTooltip>
                         </Link>
                     ) : (
-                        props.property?.label
+                        property?.label
                     )}
 
                     {editMode && (
@@ -79,7 +80,7 @@ function TemplateComponentProperty(props) {
                                 props.handlePropertiesSelect(selected, action, props.id);
                                 setIsEditing(false);
                             }}
-                            value={props.property}
+                            value={property}
                             autoLoadOption={true}
                             openMenuOnFocus={true}
                             allowCreate={true}
@@ -97,7 +98,6 @@ function TemplateComponentProperty(props) {
 
 TemplateComponentProperty.propTypes = {
     id: PropTypes.number.isRequired,
-    property: PropTypes.object.isRequired,
     handleDeletePropertyShape: PropTypes.func.isRequired,
     handlePropertiesSelect: PropTypes.func.isRequired,
     dragRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({ current: PropTypes.instanceOf(Element) })]),
