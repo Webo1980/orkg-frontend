@@ -1,6 +1,8 @@
+import routes from 'constants/routes';
 import { faPlusCircle, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { contributionsRemoved, loadContributions } from 'slices/contributionEditorSlice';
+import { Modal, ModalHeader, ModalBody } from 'reactstrap';
 import CreateProperty from 'components/ContributionEditor/CreateProperty';
 import PropertySuggestions from 'components/ContributionEditor/PropertySuggestions/PropertySuggestions';
 import EditorTable from 'components/ContributionEditor/EditorTable';
@@ -10,7 +12,9 @@ import AddContribution from 'components/Comparison/AddContribution/AddContributi
 import TableScrollContainer from 'components/Comparison/Table/TableScrollContainer';
 import CreateContributionModal from 'components/CreateContributionModal/CreateContributionModal';
 import CreatePaperModal from 'components/CreatePaperModal/CreatePaperModal';
-import routes from 'constants/routes';
+import DataTrustworthinessReport from 'pages/Comparisons/ComparisonWizard/DataTrustworthinessReport';
+import ClicksHistoryReport from 'pages/Comparisons/ComparisonWizard/ClicksHistoryReport';
+import ManageComparisonWizard from 'pages/Comparisons/ComparisonWizard/ManageComparisonWizard';
 import { reverse } from 'named-urls';
 import qs from 'qs';
 import { useLocation, Link } from 'react-router-dom';
@@ -21,11 +25,15 @@ import { Alert, Button, Container } from 'reactstrap';
 import TitleBar from 'components/TitleBar/TitleBar';
 
 const ContributionEditor = () => {
+    const manageComparison = ManageComparisonWizard();
+    const { DraggableResizableDiv } = manageComparison;
     const [isOpenAddContribution, setIsOpenAddContribution] = useState(false);
     const [isOpenCreateContribution, setIsOpenCreateContribution] = useState(false);
     const [isOpenCreatePaper, setIsOpenCreatePaper] = useState(false);
     const [createContributionPaperId, setCreateContributionPaperId] = useState(null);
     const [initialValueCreatePaper, setInitialValueCreatePaper] = useState(null);
+    const [showClicksHistoryReportDialog, setShowClicksHistoryReportDialog] = useState(false);
+    const [showDataTrustworthinessReportDialog, setShowDataTrustworthinessReportDialog] = useState(false);
     const { getContributionIds, handleAddContributions } = useContributionEditor();
     const contributions = useSelector(state => state.contributionEditor.contributions);
     const isLoading = useSelector(state => state.contributionEditor.isLoading);
@@ -40,7 +48,8 @@ const ContributionEditor = () => {
             )?.length ?? 0,
     );
     const { hasPreviousVersion } = qs.parse(location.search, { ignoreQueryPrefix: true });
-
+    const searchParams = new URLSearchParams(location.search);
+    const folderName = searchParams.get('folder');
     useEffect(() => {
         document.title = 'Contribution editor - ORKG';
     }, []);
@@ -93,9 +102,25 @@ const ContributionEditor = () => {
 
     return (
         <>
+            <ClicksHistoryReport
+                    documentsFilePath = {`${folderName}`}
+                    showClicksHistoryReportDialog={showClicksHistoryReportDialog}
+                    toggleClicksHistoryReportDialog={() => setShowClicksHistoryReportDialog(v => !v)}
+            />
+            <DataTrustworthinessReport
+                    documentsFilePath={`/api/jsons/${folderName}.json`}
+                    showDataTrustworthinessReportDialog={showDataTrustworthinessReportDialog}
+                    toggleDataTrustworthinessReportDialog={() => setShowDataTrustworthinessReportDialog(v => !v)}
+            />
             <TitleBar
                 buttonGroup={
                     <>
+                        <Button color="secondary" style={{ marginRight: 2 }} size="sm" onClick={() => setShowClicksHistoryReportDialog(v => !v)}>
+                            Clicks History
+                        </Button>
+                        <Button color="secondary" style={{ marginRight: 2 }} size="sm" onClick={() => setShowDataTrustworthinessReportDialog(v => !v)}>
+                            Data Trustworthiness
+                        </Button>
                         <Button
                             tag={Link}
                             to={`${reverse(routes.COMPARISON_NOT_PUBLISHED)}?contributions=${contributionIds.join(',')}${

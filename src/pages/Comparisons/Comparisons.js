@@ -1,11 +1,11 @@
+import { CLASSES } from 'constants/graphSettings';
+import ROUTES from 'constants/routes';
 import { useEffect } from 'react';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import ComparisonCard from 'components/Cards/ComparisonCard/ComparisonCard';
 import ListPage from 'components/ListPage/ListPage';
 import RequireAuthentication from 'components/RequireAuthentication/RequireAuthentication';
-import { CLASSES } from 'constants/graphSettings';
-import ROUTES from 'constants/routes';
 import { find } from 'lodash';
 import { Link } from 'react-router-dom';
 import { getResourcesByClass } from 'services/backend/resources';
@@ -57,6 +57,9 @@ const Comparisons = () => {
             >
                 <Icon icon={faPlus} /> Create comparison
             </RequireAuthentication>
+            <Link style={{ marginLeft: '1px' }} className="btn btn-secondary btn-sm flex-shrink-0" to={ROUTES.COMPARISON_WIZARD}>
+                    Comparison Wizard
+            </Link>
             <Link style={{ marginLeft: '1px' }} className="btn btn-secondary btn-sm flex-shrink-0" to={ROUTES.FEATURED_COMPARISONS}>
                 Featured comparisons
             </Link>

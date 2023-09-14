@@ -1,3 +1,4 @@
+import ROUTES from 'constants/routes.js';
 import { useEffect } from 'react';
 import { Alert, Button, Modal, ModalHeader, ModalBody, ModalFooter, Progress } from 'reactstrap';
 import { Link } from 'react-router-dom';
@@ -5,25 +6,26 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import { reverse } from 'named-urls';
-import ROUTES from 'constants/routes.js';
 import useImportBulkData from 'components/ConfirmBulkImport/useImportBulkData';
 import PaperList from 'components/ConfirmBulkImport/PaperList';
 
 const ConfirmBulkImport = props => {
-    const { data, isOpen, toggle, onFinish } = props;
-    const { papers, existingPaperIds, idToLabel, isLoading, createdContributions, makePaperList, handleImport, validationErrors } = useImportBulkData(
+    const { data, isOpen, toggle, onFinish, folder } = props;
+    console.log(data);
+    const { papers, existingPaperIds, idToLabel, isLoading, createdContributions, makePaperList, handleImport, validationErrors, actualFolder } = useImportBulkData(
         {
             data,
             onFinish,
         },
     );
-
+    let selectedFolder = '';
+    (folder !== '' && folder !== undefined) ? selectedFolder = folder : selectedFolder = actualFolder;
     useEffect(() => {
         makePaperList();
     }, [data, makePaperList]);
 
     const comparisonUrl = createdContributions
-        ? `${reverse(ROUTES.CONTRIBUTION_EDITOR)}?contributions=${createdContributions.map(entry => entry.contributionId)}`
+        ? `${reverse(ROUTES.CONTRIBUTION_EDITOR)}?contributions=${createdContributions.map(entry => entry.contributionId)}&folder=${selectedFolder}`
         : null;
 
     const progressPercentage =
@@ -84,6 +86,7 @@ ConfirmBulkImport.propTypes = {
     isOpen: PropTypes.bool.isRequired,
     toggle: PropTypes.func.isRequired,
     onFinish: PropTypes.func,
+    folder: PropTypes.string,
 };
 
 ConfirmBulkImport.defaultProps = {

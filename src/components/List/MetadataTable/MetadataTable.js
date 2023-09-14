@@ -1,19 +1,20 @@
+import ROUTES from 'constants/routes';
 import PropTypes from 'prop-types';
 import { Card, Table } from 'reactstrap';
 import { Link } from 'react-router-dom';
-import ROUTES from 'constants/routes';
 import { reverse } from 'named-urls';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import Tippy from '@tippyjs/react';
 import moment from 'moment';
 
-function MetadataTable({ title = '', authors = [], publicationMonth = null, publicationYear = null, venue = '', contentTypeId = null }) {
+function MetadataTable({ title = '', authors = [], publicationMonth = null, publicationYear = null, venue = '', contentTypeId = null, pdfFile = '' }) {
     return (
         <Card className="mb-2" body>
             <Table className="mb-0">
                 <tbody>
-                    <tr className="table-borderless">
+                    {(title) && (
+                     <tr className="table-borderless">
                         <td>
                             <strong>Title:</strong>{' '}
                             {contentTypeId ? (
@@ -28,7 +29,8 @@ function MetadataTable({ title = '', authors = [], publicationMonth = null, publ
                                 </Tippy>
                             )}
                         </td>
-                    </tr>
+                     </tr>
+                    )}
                     {authors.length > 0 && (
                         <tr>
                             <td>
@@ -54,6 +56,13 @@ function MetadataTable({ title = '', authors = [], publicationMonth = null, publ
                             </td>
                         </tr>
                     )}
+                    {pdfFile && (
+                        <tr>
+                            <td>
+                                <strong>PDF File:</strong> {pdfFile}
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
             </Table>
         </Card>
@@ -67,6 +76,7 @@ MetadataTable.propTypes = {
     publicationYear: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     venue: PropTypes.string,
     contentTypeId: PropTypes.string,
+    pdfFile: PropTypes.string,
 };
 
 export default MetadataTable;

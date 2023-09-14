@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import ROUTES from 'constants/routes';
 import { lazy } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import ResourceDetails from 'pages/Resources/Resource';
@@ -24,7 +25,6 @@ import PropertyDetails from 'pages/Properties/Property';
 import Templates from 'pages/Templates/Templates';
 import ImportSHACL from 'pages/Templates/ImportSHACL';
 import Template from 'pages/Templates/Template';
-import ROUTES from 'constants/routes';
 import RedirectShortLinks from 'pages/RedirectShortLinks';
 import ResearchField from 'pages/ResearchFields/ResearchField';
 import ResearchFields from 'pages/ResearchFields/ResearchFields';
@@ -48,6 +48,7 @@ import ReviewNew from 'pages/Reviews/ReviewNew';
 import ReviewDiff from 'pages/Reviews/ReviewDiff';
 import Tools from 'pages/Tools';
 import AddComparison from 'pages/AddComparison';
+import ComparisonWizard from 'pages/Comparisons/ComparisonWizard/ComparisonWizard';
 import requireAuthentication from 'requireAuthentication';
 import Benchmarks from 'pages/Benchmarks/Benchmarks';
 import Benchmark from 'pages/Benchmarks/Benchmark';
@@ -135,7 +136,7 @@ const routes = [
         path: ROUTES.TEMPLATES,
         element: Templates,
     },
-    {
+{
         path: ROUTES.IMPORT_SHACL,
         element: requireAuthentication(ImportSHACL),
     },
@@ -349,6 +350,10 @@ const routes = [
     {
         path: ROUTES.ADD_COMPARISON,
         element: AddComparison,
+    },
+    {
+        path: ROUTES.COMPARISON_WIZARD,
+        element: requireAuthentication(ComparisonWizard),
     },
     {
         path: ROUTES.TOOLS,

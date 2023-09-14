@@ -1,3 +1,4 @@
+import ROUTES from 'constants/routes.js';
 import { useState, useEffect } from 'react';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Button, Alert } from 'reactstrap';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -14,7 +15,6 @@ import NewerVersionWarning from 'components/Comparison/HistoryModal/NewerVersion
 import Publish from 'components/Comparison/Publish/Publish';
 import { ComparisonTypeButton } from 'components/Comparison/styled';
 import { uniq, without } from 'lodash';
-import ROUTES from 'constants/routes.js';
 import { useNavigate, NavLink, useSearchParams } from 'react-router-dom';
 import { openAuthDialog } from 'slices/authSlice';
 import { CSVLink } from 'react-csv';
@@ -85,6 +85,7 @@ const ComparisonHeaderMenu = props => {
     const [showExportCitationsDialog, setShowExportCitationsDialog] = useState(false);
     const [isOpenTopAuthorsModal, setIsOpenTopAuthorsModal] = useState(false);
     const [isOpenQualityReportModal, setIsOpenQualityReportModal] = useState(false);
+    const [isDataTrustworthinessReport, setIsDataTrustworthinessReport] = useState(false);
 
     const user = useSelector(state => state.auth.user);
 
@@ -370,6 +371,7 @@ const ComparisonHeaderMenu = props => {
                                         </span>
                                     </Tippy>
                                     <DropdownItem onClick={() => setIsOpenQualityReportModal(true)}>Quality report</DropdownItem>
+                                    <DropdownItem onClick={() => setIsOpenQualityReportModal(true)}>Data Trustworthiness Report</DropdownItem>
                                     <Tippy disabled={isPublished} content="This feature only works for published comparisons">
                                         <span>
                                             <DropdownItem onClick={() => setIsOpenTopAuthorsModal(true)} disabled={!isPublished}>

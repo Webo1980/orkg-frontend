@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
 import { CLASSES, MISC, PREDICATES, RESOURCES } from 'constants/graphSettings';
+import DATA_TYPES, { checkDataTypeIsInValid, getSuggestionByValue } from 'constants/DataTypes';
+import { useState, useCallback } from 'react';
 import { omit, isString } from 'lodash';
 import { getStatementsBySubject } from 'services/backend/statements';
 import { getPaperByDOI } from 'services/backend/misc';
@@ -9,7 +10,6 @@ import { saveFullPaper } from 'services/backend/papers';
 import { Cite } from '@citation-js/core';
 import { parseCiteResult } from 'utils';
 import { toast } from 'react-toastify';
-import DATA_TYPES, { checkDataTypeIsInValid, getSuggestionByValue } from 'constants/DataTypes';
 
 const PREDEFINED_COLUMNS = [
     'paper:title',
@@ -22,7 +22,8 @@ const PREDEFINED_COLUMNS = [
     'paper:published_in',
 ];
 
-const useImportBulkData = ({ data, onFinish }) => {
+const useImportBulkData = ({ data, onFinish, folder = 'defaultFolderValue' }) => {
+    const actualFolder = folder || 'defaultFolderValue';
     const [papers, setPapers] = useState([]);
     const [existingPaperIds, setExistingPaperIds] = useState([]);
     const [idToLabel, setIdToLabel] = useState({});
@@ -378,7 +379,7 @@ const useImportBulkData = ({ data, onFinish }) => {
         onFinish();
     };
 
-    return { papers, existingPaperIds, idToLabel, isLoading, createdContributions, makePaperList, handleImport, validationErrors };
+    return { papers, existingPaperIds, idToLabel, isLoading, createdContributions, makePaperList, handleImport, validationErrors, actualFolder };
 };
 
 export default useImportBulkData;

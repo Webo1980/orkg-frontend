@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCookies } from 'react-cookie';
 import { setConfigurationAttribute } from 'slices/comparisonSlice';
 import EditModeHeader from 'components/EditModeHeader/EditModeHeader';
+import DataTrustworthinessReport from './ComparisonWizard/DataTrustworthinessReport';
+import ManageComparisonWizard from './ComparisonWizard/ManageComparisonWizard';
 
 const Comparison = () => {
     const { comparisonId } = useParams();
@@ -28,9 +30,10 @@ const Comparison = () => {
     const containerStyle = fullWidth ? { maxWidth: 'calc(100% - 100px)' } : {};
     const [cookies] = useCookies(['useFullWidthForComparisonTable']);
     const isPublished = !!comparisonResource.id;
+    const manageComparison = ManageComparisonWizard();
+    const { DraggableResizableDiv } = manageComparison;
 
     const dispatch = useDispatch();
-
     useEffect(() => {
         if (comparisonResource?.label) {
             document.title = `${comparisonResource.label} - Comparison - ORKG`;
@@ -43,6 +46,9 @@ const Comparison = () => {
 
     return (
         <div>
+            <DraggableResizableDiv initialWidth="1024px" initialHeight="800px" left="12%" top="28%" headText="Data Trustworthiness Report">
+                <DataTrustworthinessReport documentsFilePath={`/api/jsons/${comparisonId}.json`} />
+            </DraggableResizableDiv>
             <ComparisonHeaderMenu navigateToNewURL={navigateToNewURL} />
 
             <Container id="description" className="box rounded clearfix position-relative mb-4 px-5">

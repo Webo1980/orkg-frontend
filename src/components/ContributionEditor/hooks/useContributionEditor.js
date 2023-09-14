@@ -1,12 +1,16 @@
+import ROUTES from 'constants/routes';
+import { useState } from 'react';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
 import TableCell from 'components/ContributionEditor/TableCell';
 import TableHeaderColumn from 'components/ContributionEditor/TableHeaderColumn';
 import TableHeaderColumnFirst from 'components/ContributionEditor/TableHeaderColumnFirst';
 import TableHeaderRow from 'components/ContributionEditor/TableHeaderRow';
-import ROUTES from 'constants/routes';
 import { sortBy, uniq, without } from 'lodash';
 import qs from 'qs';
 import { useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const useContributionEditor = () => {
     const location = useLocation();
@@ -17,6 +21,42 @@ const useContributionEditor = () => {
         return without(uniq(contributionIds), undefined, null, '') ?? [];
     }, [location.search]);
 
+    const [approvalPercentage, setApprovalPercentage] = useState(0);
+    const [clickHistory, setClickHistory] = useState([]);
+    const queryParams = new URLSearchParams(location.search);
+    const folder = queryParams.get('folder');
+    const handleCellClick = (contributionId, propertyId, label, approved) => {
+        const timestamp = new Date().toLocaleString();
+
+        setClickHistory(prevHistory => [
+            ...prevHistory,
+            { contributionId, propertyId, label, time: timestamp, approved },
+        ]);
+
+        // Recalculate approvalPercentage
+        const newCountApproved = Object.values(clickHistory.reduce((acc, item) => ({ ...acc, [item.label]: item.approved }), {})).filter(status => status).length;
+        const newApprovalPercentage = (newCountApproved / countLabels) * 100;
+        setApprovalPercentage(newApprovalPercentage);
+
+        const newData = { // Create an object containing the data to be sent
+            contributionId,
+            propertyId,
+            label,
+            time: timestamp, // Include the time property
+            approved,
+            folder,
+        };
+        fetch('http://localhost:5003/api/save-updated-clicks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newData),
+        });
+        return false;
+    };
+    const countApproved = Object.values(clickHistory.reduce((acc, item) => ({ ...acc, [item.label]: item.approved }), {})).filter(status => status).length;
+    const countLabels = useSelector(state => Object.keys(state.contributionEditor.statements)).length;
     const { hasPreviousVersion } = qs.parse(location.search, { ignoreQueryPrefix: true });
 
     const handleAddContributions = ids => {
@@ -51,7 +91,7 @@ const useContributionEditor = () => {
     };
 
     const Cell = useCallback(
-        cell => <TableCell values={cell.value} contributionId={cell.column.id} propertyId={cell.row.original.property.id} />,
+        cell => <TableCell values={cell.value} contributionId={cell.column.id} propertyId={cell.row.original.property.id} handleCellClick={handleCellClick} clickHistory={clickHistory} />,
         [],
     );
 
@@ -79,7 +119,6 @@ const useContributionEditor = () => {
             }));
 
             data = sortBy(data, date => date.property.label.trim().toLowerCase());
-
             columns = [
                 {
                     Header: <TableHeaderColumnFirst />,
@@ -109,6 +148,8 @@ const useContributionEditor = () => {
         handleRemoveContribution,
         getContributionIds,
         generateTableMatrix,
+        countApproved,
+        clickHistory,
     };
 };
 
