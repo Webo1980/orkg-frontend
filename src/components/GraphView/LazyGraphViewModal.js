@@ -1,4 +1,5 @@
-import { faDharmachakra, faHome, faProjectDiagram, faSitemap, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, useId } from 'react';
+import { faDharmachakra, faHome, faProjectDiagram, faSitemap, faSpinner, faWrench } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import ContextMenu from 'components/GraphView/ContextMenu';
 import GraphSearch from 'components/GraphView/GraphSearch';
@@ -6,24 +7,43 @@ import Node from 'components/GraphView/Node';
 import SelectedNodeBox from 'components/GraphView/SelectedNodeBox';
 import useGraphView from 'components/GraphView/hooks/useGraphView';
 import PropTypes from 'prop-types';
-import { useId, useState } from 'react';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Input, Label, Modal, ModalBody, ModalHeader } from 'reactstrap';
 import { GraphCanvas, lightTheme, useSelection } from 'reagraph';
 import RobotoFont from 'components/GraphView/roboto-medium-webfont.woff';
+import AutoComplete from 'components/Autocomplete/Autocomplete';
+import { ENTITIES } from 'constants/graphSettings';
+import { intersection } from 'lodash';
 
 const LazyGraphViewModal = ({ toggle, resourceId }) => {
     const [layoutType, setLayoutType] = useState('forceDirected2d');
     const [layoutSelectionOpen, setLayoutSelectionOpen] = useState(false);
+    const [isBlackList, setIsBlackList] = useState(false);
+    const [isButtonVisible, setIsButtonVisible] = useState(true);
 
     const depthId = useId();
 
-    const { nodes, edges, setDepth, depth, fetchIncomingStatements, isLoadingStatements, collapsed, setCollapsed, graphRef, toggleExpandNode } =
-        useGraphView({ resourceId });
+    const {
+        nodes,
+        edges,
+        setDepth,
+        depth,
+        fetchIncomingStatements,
+        isLoadingStatements,
+        collapsed,
+        setCollapsed,
+        graphRef,
+        toggleExpandNode,
+        setBlackListClasses,
+        blackListClasses,
+    } = useGraphView({ resourceId });
 
     const handleLayoutChange = newLayoutType => {
         setLayoutType(newLayoutType);
     };
-
+    const handleBlackList = () => {
+        setIsButtonVisible(false);
+        setIsBlackList(true);
+    };
     const { onNodePointerOver, onNodePointerOut, selections, actives, onNodeClick, onCanvasClick, setSelections } = useSelection({
         ref: graphRef,
         nodes,
@@ -47,6 +67,17 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
     };
 
     const layoutIcon = layoutIcons[layoutType] || faSitemap;
+
+    const handleResearchFieldSelect = selected => {
+        setBlackListClasses(!selected ? [] : selected);
+    };
+    const renderBlackListClasses = nodes.filter(
+        node =>
+            intersection(
+                blackListClasses.map(c => c.id),
+                node.data.classes,
+            ).length === 0,
+    );
 
     return (
         <Modal size="lg" isOpen toggle={toggle} style={{ maxWidth: '90%', marginBottom: 0 }}>
@@ -107,6 +138,40 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
                                 onChange={e => setDepth(e.target.value)}
                             />
                         </div>
+                        <div className="d-flex ms-3 align-items-center">
+                            {isButtonVisible && (
+                                <Button color="secondary" className="me-2" size="sm" onClick={handleBlackList}>
+                                    <Icon icon={faWrench} className="me-2" />
+                                    Blacklist Classes
+                                </Button>
+                            )}
+                        </div>
+                        {isBlackList && (
+                            <div className="d-flex  align-items-center">
+                                <div className="slide-content">
+                                    <div className="text-end">
+                                        <AutoComplete
+                                            entityType={ENTITIES.CLASS}
+                                            isMulti={true}
+                                            placeholder="Select or create class"
+                                            onChange={handleResearchFieldSelect}
+                                            value={blackListClasses}
+                                            autoLoadOption={true}
+                                            openMenuOnFocus={true}
+                                            allowCreate={true}
+                                            copyValueButton={true}
+                                            isClearable={false}
+                                            autoFocus={false}
+                                            inputGroup={true}
+                                            inputId="target-class"
+                                            cssClasses="form-control-sm"
+                                            isValidNewOption={false}
+                                            ols={false}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <div className="ms-auto me-3 w-100" style={{ maxWidth: 300 }}>
                             <GraphSearch
                                 nodes={nodes}
@@ -146,7 +211,7 @@ const LazyGraphViewModal = ({ toggle, resourceId }) => {
                             },
                         }}
                         edges={edges}
-                        nodes={nodes}
+                        nodes={renderBlackListClasses}
                         selections={selections}
                         collapsedNodeIds={collapsed}
                         layoutType={layoutType}
