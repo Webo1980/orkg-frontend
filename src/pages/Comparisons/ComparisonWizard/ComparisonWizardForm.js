@@ -16,6 +16,7 @@ import { getPaperByDOI, getPaperByTitle } from 'services/backend/misc';
 import { saveFullPaper } from 'services/backend/papers';
 import { getStatementsBySubject } from 'services/backend/statements';
 import { parseCiteResult } from 'utils';
+import env from '@beam-australia/react-env';
 import ManageComparisonWizard from './ManageComparisonWizard';
 
 // CSS styles for the loading container
@@ -55,7 +56,21 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
     const dispatch = useDispatch();
     const { getContentTypeData } = useList();
     const manageComparison = ManageComparisonWizard();
-    const { isBackEndLoading, researchProblems, submitted, sendComparisonDataToBackend, sendTitlePDFURL, titlePDFURL, sendDoiData, doiData, sendAbstractData, abstractData, sendPDFURL, pdfDownloadable, DraggableResizableDiv } = manageComparison;
+    const {
+        isBackEndLoading,
+        researchProblems,
+        submitted,
+        sendComparisonDataToBackend,
+        sendTitlePDFURL,
+        titlePDFURL,
+        sendDoiData,
+        doiData,
+        sendAbstractData,
+        abstractData,
+        sendPDFURL,
+        pdfDownloadable,
+        DraggableResizableDiv,
+    } = manageComparison;
     const [dataObject, setDataObject] = useState({
         uploadedFiles: [], // Initialize with an empty array
     });
@@ -81,14 +96,14 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
 
     useEffect(() => {
         if (Object.keys(titlePDFURL).length > 0) {
-          const updatedResults = results.map(result => ({
-            ...result,
-            pdfFile: titlePDFURL[0].pdfFile,
-          }));
-          setResults(updatedResults);
-          setReturnedData(updatedResults);
+            const updatedResults = results.map(result => ({
+                ...result,
+                pdfFile: titlePDFURL[0].pdfFile,
+            }));
+            setResults(updatedResults);
+            setReturnedData(updatedResults);
         }
-      }, [titlePDFURL]);
+    }, [titlePDFURL]);
 
     useEffect(() => {
         if (Object.keys(doiData).length > 0) {
@@ -228,20 +243,20 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
     const fetchDataByDoi = async value => {
         setIsLoadingCite(true);
         const entryParsed = value.trim();
-        await sendDoiData(entryParsed, 'http://localhost:5003/api/get_meta_data_by_doi');
+        await sendDoiData(entryParsed, `${env('COMPARISON_WIZARD_API')}get_meta_data_by_doi`);
     };
 
     const fetchDataByAbstract = async value => {
         setIsLoadingCite(true);
         const entryParsed = value.trim();
-        await sendAbstractData(entryParsed, 'http://localhost:5003/api/get_meta_data_by_abstract');
+        await sendAbstractData(entryParsed, `${env('COMPARISON_WIZARD_API')}get_meta_data_by_abstract`);
     };
 
     const checkPDFURL = async value => {
         if (value !== '') {
             setIsLoadingCite(true);
             const entryParsed = value.trim();
-            await sendPDFURL(entryParsed, 'http://localhost:5003/api/check_pdf_url');
+            await sendPDFURL(entryParsed, `${env('COMPARISON_WIZARD_API')}check_pdf_url`);
         }
     };
 
@@ -287,7 +302,7 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
             console.log(_results);
             setResults(_results);
             console.log(_results);
-            await sendTitlePDFURL(_results[0].title, 'http://localhost:5003/api/get_pdf_by_title');
+            await sendTitlePDFURL(_results[0].title, `${env('COMPARISON_WIZARD_API')}get_pdf_by_title`);
         } catch (e) {
             const validationMessages = {
                 'This format is not supported or recognized':
@@ -321,7 +336,7 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                 },
             ]);
         }
-        await sendTitlePDFURL(selected.label, 'http://localhost:5003/api/get_pdf_by_title');
+        await sendTitlePDFURL(selected.label, `${env('COMPARISON_WIZARD_API')}get_pdf_by_title`);
     };
 
     const getMetaData = async id => {
@@ -374,7 +389,7 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
             formData.append('data', otherItemsBlob, 'data.json');
         }
         // Send data to the backend and await the response
-        const response = await sendComparisonDataToBackend(formData, 'http://localhost:5003/api/get_research_problems');
+        const response = await sendComparisonDataToBackend(formData, `${env('COMPARISON_WIZARD_API')}get_research_problems`);
         // Extract research_problems from the response
         const researchProblemsData = response;
         const dataToSend = {
@@ -432,11 +447,11 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
     return (
         <>
             <div style={{ position: 'relative' }}>
-                    {isBackEndLoading && (
-                        // Show loading message and icon when loading is true
-                        <div style={loadingContainerStyles}>
-                            <style>
-                                {`
+                {isBackEndLoading && (
+                    // Show loading message and icon when loading is true
+                    <div style={loadingContainerStyles}>
+                        <style>
+                            {`
                         @keyframes spin {
                             0% {
                             transform: rotate(0deg);
@@ -446,16 +461,21 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                             }
                         }
                         `}
-                            </style>
-                            <Icon icon={faSync} className="me-1 loading-icon" style={loadingIconStyles} />
-                        </div>
-                    )}
+                        </style>
+                        <Icon icon={faSync} className="me-1 loading-icon" style={loadingIconStyles} />
+                    </div>
+                )}
                 <div>
                     <ButtonGroup className="w-100 mb-4">
                         <Button size="sm" color={tab === 'file' ? 'primary' : 'light'} style={{ marginRight: 2 }} onClick={() => switchTab('file')}>
                             Upload PDF File (Recomended)
                         </Button>
-                        <Button size="sm" color={tab === 'pdfURL' ? 'primary' : 'light'} style={{ marginRight: 2 }} onClick={() => switchTab('pdfURL')}>
+                        <Button
+                            size="sm"
+                            color={tab === 'pdfURL' ? 'primary' : 'light'}
+                            style={{ marginRight: 2 }}
+                            onClick={() => switchTab('pdfURL')}
+                        >
                             Article PDF URL (Recomended)
                         </Button>
                         <Button size="sm" color={tab === 'title' ? 'primary' : 'light'} style={{ marginRight: 2 }} onClick={() => switchTab('title')}>
@@ -467,7 +487,12 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                         <Button size="sm" color={tab === 'bibtex' ? 'primary' : 'light'} onClick={() => switchTab('bibtex')}>
                             BibTeX
                         </Button>
-                        <Button size="sm" color={tab === 'abstract' ? 'primary' : 'light'} style={{ marginRight: 2 }} onClick={() => switchTab('abstract')}>
+                        <Button
+                            size="sm"
+                            color={tab === 'abstract' ? 'primary' : 'light'}
+                            style={{ marginRight: 2 }}
+                            onClick={() => switchTab('abstract')}
+                        >
                             Abstract
                         </Button>
                     </ButtonGroup>
@@ -503,7 +528,13 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                                         setCollectedData(e.target.value);
                                     }}
                                 />
-                                <Button outline color="primary" style={{ minWidth: 130 }} disabled={isLoadingCite} onClick={() => fetchDataByDoi(doi)}>
+                                <Button
+                                    outline
+                                    color="primary"
+                                    style={{ minWidth: 130 }}
+                                    disabled={isLoadingCite}
+                                    onClick={() => fetchDataByDoi(doi)}
+                                >
                                     {!isLoadingCite ? 'Lookup' : <Icon icon={faSpinner} spin />}
                                 </Button>
                             </InputGroup>
@@ -544,7 +575,13 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                                     }}
                                 />
                             </InputGroup>
-                            <Button color="secondary" size="sm" className="mt-2" disabled={isLoadingCite} onClick={() => fetchDataByAbstract(abstract)}>
+                            <Button
+                                color="secondary"
+                                size="sm"
+                                className="mt-2"
+                                disabled={isLoadingCite}
+                                onClick={() => fetchDataByAbstract(abstract)}
+                            >
                                 {!isLoadingCite ? 'Parse' : <Icon icon={faSpinner} spin />}
                             </Button>
                         </FormGroup>
@@ -562,7 +599,13 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                                         setCollectedData(e.target.value);
                                     }}
                                 />
-                                <Button outline color="primary" style={{ minWidth: 130 }} disabled={isLoadingCite} onClick={() => checkPDFURL(pdfURL)}>
+                                <Button
+                                    outline
+                                    color="primary"
+                                    style={{ minWidth: 130 }}
+                                    disabled={isLoadingCite}
+                                    onClick={() => checkPDFURL(pdfURL)}
+                                >
                                     {!isLoadingCite ? 'Check' : <Icon icon={faSpinner} spin />}
                                 </Button>
                             </InputGroup>
@@ -577,7 +620,7 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                             </InputGroup>
                         </FormGroup>
                     )}
-                    {Object.keys(returnedData).length > 0 && (
+                    {Object.keys(returnedData).length > 0 &&
                         returnedData.map((result, index) => (
                             <div key={index}>
                                 <MetadataTable
@@ -588,75 +631,71 @@ const ComparisonWizardForm = ({ setIsOpen, onDataChange }) => {
                                     venue={result?.publishedIn || ''}
                                     contentTypeId={result?.existingContentTypeId}
                                     pdfFile={
-                                        result?.pdfFile && (
-                                          result.pdfFile?.startsWith('http') ? (
-                                            <a
-                                              href={result.pdfFile}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              onClick={() => setLinkOpened(true)}
-                                            >
-                                              {result.pdfFile} <Icon icon={faExternalLinkAlt} />
+                                        result?.pdfFile &&
+                                        (result.pdfFile?.startsWith('http') ? (
+                                            <a href={result.pdfFile} target="_blank" rel="noopener noreferrer" onClick={() => setLinkOpened(true)}>
+                                                {result.pdfFile} <Icon icon={faExternalLinkAlt} />
                                             </a>
-                                          ) : result.pdfFile === 'The file is downloadable' ? (
+                                        ) : result.pdfFile === 'The file is downloadable' ? (
                                             result.pdfFile // Render the file is downloadable message
-                                          ) : (
-                                                <div>
-                                                    {result.pdfFile}. We recommend you to upload your file under this&nbsp;
-                                                    <a
-                                                        href="#"
-                                                        onClick={e => {
+                                        ) : (
+                                            <div>
+                                                {result.pdfFile}. We recommend you to upload your file under this&nbsp;
+                                                <a
+                                                    href="#"
+                                                    onClick={e => {
                                                         e.preventDefault();
                                                         switchTab('file');
-                                                        }}
-                                                    >
-                                                        tab
-                                                    </a>
-                                                    , or add a direct link to your PDF under the Article PDF URL&nbsp;
-                                                    <a
-                                                        href="#"
-                                                        onClick={e => {
+                                                    }}
+                                                >
+                                                    tab
+                                                </a>
+                                                , or add a direct link to your PDF under the Article PDF URL&nbsp;
+                                                <a
+                                                    href="#"
+                                                    onClick={e => {
                                                         e.preventDefault();
                                                         switchTab('pdfURL');
-                                                        }}
-                                                    >
-                                                        tab
-                                                    </a>.
-                                                </div>
-                                          )
-                                        )
-                                      }
+                                                    }}
+                                                >
+                                                    tab
+                                                </a>
+                                                .
+                                            </div>
+                                        ))
+                                    }
                                 />
                             </div>
-                        ))
-                    )}
+                        ))}
                     {tab !== 'file' && (
-                      <div>
-                        <span>
-                        <Button
-                            color="primary"
-                            className="float-end"
-                            onClick={handleAddItem}
-                            disabled={returnedData[0]?.pdfFile === 'The file is downloadable' ? false : isButtonDisabled()}
-                        >
-                            Add
-                        </Button>
-                        </span>
-                        {Object.keys(returnedData).length > 0 && returnedData[0].pdfFile?.startsWith('http') && (
+                        <div>
                             <span>
-                                <Tippy content="Please double-check that the Paper PDF URL is the corresponding file. When you click on the paper link the add button will be activated. If you find the file that is not what you want to compare, click on Article PDF URL and add the URL or you can upload the file by clicking on the tab File">
-                                    <Icon icon={faQuestionCircle} style={{ marginLeft: '5px' }} />
-                                </Tippy>
+                                <Button
+                                    color="primary"
+                                    className="float-end"
+                                    onClick={handleAddItem}
+                                    disabled={returnedData[0]?.pdfFile === 'The file is downloadable' ? false : isButtonDisabled()}
+                                >
+                                    Add
+                                </Button>
                             </span>
-                        )}
-                      </div>
+                            {Object.keys(returnedData).length > 0 && returnedData[0].pdfFile?.startsWith('http') && (
+                                <span>
+                                    <Tippy content="Please double-check that the Paper PDF URL is the corresponding file. When you click on the paper link the add button will be activated. If you find the file that is not what you want to compare, click on Article PDF URL and add the URL or you can upload the file by clicking on the tab File">
+                                        <Icon icon={faQuestionCircle} style={{ marginLeft: '5px' }} />
+                                    </Tippy>
+                                </span>
+                            )}
+                        </div>
                     )}
                     <form onSubmit={handleFormSubmit}>
                         <Table bordered hover className="m-0">
                             <tbody>
                                 <tr style={{ backgroundColor: '#f7eaec' }}>
                                     <td colSpan={2}>
-                                        <Button type="submit" disabled={addedItems.length < 3}>Compare Entries</Button>
+                                        <Button type="submit" disabled={addedItems.length < 3}>
+                                            Compare Entries
+                                        </Button>
                                     </td>
                                 </tr>
                             </tbody>

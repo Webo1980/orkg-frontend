@@ -11,6 +11,7 @@ import qs from 'qs';
 import { useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import env from '@beam-australia/react-env';
 
 const useContributionEditor = () => {
     const location = useLocation();
@@ -28,17 +29,17 @@ const useContributionEditor = () => {
     const handleCellClick = (contributionId, propertyId, label, approved) => {
         const timestamp = new Date().toLocaleString();
 
-        setClickHistory(prevHistory => [
-            ...prevHistory,
-            { contributionId, propertyId, label, time: timestamp, approved },
-        ]);
+        setClickHistory(prevHistory => [...prevHistory, { contributionId, propertyId, label, time: timestamp, approved }]);
 
         // Recalculate approvalPercentage
-        const newCountApproved = Object.values(clickHistory.reduce((acc, item) => ({ ...acc, [item.label]: item.approved }), {})).filter(status => status).length;
+        const newCountApproved = Object.values(clickHistory.reduce((acc, item) => ({ ...acc, [item.label]: item.approved }), {})).filter(
+            status => status,
+        ).length;
         const newApprovalPercentage = (newCountApproved / countLabels) * 100;
         setApprovalPercentage(newApprovalPercentage);
 
-        const newData = { // Create an object containing the data to be sent
+        const newData = {
+            // Create an object containing the data to be sent
             contributionId,
             propertyId,
             label,
@@ -46,7 +47,7 @@ const useContributionEditor = () => {
             approved,
             folder,
         };
-        fetch('http://localhost:5003/api/save-updated-clicks', {
+        fetch(`${env('COMPARISON_WIZARD_API')}save-updated-clicks`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -55,7 +56,9 @@ const useContributionEditor = () => {
         });
         return false;
     };
-    const countApproved = Object.values(clickHistory.reduce((acc, item) => ({ ...acc, [item.label]: item.approved }), {})).filter(status => status).length;
+    const countApproved = Object.values(clickHistory.reduce((acc, item) => ({ ...acc, [item.label]: item.approved }), {})).filter(
+        status => status,
+    ).length;
     const countLabels = useSelector(state => Object.keys(state.contributionEditor.statements)).length;
     const { hasPreviousVersion } = qs.parse(location.search, { ignoreQueryPrefix: true });
 
@@ -91,7 +94,15 @@ const useContributionEditor = () => {
     };
 
     const Cell = useCallback(
-        cell => <TableCell values={cell.value} contributionId={cell.column.id} propertyId={cell.row.original.property.id} handleCellClick={handleCellClick} clickHistory={clickHistory} />,
+        cell => (
+            <TableCell
+                values={cell.value}
+                contributionId={cell.column.id}
+                propertyId={cell.row.original.property.id}
+                handleCellClick={handleCellClick}
+                clickHistory={clickHistory}
+            />
+        ),
         [],
     );
 
