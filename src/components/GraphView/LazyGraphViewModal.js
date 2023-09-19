@@ -14,7 +14,7 @@ import AutoComplete from 'components/Autocomplete/Autocomplete';
 import { ENTITIES } from 'constants/graphSettings';
 import { intersection } from 'lodash';
 import Tippy from '@tippyjs/react';
-import ActionButtonView from 'components/StatementBrowser/StatementActionButton/ActionButtonView';
+import ActionButtonView from 'components/GraphView/ActionButtonView';
 
 const LazyGraphViewModal = ({ toggle, resourceId }) => {
     const [layoutType, setLayoutType] = useState('forceDirected2d');
