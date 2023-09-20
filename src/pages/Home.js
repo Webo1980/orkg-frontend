@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Container, Row, Col } from 'reactstrap';
 import ResearchFieldCards from 'components/Home/ResearchFieldCards';
 import ObservatoriesBox from 'components/Home/ObservatoriesBox';
@@ -19,9 +19,10 @@ import HelpTour from 'components/Home/HelpTour';
 export default function Home() {
     const location = useLocation();
     const navigate = useNavigate();
+    const params = useParams();
     const { selectedResearchField, handleFieldSelect, researchFields, isLoadingFields } = useResearchFieldSelector({
-        id: RESOURCES.RESEARCH_FIELD_MAIN,
-        label: 'Main',
+        id: params.researchFieldId || RESOURCES.RESEARCH_FIELD_MAIN,
+        label: params.slug || 'Main',
     });
 
     useEffect(() => {
