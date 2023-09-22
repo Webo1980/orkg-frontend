@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button, Card, CardBody, CardSubtitle, CardTitle, Carousel, CarouselItem } from 'reactstrap';
 import { CarouselIndicatorsStyled } from 'components/styled';
 import styled from 'styled-components';
+import Image from 'components/NextJsMigration/Image';
 
 const CarouselContainer = styled.div`
     width: 100%;
@@ -146,7 +147,9 @@ export default function Benefits() {
                                     <Card style={{ border: 0, minHeight: 250 }}>
                                         <CardBody className="pt-0 mb-0 d-flex justify-content-center align-items-center flex-column">
                                             <CardTitle tag="h5" className="pt-0 d-flex">
-                                                <div className="flex-shrink-0" style={{ width: 50 }} />
+                                                <div className="flex-shrink-0" style={{ width: 50 }}>
+                                                    <Image src={item.Icon} />
+                                                </div>
                                                 <div className="align-items-center d-flex">{item.title}</div>
                                             </CardTitle>
                                             <CardSubtitle tag="h6" className="mb-1 text-muted">
