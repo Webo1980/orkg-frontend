@@ -2,7 +2,7 @@
 import { Navigate } from 'react-router-dom';
 
 // CRA-CODE
-const redirect = params => <Navigate to={params} />;
+const redirect = params => <Navigate to={params} replace />;
 
 export default redirect;
 
