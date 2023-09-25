@@ -39,6 +39,7 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import StyledComponentsRegistry from 'lib/registry';
 import PropTypes from 'prop-types';
+import ResetStoreOnNavigate from 'components/ResetStoreOnNavigate/ResetStoreOnNavigate';
 
 config.autoAddCss = false;
 
@@ -72,6 +73,15 @@ plugins.input.add('@doi/id', {
         predicate: REGEX.DOI_ID,
     },
 });
+
+// temporary remove warnings about defaultProps because it makes it more difficult to debug other issues
+// https://github.com/recharts/recharts/issues/3615#issuecomment-1636923358
+// https://gitlab.com/TIBHannover/orkg/orkg-frontend/-/issues/1505
+const error = console.error;
+console.error = (...args) => {
+    if (/defaultProps/.test(args[0])) return;
+    error(...args);
+};
 
 // const { store, history } = configureStore();
 const { store } = configureStore();
@@ -205,39 +215,41 @@ const RootLayout = ({ children }) => {
                     <DndProvider backend={HTML5Backend}>
                         <CookiesProvider>
                             <Provider store={store}>
-                                <ThemeProvider theme={theme}>
-                                    <MathJaxContext config={MATH_JAX_CONFIG}>
-                                        <MatomoProvider value={matomoInstance}>
-                                            {/* <Router basename={env('PUBLIC_URL')} history={history}> */}
-                                            {/* <ScrollToTop> */}
-                                            {/* <ErrorBoundary> */}
-                                            <DefaultLayout>
-                                                {showBrowserWarning && (
-                                                    <Alert color="danger" style={alertStyle} className="text-center">
-                                                        <strong>Outdated browser</strong> You are using Internet Explorer which is not supported.
-                                                        Please upgrade your browser for the best experience
-                                                    </Alert>
-                                                )}
-                                                {env('IS_TESTING_SERVER') === 'true' && (
-                                                    <>
-                                                        <Helmet>
-                                                            <meta name="robots" content="noindex" />{' '}
-                                                            {/* make sure search engines are not indexing our test server */}
-                                                        </Helmet>
-                                                        <Alert color="warning" style={alertStyle} className="text-center">
-                                                            <strong>Warning:</strong> You are using a testing environment. Data you enter in the
-                                                            system can be deleted without any notice.
+                                <ResetStoreOnNavigate>
+                                    <ThemeProvider theme={theme}>
+                                        <MathJaxContext config={MATH_JAX_CONFIG}>
+                                            <MatomoProvider value={matomoInstance}>
+                                                {/* <Router basename={env('PUBLIC_URL')} history={history}> */}
+                                                {/* <ScrollToTop> */}
+                                                {/* <ErrorBoundary> */}
+                                                <DefaultLayout>
+                                                    {showBrowserWarning && (
+                                                        <Alert color="danger" style={alertStyle} className="text-center">
+                                                            <strong>Outdated browser</strong> You are using Internet Explorer which is not supported.
+                                                            Please upgrade your browser for the best experience
                                                         </Alert>
-                                                    </>
-                                                )}
-                                                {children}
-                                            </DefaultLayout>
-                                            {/* </ErrorBoundary> */}
-                                            {/* </ScrollToTop> */}
-                                            {/* </Router> */}
-                                        </MatomoProvider>
-                                    </MathJaxContext>
-                                </ThemeProvider>
+                                                    )}
+                                                    {env('IS_TESTING_SERVER') === 'true' && (
+                                                        <>
+                                                            <Helmet>
+                                                                <meta name="robots" content="noindex" />{' '}
+                                                                {/* make sure search engines are not indexing our test server */}
+                                                            </Helmet>
+                                                            <Alert color="warning" style={alertStyle} className="text-center">
+                                                                <strong>Warning:</strong> You are using a testing environment. Data you enter in the
+                                                                system can be deleted without any notice.
+                                                            </Alert>
+                                                        </>
+                                                    )}
+                                                    {children}
+                                                </DefaultLayout>
+                                                {/* </ErrorBoundary> */}
+                                                {/* </ScrollToTop> */}
+                                                {/* </Router> */}
+                                            </MatomoProvider>
+                                        </MathJaxContext>
+                                    </ThemeProvider>
+                                </ResetStoreOnNavigate>
                             </Provider>
                         </CookiesProvider>
                     </DndProvider>

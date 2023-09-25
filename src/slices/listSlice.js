@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import arrayMove from 'array-move';
-import { LOCATION_CHANGE } from 'utils';
+import { LOCATION_CHANGE } from 'components/ResetStoreOnNavigate/ResetStoreOnNavigate';
 import { CLASSES, PREDICATES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
 import dotProp from 'dot-prop-immutable';

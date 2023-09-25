@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { LOCATION_CHANGE } from 'components/ResetStoreOnNavigate/ResetStoreOnNavigate';
 import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
 import ROUTES from 'constants/routes';
 import { uniqBy } from 'lodash';
@@ -15,7 +16,6 @@ import {
     getTemplateById,
     getTemplatesByClass,
 } from 'services/backend/statements';
-import { LOCATION_CHANGE } from 'utils';
 
 const initialState = {
     label: '',

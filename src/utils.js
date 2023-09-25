@@ -9,7 +9,6 @@ import qs from 'qs';
 import { Cookies } from 'react-cookie';
 import env from 'components/NextJsMigration/env';
 import slugifyString from 'slugify';
-import { LOCATION_CHANGE as LOCATION_CHANGE_RFH } from 'redux-first-history';
 import { getStatementsBySubject, getStatementsBySubjects } from 'services/backend/statements';
 
 const cookies = new Cookies();
@@ -939,9 +938,6 @@ export const getDataBasedOnType = (resource, statements) => {
     }
     return undefined;
 };
-
-const isInTest = typeof global.it === 'function';
-export const LOCATION_CHANGE = !isInTest ? LOCATION_CHANGE_RFH : 'NoReset';
 
 export const handleSortableHoverReactDnd = ({ item, monitor, currentRef, hoverIndex, handleUpdate }) => {
     if (!currentRef) {

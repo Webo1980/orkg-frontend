@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { LOCATION_CHANGE } from 'components/ResetStoreOnNavigate/ResetStoreOnNavigate';
 import DATA_TYPES from 'constants/DataTypes.js';
 import { CLASSES, ENTITIES, PREDICATES } from 'constants/graphSettings';
 import REGEX from 'constants/regex';
@@ -19,7 +20,7 @@ import {
     getTemplatesByClass,
 } from 'services/backend/statements';
 import format from 'string-format';
-import { filterStatementsBySubjectId, guid, LOCATION_CHANGE } from 'utils';
+import { filterStatementsBySubjectId, guid } from 'utils';
 
 const cookies = new Cookies();
 
