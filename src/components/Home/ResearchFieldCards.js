@@ -107,10 +107,6 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
     const [stats, setStats] = useState(null);
     const rfAutocompleteRef = useRef(null);
     const [showMoreFields, setShowMoreFields] = useState(false);
-    // const { selectedResearchField, handleFieldSelect, researchFields, isLoadingFields } = useResearchFieldSelector({
-    //     id: RESOURCES.RESEARCH_FIELD_MAIN,
-    //     label: 'Main',
-    // });
 
     useEffect(() => {
         fetchResearchFieldsStats();
@@ -182,8 +178,8 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                                         disabled={has(stats, field.id) && stats[field.id] === 0}
                                         onClick={() => handleFieldSelect(field)}
                                         to={reverseWithSlug(ROUTES.HOME_WITH_RESEARCH_FIELD, {
-                                            researchFieldId: field.id,
-                                            slug: field.label,
+                                            researchFieldId: selectedResearchField.id,
+                                            slug: selectedResearchField.label,
                                         })}
                                     >
                                         <CardTitle className="card-title m-0 text-center"> {field.label}</CardTitle>
@@ -201,8 +197,8 @@ const ResearchFieldCards = ({ selectedResearchField, handleFieldSelect, research
                                             disabled={has(stats, field.id) && stats[field.id] === 0}
                                             onClick={() => handleFieldSelect(field)}
                                             to={reverseWithSlug(ROUTES.HOME_WITH_RESEARCH_FIELD, {
-                                                researchFieldId: field.id,
-                                                slug: field.label,
+                                                researchFieldId: selectedResearchField.id,
+                                                slug: selectedResearchField.label,
                                             })}
                                         >
                                             <CardTitle className="card-title m-0 text-center">{field.label}</CardTitle>
