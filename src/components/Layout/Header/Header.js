@@ -36,6 +36,7 @@ import { ORGANIZATIONS_MISC, ORGANIZATIONS_TYPES } from 'constants/organizations
 import UserTooltip from 'components/Layout/Header/UserTooltip';
 import SearchForm from 'components/Layout/Header/SearchForm';
 import AddNew from 'components/Layout/Header/AddNew';
+import { match } from 'path-to-regexp';
 
 const cookies = new Cookies();
 
@@ -189,7 +190,7 @@ const Header = () => {
     const [isOpenViewMenu, setIsOpenViewMenu] = useState(false);
     const [logoutTimeoutId, setLogoutTimeoutId] = useState(null);
     const location = useLocation();
-    const isHomePath = location.pathname === ROUTES.HOME;
+    const isHomePath = location.pathname === ROUTES.HOME || !!match(ROUTES.HOME_WITH_RESEARCH_FIELD)(location.pathname);
     const [isTransparentNavbar, setIsTransparentNavbar] = useState(isHomePath);
     const [isHomePage, setIsHomePage] = useState(isHomePath);
     const user = useSelector(state => state.auth.user);
@@ -234,7 +235,7 @@ const Header = () => {
                 if (isTransparentNavbar) {
                     setIsTransparentNavbar(false);
                 }
-            } else if (!isTransparentNavbar && location.pathname === ROUTES.HOME) {
+            } else if (!isTransparentNavbar && isHomePage) {
                 setIsTransparentNavbar(true);
             }
         };
@@ -523,7 +524,7 @@ const Header = () => {
                 <Authentication />
             </StyledNavbar>
 
-            {location.pathname === ROUTES.HOME && <Jumbotron />}
+            {isHomePage && <Jumbotron />}
         </StyledTopBar>
     );
 };
