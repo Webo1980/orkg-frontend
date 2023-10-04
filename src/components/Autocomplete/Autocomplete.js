@@ -58,8 +58,29 @@ export const DEFAULT_SOURCES = [
     { external: false, id: 'GeoNames', label: 'GeoNames', ontologyId: 'geonames', uri: 'http://geonames.org' },
 ];
 
-function Autocomplete(props) {
-    const [inputValue, setInputValue] = useState(typeof props.value !== 'object' || props.value === null ? props.value : null);
+const Autocomplete = props => {
+    const {
+        value,
+        cssClasses,
+        eventListener,
+        openMenuOnFocus,
+        isClearable,
+        isDisabled,
+        copyValueButton,
+        linkButton,
+        linkButtonTippy,
+        isMulti,
+        autoFocus,
+        ols,
+        inputGroup,
+        inputId,
+        menuPortalTarget,
+        allowCreateDuplicate,
+        fixedOptions,
+        showTreeSelector,
+        placeholder,
+    } = props;
+    const [inputValue, setInputValue] = useState(typeof value !== 'object' || value === null ? value : null);
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [ontologySelectorIsOpen, setOntologySelectorIsOpen] = useState(false);
 
@@ -112,10 +133,10 @@ function Autocomplete(props) {
 
     // reset the value input if the selected value is null
     useEffect(() => {
-        if (props.value === null) {
+        if (value === null) {
             setInputValue('');
         }
-    }, [props.value]);
+    }, [value]);
 
     useEffect(() => {
         const getSources = async () => {
@@ -393,7 +414,7 @@ function Autocomplete(props) {
             // Add resources from third party registries
             // get ExternalData only when ols is true or the optionsClass exist
             // to load data from Geonames in case of optionsClass set to Location
-            if (props.requestUrl !== olsBaseUrl && (props.ols || props.optionsClass)) {
+            if (props.requestUrl !== olsBaseUrl && (ols || props.optionsClass)) {
                 try {
                     const promises = await Promise.all(
                         getExternalData({
@@ -403,7 +424,7 @@ function Autocomplete(props) {
                             options,
                             optionsClass: props.optionsClass,
                             entityType: props.entityType,
-                            selectedOntologies: props.ols ? selectedOntologies : [],
+                            selectedOntologies: ols ? selectedOntologies : [],
                         }),
                     );
                     for (const data of promises) {
@@ -454,26 +475,26 @@ function Autocomplete(props) {
             ((!action.option && selected.external) || (action.option && action.option.external))
         ) {
             let foundIndex;
-            if (props.isMulti) {
+            if (isMulti) {
                 foundIndex = selected.findIndex(x => x.id === action.option.id);
             }
             try {
                 const internalClass = await getClasses({
-                    uri: props.isMulti ? action.option.uri.trim() : selected.uri.trim(),
+                    uri: isMulti ? action.option.uri.trim() : selected.uri.trim(),
                 });
-                if (props.isMulti) {
+                if (isMulti) {
                     selected[foundIndex] = internalClass;
                 } else {
                     selected = internalClass;
                 }
             } catch (error) {
-                const n = props.isMulti ? action.option : selected;
+                const n = isMulti ? action.option : selected;
                 const newClass = await createClass(n.label, n.uri ? n.uri : null);
                 if (n.description && n.description.trim() !== '') {
                     const descriptionLiteral = await createLiteral(n.description);
                     createLiteralStatement(newClass.id, PREDICATES.DESCRIPTION, descriptionLiteral.id);
                 }
-                if (props.isMulti) {
+                if (isMulti) {
                     selected[foundIndex] = newClass;
                 } else {
                     selected = newClass;
@@ -600,14 +621,14 @@ function Autocomplete(props) {
      *
      */
     const handleCopyClick = () => {
-        if (navigator.clipboard && props.value && props.value.id) {
-            navigator.clipboard.writeText(props.value.id);
+        if (navigator.clipboard && value && value.id) {
+            navigator.clipboard.writeText(value.id);
             toast.success('ID copied to clipboard');
         }
     };
 
     const Control = useCallback(innerProps => {
-        if (props.eventListener) {
+        if (eventListener) {
             return (
                 <NativeListener
                     onMouseUp={e => {
@@ -625,7 +646,7 @@ function Autocomplete(props) {
     }, []);
 
     const DropdownIndicator = useCallback(innerProps => {
-        if (props.eventListener) {
+        if (eventListener) {
             return (
                 <NativeListener
                     onMouseUp={e => {
@@ -647,7 +668,7 @@ function Autocomplete(props) {
         ({ children, ...innerProps }) => (
             <components.Menu {...innerProps}>
                 <div>{children}</div>
-                {props.ols && (
+                {ols && (
                     <StyledMenuListHeader className="d-flex justify-content-between align-items-center p-1 d-flex">
                         <div className="d-flex align-items-center">
                             <div className="ps-2 align-items-center d-flex">
@@ -692,11 +713,11 @@ function Autocomplete(props) {
             </components.Menu>
         ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectedOntologies.map(o => o.id).join(','), inputValue, props.ols],
+        [selectedOntologies.map(o => o.id).join(','), inputValue, ols],
     );
 
     const Option = useCallback(({ children, ...innerProps }) => {
-        if (props.eventListener) {
+        if (eventListener) {
             return (
                 <NativeListener
                     onMouseDown={e => {
@@ -724,7 +745,7 @@ function Autocomplete(props) {
             minHeight: 'initial',
             borderRadius: 'inherit',
             '&>div:first-of-type': {
-                ...(props.cssClasses && props.cssClasses.includes('form-control-sm') ? { padding: '0 8px !important' } : {}),
+                ...(cssClasses && cssClasses.includes('form-control-sm') ? { padding: '0 8px !important' } : {}),
             },
             whiteSpace: 'nowrap' /* ensure the placeholder is not wrapped when animating the width */,
         }),
@@ -743,13 +764,11 @@ function Autocomplete(props) {
             cursor: 'pointer',
             '&>div:last-of-type': {
                 // openMenu buttons
-                ...(props.cssClasses && props.cssClasses.includes('form-control-sm') ? { padding: '4px !important' } : {}),
+                ...(cssClasses && cssClasses.includes('form-control-sm') ? { padding: '4px !important' } : {}),
             },
             '&>div:nth-last-of-type(2)': {
                 // clear button
-                ...(props.cssClasses && props.cssClasses.includes('form-control-sm') && !props.isDisabled && props.isClearable
-                    ? { padding: '4px !important' }
-                    : {}),
+                ...(cssClasses && cssClasses.includes('form-control-sm') && !isDisabled && isClearable ? { padding: '4px !important' } : {}),
             },
         }),
         menu: provided => ({
@@ -786,25 +805,25 @@ function Autocomplete(props) {
 
     return (
         <ConditionalWrapper
-            condition={props.copyValueButton || props.showTreeSelector}
+            condition={copyValueButton || showTreeSelector}
             wrapper={children => (
-                <ConditionalWrapper condition={props.inputGroup} wrapper={children => <InputGroup size="sm">{children}</InputGroup>}>
+                <ConditionalWrapper condition={inputGroup} wrapper={children => <InputGroup size="sm">{children}</InputGroup>}>
                     {children}
-                    {props.showTreeSelector && props.value && props.value.id && (
-                        <TreeSelector value={props.value} handleExternalSelect={handleExternalSelect} isDisabled={props.isDisabled} />
+                    {showTreeSelector && value && value.id && (
+                        <TreeSelector value={value} handleExternalSelect={handleExternalSelect} isDisabled={isDisabled} />
                     )}
-                    {props.copyValueButton && props.value && props.value.id && (
+                    {copyValueButton && value && value.id && (
                         <>
-                            <Button disabled={!props.value || !props.value.id} onClick={handleCopyClick} outline>
+                            <Button disabled={!value || !value.id} onClick={handleCopyClick} outline>
                                 <Tippy content="Copy the id to clipboard">
                                     <span>
                                         <Icon icon={faClipboard} size="sm" />
                                     </span>
                                 </Tippy>
                             </Button>
-                            {props.linkButton && (
-                                <Link target="_blank" to={props.linkButton} className="btn btn-sm btn-outline-secondary align-items-center d-flex">
-                                    <Tippy content={props.linkButtonTippy}>
+                            {linkButton && (
+                                <Link target="_blank" to={linkButton} className="btn btn-sm btn-outline-secondary align-items-center d-flex">
+                                    <Tippy content={linkButtonTippy}>
                                         <span>
                                             <Icon icon={faLink} size="sm" />
                                         </span>
@@ -823,15 +842,11 @@ function Autocomplete(props) {
                     toggle={() => setOntologySelectorIsOpen(v => !v)}
                 />
             )}
-            <StyledAutoCompleteInputFormControl className={`form-control ${props.cssClasses ? props.cssClasses : 'default'} border-0`}>
+            <StyledAutoCompleteInputFormControl className={`form-control ${cssClasses || 'default'} border-0`}>
                 <SelectGlobalStyle />
                 <Select
                     key={JSON.stringify(selectedOntologies.map(o => o.id))}
-                    value={
-                        props.isMulti && props.fixedOptions?.length
-                            ? props.value?.map?.(v => ({ ...v, isFixed: props.fixedOptions.includes(v.id) }))
-                            : props.value
-                    }
+                    value={isMulti && fixedOptions?.length ? value?.map?.(v => ({ ...v, isFixed: fixedOptions.includes(v.id) })) : value}
                     loadOptions={loadOptions}
                     debounceTimeout={300}
                     additional={defaultAdditional}
@@ -847,17 +862,17 @@ function Autocomplete(props) {
                     onInputChange={handleInputChange}
                     inputValue={inputValue || ''}
                     styles={customStyles}
-                    placeholder={props.placeholder}
-                    aria-label={props.placeholder}
-                    autoFocus={props.autoFocus}
+                    placeholder={placeholder}
+                    aria-label={placeholder}
+                    autoFocus={autoFocus}
                     cacheOptions={false}
                     defaultOptions={props.defaultOptions ?? true}
-                    openMenuOnFocus={props.openMenuOnFocus}
+                    openMenuOnFocus={openMenuOnFocus}
                     onBlur={props.onBlur}
                     onKeyDown={handleKeyDown}
                     selectRef={props.innerRef}
                     createOptionPosition="first"
-                    menuPortalTarget={props.menuPortalTarget}
+                    menuPortalTarget={menuPortalTarget}
                     components={{
                         Option,
                         Menu,
@@ -869,20 +884,20 @@ function Autocomplete(props) {
                     onMenuClose={() => setMenuIsOpen(false)}
                     getOptionLabel={({ label }) => label}
                     getOptionValue={({ id }) => id}
-                    isClearable={props.isClearable}
-                    isDisabled={props.isDisabled}
-                    isMulti={props.isMulti}
-                    inputId={props.inputId}
+                    isClearable={isClearable}
+                    isDisabled={isDisabled}
+                    isMulti={isMulti}
+                    inputId={inputId}
                     classNamePrefix="react-select"
                     isValidNewOption={(inputValue, selectValue, selectOptions) => {
                         if (props.handleCreateExistingLabel) {
                             // to disable the create button
                             props.handleCreateExistingLabel(inputValue, selectOptions);
                         }
-                        if (!props.allowCreate && !props.allowCreateDuplicate) {
+                        if (!props.allowCreate && !allowCreateDuplicate) {
                             return false;
                         }
-                        if (inputValue && props.allowCreateDuplicate) {
+                        if (inputValue && allowCreateDuplicate) {
                             return true;
                         }
                         return !(
@@ -895,7 +910,7 @@ function Autocomplete(props) {
             </StyledAutoCompleteInputFormControl>
         </ConditionalWrapper>
     );
-}
+};
 
 Autocomplete.propTypes = {
     requestUrl: PropTypes.string,
@@ -942,25 +957,25 @@ Autocomplete.propTypes = {
     showTreeSelector: PropTypes.bool,
 };
 
-Autocomplete.defaultProps = {
-    cssClasses: '',
-    eventListener: false,
-    openMenuOnFocus: false,
-    isClearable: false,
-    isDisabled: false,
-    copyValueButton: false,
-    linkButton: null,
-    isMulti: false,
-    autoFocus: true,
-    ols: true,
-    inputGroup: true,
-    inputId: null,
-    inputValue: null,
-    menuPortalTarget: null,
-    allowCreateDuplicate: false,
-    cacheOptions: false,
-    fixedOptions: [],
-    showTreeSelector: false,
-    placeholder: '',
-};
+// Autocomplete.defaultProps = {
+//     cssClasses: '',
+//     eventListener: false,
+//     openMenuOnFocus: false,
+//     isClearable: false,
+//     isDisabled: false,
+//     copyValueButton: false,
+//     linkButton: null,
+//     isMulti: false,
+//     autoFocus: true,
+//     ols: true,
+//     inputGroup: true,
+//     inputId: null,
+//     inputValue: null,
+//     menuPortalTarget: null,
+//     allowCreateDuplicate: false,
+//     cacheOptions: false,
+//     fixedOptions: [],
+//     showTreeSelector: false,
+//     placeholder: '',
+// };
 export default withTheme(Autocomplete);
